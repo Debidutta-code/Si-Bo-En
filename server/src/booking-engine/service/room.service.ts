@@ -529,9 +529,15 @@ class ChargeValidator {
     }
 
     validate(): boolean {
-        if (this.charges.length !== this.dates.length) return false;
+        // ✅ Stay charges = all except last (which is checkout date)
+        const stayCharges = this.charges.slice(0, this.dates.length);
+        const checkoutCharge = this.charges[this.dates.length]; // extra checkout date charge
 
-        for (const charge of this.charges) {
+        // Must have a charge for every stay night
+        if (stayCharges.length !== this.dates.length) return false;
+
+        // Validate each stay night
+        for (const charge of stayCharges) {
             if (charge.isSaleStopped) return false;
 
             const dow = new Date(charge.date).getDay();
@@ -547,11 +553,11 @@ class ChargeValidator {
             if (!charge[dowFields[dow]]) return false;
         }
 
-        const checkInCharge = this.charges[0];
-        if (checkInCharge?.isClosedToArrival) return false;
+        // ✅ CTA check on checkin date (first stay night)
+        if (stayCharges[0]?.isClosedToArrival) return false;
 
-        const checkOutCharge = this.charges[this.charges.length - 1];
-        if (checkOutCharge?.isClosedToDeparture) return false;
+        // ✅ CTD check on checkout date (the extra charge we fetched)
+        if (checkoutCharge?.isClosedToDeparture) return false;
 
         return true;
     }

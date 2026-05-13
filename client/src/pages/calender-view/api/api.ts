@@ -1,7 +1,7 @@
 // api/inventory.api.ts
 
 import createAxiosInstance from "@/components/axiosInstance";
-import type { InventoryAnalysisFilters } from "../interfaces/inventory.interfaces";
+import type { InventoryAnalysisFilters, IRatePlanRuleUpdate } from "../interfaces/inventory.interfaces";
 
 export async function getInventoryAnalysis(
   propertyId: string,
@@ -193,6 +193,26 @@ export async function upsertBookingOffsetsApi(
     const response = await axiosInstance.patch(
       `/ari/booking-offset/${propertyId}`,
       { ratePlanId, entries },
+    );
+    return response.data;
+  } catch (error: any) {
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+    return { success: false, message: error?.message };
+  }
+}
+
+
+export async function updateRatePlanRulesApi(
+  ratePlanCode: string,
+  ruleData: IRatePlanRuleUpdate
+) {
+  const axiosInstance = createAxiosInstance();
+  try {
+    const response = await axiosInstance.patch(
+      `/ari/rate-plan/rule/${ratePlanCode}`,
+      ruleData
     );
     return response.data;
   } catch (error: any) {

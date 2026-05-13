@@ -41,7 +41,14 @@ export interface InventoryAnalysisResponse {
   };
   timestamp: string;
 }
-
+export interface IRatePlanRuleUpdate {
+  b2bAvailable: boolean;
+  b2cAvailable: boolean;
+  maximumLengthOfStay: number;
+  minimumLengthOfStay: number;
+  startDate?: string | null;
+  endDate?: string | null;
+}
 export interface DayData {
   date: number;
   dayOfWeek: string;
@@ -65,6 +72,8 @@ export interface RoomTypeData {
   roomName?: string;
   available: number;
   sold: number;
+  maxAdults: number;
+  maxChildren: number;
   occupancy: number;
   status: string;
 }

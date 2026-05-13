@@ -2,6 +2,7 @@
 import { useTranslation } from "react-i18next";
 import CancelModal from "../../../components/BookingModals/CancelModal";
 import ModifyBookingModal from "@/src/components/BookingModals/ModifyBookingmodal";
+import ImageUploadModal from "@/src/components/ImageUploadModal";
 import { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch } from "react-redux";
@@ -35,6 +36,7 @@ export default function MyTripPage() {
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
   const [checkinForm, setCheckinForm] = useState({
     userIdentityCardType: "NATIONAL_ID",
     identityCardNumber: "",
@@ -43,6 +45,7 @@ export default function MyTripPage() {
     state: "",
     country: "",
     zipCode: "",
+    identityCardImage:"",
   });
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -220,6 +223,7 @@ export default function MyTripPage() {
     yLeft += 10;
     doc.setTextColor(50);
     doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
     if (bookingData.guests && bookingData.guests.length > 0) {
       const primary = bookingData.guests.find((g: any) => g.type === "adult");
       if (primary) {
@@ -371,7 +375,10 @@ export default function MyTripPage() {
   const handleCheckInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingData?.bookingCode) return;
-
+if(!checkinForm.identityCardImage){
+      toast.error("Add Identity Image")
+      return
+    }
     setIsCheckingIn(true);
     try {
       const res = await fetch(
@@ -425,8 +432,6 @@ export default function MyTripPage() {
       setIsCheckingOut(false);
     }
   };
-
-  // //console.log("bookingdata", bookingData)
 
   return (
     <div className="min-h-screen bg-gray-100 px-4  py-12 flex flex-col items-center">
@@ -548,11 +553,15 @@ export default function MyTripPage() {
               >
                 <HiOutlineViewGridAdd className="inline mr-2" /> {t("MyTrip.viewBooking")}
               </button>
-              {bookingData.bookingStatus === "confirmed" && (
+              {(bookingData.bookingStatus === "confirmed"||bookingData.bookingStatus=="modified") && (
                 <button
                   onClick={() => setIsCheckinDialogOpen(true)}
-                  className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
-                  style={{ background: colors.primaryColor }}
+                  disabled={new Date(bookingData.reservationStartDate).toDateString() !== new Date().toDateString()}
+                  className="px-4 py-2 rounded-md font-medium hover:opacity-90 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: new Date(bookingData.reservationStartDate).toDateString() === new Date().toDateString() ? colors.primaryColor : "#e5e7eb",
+                    color: new Date(bookingData.reservationStartDate).toDateString() === new Date().toDateString() ? "white" : "#9ca3af"
+                  }}
                 >
                   Check In Now
                 </button>
@@ -560,8 +569,12 @@ export default function MyTripPage() {
               {bookingData.bookingStatus === "checked_in" && (
                 <button
                   onClick={() => setIsCheckoutDialogOpen(true)}
-                  className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
-                  style={{ background: "#e53e3e" }}
+                  disabled={new Date(bookingData.reservationEndDate).toDateString() !== new Date().toDateString()}
+                  className="px-4 py-2 rounded-md font-medium hover:opacity-90 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    background: new Date(bookingData.reservationEndDate).toDateString() === new Date().toDateString() ? "#e53e3e" : "#e5e7eb",
+                    color: new Date(bookingData.reservationEndDate).toDateString() === new Date().toDateString() ? "white" : "#9ca3af"
+                  }}
                 >
                   Check Out Now
                 </button>
@@ -841,8 +854,6 @@ export default function MyTripPage() {
                     </div>
                   )}
 
-                  {/* Addon Breakdown */}
-                  {/* Addon Breakdown */}
                   {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (() => {
                     // Group by name and sum totalAmount
                     const grouped = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
@@ -939,21 +950,7 @@ export default function MyTripPage() {
                     )}
                   </div>
                 </div>
-                {/* Daily Breakdown if available */}
-                {/* {bookingData.finalPrice?.dailyBreakdown && (
-                  <div className="mt-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Daily Rate Breakdown:</p>
-                    {bookingData.finalPrice.dailyBreakdown.map((day: any, index: number) => (
-                      <div key={index} className="flex justify-between items-center text-sm border-b py-2 last:border-0">
-                        <div>
-                          <p className="font-medium">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</p>
-                          <p className="text-gray-500 text-xs">{new Date(day.date).toLocaleDateString()}</p>
-                        </div>
-                        <p className="font-semibold">${day.baseRate.toLocaleString()}</p>
-                      </div>
-                    ))}
-                  </div>
-                )} */}
+               
               </div>
               {/* Additional Information */}
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -1080,10 +1077,10 @@ export default function MyTripPage() {
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
                     required
                   >
-                    <option value="NATIONAL_ID">National ID</option>
-                    <option value="PASSPORT">Passport</option>
-                    <option value="DRIVERS_LICENSE">Driver's License</option>
-                    <option value="OTHER">Other</option>
+                    <option value="national_id">National ID</option>
+                    <option value="passport">Passport</option>
+                    <option value="drivers_license">Driver's License</option>
+                    <option value="others">Other</option>
                   </select>
                 </div>
 
@@ -1153,6 +1150,40 @@ export default function MyTripPage() {
                 </div>
               </div>
 
+              {/* Identity Image Upload */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-600">Identity Document Image <span className="text-red-500">*</span></label>
+                <div className="flex items-center gap-2">
+                  {checkinForm.identityCardImage ? (
+                    <div className="flex items-center gap-2 w-full">
+                      <img 
+                        src={checkinForm.identityCardImage} 
+                        alt="Identity" 
+                        className="h-16 w-16 object-cover rounded border border-gray-300"
+                      />
+                      <div className="flex-1 text-sm text-gray-600">
+                        <p>Image uploaded successfully</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setCheckinForm({ ...checkinForm, identityCardImage: "" })}
+                        className="text-red-500 hover:text-red-700 text-sm font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsImageUploadModalOpen(true)}
+                      className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                    >
+                      Upload Image
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="pt-4 flex gap-3 justify-end">
                 <button
                   type="button"
@@ -1174,6 +1205,19 @@ export default function MyTripPage() {
           </div>
         </div>
       )}
+
+      {/* Image Upload Modal */}
+      <ImageUploadModal
+        isOpen={isImageUploadModalOpen}
+        onClose={() => setIsImageUploadModalOpen(false)}
+        onUploadSuccess={(urls) => {
+          // Accept only the first image
+          if (urls.length > 0) {
+            setCheckinForm({ ...checkinForm, identityCardImage: urls[0] });
+            toast.success("Identity image uploaded successfully");
+          }
+        }}
+      />
 
       {isCheckoutDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

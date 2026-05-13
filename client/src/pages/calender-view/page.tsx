@@ -491,6 +491,8 @@ export default function InventoryPage() {
         total: rt.available + rt.sold,
         sold: rt.sold,
         available: rt.available,
+        maxAdults: rt.maxAdults,
+        maxChildren: rt.maxChildren,
         occupancy: rt.occupancy,
         status: (rt.status === "open" ? "open" : "close") as "open" | "close", // ✅ Type-safe conversion
       })),
@@ -647,7 +649,7 @@ export default function InventoryPage() {
                   )}
                   onMouseEnter={(index) => setHoveredDay(index)}
                   onMouseLeave={() => setHoveredDay(null)}
-                  onDataUpdate={() => fetchInventoryData(true)}
+                  onDataUpdate={() => fetchInventoryData(false)}
                 />
               </div>
             )}

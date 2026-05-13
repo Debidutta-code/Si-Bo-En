@@ -1,9 +1,7 @@
 // components/RoomTypeSection.tsx
 
 import React from "react";
-// import { InventoryDay } from "../types/inventory";
 import { ArrowRight, Save } from "lucide-react";
-// import { Switch } from "../../../../components/ui/switch";
 import toast from "react-hot-toast";
 
 import { RatePlanSection } from "./RatePlanSection";
@@ -24,10 +22,6 @@ import {
   handleBulkRoomRestrictionToggle,
   handleRoomRestrictionToggle,
 } from "../features/restrictionHandlers";
-// import {
-//   removeCTAorCTDRestriction,
-//   updateCTAorCTDRestriction,
-// } from "../api/api";
 
 interface RoomTypeSectionProps {
   roomType: string;
@@ -62,6 +56,18 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
   const roomTypeData = getRoomTypeData(roomType, days);
   const matchedRoom = roomSetupData?.find((r) => r.roomType === roomType);
   const displayName = matchedRoom ? matchedRoom.roomName : roomType;
+
+  const getRoomCTAValue = (day: InventoryDay): boolean => {
+    return day.ratePlans?.some(rp =>
+      rp.prices?.some(p => p.invTypeCode === roomType && p.cta === true)
+    ) || false;
+  };
+
+  const getRoomCTDValue = (day: InventoryDay): boolean => {
+    return day.ratePlans?.some(rp =>
+      rp.prices?.some(p => p.invTypeCode === roomType && p.ctd === true)
+    ) || false;
+  };
 
   return (
     <div className="mb-6 border border-gray-300 rounded-lg">
@@ -120,7 +126,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
           {/* Restrictions Section */}
           {state.showRestrictions && (
             <>
-              {/* Room CTA */}
+              {/* Room CTA - Bulk Toggle */}
               <div className="h-12 flex border-b border-gray-300">
                 <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-blue-50">
                   <span className="font-semibold text-blue-700 text-xs">
@@ -130,17 +136,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 <div className="w-40 flex items-center justify-center px-2 bg-blue-50">
                   <Switch
                     checked={(() => {
-                      return days.every((day, idx) => {
-                        const uniqueKey = generateKey.restriction(
-                          "CTA",
-                          idx,
-                          roomType,
-                        );
-                        const ctaValue = day.restrictions?.CTA || false;
-                        return state.optimisticRestrictions.has(uniqueKey)
-                          ? state.optimisticRestrictions.get(uniqueKey)!
-                          : ctaValue;
-                      });
+                      return days.every((day) => getRoomCTAValue(day));
                     })()}
                     onCheckedChange={async (checked) => {
                       await handleBulkRoomRestrictionToggle(
@@ -155,17 +151,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                       );
                     }}
                     className={`${(() => {
-                      const allEnabled = days.every((day, idx) => {
-                        const uniqueKey = generateKey.restriction(
-                          "CTA",
-                          idx,
-                          roomType,
-                        );
-                        const ctaValue = day.restrictions?.CTA || false;
-                        return state.optimisticRestrictions.has(uniqueKey)
-                          ? state.optimisticRestrictions.get(uniqueKey)!
-                          : ctaValue;
-                      });
+                      const allEnabled = days.every((day) => getRoomCTAValue(day));
                       return allEnabled
                         ? "data-[state=checked]:bg-red-500"
                         : "data-[state=unchecked]:bg-gray-300";
@@ -173,7 +159,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   />
                 </div>
               </div>
-              {/* Room CTD */}
+
+              {/* Room CTD - Bulk Toggle */}
               <div className="h-12 flex border-b border-gray-300">
                 <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-blue-50">
                   <span className="font-semibold text-blue-700 text-xs">
@@ -183,17 +170,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 <div className="w-40 flex items-center justify-center px-2 bg-blue-50">
                   <Switch
                     checked={(() => {
-                      return days.every((day, idx) => {
-                        const uniqueKey = generateKey.restriction(
-                          "CTD",
-                          idx,
-                          roomType,
-                        );
-                        const ctdValue = day.restrictions?.CTD || false;
-                        return state.optimisticRestrictions.has(uniqueKey)
-                          ? state.optimisticRestrictions.get(uniqueKey)!
-                          : ctdValue;
-                      });
+                      return days.every((day) => getRoomCTDValue(day));
                     })()}
                     onCheckedChange={async (checked) => {
                       await handleBulkRoomRestrictionToggle(
@@ -208,17 +185,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                       );
                     }}
                     className={`${(() => {
-                      const allEnabled = days.every((day, idx) => {
-                        const uniqueKey = generateKey.restriction(
-                          "CTD",
-                          idx,
-                          roomType,
-                        );
-                        const ctdValue = day.restrictions?.CTD || false;
-                        return state.optimisticRestrictions.has(uniqueKey)
-                          ? state.optimisticRestrictions.get(uniqueKey)!
-                          : ctdValue;
-                      });
+                      const allEnabled = days.every((day) => getRoomCTDValue(day));
                       return allEnabled
                         ? "data-[state=checked]:bg-red-500"
                         : "data-[state=unchecked]:bg-gray-300";
@@ -262,7 +229,6 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         });
                         state.setLosEdits(newEdits);
                         state.setPendingChanges(newPending);
-                        // toast.success("Bulk Min LOS applied to all dates");
                       }
                     }}
                   />
@@ -304,7 +270,6 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         });
                         state.setLosEdits(newEdits);
                         state.setPendingChanges(newPending);
-                        // toast.success("Bulk Max LOS applied to all dates");
                       }
                     }}
                   />
@@ -317,12 +282,12 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   k.includes(`${roomType}-roomtype-`) &&
                   (k.includes("-min") || k.includes("-max")),
               ) && (
-                <div className="h-12 flex items-center px-2 border-b border-gray-300 bg-green-50">
-                  <span className="font-semibold text-green-700 text-xs">
-                    Save Changes
-                  </span>
-                </div>
-              )}
+                  <div className="h-12 flex items-center px-2 border-b border-gray-300 bg-green-50">
+                    <span className="font-semibold text-green-700 text-xs">
+                      Save Changes
+                    </span>
+                  </div>
+                )}
             </>
           )}
 
@@ -420,11 +385,10 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                           state.setPendingChanges,
                         )
                       }
-                      className={`w-14 h-7 text-center text-sm font-bold rounded border ${
-                        hasChanges
+                      className={`w-14 h-7 text-center text-sm font-bold rounded border ${hasChanges
                           ? "border-orange-400 bg-orange-50"
                           : "border-transparent"
-                      } focus:outline-none focus:ring-2 focus:ring-blue-400 hover:border-gray-300 transition-colors`}
+                        } focus:outline-none focus:ring-2 focus:ring-blue-400 hover:border-gray-300 transition-colors`}
                     />
                     {edit && (
                       <button
@@ -485,7 +449,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
             {/* Restrictions Data Rows */}
             {state.showRestrictions && (
               <>
-                {/* CTA Row */}
+                {/* CTA Row - Individual Day Toggles */}
                 <div className="flex h-12 border-b border-gray-300">
                   {days.map((day, index) => {
                     const uniqueKey = generateKey.restriction(
@@ -493,10 +457,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                       index,
                       roomType,
                     );
-                    const ctaValue = day.restrictions?.CTA || false;
-                    const effectiveValue = state.optimisticRestrictions.has(
-                      uniqueKey,
-                    )
+                    const ctaValue = getRoomCTAValue(day);
+                    const effectiveValue = state.optimisticRestrictions.has(uniqueKey)
                       ? state.optimisticRestrictions.get(uniqueKey)!
                       : ctaValue;
 
@@ -520,18 +482,17 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                               onDataUpdate,
                             )
                           }
-                          className={`${
-                            effectiveValue
+                          className={`${effectiveValue
                               ? "data-[state=checked]:bg-red-500"
                               : "data-[state=unchecked]:bg-gray-300"
-                          } scale-50`}
+                            } scale-50`}
                         />
                       </div>
                     );
                   })}
                 </div>
 
-                {/* CTD Row */}
+                {/* CTD Row - Individual Day Toggles */}
                 <div className="flex h-12 border-b border-gray-300">
                   {days.map((day, index) => {
                     const uniqueKey = generateKey.restriction(
@@ -539,10 +500,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                       index,
                       roomType,
                     );
-                    const ctdValue = day.restrictions?.CTD || false;
-                    const effectiveValue = state.optimisticRestrictions.has(
-                      uniqueKey,
-                    )
+                    const ctdValue = getRoomCTDValue(day);
+                    const effectiveValue = state.optimisticRestrictions.has(uniqueKey)
                       ? state.optimisticRestrictions.get(uniqueKey)!
                       : ctdValue;
 
@@ -566,11 +525,10 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                               onDataUpdate,
                             )
                           }
-                          className={`${
-                            effectiveValue
+                          className={`${effectiveValue
                               ? "data-[state=checked]:bg-red-500"
                               : "data-[state=unchecked]:bg-gray-300"
-                          } scale-50`}
+                            } scale-50`}
                         />
                       </div>
                     );
@@ -580,7 +538,6 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 {/* Min LOS Row - READ ONLY */}
                 <div className="flex h-12 border-b border-gray-300">
                   {days.map((day, index) => {
-                    // Find the rate plan that has prices for this room type
                     const ratePlanForRoom = day.ratePlans?.find((rp: any) =>
                       rp.prices?.some((p: any) => p.invTypeCode === roomType),
                     );
@@ -602,7 +559,6 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 {/* Max LOS Row - READ ONLY */}
                 <div className="flex h-12 border-b border-gray-300">
                   {days.map((day, index) => {
-                    // Find the rate plan that has prices for this room type
                     const ratePlanForRoom = day.ratePlans?.find((rp: any) =>
                       rp.prices?.some((p: any) => p.invTypeCode === roomType),
                     );
@@ -622,43 +578,44 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 </div>
 
                 {/* Save Button Row */}
-                {/* Save Button Row */}
                 {(Array.from(state.pendingChanges) as string[]).some(
                   (k) =>
                     k.includes(`${roomType}-roomtype-`) &&
                     (k.includes("-min") || k.includes("-max")),
                 ) && (
-                  <div className="flex h-12 border-b border-gray-300 bg-blue-50">
-                    {days.map((_, index) => (
-                      <div
-                        key={index}
-                        className="w-32 flex-shrink-0 border-gray-300"
-                      />
-                    ))}
-                    <div className="absolute left-0 right-0 h-12 flex items-center justify-center pointer-events-none">
-                      <button
-                        onClick={() =>
-                          saveLOSChanges(
-                            roomType,
-                            null,
-                            days,
-                            state.losEdits,
-                            state.pendingChanges,
-                            hotelCode,
-                            null, // ✅ FIXED: Added ratePlanCode parameter (null for room type)
-                            state.setLosEdits,
-                            state.setPendingChanges,
-                            onDataUpdate,
-                          )
-                        }
-                        className="flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors shadow-lg pointer-events-auto sticky left-1/2 -ml-24"
-                      >
-                        <Save className="w-3 h-3" />
-                        Save Room Type Changes
-                      </button>
+                    <div className="flex h-12 border-b border-gray-300 bg-blue-50">
+                      {days.map((_, index) => (
+                        <div
+                          key={index}
+                          className="w-32 flex-shrink-0 border-gray-300"
+                        />
+                      ))}
+                      <div className="absolute left-0 right-0 h-12 flex items-center justify-center pointer-events-none">
+                        <button
+                          onClick={() =>
+                            saveLOSChanges(
+                              roomType,
+                              null,
+                              days,
+                              state.losEdits,
+                              state.pendingChanges,
+                              hotelCode,
+                              null,
+                              state.setLosEdits,
+                              state.setPendingChanges,
+                              onDataUpdate,
+                              days[0]?.fullDate,
+                              days[days.length - 1]?.fullDate
+                            )
+                          }
+                          className="flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors shadow-lg pointer-events-auto sticky left-1/2 -ml-24"
+                        >
+                          <Save className="w-3 h-3" />
+                          Save Room Type Changes
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </>
             )}
 

@@ -1,13 +1,8 @@
-// ============================================
-// TYPES - app/inventory/types/inventory.ts
-// ============================================
+
 
 import type { RatePlanData } from "../interfaces/inventory.interfaces";
 
 
-// =========================
-// INVENTORY DAY
-// =========================
 export interface InventoryDay {
   date: number;
   dayOfWeek: string;
@@ -38,6 +33,8 @@ export interface RoomType {
   roomName?: string;
   available: number;
   sold: number;
+  maxAdults: number;
+  maxChildren: number;
   occupancy: number;
   status: "open" | "close";
 }
@@ -64,21 +61,21 @@ export interface RoomTypePricing {
   sellStatus: string;
   cta?: boolean;
   ctd?: boolean;
-  
+
   baseByGuestAmts?: {
     numberOfGuests: number;
     amountBeforeTax: number;
     ageQualifyingCode?: string;
-    commissionAmount?: number;        
-    amountAfterCommission?: number;     
+    commissionAmount?: number;
+    amountAfterCommission?: number;
     _id?: string;
   }[];
-  
+
   additionalGuestAmounts?: {
     ageQualifyingCode: string;
     amount: number;
-    commissionAmount?: number;        
-    amountAfterCommission?: number;   
+    commissionAmount?: number;
+    amountAfterCommission?: number;
     id?: string;
   }[];
 }
@@ -115,7 +112,7 @@ export interface FilterState {
     startDate: string | null;
     endDate: string | null;
   };
-  
+
   selectedRoomTypes: string[];
 }
 
@@ -171,6 +168,8 @@ export interface RoomTypeInventory {
   available: number;
   sold: number;
   occupancy: number;
+  maxAdults: number;
+  maxChildren: number;
   status: "open" | "close";
 }
 

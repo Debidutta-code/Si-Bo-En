@@ -76,6 +76,8 @@ export class RatePlanController {
         try {
             const ratePlanCode = req.params.ratePlanCode;
             const updateData = req.body;
+            console.log(req.body);
+            
             if (!ratePlanCode) {
                 return res
                     .status(400)
@@ -86,6 +88,32 @@ export class RatePlanController {
                     );
             }
             const response = await RatePlanServices.updateRatePlan(
+                ratePlanCode,
+                updateData
+            );
+            const status = response.success ? 200 : 400;
+            return res.status(status).json(response);
+        } catch (error: any) {
+            return res
+                .status(500)
+                .json(errorResponse('Internal Server Error', error?.message));
+        }
+    }
+        public static async updateRatePlanRule(req: CustomRequest, res: Response) {
+        try {
+            const ratePlanCode = req.params.ratePlanCode;
+            const updateData = req.body;
+            
+            if (!ratePlanCode) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Rate Plan code is not provided, go back and try again.'
+                        )
+                    );
+            }
+            const response = await RatePlanServices.updateRatePlanRules(
                 ratePlanCode,
                 updateData
             );

@@ -176,6 +176,8 @@ export class AvailabilityServices {
         // Build room types data
         const roomTypes = property.propertyRooms.map((room: any) => {
             const totalInventory = room.totalRoom || 0;
+            const maxAdults = room.maxNumberOfAdults || 0;
+            const maxChildren = room.maxNumberOfChildren || 0;
             const dayInventory = dayInventories.find(
                 inv => inv.roomTypeCode === room.roomType
             );
@@ -189,6 +191,8 @@ export class AvailabilityServices {
             return {
                 invTypeCode: room.roomType,
                 roomName: room.roomName,
+                maxAdults,
+                maxChildren,
                 available,
                 sold,
                 occupancy:

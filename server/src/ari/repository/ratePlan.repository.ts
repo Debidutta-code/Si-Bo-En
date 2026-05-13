@@ -2,7 +2,7 @@ import { UpdatePlanData } from '../types/utills';
 import { formatDateToYYYYMMDD } from '../utils/date';
 import { IPaginatedResponse } from '../../utils/return';
 // import { MappedRate } from "../types/mapedRate.type"
-import { IRatePlanUpdate } from '../types/rateplan.type';
+import { IRatePlanRuleUpdate, IRatePlanUpdate } from '../types/rateplan.type';
 import { nowUTC, toUTC } from '../../utils';
 import { prisma } from '../../config';
 export class RatePlanRepository {
@@ -130,7 +130,50 @@ export class RatePlanRepository {
             throw new Error('Unknown error occurred while updating rate plan');
         }
     }
+ public static async upsertRatePlanRule(
+    ratePlanCode: string,
+    ruleData: IRatePlanRuleUpdate
+) {
+    try {
+        const existingRatePlan = await prisma.ratePlan.findUnique({
+            where: { ratePlanCode },
+        });
 
+        if (!existingRatePlan) {
+            throw new Error('Rate Plan does not exist');
+        }
+
+        return await prisma.ratePlanRule.upsert({
+            where: { ratePlanId: existingRatePlan.id },
+            update: {
+                minLos: ruleData.minimumLengthOfStay,
+                maxLos: ruleData.maximumLengthOfStay,
+                startDate: ruleData.startDate ? new Date(ruleData.startDate) : null,
+                endDate: ruleData.endDate ? new Date(ruleData.endDate) : null,
+                isAutoApplied: false,
+                discountType: null,
+                discountValue: null,
+                updatedAt: new Date(),
+            },
+            create: {
+                ratePlanId: existingRatePlan.id,
+                minLos: ruleData.minimumLengthOfStay,
+                maxLos: ruleData.maximumLengthOfStay,
+                startDate: ruleData.startDate ? new Date(ruleData.startDate) : null,
+                endDate: ruleData.endDate ? new Date(ruleData.endDate) : null,
+                isAutoApplied: false,
+                discountType: null,
+                discountValue: null,
+                isActive: true,
+            },
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(`Failed to upsert rate plan rule: ${error.message}`);
+        }
+        throw new Error('Unknown error occurred while upserting rate plan rule');
+    }
+}
     public static async getMappedRatePlanByProperty(
         propertyCode: string,
         roomTypeCode?: string,

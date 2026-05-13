@@ -14,28 +14,28 @@ router
 router
     .route('/getUsersForMapping')
     .get(
-        protect as RequestHandler,
+        protect ,
         addRoleBasedDetails(),
         UserController.getUserForMappingController
     );
 
-router.route('/me').get(protect as RequestHandler, UserController.getMe as any);
+router.route('/me').get(protect , UserController.getMe );
 router
     .route('/assignUserToProperty')
     .post(
-        protect as RequestHandler,
+        protect ,
         restrictTo(
             'super_admin',
             'group_manager',
             'hotel_manager',
             'brand_manager'
-        ) as RequestHandler,
+        ) ,
         UserController.mapUser
     );
 router
     .route('/:id')
     .get(
-        protect as RequestHandler,
+        protect ,
         restrictTo(
             'super_admin',
             'group_manager',
@@ -43,37 +43,37 @@ router
             'brand_manager',
             'staff',
             'revenue_manager'
-        ) as RequestHandler,
-        UserController.getUserById as any
+        ) ,
+        UserController.getUserById 
     );
 
 router
     .route('/update/:id')
     .put(
-        protect as RequestHandler,
+        protect ,
         restrictTo(
             'super_admin',
             'group_manager',
             'hotel_manager',
             'brand_manager'
-        ) as RequestHandler,
+        ) ,
         addRoleBasedDetails(),
-        UserController.updateUserById as any
+        UserController.updateUserById 
     );
 
 // Delete user endpoint with role-based restrictions
 router
     .route('/delete/:id')
     .delete(
-        protect as RequestHandler,
+        protect ,
         restrictTo(
             'super_admin',
             'group_manager',
             'hotel_manager',
             'brand_manager'
-        ) as RequestHandler,
+        ) ,
         addRoleBasedDetails(),
-        UserController.deleteUser as any
+        UserController.deleteUser 
     );
 
 export default router;
