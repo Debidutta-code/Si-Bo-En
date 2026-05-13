@@ -552,8 +552,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         />
       )}
 
-      <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA]">
-        <div className="mx-auto px-4 sm:px-6 py-3 flex justify-center">
+      <div className="w-full bg-[#F4EFE6] border-b  border-[#D4CABA]">
+        <div className="mx-auto px-4 sm:px-6 py-3 flex items-center justify-center">
           {/* Widget Row */}
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 xl:gap-6 w-full max-w-[1100px]">
             {/* Location Field - Only on Properties page, shown first */}
