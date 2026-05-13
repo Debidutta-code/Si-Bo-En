@@ -27,7 +27,7 @@ interface PriceEdit {
 }
 
 interface CustomTier {
-  baseGuests: number[];
+  baseGuests: Array<{ numberOfGuests: number; ageQualifyingCode: string }>;
   additionalCharges: Array<{ ageCode: string; id: string }>;
 }
 

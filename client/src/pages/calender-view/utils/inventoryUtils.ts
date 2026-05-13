@@ -12,9 +12,7 @@ export const calculateOccupancyPercent = (
   return total > 0 ? Math.round((sold / total) * 100) : 0;
 };
 
-/**
- * Get unique room types from days data
- */
+
 export const getRoomTypes = (days: InventoryDay[]): string[] => {
   const roomTypes = new Set<string>();
   days.forEach((day) => {
@@ -29,9 +27,7 @@ export const getRoomTypes = (days: InventoryDay[]): string[] => {
   return Array.from(roomTypes);
 };
 
-/**
- * Get unique rate plans from days data
- */
+
 export const getRatePlans = (days: InventoryDay[]): string[] => {
   const ratePlans = new Set<string>();
   days.forEach((day) => {
@@ -46,9 +42,6 @@ export const getRatePlans = (days: InventoryDay[]): string[] => {
   return Array.from(ratePlans);
 };
 
-/**
- * Get rate plans for a specific room type
- */
 export const getRatePlansForRoomType = (
   roomType: string,
   days: InventoryDay[],
@@ -72,9 +65,16 @@ export const getRatePlansForRoomType = (
   return Array.from(ratePlansSet);
 };
 
-/**
- * Get room type data across all days
- */
+export const getRoomTypeCapacity = (
+  day: InventoryDay,
+  roomTypeCode: string,
+): { maxAdults: number; maxChildren: number } => {
+  const roomType = day.roomTypes?.find((r) => r.invTypeCode === roomTypeCode);
+  return {
+    maxAdults: roomType?.maxAdults ?? 1,
+    maxChildren: roomType?.maxChildren ?? 0,
+  };
+};
 export const getRoomTypeData = (roomTypeCode: string, days: InventoryDay[]) => {
   return days.map((day) => {
     if (!day.roomTypes || !Array.isArray(day.roomTypes)) {

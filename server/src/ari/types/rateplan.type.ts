@@ -37,7 +37,14 @@ export interface IRatePlanUpdate {
     b2cAvailable?: boolean;
     roomOnlyVisible?: boolean;
 }
-
+export interface IRatePlanRuleUpdate {
+    b2bAvailable: boolean;
+    b2cAvailable: boolean;
+    maximumLengthOfStay: number;
+    minimumLengthOfStay: number;
+    startDate?: Date | null;
+    endDate?: Date | null;
+}
 export interface IRatePlan extends IRatePlanMetadata {
     id: string;
     createdAt: Date;

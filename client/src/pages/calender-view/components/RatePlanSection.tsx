@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   ChevronDown,
@@ -85,9 +84,20 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   const existingTiers =
     ratePlanDetails?.baseByGuestAmts || [];
   const allBaseGuests = [...existingTiers];
-  customData.baseGuests.forEach((numGuests: number) => {
-    if (!allBaseGuests.find((g: any) => g.numberOfGuests === numGuests)) {
-      allBaseGuests.push({ numberOfGuests: numGuests, amountBeforeTax: 0, ageQualifyingCode: "10" });
+  customData.baseGuests.forEach((customGuest: any) => {
+    const numGuests = customGuest.numberOfGuests;
+    const ageCode = customGuest.ageQualifyingCode;
+
+    const alreadyExists = existingTiers.find(
+      (g: any) => g.numberOfGuests === numGuests && g.ageQualifyingCode === ageCode
+    );
+
+    if (!alreadyExists) {
+      allBaseGuests.push({
+        numberOfGuests: numGuests,
+        amountBeforeTax: 0,
+        ageQualifyingCode: ageCode
+      });
     }
   });
   allBaseGuests.sort((a: any, b: any) => a.numberOfGuests - b.numberOfGuests);
@@ -286,24 +296,19 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
   const formatDateForStartStop = (day: InventoryDay): string => {
     const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December",
     ];
     const monthNumber = monthNames.indexOf(day.month) + 1;
-    const dateStr = `${day.year}-${String(monthNumber).padStart(2, "0")}-${String(day.date).padStart(2, "0")}`;
-    return new Date(dateStr).toISOString();
+    // ✅ Append T00:00:00 to force local time, not UTC
+    const dateStr = `${day.year}-${String(monthNumber).padStart(2, "0")}-${String(day.date).padStart(2, "0")}T00:00:00.000Z`;
+    return dateStr;
   };
+  // ✅ Get room type capacity
+  const roomTypeCapacity = days[0]?.roomTypes?.find((r: any) => r.invTypeCode === roomType);
 
+  const maxAdults = roomTypeCapacity?.maxAdults ?? 10;
+  const maxChildren = roomTypeCapacity?.maxChildren ?? 0;
   if (renderMode === "labels") {
     return (
       <>
@@ -402,7 +407,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         ratePlanType,
                       );
                       return (
-                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        ratePlanDetails?.sellStatus ===
                         "open"
                       );
                     });
@@ -548,23 +553,34 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       {ratePlanDetails?.currencyCode || "USD"}
                     </span>
                   </div>
-                  {customData.baseGuests.includes(guestTier.numberOfGuests) && (
-                    <button
-                      onClick={() =>
-                        removeGuestTier(
-                          roomType,
-                          ratePlanType,
-                          guestTier.numberOfGuests,
-                          state.customTiers,
-                          state.setCustomTiers,
-                        )
-                      }
-                      className="text-red-500 hover:text-red-700"
-                      title="Remove tier"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
+                  {(() => {
+                    const isCustomAdded = customData.baseGuests.some(
+                      (g: any) => g.numberOfGuests === guestTier.numberOfGuests &&
+                        g.ageQualifyingCode === guestTier.ageQualifyingCode
+                    );
+                    const isExistingInApi = existingTiers.some(
+                      (t: any) => t.numberOfGuests === guestTier.numberOfGuests &&
+                        t.ageQualifyingCode === guestTier.ageQualifyingCode
+                    );
+                    return isCustomAdded && !isExistingInApi;
+                  })() && (
+                      <button
+                        onClick={() =>
+                          removeGuestTier(
+                            roomType,
+                            ratePlanType,
+                            guestTier.numberOfGuests,
+                            guestTier.ageQualifyingCode,
+                            state.customTiers,
+                            state.setCustomTiers,
+                          )
+                        }
+                        className="text-red-500 hover:text-red-700"
+                        title="Remove tier"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
                 </div>
                 <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
                   <input
@@ -604,30 +620,54 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               </div>
             ))}
 
-            <div className="h-10 flex items-center px-2 border-b border-gray-300 bg-purple-100">
-              <button
-                onClick={() => {
-                  const maxGuests = Math.max(
-                    ...allBaseGuests.map((g: any) => g.numberOfGuests),
-                    0,
-                  );
-                  addGuestTier(
-                    roomType,
-                    ratePlanType,
-                    maxGuests + 1,
-                    days,
-                    state.customTiers,
-                    state.priceEdits,
-                    state.pendingChanges,
-                    state.setCustomTiers,
-                    state.setPriceEdits,
-                    state.setPendingChanges,
-                  );
-                }}
-                className="text-xs text-purple-700 hover:text-purple-900 font-medium flex items-center gap-1"
-              >
-                <span>+ Add Guest Tier</span>
-              </button>
+            <div className="h-10 flex items-center gap-3 px-2 border-b border-gray-300 bg-purple-100">
+              {(() => {
+                const adultTiers = allBaseGuests.filter((g: any) => (g.ageQualifyingCode || "10") === "10");
+                const childTiers = allBaseGuests.filter((g: any) => g.ageQualifyingCode === "8");
+                const currentMaxAdult = Math.max(...adultTiers.map((g: any) => g.numberOfGuests), 0);
+                const currentMaxChild = Math.max(...childTiers.map((g: any) => g.numberOfGuests), 0);
+                const canAddAdult = currentMaxAdult < maxAdults;
+                const canAddChild = maxChildren > 0 && currentMaxChild < maxChildren;
+
+                return (
+                  <>
+                    {canAddAdult ? (
+                      <button
+                        onClick={() =>
+                          addGuestTier(
+                            roomType, ratePlanType, currentMaxAdult + 1, days,
+                            state.customTiers, state.priceEdits, state.pendingChanges,
+                            state.setCustomTiers, state.setPriceEdits, state.setPendingChanges,
+                          )
+                        }
+                        className="text-xs text-purple-700 hover:text-purple-900 font-medium"
+                      >
+                        + Adult ({currentMaxAdult}/{maxAdults})
+                      </button>
+                    ) : (
+                      <span className="text-xs text-gray-400">Max Adults ({maxAdults}) reached</span>
+                    )}
+
+                    {canAddChild ? (
+                      <button
+                        onClick={() =>
+                          addGuestTier(
+                            roomType, ratePlanType, currentMaxChild + 1, days,
+                            state.customTiers, state.priceEdits, state.pendingChanges,
+                            state.setCustomTiers, state.setPriceEdits, state.setPendingChanges,
+                            "8", // ✅ child age code - needs addGuestTier to accept ageCode param
+                          )
+                        }
+                        className="text-xs text-blue-700 hover:text-blue-900 font-medium"
+                      >
+                        + Child ({currentMaxChild}/{maxChildren})
+                      </button>
+                    ) : maxChildren > 0 ? (
+                      <span className="text-xs text-gray-400">Max Children ({maxChildren}) reached</span>
+                    ) : null}
+                  </>
+                );
+              })()}
             </div>
 
             {allCharges.length > 0 &&
@@ -766,7 +806,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       const ratePlan = day.ratePlans?.find(
                         (rp) => rp.ratePlanCode === ratePlanType,
                       );
-                      const ctaValue = ratePlan?.cta || false;
+                      const priceForRoom = ratePlan?.prices?.find(p => p.invTypeCode === roomType);
+                      const ctaValue = priceForRoom?.cta || false;
                       return state.optimisticRestrictions.has(uniqueKey)
                         ? state.optimisticRestrictions.get(uniqueKey)!
                         : ctaValue;
@@ -796,7 +837,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       const ratePlan = day.ratePlans?.find(
                         (rp) => rp.ratePlanCode === ratePlanType,
                       );
-                      const ctaValue = ratePlan?.cta || false;
+                      const priceForRoom = ratePlan?.prices?.find(p => p.invTypeCode === roomType);
+                      const ctaValue = priceForRoom?.cta || false;
                       return state.optimisticRestrictions.has(uniqueKey)
                         ? state.optimisticRestrictions.get(uniqueKey)!
                         : ctaValue;
@@ -828,7 +870,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       const ratePlan = day.ratePlans?.find(
                         (rp) => rp.ratePlanCode === ratePlanType,
                       );
-                      const ctdValue = ratePlan?.ctd || false;
+                      const priceForRoom = ratePlan?.prices?.find(p => p.invTypeCode === roomType);
+                      const ctdValue = priceForRoom?.ctd || false;
                       return state.optimisticRestrictions.has(uniqueKey)
                         ? state.optimisticRestrictions.get(uniqueKey)!
                         : ctdValue;
@@ -858,7 +901,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       const ratePlan = day.ratePlans?.find(
                         (rp) => rp.ratePlanCode === ratePlanType,
                       );
-                      const ctdValue = ratePlan?.ctd || false;
+                      const priceForRoom = ratePlan?.prices?.find(p => p.invTypeCode === roomType);
+                      const ctdValue = priceForRoom?.ctd || false;
                       return state.optimisticRestrictions.has(uniqueKey)
                         ? state.optimisticRestrictions.get(uniqueKey)!
                         : ctdValue;
@@ -1286,7 +1330,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         ratePlanType,
                       );
                       return (
-                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        ratePlanDetails?.sellStatus ===
                         "open"
                       );
                     })()}
@@ -1329,7 +1373,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         ratePlanType,
                       );
                       const isOpen =
-                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        ratePlanDetails?.sellStatus ===
                         "open";
                       return isOpen
                         ? "data-[state=checked]:bg-green-500"
@@ -1346,13 +1390,13 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                   if (isExpanded) {
                     return (
                       <span
-                        className={`text-xs font-medium ${ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        className={`text-xs font-medium ${ratePlanDetails?.sellStatus ===
                           "open"
                           ? "text-green-600"
                           : "text-red-600"
                           }`}
                       >
-                        {ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        {ratePlanDetails?.sellStatus ===
                           "open"
                           ? "Open"
                           : "Closed"}
@@ -1622,7 +1666,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               const ratePlan = day.ratePlans?.find(
                 (rp) => rp.ratePlanCode === ratePlanType,
               );
-              const ctaValue = ratePlan?.cta || false;
+              const priceForRoom = ratePlan?.prices?.find(p => p.invTypeCode === roomType);
+              const ctaValue = priceForRoom?.cta || false;
               const effectiveValue = state.optimisticRestrictions.has(uniqueKey)
                 ? state.optimisticRestrictions.get(uniqueKey)!
                 : ctaValue;
@@ -1670,7 +1715,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               const ratePlan = day.ratePlans?.find(
                 (rp) => rp.ratePlanCode === ratePlanType,
               );
-              const ctdValue = ratePlan?.ctd || false;
+              const priceForRoom = ratePlan?.prices?.find(p => p.invTypeCode === roomType);
+              const ctdValue = priceForRoom?.ctd || false;
               const effectiveValue = state.optimisticRestrictions.has(uniqueKey)
                 ? state.optimisticRestrictions.get(uniqueKey)!
                 : ctdValue;
@@ -1958,6 +2004,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                           state.setLosEdits,
                           state.setPendingChanges,
                           onDataUpdate,
+                          days[0]?.fullDate,           // ✅ startDate
+                          days[days.length - 1]?.fullDate
                         );
                       }
                       // Save booking offset changes if any

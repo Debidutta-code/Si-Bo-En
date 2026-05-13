@@ -5,7 +5,8 @@ import type { InventoryDay } from "../types/inventory";
 import { formatDateForAPI, generateKey } from "../utils/inventoryUtils";
 import toast from "react-hot-toast";
 import type { SelectedRoom } from "@/pages/inventory/types";
-import { updateRatePlanService } from "@/pages/rate-plan/services";
+import { updateRatePlanRulesService } from "../services/inventory.service";
+import type { IRatePlanRuleUpdate } from "../interfaces/inventory.interfaces";
 
 interface LOSEdit {
   roomType: string;
@@ -334,7 +335,9 @@ export const saveLOSChanges = async (
   ratePlanCode: string | null,
   setLosEdits: (edits: Map<string, LOSEdit>) => void,
   setPendingChanges: (changes: Set<string>) => void,
-  onDataUpdate?: () => void
+  onDataUpdate?: () => void,
+  startDate?: string | null,  // ✅ ADD THIS
+  endDate?: string | null      // ✅ ADD THIS
 ) => {
   const relevantEdits = Array.from(losEdits.entries()).filter(([key]) =>
     key.startsWith(`${roomType}-${ratePlan || "roomtype"}-`)
@@ -359,6 +362,16 @@ export const saveLOSChanges = async (
       }
     });
 
+    // ✅ Prepare rule data with start and end dates
+    const ruleData: IRatePlanRuleUpdate = {
+      b2bAvailable: true,
+      b2cAvailable: true,
+      minimumLengthOfStay: minimumLOS ?? 0,
+      maximumLengthOfStay: maximumLOS ?? 0,
+      startDate: startDate ?? null,
+      endDate: endDate ?? null,
+    };
+
     // ✅ ROOM TYPE LEVEL: Update all connected rate plans
     if (!ratePlan && ratePlanCode === null) {
       const connectedRatePlans = getRatePlansForRoomType(roomType, days);
@@ -368,31 +381,14 @@ export const saveLOSChanges = async (
         return;
       }
 
-      // console.log(`🔄 Updating ${connectedRatePlans.length} rate plans for room type ${roomType}:`, connectedRatePlans);
-
       toast.loading(`Updating ${connectedRatePlans.length} rate plan(s)...`);
 
-      // ✅ Update all rate plans in parallel
+      // ✅ Update all rate plans in parallel using updateRatePlanRulesService
       const updatePromises = connectedRatePlans.map(async (rpCode) => {
-        const payload: any = {
-          ratePlanName: rpCode,
-          b2bAvailable: true,
-          b2cAvailable: true,
-        };
-
-        if (minimumLOS !== undefined) {
-          payload.minimumLengthOfStay = minimumLOS;
-        }
-
-        if (maximumLOS !== undefined) {
-          payload.maximumLengthOfStay = maximumLOS;
-        }
-
-        return updateRatePlanService(rpCode, payload);
+        return updateRatePlanRulesService(rpCode, ruleData);
       });
 
       const results = await Promise.all(updatePromises);
-
       toast.dismiss();
 
       // ✅ Check for failures
@@ -412,23 +408,9 @@ export const saveLOSChanges = async (
     } 
     // ✅ RATE PLAN LEVEL: Update single rate plan
     else if (ratePlan && ratePlanCode) {
-      const payload: any = {
-        ratePlanName: ratePlanCode,
-        b2bAvailable: true,
-        b2cAvailable: true,
-      };
-
-      if (minimumLOS !== undefined) {
-        payload.minimumLengthOfStay = minimumLOS;
-      }
-
-      if (maximumLOS !== undefined) {
-        payload.maximumLengthOfStay = maximumLOS;
-      }
-
       toast.loading("Updating rate plan length of stay...");
 
-      const result = await updateRatePlanService(ratePlanCode, payload);
+      const result = await updateRatePlanRulesService(ratePlanCode, ruleData);
 
       toast.dismiss();
 
