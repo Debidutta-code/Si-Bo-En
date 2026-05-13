@@ -17,6 +17,7 @@ export class SiteMinderMiddleware {
         next: NextFunction
     ) {
         try {
+            console.log("request we are gonna get",req)
             const rawXml = req.body as string;
 
             if (!rawXml || typeof rawXml !== 'string') {

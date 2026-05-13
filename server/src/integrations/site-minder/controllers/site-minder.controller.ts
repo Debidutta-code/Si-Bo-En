@@ -12,16 +12,17 @@ const logger = new ServiceLogger('SiteMinderARI');
 
 export class SiteMinderController {
     public static async handlePush(req: Request, res: Response) {
+        console.log("request from siteminder",req.body)
         const rawXml = req.body as string;
         const parsed = (req as any).siteMinderParsed as SiteMinderParsedRequest;
 
         const method = parsed.type === 'rates' ? 'ratesUpdate'
-                     : parsed.type === 'availability' ? 'availabilityUpdate'
-                     : 'roomsRates';
+            : parsed.type === 'availability' ? 'availabilityUpdate'
+                : 'roomsRates';
 
         const hotelCode = parsed.ratesPayload?.hotelCode
-                       ?? parsed.availPayload?.hotelCode
-                       ?? parsed.roomsRatesPayload?.hotelCode;
+            ?? parsed.availPayload?.hotelCode
+            ?? parsed.roomsRatesPayload?.hotelCode;
 
         const log = logger.start(method);
         log.setIncoming({ type: parsed.type, hotelCode, rawXml, parsed });
