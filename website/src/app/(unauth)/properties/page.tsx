@@ -20,7 +20,7 @@ const Properties = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [groupId, setGroupId] = useState<string | null>(null);
   const [brands, setBrands] = useState<any[]>([]);
-  const [selectedBrandId, setSelectedBrandId] = useState<string | null>(null);
+  const [selectedBrandId, setSelectedBrandId] = useState<string >("all");
   const initializedRef = useRef(false);
 
   const urlGroupId = searchParams.get("groupId");
@@ -241,7 +241,7 @@ const Properties = () => {
         <div className="flex justify-end px-4 py-3 max-w-7xl mx-auto">
           <select
             value={selectedBrandId || ""}
-            onChange={(e) => setSelectedBrandId(e.target.value || null)}
+            onChange={(e) => setSelectedBrandId(e.target.value)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0E5C60] cursor-pointer"
           >
             <option value="all">All Properties</option>
