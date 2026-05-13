@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import type { IPrimaryGuest } from "../types";
-import { Mail, Phone, MapPin, FileText, Shield } from "lucide-react";
+import { Mail, Phone, MapPin, FileText, Shield, Download } from "lucide-react";
 
 interface PrimaryGuestDetailsDialogProps {
   isOpen: boolean;
@@ -24,6 +24,25 @@ export default function PrimaryGuestDetailsDialog({
   primaryGuest,
 }: PrimaryGuestDetailsDialogProps) {
   if (!primaryGuest) return null;
+
+  const handleDownloadIdentityImage = async () => {
+    if (!primaryGuest.identityCardImage) return;
+
+    try {
+      const response = await fetch(primaryGuest.identityCardImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${primaryGuest.firstName}_${primaryGuest.lastName}_identity_card.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download image:", error);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -150,9 +169,18 @@ export default function PrimaryGuestDetailsDialog({
                 )}
                 {primaryGuest.identityCardImage && (
                   <div>
-                    <p className="text-gray-600 text-sm font-medium mb-2">
-                      ID Document
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-gray-600 text-sm font-medium">
+                        ID Document
+                      </p>
+                      <button
+                        onClick={handleDownloadIdentityImage}
+                        className="flex items-center gap-1 text-xs font-medium text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-md transition-colors"
+                      >
+                        <Download className="w-3 h-3" />
+                        Download
+                      </button>
+                    </div>
                     <div className="relative bg-white rounded-lg border-2 border-dashed border-purple-200 p-2 overflow-hidden">
                       <img
                         src={primaryGuest.identityCardImage}
