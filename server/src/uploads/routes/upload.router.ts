@@ -6,6 +6,6 @@ const uploadRouter = Router();
 const uploadController = new UploadController();
 uploadRouter
     .route('/generate-url')
-    .post(protect, uploadController.generatePresetUrl.bind(uploadController));
+    .post( uploadController.generatePresetUrl.bind(uploadController));
 
 export { uploadRouter };
