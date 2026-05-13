@@ -25,7 +25,7 @@ const Navbar = () => {
   const router = useRouter();
   const bookingContext = useSelector((state: RootState) => state.booking);
   const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
-  const agenturl = "https://agent.revchilltech.com";
+  const agenturl = process.env.NEXT_PUBLIC_PARTNER_URL!;
 
   useEffect(() => {
     const updateLogo = () => {
@@ -77,9 +77,6 @@ const Navbar = () => {
       if (url) dispatch(setSenderUrl(url));
     }
 
-    // If we are inside the booking engine (this Next.js app),
-    // prefer client navigation to avoid hard reload/blank screen issues.
-    // Only redirect to `senderUrl` when it is truly an external referrer.
     const isExternalUrl = (candidate?: string) => {
       if (!candidate) return false;
       try {

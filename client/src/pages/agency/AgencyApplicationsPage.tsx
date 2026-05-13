@@ -39,7 +39,7 @@ const AgencyApplicationsPage: React.FC = () => {
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalApplications, setTotalApplications] = useState(0);
-  
+
   const [selectedApplication, setSelectedApplication] = useState<IAgencyApplication | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isApproveOpen, setIsApproveOpen] = useState(false);
@@ -73,7 +73,7 @@ const AgencyApplicationsPage: React.FC = () => {
 
   const handleApprove = async () => {
     if (!selectedApplication) return;
-    
+
     try {
       const response = await updateApplicationStatus(selectedApplication.id, 'approved');
       if (response.success) {
@@ -88,7 +88,7 @@ const AgencyApplicationsPage: React.FC = () => {
 
   const handleReject = async (rejectionReason: string) => {
     if (!selectedApplication) return;
-    
+
     try {
       const response = await updateApplicationStatus(
         selectedApplication.id,
@@ -106,11 +106,11 @@ const AgencyApplicationsPage: React.FC = () => {
   };
 
   const filteredApplications = applications.filter(app => {
-    const matchesSearch = 
+    const matchesSearch =
       app.applicantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.agencyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       app.applicantEmail.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     return matchesSearch;
   });
 
@@ -127,7 +127,7 @@ const AgencyApplicationsPage: React.FC = () => {
     }
   };
 
-if (loading.isLoading) {
+  if (loading.isLoading) {
     return (
       <div className="min-h-screen w-full flex justify-center items-center">
         <Loader text={loading.message} />
@@ -200,8 +200,8 @@ if (loading.isLoading) {
                 className="pl-10"
               />
             </div>
-            <Select 
-              value={statusFilter} 
+            <Select
+              value={statusFilter}
               onValueChange={(value: fAgencyApplicationStatus) => {
                 setStatusFilter(value);
                 setPage(1);
@@ -227,8 +227,9 @@ if (loading.isLoading) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Application Id</TableHead>
                 <TableHead>Applicant Name</TableHead>
+                <TableHead>Application No</TableHead>
+
                 <TableHead>Agency Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
@@ -246,10 +247,9 @@ if (loading.isLoading) {
               ) : (
                 filteredApplications.map((application) => (
                   <TableRow key={application.id}>
-                    <TableCell className="font-medium">
-                      {application.id}
-                    </TableCell>
                     <TableCell>{application.applicantName}</TableCell>
+                    <TableCell>{application.applicationNoForThisUser}</TableCell>
+
                     <TableCell>{application.agencyName}</TableCell>
                     <TableCell>{application.applicantEmail}</TableCell>
                     <TableCell>{application.applicantPhone}</TableCell>
