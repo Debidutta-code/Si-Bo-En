@@ -124,7 +124,7 @@ export class SpaPricingService {
             }
             return successResponse('Spa slot created successfully');
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             if (error instanceof Error) {
                 return errorResponse(
                     'Error while creating spa pricing',
@@ -240,7 +240,7 @@ export class SpaPricingService {
 
             return successResponse('Spa slot deleted successfully');
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             if (error instanceof Error) {
                 return errorResponse(
                     'Error while deleting spa pricing',

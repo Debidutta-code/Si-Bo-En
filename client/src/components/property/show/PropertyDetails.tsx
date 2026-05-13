@@ -100,7 +100,7 @@ export default function PropertyDetails({
     fetchPropertyDetails(propertyId);
     fetchEmails(propertyId);
   }, [propertyId]);
-console.log(propertyDetails,"propertyDetails.creationId")
+// console.log(propertyDetails,"propertyDetails.creationId")
   const fetchEmails = async (propId: string) => {
     setEmailsLoading(true);
     try {

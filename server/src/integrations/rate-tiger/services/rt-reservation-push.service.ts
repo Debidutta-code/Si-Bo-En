@@ -409,7 +409,6 @@ export class RTReservationPushService {
                     },
                 },
             };
-            console.log('payload', JSON.stringify(payload, null, 2));
 
             const log = logger.start('pushCommit');
             log.setIncoming({
@@ -447,15 +446,6 @@ export class RTReservationPushService {
         rtConfig: RTDynamicConfig // ← ADD
     ): Promise<{ success: boolean; message: string }> {
         try {
-            // console.log(
-            //     'existingReservation',
-            //     JSON.stringify(existingReservation, null, 2)
-            // );
-            // console.log(
-            //     'updatePayload',
-            //     JSON.stringify(updatePayload, null, 2)
-            // );
-            // console.log('rtconfig', JSON.stringify(rtConfig, null, 2));
             const guests = Array.isArray(existingReservation.guests)
                 ? existingReservation.guests
                 : [];
@@ -636,141 +626,6 @@ export class RTReservationPushService {
                   }
                 : null;
 
-            // 3. Build roomStays — per room if roomsArray stored, fallback if not
-            // const roomStays =
-            //     storedRoomsArray.length > 0
-            //         ? storedRoomsArray.map(
-            //               (
-            //                   room: { adults: number; children: number },
-            //                   index: number
-            //               ) => ({
-            //                   roomStayID: (index + 1).toString(),
-            //                   mealPlanIndicator: '0',
-            //                   isGuestPerRoom: '1',
-            //                   guestCount: [
-            //                       ...(room.adults > 0
-            //                           ? [
-            //                                 {
-            //                                     ageQualifyingCode:
-            //                                         '10' as const,
-            //                                     count: room.adults.toString(),
-            //                                 },
-            //                             ]
-            //                           : []),
-            //                       ...(room.children > 0
-            //                           ? [
-            //                                 {
-            //                                     ageQualifyingCode: '8' as const,
-            //                                     count: room.children.toString(),
-            //                                 },
-            //                             ]
-            //                           : []),
-            //                   ],
-            //                   roomRates: [
-            //                       {
-            //                           invCode:
-            //                               existingReservation.roomTypeCode ??
-            //                               '',
-            //                           ratePlanCode:
-            //                               existingReservation.ratePlanCode ??
-            //                               '',
-            //                           numberOfUnits: '1',
-            //                           rates: [
-            //                               {
-            //                                   effectiveDate: checkInStr,
-            //                                   expireDate: checkOutStr,
-            //                                   currencyCode:
-            //                                       existingReservation.currencyCode,
-            //                                   amountAfterTax: (
-            //                                       updatePayload.amount /
-            //                                       numberOfRooms
-            //                                   ).toFixed(2),
-            //                               },
-            //                           ],
-            //                       },
-            //                   ],
-            //                   timeSpan: {
-            //                       start: checkInStr,
-            //                       end: checkOutStr,
-            //                   },
-            //                   totalPrice: {
-            //                       amountAfterTax: (
-            //                           updatePayload.amount / numberOfRooms
-            //                       ).toFixed(2),
-            //                       taxAmount: (totalTax / numberOfRooms).toFixed(
-            //                           2
-            //                       ),
-            //                   },
-            //                   guestIDs: ['1'],
-            //                   comments: [{ text: '', guestViewable: '1' }],
-            //                   specialRequests: [{ requestCode: '', text: '' }],
-            //               })
-            //           )
-            //         : [
-            //               // Fallback — single roomStay with totals
-            //               {
-            //                   roomStayID: '1',
-            //                   mealPlanIndicator: '0',
-            //                   isGuestPerRoom: '0',
-            //                   guestCount: [
-            //                       {
-            //                           ageQualifyingCode: '10' as const,
-            //                           count: guests
-            //                               .filter(g => g.type === 'adult')
-            //                               .length.toString(),
-            //                       },
-            //                       ...(guests.filter(g => g.type === 'child')
-            //                           .length > 0
-            //                           ? [
-            //                                 {
-            //                                     ageQualifyingCode: '8' as const,
-            //                                     count: guests
-            //                                         .filter(
-            //                                             g => g.type === 'child'
-            //                                         )
-            //                                         .length.toString(),
-            //                                 },
-            //                             ]
-            //                           : []),
-            //                   ],
-            //                   roomRates: [
-            //                       {
-            //                           invCode:
-            //                               existingReservation.roomTypeCode ??
-            //                               '',
-            //                           ratePlanCode:
-            //                               existingReservation.ratePlanCode ??
-            //                               '',
-            //                           numberOfUnits: numberOfRooms.toString(),
-            //                           rates: [
-            //                               {
-            //                                   effectiveDate: checkInStr,
-            //                                   expireDate: checkOutStr,
-            //                                   currencyCode:
-            //                                       existingReservation.currencyCode,
-            //                                   amountAfterTax:
-            //                                       updatePayload.amount.toFixed(
-            //                                           2
-            //                                       ),
-            //                               },
-            //                           ],
-            //                       },
-            //                   ],
-            //                   timeSpan: {
-            //                       start: checkInStr,
-            //                       end: checkOutStr,
-            //                   },
-            //                   totalPrice: {
-            //                       amountAfterTax:
-            //                           updatePayload.amount.toFixed(2),
-            //                       taxAmount: totalTax.toFixed(2),
-            //                   },
-            //                   guestIDs: ['1'],
-            //                   comments: [{ text: '', guestViewable: '1' }],
-            //                   specialRequests: [{ requestCode: '', text: '' }],
-            //               },
-            //           ];
-
             const payload: RTCommitModifyPayload = {
                 hotelReservation: {
                     hotelCode: rtConfig.rateTigerPropertyCode,
@@ -831,7 +686,6 @@ export class RTReservationPushService {
 
             return result;
         } catch (error: any) {
-            // console.log('RT Modify error:', error);
             return {
                 success: false,
                 message: error?.message ?? 'Unknown error in pushModify',
@@ -898,7 +752,6 @@ export class RTReservationPushService {
 
             return result;
         } catch (error: any) {
-            //  console.log('RT Cancel error:', error);
             return {
                 success: false,
                 message: error?.message ?? 'Unknown error in pushCancel',

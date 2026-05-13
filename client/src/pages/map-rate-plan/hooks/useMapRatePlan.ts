@@ -133,8 +133,8 @@ export function useMapRatePlan(propertyId: string | undefined) {
 
     const handleSaveNewMapping = async (newMapping: ICreateCharges) => {
         try {
-            console.log("Saving new mapping:", newMapping);
-            console.log(ratePlans, roomTypes);
+            // console.log("Saving new mapping:", newMapping);
+            // console.log(ratePlans, roomTypes);
             const ratePlan = ratePlans.find(rp => rp.ratePlanCode === newMapping.ratePlanCode);
             const roomType = roomTypes.find(rt => rt.roomType === newMapping.roomTypeCode);
 

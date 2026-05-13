@@ -165,16 +165,16 @@ const BookingReviewPage = () => {
       });
 
       socket.on("connect", () => {
-        console.log("🔌 Socket connected:", socket.id);
+        // console.log("🔌 Socket connected:", socket.id);
 
         // Join payment room with correct format matching server's payment:{bookingCode}
         const roomName = `payment:${bookingCode}`;
         socket.emit("join-payment-room", roomName);
-        console.log(`📌 Joined payment room: ${roomName}`);
+        // console.log(`📌 Joined payment room: ${roomName}`);
       });
 
       socket.on("payment-status-update", (data: any) => {
-        console.log("📡 Payment update received:", data);
+        // console.log("📡 Payment update received:", data);
 
         if (data.status === "success") {
           toast.success("Payment successful!");
@@ -189,7 +189,7 @@ const BookingReviewPage = () => {
       });
 
       socket.on("disconnect", () => {
-        console.log("Socket disconnected");
+        // console.log("Socket disconnected");
       });
     };
 
@@ -445,7 +445,7 @@ const BookingReviewPage = () => {
         ngeniusPayload.outletId = outletId;
       }
 
-      console.log("🌐 [FRONTEND DEBUG] Sending N-Genius order payload:", JSON.stringify(ngeniusPayload, null, 2));
+      // console.log("🌐 [FRONTEND DEBUG] Sending N-Genius order payload:", JSON.stringify(ngeniusPayload, null, 2));
 
       const orderResponse = await ngeniusService.createOrder(ngeniusPayload);
 
@@ -515,7 +515,7 @@ const BookingReviewPage = () => {
             // Join payment room with order reference using correct format
             const roomName = `payment:${orderReference}`;
             socket.emit('join-payment-room', roomName);
-            console.log(`📌 Joined payment room: ${roomName}`);
+            // console.log(`📌 Joined payment room: ${roomName}`);
 
             resolve();
           });
@@ -623,7 +623,7 @@ const BookingReviewPage = () => {
                     numberOfNights={nights}
                     autoTrigger={true}
                     onPaymentLinkGenerated={(link) => {
-                      console.log('Payment link generated:', link);
+                      // console.log('Payment link generated:', link);
                     }}
                     onPaymentError={(error) => {
                       toast.error("Payment failed. Please try again.", { id: "fikafi-error" });

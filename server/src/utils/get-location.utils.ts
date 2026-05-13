@@ -19,10 +19,10 @@ export const getGeoLocationDetails = async (
 
     const isLocal = !ip || ip === '::1' || ip === '127.0.0.1';
 
-    console.log('Detected IP:', ip);
+    // console.log('Detected IP:', ip);
 
     if (isLocal) {
-        console.log('Local call detected');
+        // console.log('Local call detected');
         return {
             success: true,
             ip: '49.36.0.1',
@@ -34,7 +34,7 @@ export const getGeoLocationDetails = async (
 
     // ✅ 1. Try ipapi (PRIMARY)
     try {
-        console.log('Trying ipapi...');
+        // console.log('Trying ipapi...');
 
         const res = await axios.get(`https://ipapi.co/${ip}/json/`, {
             timeout: 3000,
@@ -53,7 +53,7 @@ export const getGeoLocationDetails = async (
 
     // 🔁 2. Fallback to ip-api (your current one)
     try {
-        console.log('Trying ip-api fallback...');
+        // console.log('Trying ip-api fallback...');
 
         const res = await axios.get(`http://ip-api.com/json/${ip}`, {
             timeout: 3000,

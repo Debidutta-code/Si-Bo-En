@@ -86,7 +86,7 @@ export default function MyBookingsPage() {
   };
 
   const handleBookingSearch = async () => {
-    console.log("Searching for booking with code:", bookingCode, "and property code:", bookingPropertyCode);
+    // console.log("Searching for booking with code:", bookingCode, "and property code:", bookingPropertyCode);
     if (!bookingPropertyCode.trim() || !bookingCode.trim()) {
       toast.error("Select a Property then enter a Reservation Code");
       return;

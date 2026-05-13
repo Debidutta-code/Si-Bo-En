@@ -246,16 +246,7 @@ export const savePriceChanges = async (
     key.startsWith(`${roomType}-${ratePlan}-`) &&
     (key.includes('-price') || key.includes('-additional-'))
   );
-  console.log('All price edits for', roomType, ratePlan,
-    Array.from(priceEdits.entries()).filter(([key]) =>
-      key.startsWith(`${roomType}-${ratePlan}-`)
-    ).map(([key, edit]) => ({
-      key,
-      numberOfGuests: edit.numberOfGuests,
-      ageCode: edit.ageQualifyingCode,
-      value: edit.value
-    }))
-  );
+
   if (relevantEdits.length === 0) {
     toast.error("No price changes to save");
     return;

@@ -7,7 +7,7 @@ async function main() {
     await prisma.$executeRawUnsafe(
       'CREATE EXTENSION IF NOT EXISTS unaccent;'
     );
-    console.log("Extensions created successfully!");
+    // console.log("Extensions created successfully!");
   } catch (err) {
     console.error("Error creating extensions:", err);
   } finally {

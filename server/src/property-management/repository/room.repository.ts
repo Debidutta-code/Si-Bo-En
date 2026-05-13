@@ -222,7 +222,7 @@ export class RoomDao {
                 },
             });
         } catch (error) {
-            console.log('Error updating room view:', error);
+            // console.log('Error updating room view:', error);
             throw new Error('Failed to update room view');
         }
     }

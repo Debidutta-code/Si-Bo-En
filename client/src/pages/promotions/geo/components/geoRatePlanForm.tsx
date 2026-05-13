@@ -29,7 +29,7 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
   editData,
   isLoading
 }) => {
-  console.log("Qsie", editData)
+  // console.log("Qsie", editData)
   const [geoRatePlan, setGeoRatePlan] = useState<IGeoRatePlanUORC>({
     selectedRooms: [],
     selectedRatePlans: [],

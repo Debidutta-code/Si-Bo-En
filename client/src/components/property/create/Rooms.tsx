@@ -150,7 +150,7 @@ export default function Rooms() {
 
     setErrors(null);
     const result = roomSchema.safeParse(roomDetails);
-    console.log(result)
+    // console.log(result)
     if (!result.success) {
       setErrors(result.error.format());
       toast.error("Please fix the errors before continuing.");

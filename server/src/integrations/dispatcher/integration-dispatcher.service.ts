@@ -180,12 +180,12 @@ export class IntegrationDispatcher {
             ?? 1;
 
         // ← ADD THIS LOG
-        console.log('[SM buildSMPayloadFromUpdate]', {
-            updateRooms: (update as any).rooms,
-            roomsArray,
-            requestedRooms,
-            updateFinalPriceDailyBreakdown: update.finalPrice?.dailyPriceBrakeDown?.length,
-        });
+        // console.log('[SM buildSMPayloadFromUpdate]', {
+        //     updateRooms: (update as any).rooms,
+        //     roomsArray,
+        //     requestedRooms,
+        //     updateFinalPriceDailyBreakdown: update.finalPrice?.dailyPriceBrakeDown?.length,
+        // });
 
         return {
             propertyCode: existing.propertyCode ?? '',

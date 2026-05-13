@@ -131,7 +131,7 @@ export default function PropertyDetailsPage() {
       const response = await addPropertyVideo(propertyId, videoUrl, thumbnailUrl);
 
       if (response.success) {
-        console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
+        // console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
         toast.success('Video uploaded and saved successfully!');
         await fetchPropertyDetails(propertyId);
       } else {

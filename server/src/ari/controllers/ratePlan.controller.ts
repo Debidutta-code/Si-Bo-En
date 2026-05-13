@@ -76,7 +76,7 @@ export class RatePlanController {
         try {
             const ratePlanCode = req.params.ratePlanCode;
             const updateData = req.body;
-            console.log(req.body);
+            // console.log(req.body);
             
             if (!ratePlanCode) {
                 return res

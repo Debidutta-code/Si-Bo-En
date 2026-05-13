@@ -1339,9 +1339,9 @@ export class NewReservationService {
                 } else if (!paymentRecord.paymentIntentId) {
                     console.warn(`  paymentIntentId is null. Skipping refund.`);
                 } else if (paymentRecord.paymentMethod !== 'payment_gateway') {
-                    console.log(
-                        ` Payment method is '${paymentRecord.paymentMethod}'. Not a gateway payment — skipping refund.`
-                    );
+                    // console.log(
+                    //     ` Payment method is '${paymentRecord.paymentMethod}'. Not a gateway payment — skipping refund.`
+                    // );
                 } else {
                     const orderReference = paymentRecord.paymentIntentId;
 

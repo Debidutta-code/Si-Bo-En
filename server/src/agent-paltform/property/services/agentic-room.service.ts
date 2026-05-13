@@ -248,10 +248,10 @@ export class AgenticRoomService {
         // Use YOUR IRoomVideo shape (no id field)
         const roomVideos: IRoomVideo | null = room.roomVideos
             ? {
-                  roomId: room.roomVideos.roomId,
-                  url: room.roomVideos.url,
-                  thumbnail: room.roomVideos.thumbnail,
-              }
+                roomId: room.roomVideos.roomId,
+                url: room.roomVideos.url,
+                thumbnail: room.roomVideos.thumbnail,
+            }
             : null;
 
         return {
@@ -344,12 +344,12 @@ export class AgenticRoomService {
             roomsArray.length > 0
                 ? roomsArray
                 : [
-                      {
-                          adults: guests.adults,
-                          children: guests.children,
-                          childAges: [],
-                      },
-                  ];
+                    {
+                        adults: guests.adults,
+                        children: guests.children,
+                        childAges: [],
+                    },
+                ];
 
         for (const roomConfig of effectiveRoomsArray) {
             const result = this.calculateBasePrice(charges[0], roomConfig);
@@ -522,8 +522,8 @@ export class AgenticRoomService {
         const gap = Math.max(
             0,
             room.maxOccupancy -
-                room.maxNumberOfAdults -
-                room.maxNumberOfChildren
+            room.maxNumberOfAdults -
+            room.maxNumberOfChildren
         );
 
         if (roomsArray.length > 0) {
@@ -588,10 +588,10 @@ export class AgenticRoomService {
         const childResult: IGuestPriceResult =
             guests.children > 0
                 ? (this.calculateGuestTypePrice(
-                      guests.children,
-                      childBaseAmounts,
-                      additionalChildCharge
-                  ) ?? { basePrice: 0, additionalCharges: 0 })
+                    guests.children,
+                    childBaseAmounts,
+                    additionalChildCharge
+                ) ?? { basePrice: 0, additionalCharges: 0 })
                 : { basePrice: 0, additionalCharges: 0 };
 
         const baseAmount =
@@ -707,30 +707,30 @@ export class AgenticRoomService {
         numberOfBedrooms: number
     ): ITouristTax | null {
         if (!touristTaxData) return null;
-        console.log(
-            'data',
-            touristTaxData,
-            baseAmount,
-            numberOfNights,
-            numberOfRooms,
-            numberOfBedrooms
-        );
+        // console.log(
+        //     'data',
+        //     touristTaxData,
+        //     baseAmount,
+        //     numberOfNights,
+        //     numberOfRooms,
+        // numberOfBedrooms
+        // );
         const calculatedTaxAmount =
             touristTaxData.discountType === 'percentage'
                 ? Number(
-                      (
-                          baseAmount *
-                          (Number(touristTaxData.discountValue) / 100)
-                      ).toFixed(2)
-                  )
+                    (
+                        baseAmount *
+                        (Number(touristTaxData.discountValue) / 100)
+                    ).toFixed(2)
+                )
                 : Number(
-                      (
-                          Number(touristTaxData.discountValue) *
-                          numberOfNights *
-                          numberOfRooms *
-                          numberOfBedrooms
-                      ).toFixed(2)
-                  );
+                    (
+                        Number(touristTaxData.discountValue) *
+                        numberOfNights *
+                        numberOfRooms *
+                        numberOfBedrooms
+                    ).toFixed(2)
+                );
 
         return {
             id: touristTaxData.id,
@@ -812,24 +812,24 @@ class AgenticAddonCalculator {
                 images: addon.images ?? [],
                 category: addon.category
                     ? {
-                          id: addon.category.id,
-                          name: addon.category.name,
-                          code: addon.category.code,
-                      }
+                        id: addon.category.id,
+                        name: addon.category.name,
+                        code: addon.category.code,
+                    }
                     : null,
                 subCategory: addon.subCategory
                     ? {
-                          id: addon.subCategory.id,
-                          name: addon.subCategory.name,
-                          code: addon.subCategory.code,
-                      }
+                        id: addon.subCategory.id,
+                        name: addon.subCategory.name,
+                        code: addon.subCategory.code,
+                    }
                     : null,
                 addonVariant: addon.addonVariant
                     ? {
-                          id: addon.addonVariant.id,
-                          name: addon.addonVariant.name,
-                          code: addon.addonVariant.code,
-                      }
+                        id: addon.addonVariant.id,
+                        name: addon.addonVariant.name,
+                        code: addon.addonVariant.code,
+                    }
                     : null,
             });
         }
