@@ -12,7 +12,7 @@ export class AuthService {
     public static async loginUser(logInInfo: LoginBody) {
         try {
             const { email, password } = logInInfo;
-            var user = await UserAuthRepository.findUserByEmail(email);
+            var user = await UserAuthRepository.findUserByEmail(email.toLowerCase());
             if (!user) {
                 return errorResponse('No User Found');
             }
@@ -103,10 +103,10 @@ export class AuthService {
                 return errorResponse('Cannot create Super Admin user');
             }
             const existingUser =
-                await UserAuthRepository.findUserByEmail(email);
+                await UserAuthRepository.findUserByEmail(email.toLowerCase());
             if (existingUser) {
                 if (existingUser.isDrafted) {
-                    await UserAuthRepository.recoveryUser(email);
+                    await UserAuthRepository.recoveryUser(email.toLowerCase());
                     return successResponse('User recovered successfully');
                 }
                 return errorResponse('User with this email already exists');
@@ -114,7 +114,7 @@ export class AuthService {
             const daoRes = await UserAuthRepository.createUser(
                 firstName,
                 lastName,
-                email,
+                email.toLowerCase(),
                 password,
                 role!,
                 createdBy!,
@@ -174,8 +174,8 @@ export class AuthService {
             }
             if (firstName) newUser.firstName = firstName;
             if (lastName) newUser.lastName = lastName;
-            if (email) newUser.email = email;
-            if (propertyId) newUser.propertyId = new Types.ObjectId(propertyId);
+            if (email) newUser.email = email.toLowerCase();
+            if (propertyId) newUser.propertyId = propertyId;
             const updateRes = await UserAuthRepository.updateUser(id, {
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
@@ -184,19 +184,26 @@ export class AuthService {
                 creationId: newUser.propertyId,
             });
             return successResponse('User Modified Successfully', { updateRes });
-        } catch (error: any) {
-            throw new Error(error?.message);
+        } catch (error) {
+            if(error instanceof Error){
+                return errorResponse('Failed to update user', error.message);
+            }
+            return errorResponse("Failed to update user","Unknown Error");
         }
     }
     public static async getUserForMapping(userId: string, role: string) {
         try {
             const users = await Users.unMappedUser(userId, role);
             return successResponse('Users fetched successfully', users);
-        } catch (error: any) {
-            return errorResponse(
-                'Error occur while fetching users',
-                error?.message
-            );
+        } catch (error) {
+            if(error instanceof Error){
+
+                return errorResponse(
+                    'Error occur while fetching users',
+                    error?.message
+                );
+            }
+            return errorResponse("Failed to fetch users","Unknown Error");
         }
     }
     public static async getUserCreatedById(
@@ -285,14 +292,14 @@ export class AuthService {
     public static async sendPasswordResetOTP(email: string) {
         try {
             // Check if user exists
-            const user = await UserAuthRepository.findUserByEmail(email);
+            const user = await UserAuthRepository.findUserByEmail(email.toLowerCase());
             if (!user) {
                 return errorResponse('No user found with this email address');
             }
 
             // Send OTP via email service
             const result = await emailService.sendOTPEmail(
-                email,
+                email.toLowerCase(),
                 'password_reset'
             );
 
@@ -309,18 +316,18 @@ export class AuthService {
     public static async sendPasswordResetLink(email: string) {
         try {
             // Check if user exists
-            const user = await UserAuthRepository.findUserByEmail(email);
+            const user = await UserAuthRepository.findUserByEmail(email.toLowerCase());
             if (!user) {
                 return errorResponse('No user found with this email address');
             }
 
             // Generate reset token
             const resetToken =
-                await passwordResetTokenRepository.createResetToken(email);
+                await passwordResetTokenRepository.createResetToken(email.toLowerCase());
 
             // Send reset link via email service
             const result = await emailService.sendPasswordResetLink(
-                email,
+                email.toLowerCase(),
                 resetToken
             );
 
@@ -342,7 +349,7 @@ export class AuthService {
     public static async verifyPasswordResetOTP(email: string, otp: string) {
         try {
             const result = await emailService.verifyOTP(
-                email,
+                email.toLowerCase(),
                 otp,
                 'password_reset'
             );
@@ -360,7 +367,7 @@ export class AuthService {
     public static async resetPassword(email: string, newPassword: string) {
         try {
             // Get user
-            const user = await UserAuthRepository.findUserByEmail(email);
+            const user = await UserAuthRepository.findUserByEmail(email.toLowerCase());
             if (!user) {
                 return errorResponse('User not found');
             }
