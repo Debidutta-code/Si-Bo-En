@@ -70,14 +70,14 @@ const NAV = [
       { href: "/profile/bookings", label: "Reservations", Icon: IconBooking },
     ],
   },
-  {
-    section: "ACCOUNT",
-    items: [
-      { href: "/profile", label: "Profile", Icon: IconProfile },
-      { href: "/profile", label: "Message Centre", Icon: IconMessage },
-      { href: "/profile", label: "FAQ", Icon: IconFaq },
-    ],
-  },
+  // {
+  //   section: "ACCOUNT",
+  //   items: [
+  //     { href: "/profile", label: "Profile", Icon: IconProfile },
+  //     { href: "/profile", label: "Message Centre", Icon: IconMessage },
+  //     { href: "/profile", label: "FAQ", Icon: IconFaq },
+  //   ],
+  // },
 ] as const;
 
 export function ProfileSidebar() {
