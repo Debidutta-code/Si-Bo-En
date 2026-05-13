@@ -7,8 +7,12 @@ import { RootState } from "@/src/store/store";
 import { setLoyaltyProfile } from "@/src/store/loyaltyUserSlice";
 import { PropertyLoyaltyConfig } from "@/src/store/loyaltyUserTypes";
 import { getMyProfileApi } from "../api/profile.api";
+import ImageUploadModal from "@/src/components/ImageUploadModal"
 
-type userIdentityCardType = "PASSPORT" | "DRIVERS_LICENSE" | "NATIONAL_ID" | "OTHER";
+type userIdentityCardType = 'passport'
+  | 'drivers_license'
+  | 'national_id'
+  | 'others';
 
 interface IGuestCheckInDetails {
   address?: string;
@@ -37,15 +41,16 @@ export default function MyBookingsPage() {
   const [bookingLoading, setBookingLoading] = useState(false);
 
   const [isCheckinDialogOpen, setIsCheckinDialogOpen] = useState(false);
-  const [checkinForm, setCheckinForm] = useState<IGuestCheckInDetails>({
-    userIdentityCardType: "NATIONAL_ID",
+  const [checkinForm, setCheckinForm] = useState<any>({
     identityCardNumber: "",
-    address: "",
+    userIdentityCardType: "passport",
     city: "",
     state: "",
     country: "",
-    zipCode: "",
+    address: "",
+    identityCardImage: "",
   });
+  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
@@ -106,6 +111,10 @@ export default function MyBookingsPage() {
     e.preventDefault();
     if (!bookingData?.bookingCode) return;
 
+    if(!checkinForm.identityImage){
+      toast.error("Add Identity Image")
+      return
+    }
     setIsCheckingIn(true);
     try {
       const res = await fetch(
@@ -325,24 +334,36 @@ export default function MyBookingsPage() {
               </div>
             )}
 
-            {bookingData.bookingStatus === "confirmed" && (
-              <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
-                <button
-                  onClick={() => setIsCheckinDialogOpen(true)}
-                  className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                  style={{ background: "#0d7a87" }}
-                >
-                  Check In Now
-                </button>
-              </div>
-            )}
+            {(bookingData.bookingStatus === "confirmed" ||
+              bookingData.bookingStatus === "modified") && (
+                <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
+
+                  <button
+                    onClick={() => setIsCheckinDialogOpen(true)}
+                    disabled={new Date(bookingData.reservationStartDate).toDateString() !== new Date().toDateString()}
+                    className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                    style={{
+                    background: new Date(bookingData.reservationStartDate).toDateString() === new Date().toDateString() ? "#0d7a87" : "#e5e7eb",
+                    color: new Date(bookingData.reservationStartDate).toDateString() === new Date().toDateString() ? "white" : "#9ca3af"
+                  }}
+                  >
+                    Check In Now
+                  </button>
+                </div>
+
+              )}
 
             {bookingData.bookingStatus === "checked_in" && (
               <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
                 <button
                   onClick={() => setIsCheckoutDialogOpen(true)}
+                  disabled={new Date(bookingData.reservationEndDate).toDateString() !== new Date().toDateString()}
+
                   className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                  style={{ background: "#e53e3e" }}
+                  style={{
+                    background: new Date(bookingData.reservationEndDate).toDateString() === new Date().toDateString() ? "#e53e3e" : "#e5e7eb",
+                    color: new Date(bookingData.reservationEndDate).toDateString() === new Date().toDateString() ? "white" : "#9ca3af"
+                  }}
                 >
                   Check Out Now
                 </button>
@@ -388,10 +409,10 @@ export default function MyBookingsPage() {
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
                     required
                   >
-                    <option value="NATIONAL_ID">National ID</option>
-                    <option value="PASSPORT">Passport</option>
-                    <option value="DRIVERS_LICENSE">Driver's License</option>
-                    <option value="OTHER">Other</option>
+                    <option value="national_id">National ID</option>
+                    <option value="passport">Passport</option>
+                    <option value="drivers_license">Driver's License</option>
+                    <option value="others">Other</option>
                   </select>
                 </div>
 
@@ -461,7 +482,24 @@ export default function MyBookingsPage() {
                 </div>
               </div>
 
-              <div className="pt-4 flex gap-3 justify-end">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Identity Image
+                </label>
+                <div className="flex gap-2 items-center">
+                  {checkinForm.identityImage && (
+                    <img src={checkinForm.identityImage} alt="Identity" className="w-12 h-12 object-cover rounded-md border" />
+                  )}
+                  <button
+                    onClick={() => setIsImageUploadModalOpen(true)}
+                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+                  >
+                    Upload
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 border-t bg-gray-50 flex justify-end gap-3 sticky bottom-0">
                 <button
                   type="button"
                   onClick={() => setIsCheckinDialogOpen(false)}
@@ -522,6 +560,13 @@ export default function MyBookingsPage() {
             </div>
           </div>
         </div>
+      )}
+      {isImageUploadModalOpen && (
+        <ImageUploadModal
+          isOpen={isImageUploadModalOpen}
+          onClose={() => setIsImageUploadModalOpen(false)}
+          onUploadSuccess={(urls: string[]) => setCheckinForm({ ...checkinForm, identityCardImage: urls[0] })}
+        />
       )}
     </div>
   );

@@ -1228,11 +1228,11 @@ export class NewReservationService {
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(
-                    'Failed to check out reservation',
+                    'Failed to check in reservation',
                     error.message
                 );
             }
-            return errorResponse('Failed to check out reservation');
+            return errorResponse('Failed to check in reservation');
         }
     }
     public async noShowReservation(
