@@ -375,7 +375,10 @@ export default function MyTripPage() {
   const handleCheckInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingData?.bookingCode) return;
-
+if(!checkinForm.identityCardImage){
+      toast.error("Add Identity Image")
+      return
+    }
     setIsCheckingIn(true);
     try {
       const res = await fetch(
@@ -550,7 +553,7 @@ export default function MyTripPage() {
               >
                 <HiOutlineViewGridAdd className="inline mr-2" /> {t("MyTrip.viewBooking")}
               </button>
-              {bookingData.bookingStatus === "confirmed" && (
+              {(bookingData.bookingStatus === "confirmed"||bookingData.bookingStatus=="modified") && (
                 <button
                   onClick={() => setIsCheckinDialogOpen(true)}
                   disabled={new Date(bookingData.reservationStartDate).toDateString() !== new Date().toDateString()}
