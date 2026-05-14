@@ -8,6 +8,7 @@ import {
     IOtaCustomRequest,
     successResponse,
 } from '../../../utils';
+import { emailService } from '../../../sms-email-service/service';
 
 export class OtaUserController {
     private userService: OtaUserService;
@@ -328,6 +329,107 @@ export class OtaUserController {
             return res
                 .status(500)
                 .json(errorResponse('Failed to login', 'Unknown error'));
+        }
+    }
+
+    public async forgotPassword(
+        req: Request,
+        res: Response
+    ): Promise<Response<IApiResponse>> {
+        return this.sendOtp(req, res);
+    }
+
+    public async sendOtp(
+        req: Request,
+        res: Response
+    ): Promise<Response<IApiResponse>> {
+        try {
+            const { email } = req.body;
+            const validationError = this.validateEmail(email);
+            if (validationError) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Invalid email', validationError));
+            }
+
+            const userRes = await this.userService.getUserByEmail(email);
+            if (!userRes.success || !userRes.data) {
+                return res
+                    .status(404)
+                    .json(errorResponse('User not found', 'No user associated with this email'));
+            }
+
+            const result = await emailService.sendOTPEmail(email, 'password_reset');
+            if (!result.success) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to send OTP', result.message));
+            }
+
+            return res.status(200).json(successResponse(result.message));
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to send OTP', error.message));
+            }
+            return res
+                .status(500)
+                .json(errorResponse('Failed to send OTP', 'Unknown error'));
+        }
+    }
+
+    public async verifyOtp(
+        req: Request,
+        res: Response
+    ): Promise<Response<IApiResponse>> {
+        try {
+            const { email, otp, newPassword } = req.body;
+
+            if (!email || !otp || !newPassword) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Email, OTP, and new password are required', 'Missing fields'));
+            }
+
+            const passwordError = this.validatePassword(newPassword);
+            if (passwordError) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Invalid password format', passwordError));
+            }
+
+            const userRes = await this.userService.getUserByEmail(email);
+            if (!userRes.success || !userRes.data) {
+                return res
+                    .status(404)
+                    .json(errorResponse('User not found', 'User not found'));
+            }
+
+            const result = await emailService.verifyOTP(email, otp, 'password_reset');
+            if (!result.success) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Invalid or expired OTP', result.message));
+            }
+
+            const updateRes = await this.userService.updateUserPassword(userRes.data.id, newPassword);
+            if (!updateRes.success) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to update password', 'Internal error'));
+            }
+
+            return res.status(200).json(successResponse('Password updated successfully'));
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to verify OTP and update password', error.message));
+            }
+            return res
+                .status(500)
+                .json(errorResponse('Failed to verify OTP and update password', 'Unknown error'));
         }
     }
 }
