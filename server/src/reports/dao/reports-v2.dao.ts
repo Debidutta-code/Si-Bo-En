@@ -20,10 +20,7 @@ export class CreationScopeResolver {
 
         switch (creation.type) {
             case 'super': {
-                // Super: all properties in the system, optionally scoped by
-                // group → brand → property override chain.
                 if (overridePropertyId) {
-                    // Narrowest filter wins — overridePropertyId is the Creation.id (PK)
                     propertyCreations = await prisma.creation.findMany({
                         where: {
                             type: 'property',
@@ -42,8 +39,6 @@ export class CreationScopeResolver {
                         select: { propertyId: true },
                     });
                 } else if (overrideGroupId) {
-                    // Filter by a specific group: properties directly under the group
-                    // OR under any brand that belongs to the group
                     const groupBrands = await prisma.creation.findMany({
                         where: { type: 'brand', groupId: overrideGroupId },
                         select: { id: true },
@@ -108,13 +103,7 @@ export class CreationScopeResolver {
                 break;
             }
             case 'group': {
-                // Properties can belong to a group either:
-                //   (a) directly via groupId = creation.id
-                //   (b) via a brand that belongs to the group (brandId = one of group's brands)
-                // When filtering by brand, look for properties of that brand only
-                // (brand must belong to this group for security).
                 if (overridePropertyId) {
-                    // Direct property override — still validate it belongs to this group scope
                     const groupBrands = await prisma.creation.findMany({
                         where: { type: 'brand', groupId: creation.id },
                         select: { id: true },
@@ -135,19 +124,16 @@ export class CreationScopeResolver {
                         select: { propertyId: true },
                     });
                 } else if (overrideBrandId) {
-                    // Filter to a specific brand's properties (brand must belong to this group)
                     propertyCreations = await prisma.creation.findMany({
                         where: {
                             type: 'property',
                             propertyId: { not: null },
                             brandId: overrideBrandId,
-                            // Validate brand belongs to this group
                             brand: { groupId: creation.id },
                         },
                         select: { propertyId: true },
                     });
                 } else {
-                    // No override — get all properties in this group scope (direct + via brands)
                     const groupBrands = await prisma.creation.findMany({
                         where: { type: 'brand', groupId: creation.id },
                         select: { id: true },
@@ -193,7 +179,6 @@ export class CreationScopeResolver {
                 break;
             }
             case 'property': {
-                // Property-level users are always fixed to their own property
                 if (creation.propertyId) {
                     return [creation.propertyId];
                 }
@@ -207,9 +192,7 @@ export class CreationScopeResolver {
     }
 }
 
-// ─── Reports V2 DAO ────────────────────────────────────────────────────────────
 export class ReportsV2Repository {
-    // ── Helpers ────────────────────────────────────────────────────────────────
     private parseDate(dateStr?: string): Date {
         if (!dateStr) {
             const d = new Date();
@@ -230,7 +213,6 @@ export class ReportsV2Repository {
         return d;
     }
 
-    // ── Report 1: Comparison ───────────────────────────────────────────────────
     public async getComparisonData(
         propertyIds: string[],
         startDate: string,
@@ -468,31 +450,99 @@ export class ReportsV2Repository {
 
     // ── Report 9: Loyalty Guest ───────────────────────────────────────────────
     public async getLoyaltyGuests(propertyIds: string[]) {
-        return prisma.guests.findMany({
+        // Query LoyalityGuest (the cross-property loyalty identity) that are
+        // enrolled in at least one of the resolved properties via
+        // PropertyLoyalityGuests → PropertyLoyaltyConfig.propertyId
+        return prisma.loyalityGuest.findMany({
             where: {
-                propertyId: { in: propertyIds },
-                isALoyalityGuest: true,
+                PropertyLoyalityGuests: {
+                    some: {
+                        PropertyLoyalityConfig: {
+                            propertyId: { in: propertyIds },
+                        },
+                    },
+                },
             },
             include: {
-                primaryReservations: {
-                    select: {
-                        id: true,
-                        amount: true,
-                        reservationStartDate: true,
-                        bookingStatus: true,
+                // Primary linked Guests record (home property personal info)
+                guest: {
+                    include: {
+                        property: {
+                            select: { propertyName: true, propertyCode: true },
+                        },
                     },
                 },
-                loyalityGuests: {
-                    select: {
-                        createdAt: true,
+                // All properties this loyalty guest is enrolled in
+                PropertyLoyalityGuests: {
+                    include: {
+                        PropertyLoyalityConfig: {
+                            select: {
+                                propertyName: true,
+                                propertyCode: true,
+                                propertyId: true,
+                                isActive: true,
+                            },
+                        },
                     },
                 },
-                property: {
-                    select: { propertyName: true, propertyCode: true },
+                // Loyalty program membership details (level, bookings count)
+                CreationGuest: {
+                    select: {
+                        guestLevel: true,
+                        noOfBookings: true,
+                        metaData: true,
+                        CreationLoyaltyConfig: {
+                            select: {
+                                loyaltyDiscountType: true,
+                                discountValue: true,
+                                LoyalityLevels: {
+                                    select: {
+                                        level: true,
+                                        discountPercentage: true,
+                                        noOfReservations: true,
+                                    },
+                                    orderBy: { level: 'asc' },
+                                },
+                            },
+                        },
+                    },
                 },
             },
             orderBy: { createdAt: 'asc' },
         });
+    }
+
+    public async getLoyaltyGuestSpendMap(
+        loyaltyGuests: { guestEmail: string; enrolledPropertyIds: string[] }[]
+    ): Promise<Map<string, number>> {
+        if (!loyaltyGuests.length) return new Map();
+
+        const emails = loyaltyGuests.map(g => g.guestEmail);
+        const allPropertyIds = [
+            ...new Set(loyaltyGuests.flatMap(g => g.enrolledPropertyIds)),
+        ];
+
+        const reservations = await prisma.reservation.findMany({
+            where: {
+                propertyId: { in: allPropertyIds },
+                bookingStatus: { not: 'cancelled' },
+                primaryGuest: {
+                    email: { in: emails },
+                },
+            },
+            select: {
+                amount: true,
+                primaryGuest: { select: { email: true } },
+            },
+        });
+
+        const spendMap = new Map<string, number>();
+        for (const r of reservations) {
+            const email = r.primaryGuest?.email;
+            if (!email) continue;
+            spendMap.set(email, (spendMap.get(email) ?? 0) + Number(r.amount));
+        }
+        return spendMap;
     }
 
     // ── Report 10: Payment Status ──────────────────────────────────────────────
