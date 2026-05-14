@@ -31,7 +31,7 @@ import NoShowConfirmationModal from "./NoShowModal";
 import { downloadBookingVoucher } from "../api/reservation.api";
 import toast from "react-hot-toast";
 import AmendReservationModal from "./Amendreservationmodal";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import SpaBookingDialog from "./SpaBooking/SpaBookingDialog";
 
@@ -331,7 +331,7 @@ export default function ReservationsTable({
                           Cancel
                         </DropdownMenuItem>
                       )}
-                      {
+                      {/* {
                         reservation.bookingStatus === "checked_in" && (
                           <>
                             <Button>
@@ -339,7 +339,7 @@ export default function ReservationsTable({
                             </Button>
                           </>
                         )
-                      }
+                      } */}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
