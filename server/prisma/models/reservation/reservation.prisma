@@ -56,8 +56,12 @@ model Reservation {
   agencyId    String?   @map("agency_id") 
 
   //ota-guest
-  otaGuestId String?   @map("ota_guest_id") 
-  OtaGuest   OtaGuest? @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
+  // otaGuestId String?   @map("ota_guest_id") 
+  // OtaGuest   OtaGuest? @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
+
+  //customers
+  customerId String?   @map("customer_id") 
+  Customers  Customers? @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   pricingBrakedownId    String?                @unique @map("pricing_breakdown_id")
   PricingBrakeDown      PricingBreakdown?      @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)

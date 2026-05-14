@@ -7,6 +7,8 @@ model Guests {
   primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
   userType             GuestType             @default(adult) @map("user_type")
   propertyId           String                @map("property_id")
+  customerId           String                @map("customer_id")
+  Customer             Customers              @relation(fields: [customerId], references: [id], onDelete: Cascade)
   property             Property              @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   address              String?
   city                 String?
@@ -16,11 +18,8 @@ model Guests {
   userIdentityCardType userIdentityCardType? @default(adhar_card) @map("user_identity_card")
   identityCardNumber   String?               @map("identity_card_number")
   identityCardImage    String?               @map("identity_card_image")
-  loyalityGuests       LoyalityGuest[]
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
-  isALoyalityGuest     Boolean               @default(false) @map("is_a_loyality_guest")
-  ProblemTickets       ProblemTickets[]      @relation("TicketCreatedBy")
 
   @@unique([propertyId, email])
   @@map("guests")
