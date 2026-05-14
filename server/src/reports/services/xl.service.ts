@@ -745,10 +745,13 @@ export class ReportsV2ExcelService {
     }
 
     // ── Report 9: Loyalty Guests ──────────────────────────────────────────────
-    public async generateLoyaltyGuests(guests: any[]): Promise<Buffer> {
+    public async generateLoyaltyGuests(
+        guests: any[],
+        spendMap: Map<string, number>
+    ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('Loyalty Guests');
-        const cols = 10;
+        const cols = 11;
         this.addTitle(
             ws,
             'Loyalty Guest Report',
@@ -762,44 +765,84 @@ export class ReportsV2ExcelService {
             'Email',
             'Phone',
             'Country',
-            'Property',
-            'Loyalty Tier',
-            'Points',
+            'Home Property',
+            'Enrolled Properties',
+            'Loyalty Level',
             'Total Bookings',
             'Total Spend',
+            'Enrolled Since',
         ]);
         this.styleHeader(hdr, cols);
         ws.columns = [
             { width: 16 },
             { width: 16 },
-            { width: 24 },
+            { width: 26 },
             { width: 16 },
             { width: 12 },
             { width: 22 },
+            { width: 28 },
             { width: 14 },
-            { width: 12 },
             { width: 16 },
             { width: 14 },
+            { width: 16 },
         ];
         const startRow = ws.lastRow!.number + 1;
 
         for (const g of guests) {
-            const totalSpend = g.primaryReservations.reduce(
-                (s: number, r: any) => s + Number(r.amount),
+            // Personal info lives on the linked Guests record (nullable)
+            const guestInfo = g.guest;
+            const firstName = guestInfo?.firstName || 'N/A';
+            const lastName = guestInfo?.lastName || 'N/A';
+            const email = g.guestEmail || guestInfo?.email || 'N/A';
+            const phone = guestInfo?.phoneNumber || 'N/A';
+            const country = guestInfo?.country || 'N/A';
+            const homeProperty = guestInfo?.property
+                ? `${guestInfo.property.propertyName} (${guestInfo.property.propertyCode})`
+                : 'N/A';
+
+            // Enrolled properties via PropertyLoyalityGuests
+            const enrolledProperties = (g.PropertyLoyalityGuests ?? [])
+                .map((plg: any) =>
+                    plg.PropertyLoyalityConfig
+                        ? `${plg.PropertyLoyalityConfig.propertyName} (${plg.PropertyLoyalityConfig.propertyCode})`
+                        : ''
+                )
+                .filter(Boolean)
+                .join(', ') || 'N/A';
+
+            // A LoyalityGuest can belong to MULTIPLE loyalty programs (one CreationGuest
+            // per CreationLoyaltyConfig). Sum noOfBookings across all programs for the
+            // true total, and take the highest guestLevel as their best tier.
+            const allCreationGuests: any[] = g.CreationGuest ?? [];
+            const noOfBookings = allCreationGuests.reduce(
+                (sum: number, cg: any) => sum + (cg.noOfBookings ?? 0),
                 0
             );
-            const lp = g.loyalityGuests?.[0];
+            const guestLevel = allCreationGuests.reduce(
+                (max: number, cg: any) => Math.max(max, cg.guestLevel ?? 1),
+                1
+            );
+
+            // Total spend: cross-property sum from spendMap (keyed by guestEmail)
+            const totalSpend = spendMap.get(g.guestEmail) ?? 0;
+
+            // Enrolled since = LoyalityGuest.createdAt
+            const enrolledSince = g.createdAt
+                ? new Date(g.createdAt).toLocaleDateString('en-GB')
+                : 'N/A';
+
             ws.addRow([
-                g.firstName,
-                g.lastName,
-                g.email || 'N/A',
-                g.phoneNumber || 'N/A',
-                g.country || 'N/A',
-                g.property?.propertyName || 'N/A',
-                'Loyalty Member',
-                lp ? new Date(lp.createdAt).toLocaleDateString('en-GB') : 'N/A',
-                g.primaryReservations.length,
+                firstName,
+                lastName,
+                email,
+                phone,
+                country,
+                homeProperty,
+                enrolledProperties,
+                `Level ${guestLevel}`,
+                noOfBookings,
                 this.fmtNum(totalSpend),
+                enrolledSince,
             ]);
         }
 
