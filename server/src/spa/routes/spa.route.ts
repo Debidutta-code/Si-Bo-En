@@ -19,7 +19,5 @@ spaRouter
     .route('/:id')
     .put(protect, spaController.updateSpa.bind(spaController))
     .delete(protect, spaController.deleteSpa.bind(spaController));
-spaRouter
-    .route('/available/:bookingCode')
-    .get(spaController.getAvailableSpaForReservation.bind(spaController));
-export { spaRouter };
+spaRouter.route("/available/:bookingCode").get(spaController.getAvailableSpaForReservation.bind(spaController));
+export {spaRouter}
