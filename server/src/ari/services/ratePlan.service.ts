@@ -2,7 +2,7 @@ import { RatePlanRepository } from '../repository';
 import { errorResponse, successResponse } from '../../utils/return';
 import { generateRatePlanCode, getPropertyCode } from '../utils';
 import { UpdatePlanData } from '../types/utills';
-import { IRatePlanUpdate } from '../types/rateplan.type';
+import { IRatePlanRuleUpdate, IRatePlanUpdate } from '../types/rateplan.type';
 
 export class RatePlanServices {
     public static async createRatePlan(
@@ -98,6 +98,27 @@ export class RatePlanServices {
             }
         } catch (error: any) {
             return errorResponse(`Failed to update RatePlan`, error?.message);
+        }
+    }
+    public static async updateRatePlanRules(
+        ratePlanCode: string,
+        updateData: IRatePlanRuleUpdate
+    ) {
+        try {
+            const isExist = await RatePlanRepository.getRatePlanByRatePlanCode(ratePlanCode);
+            if (!isExist) {
+                return errorResponse('Rate Plan does not exist');
+            }
+
+            const response = await RatePlanRepository.upsertRatePlanRule(ratePlanCode, updateData);
+
+            if (response) {
+                return successResponse('RatePlan rules updated successfully', response);
+            } else {
+                return errorResponse('Failed to update RatePlan rules');
+            }
+        } catch (error: any) {
+            return errorResponse(`Failed to update RatePlan rules`, error?.message);
         }
     }
     public static async getMappedRatePlanByHotel(

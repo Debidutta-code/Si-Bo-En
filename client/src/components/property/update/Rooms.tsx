@@ -148,7 +148,7 @@ export default function Rooms({
                         htmlFor="roomType"
                         className="text-gray-800 font-medium"
                       >
-                        Room Type *
+                        Room Code *
                       </Label>
                       <Input
                         id="roomType"
@@ -156,7 +156,7 @@ export default function Rooms({
                         onChange={(e) =>
                           updateRoom({ ...roomDetails, roomType: e.target.value })
                         }
-                        placeholder="e.g., Deluxe King Suite"
+                        placeholder="e.g., DKS"
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                       {errors?.roomType?._errors[0] && (

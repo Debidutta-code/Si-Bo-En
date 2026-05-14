@@ -212,7 +212,7 @@ export default function HotelsPage() {
                     onClick={() => {
                       item.type != "property" ?
                         navigate(`/app/property/${currentTab}/${item.id}`) :
-                        navigate(`/property/${item.propertyId}?creationId=${item.id}`)
+                        navigate(`/property/${item.propertyId}`)
                     }}
                   >
                     View Details

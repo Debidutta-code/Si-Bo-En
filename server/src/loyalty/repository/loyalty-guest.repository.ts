@@ -218,7 +218,7 @@ export class LoyaltyGuestRepository {
                 take,
             });
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             throw new Error('Failed to get loyalty guest for creation');
         }
     }

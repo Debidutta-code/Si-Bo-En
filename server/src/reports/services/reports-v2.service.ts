@@ -397,7 +397,18 @@ export class ReportsV2Service {
                 return errorResponse('No properties found for your account');
 
             const guests = await this.dao.getLoyaltyGuests(propertyIds);
-            const excel = await this.xl.generateLoyaltyGuests(guests);
+
+            // Build cross-property spend map: for each loyalty guest collect
+            // their email + all enrolled property IDs, then aggregate spend
+            const spendInput = guests.map((g: any) => ({
+                guestEmail: g.guestEmail,
+                enrolledPropertyIds: (g.PropertyLoyalityGuests ?? []).map(
+                    (plg: any) => plg.PropertyLoyalityConfig?.propertyId
+                ).filter(Boolean),
+            }));
+            const spendMap = await this.dao.getLoyaltyGuestSpendMap(spendInput);
+
+            const excel = await this.xl.generateLoyaltyGuests(guests, spendMap);
 
             return successResponse('Loyalty guest report generated', {
                 excel,

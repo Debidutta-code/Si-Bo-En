@@ -7,7 +7,7 @@ const rl = readline.createInterface({
 });
 
 async function checkPayment() {
-    // // console.log("\n--- Payment Details Lookup ---");
+    // console.log("\n--- Payment Details Lookup ---");
 
     rl.question('Enter Payment ID or Order Reference: ', async input => {
         const id = input.trim();

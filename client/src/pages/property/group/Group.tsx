@@ -101,7 +101,7 @@ export default function page() {
       if (!creationId) return;
       const response = await getGroupCreationId(creationId);
       if (response.success) {
-        console.log(response.data)
+        // console.log(response.data)
         setCreations(response.data);
         if (response.data.brands.length > 0) {
           setCurrentTab("brand");
@@ -114,7 +114,7 @@ export default function page() {
         toast.error(response.message || "Failed to fetch");
       }
     } catch (error) {
-      console.log(error);
+      toast.error("Failed to fetch");
     } finally {
       setIsLoading(false);
     }
@@ -696,7 +696,7 @@ export default function page() {
                     onClick={() => {
                       item.type != "property"
                         ? navigate(`/app/property/${currentTab}/${item.id}`)
-                        : navigate(`/property/${item.property?.id}?creationId=${item.id}`);
+                        : navigate(`/property/${item.property?.id}`);
                     }}
                   >
                     View Details

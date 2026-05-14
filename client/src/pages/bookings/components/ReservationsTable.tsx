@@ -9,7 +9,7 @@ import {
   AlertTriangle,
   EyeOff,
   FileText,
-  // VenetianMask,
+  VenetianMask,
 } from "lucide-react";
 import {
   Table,
@@ -31,7 +31,7 @@ import NoShowConfirmationModal from "./NoShowModal";
 import { downloadBookingVoucher } from "../api/reservation.api";
 import toast from "react-hot-toast";
 import AmendReservationModal from "./Amendreservationmodal";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import SpaBookingDialog from "./SpaBooking/SpaBookingDialog";
 
@@ -218,7 +218,6 @@ export default function ReservationsTable({
     status?.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   const getStatusBadge = (status: string) => {
-    const statusLower = status?.toLowerCase() || "";
     const variants: Record<string, string> = {
       confirmed: "bg-green-100 text-green-800",
       reserved: "bg-blue-100 text-blue-800",
@@ -228,7 +227,7 @@ export default function ReservationsTable({
       no_show: "bg-red-100 text-red-800",
     };
     return (
-      <span className={`inline-flex px-1 py-0 text-[10px] font-medium rounded uppercase ${variants[statusLower] || "bg-muted text-muted-foreground"}`}>
+      <span className={`inline-flex px-1 py-0 text-[10px] font-medium rounded  ${variants[status] || "bg-muted text-muted-foreground"}`}>
         {formatStatusLabel(status)}
       </span>
     );
@@ -308,10 +307,10 @@ export default function ReservationsTable({
                         <Eye className="w-4 h-4 mr-3" />
                         View Details
                       </DropdownMenuItem>
-                      {/* <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
+                      <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
                         <VenetianMask className="w-4 h-4 mr-3" />
                         Add Spa / Activity
-                      </DropdownMenuItem> */}
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDownloadVoucher(reservation.bookingCode)} className="cursor-pointer">
                         <FileText className="w-4 h-4 mr-3" />
                         Download Voucher
@@ -332,7 +331,7 @@ export default function ReservationsTable({
                           Cancel
                         </DropdownMenuItem>
                       )}
-                      {
+                      {/* {
                         reservation.bookingStatus === "checked_in" && (
                           <>
                             <Button>
@@ -340,7 +339,7 @@ export default function ReservationsTable({
                             </Button>
                           </>
                         )
-                      }
+                      } */}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

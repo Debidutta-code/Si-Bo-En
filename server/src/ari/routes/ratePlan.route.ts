@@ -39,7 +39,11 @@ ratePlanRouter
         checkRoleBased('canDeleteRatePlan'),
         RatePlanController.deleteRatePlan
     );
-
+ratePlanRouter.route('/rule/:ratePlanCode').patch(
+    protect,
+    checkRoleBased('canUpdateRatePlan'),
+    RatePlanController.updateRatePlanRule
+);
 ratePlanRouter
     .route('/add/tax')
     .put(protect, RatePlanController.addTaxGroupToRatePlan);

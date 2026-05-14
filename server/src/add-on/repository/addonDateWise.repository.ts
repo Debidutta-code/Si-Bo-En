@@ -148,20 +148,28 @@ export class AddonDateWiseDao {
             );
         }
     }
+public async getAddonDateWiseById(
+    addonId: string
+): Promise<IAddonAvailability[] | Error> {
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-    // ... keep all your other existing methods unchanged
-    public async getAddonDateWiseById(
-        addonId: string
-    ): Promise<IAddonAvailability[] | Error> {
-        try {
-            return await prisma.addonAvailability.findMany({
-                where: { addonId: addonId },
-            });
-        } catch (error) {
-            throw new Error('Failed to get addon date-wise by ID');
-        }
+        return await prisma.addonAvailability.findMany({
+            where: {
+                addonId: addonId,
+                date: {
+                    gte: today,  
+                },
+            },
+            orderBy: {
+                date: 'asc',
+            },
+        });
+    } catch (error) {
+        throw new Error('Failed to get addon date-wise by ID');
     }
-
+}
     public async updateAddonByAddonId(
         addonId: string,
         data: { price: number; currencyCode: string; isAvailable: boolean }

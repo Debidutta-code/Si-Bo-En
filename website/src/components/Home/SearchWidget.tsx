@@ -14,13 +14,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { setBookingContext, setCurrency, setSenderUrl } from "../../store/bookingSlice";
 import toast from "react-hot-toast";
-import { currencies } from "../currencyCode/cuurency";
 import { RootState } from "@/src/store/store";
 import React from "react";
 import { createPortal } from "react-dom";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import CalendarPriceSkeleton from "../ui/custom/loader/CalendarPriceSkeleton";
-
+import { currencies } from "../currencyCode/cuurency";
 interface Room {
   adults: number;
   children: number;
@@ -147,6 +146,7 @@ const DatePickerWithHover = ({
   );
 };
 
+
 const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const { t, i18n } = useTranslation();
   const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
@@ -165,6 +165,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   );
   const userTriggeredSearch = useRef(false);
   const [isRoomsPage, setIsRoomsPage] = useState(false);
+  const [isPricesLoading, setIsPricesLoading] = useState(false);
+  const [prices, setPrices] = useState<Record<string, number>>({});
+
   const [guestInfo, setGuestInfo] = useState<GuestInfo>({
     adults: 1,
     children: 0,
@@ -179,6 +182,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [checkIn, setCheckIn] = useState<Date | null>(today);
   const [checkOut, setCheckOut] = useState<Date | null>(tomorrow);
   const [promocode, setPromocode] = useState<string>("")
+  const [location, setLocation] = useState<string>("")
   const [loading, setLoading] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [temporaryCheckOut, setTemporaryCheckOut] = useState<Date | null>(null);
@@ -186,8 +190,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [selectionMode, setSelectionMode] = useState<"checkin" | "checkout">(
     "checkin",
   );
-  const [prices, setPrices] = useState<Record<string, number>>({});
-  const [isPricesLoading, setIsPricesLoading] = useState(false);
 
   const bookingContext = useSelector((state: RootState) => state.booking);
 
@@ -212,6 +214,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       }
       if (bookingContext.promocode) {
         setPromocode(bookingContext.promocode);
+      }
+      if (bookingContext.location) {
+        setLocation(bookingContext.location);
       }
       if (bookingContext.guests) {
         const g = bookingContext.guests;
@@ -367,12 +372,13 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       const d = String(date.getDate()).padStart(2, "0");
       return `${y}-${m}-${d}`;
     };
+    const isPropertiesPage = PathName.includes('/Properties');
     const payload = {
       PropertyCode: hotelcode,
       startDate: toLocalDateString(checkIn),
       endDate: toLocalDateString(checkOut),
       guests: guestInfo,
-      location: bookingContext.location || "",
+      location: isPropertiesPage ? location : (bookingContext.location || ""),
       numberOfRooms: roomsCount,
       promocode: promocodeRef.current, // ✅ always fresh, no stale closure
       bookingSource: bookingContext.bookingSource || "direct",
@@ -429,8 +435,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const handleDateMouseLeave = () => {
     setTemporaryCheckOut(null);
   };
-
-  // ← CHANGED: accepts optional start/end so month navigation can pass its own range
   const fetchCalendarPrices = async (fromDate?: Date, toDate?: Date) => {
     setIsPricesLoading(true);
     try {
@@ -468,9 +472,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       fetchCalendarPrices();
     }
   }, [isCalendarOpen, hotelcode]);
-
-  // ← CHANGED: called by DatePicker's onMonthChange; `date` is the first visible month
-  const handleMonthChange = (date: Date) => {
+   const handleMonthChange = (date: Date) => {
     const isTwoMonths = typeof window !== 'undefined' && window.innerWidth >= 640;
     // Start of the navigated-to month
     const start = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -522,6 +524,25 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
+  // const getContrastTextColor = (bgColor: string) => {
+  //   // Convert hex to RGB
+  //   const hex = bgColor.replace("#", "");
+  //   const r = parseInt(hex.substring(0, 2), 16);
+  //   const g = parseInt(hex.substring(2, 4), 16);
+  //   const b = parseInt(hex.substring(4, 6), 16);
+
+  //   // Calculate luminance
+  //   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  //   // Return black or white based on luminance
+  //   return luminance > 0.5 ? "#2F2A1F" : "#FFFFFF";
+  // };
+
+  // // Calculate button text color - use provided buttonTextColor or get contrast color
+  // const calculatedButtonTextColor =
+  //   buttonTextColor || getContrastTextColor(secondaryColor);
+
+
   return (
     <>
       {isCalendarOpen && (
@@ -531,19 +552,51 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         />
       )}
 
-      <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA]">
-        <div className="mx-auto px-4 sm:px-6 py-3 flex justify-center">
+      <div className="w-full bg-[#F4EFE6] border-b  border-[#D4CABA]">
+        <div className="mx-auto px-4 sm:px-6 py-3 flex items-center justify-center">
           {/* Widget Row */}
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 lg:gap-4 xl:gap-6 w-full max-w-[900px]">
+<div className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 xl:gap-6 w-full ${
+  PathName.includes('/properties') ? 'max-w-[1100px]' : 'max-w-[900px]'
+}`}>           
+            {PathName.includes('/properties') && (
+              <div
+                className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-5 xl:px-8 py-3 lg:py-3 xl:py-4 flex items-center gap-3 shadow-sm flex-1 lg:flex-initial"
+                style={{ borderColor: secondaryColor }}
+              >
+                {/* Pin icon */}
+                <div className="flex-shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke={primaryColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                </div>
+
+                {/* Text */}
+                <div className="flex flex-col min-w-0">
+                  <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
+                    LOCATION
+                  </p>
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Where to?"
+                    className="text-sm font-semibold bg-transparent focus:outline-none placeholder-[#9B8B6F] w-full leading-none"
+                    style={{ color: primaryColor }}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Date Selector */}
             <div
               onClick={openCalendar}
-              className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-6 py-3 lg:py-4 flex items-center gap-3 lg:gap-6 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors flex-1 lg:flex-initial"
+              className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-5 xl:px-6 py-3 lg:py-3 xl:py-4 flex items-center gap-3 lg:gap-6 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors flex-1 lg:flex-initial"
               style={{ borderColor: secondaryColor }}
             >
               {/* Check-in */}
-              <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
+              <div className="text-center flex-1 min-w-[70px] lg:min-w-[80px]">
                 <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
                   {t("SearchWidget.checkIn")}
                 </p>
@@ -561,7 +614,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               </div>
 
               {/* Check-out */}
-              <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
+              <div className="text-center flex-1 min-w-[70px] lg:min-w-[80px]">
                 <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
                   {t("SearchWidget.checkOut")}
                 </p>
@@ -579,7 +632,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
             {/* Occupancy */}
             <button
               onClick={() => setIsGuestSelectorOpen(true)}
-              className="bg-white border rounded-xl px-4 py-3 hover:bg-[#FAFAF8] transition-colors shadow-sm w-full md:w-auto"
+              className="bg-white border rounded-xl px-4 lg:px-5 xl:px-6 py-3 lg:py-3 xl:py-4 hover:bg-[#FAFAF8] transition-colors shadow-sm w-full md:w-auto"
               style={{ borderColor: secondaryColor }}
             >
               <p className="text-[9px] tracking-[0.15em] font-medium mb-2" style={{ color: primaryColor }}>
@@ -627,7 +680,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
             </button>
 
             {/* Promo Code */}
-            <div className="flex flex-col min-w-[130px] xl:min-w-[180px]">
+            <div className="flex flex-col min-w-0 xl:min-w-[150px] px-4 lg:px-5 xl:px-6 py-3 lg:py-3 xl:py-4">
               <input
                 type="text"
                 value={promocode}
@@ -645,7 +698,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="w-full md:w-auto px-6 lg:px-10 py-3 lg:py-4 rounded-full text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
+              className="w-full md:w-auto px-5 lg:px-6 xl:px-10 py-3 xl:py-4 rounded-full text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
               style={{ backgroundColor: secondaryColor, color: buttonTextColor }}
             >
               {loading ? t("SearchWidget.loading") : t("SearchWidget.bookNow")}
@@ -708,6 +761,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
           </>,
           document.body
         )}
+
 
         <GuestSelector
           isOpen={isGuestSelectorOpen}

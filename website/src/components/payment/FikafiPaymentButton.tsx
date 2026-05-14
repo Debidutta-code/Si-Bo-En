@@ -63,18 +63,18 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         socketRef.current = socket;
 
         socket.on("connect", () => {
-          console.log("✅ Fikafi socket connected:", socket.id);
+          // console.log("✅ Fikafi socket connected:", socket.id);
           const roomName = `payment:${ref}`;
           socket.emit("join-payment-room", roomName);
-          console.log(`📌 Joined payment room: ${roomName}`);
+          // console.log(`📌 Joined payment room: ${roomName}`);
         });
 
         socket.on("room-joined", (data: any) => {
-          console.log("✅ Room joined:", data);
+          // console.log("✅ Room joined:", data);
         });
 
         socket.on("payment-status-update", (data: any) => {
-          console.log("📡 Payment update received:", data);
+          // console.log("📡 Payment update received:", data);
 
           if (data.orderReference === ref) {
             if (data.status === "success") {
@@ -88,7 +88,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         });
 
         socket.on("disconnect", () => {
-          console.log("🔌 Fikafi socket disconnected");
+          // console.log("🔌 Fikafi socket disconnected");
         });
 
         socket.on("connect_error", (error: any) => {
@@ -126,7 +126,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       // Use the provided booking code (reservation already exists)
       const bookingRefNum = bookingCode;
 
-      console.log("📋 Booking Ref:", bookingRefNum);
+      // console.log("📋 Booking Ref:", bookingRefNum);
 
       // Clean the backend URL
       let backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "").trim();
@@ -217,7 +217,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
 
         setPaymentLink(data.data.paymentLink);
         onPaymentLinkGenerated?.(data.data.paymentLink);
-        console.log("🔗 Redirecting to:", data.data.paymentLink);
+        // console.log("🔗 Redirecting to:", data.data.paymentLink);
 
         // Redirect after a short delay
         setTimeout(() => {

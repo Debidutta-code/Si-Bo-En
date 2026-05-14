@@ -9,8 +9,9 @@ import {
   updateBookingOffsetsApi,
   updateBookingOffsetByIdApi,
   upsertBookingOffsetsApi,
+  updateRatePlanRulesApi,
 } from "../api/api";
-import type { InventoryAnalysisFilters } from "../interfaces/inventory.interfaces";
+import type { InventoryAnalysisFilters, IRatePlanRuleUpdate } from "../interfaces/inventory.interfaces";
 import type {
   ICBookingOffsetS,
   IUBookingOffsetR,
@@ -247,4 +248,57 @@ export async function upsertBookingOffsetsService(
     return { success: false, message: "Missing required parameters" };
   }
   return await upsertBookingOffsetsApi(propertyId, ratePlanId, entries);
+}
+export async function updateRatePlanRulesService(
+  ratePlanCode: string,
+  ruleData: IRatePlanRuleUpdate
+) {
+  // Validation
+  if (!ratePlanCode) {
+    return {
+      success: false,
+      message: "Rate plan code is required",
+    };
+  }
+
+  if (!ruleData) {
+    return {
+      success: false,
+      message: "Rule data is required",
+    };
+  }
+
+  // Validate LOS values
+  if (ruleData.minimumLengthOfStay < 0) {
+    return {
+      success: false,
+      message: "Minimum length of stay cannot be negative",
+    };
+  }
+
+  if (ruleData.maximumLengthOfStay && ruleData.maximumLengthOfStay < ruleData.minimumLengthOfStay) {
+    return {
+      success: false,
+      message: "Maximum length of stay cannot be less than minimum length of stay",
+    };
+  }
+
+  // Validate dates if provided
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (ruleData.startDate && !dateRegex.test(ruleData.startDate)) {
+    return {
+      success: false,
+      message: "Start date must be in YYYY-MM-DD format",
+    };
+  }
+
+  if (ruleData.endDate && !dateRegex.test(ruleData.endDate)) {
+    return {
+      success: false,
+      message: "End date must be in YYYY-MM-DD format",
+    };
+  }
+
+  const result = await updateRatePlanRulesApi(ratePlanCode, ruleData);
+  return result;
 }

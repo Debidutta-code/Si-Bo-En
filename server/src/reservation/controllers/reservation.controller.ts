@@ -865,7 +865,7 @@ export class ReservationController {
     ): Promise<Response> {
         try {
             const bookingCode = req.params.bookingCode;
-            const guestDetails: IGuestCheckInDetails = req.body.guestDetails;
+            const guestDetails: IGuestCheckInDetails = req.body;
 
             if (!bookingCode) {
                 return res

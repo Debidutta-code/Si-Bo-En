@@ -86,12 +86,16 @@ export class RoomBookingRepository {
         ratePlanCode: string,
         dates: Date[]
     ) {
+        const checkoutDate = new Date(dates[dates.length - 1]);
+        checkoutDate.setDate(checkoutDate.getDate() + 1);
+        const datesWithCheckout = [...dates, checkoutDate];
+
         return prisma.charge.findMany({
             where: {
                 propertyCode,
                 roomTypeCode,
                 ratePlanCode,
-                date: { in: dates },
+                date: { in: datesWithCheckout },
                 isAvailable: true,
             },
             include: {

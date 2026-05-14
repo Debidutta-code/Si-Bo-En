@@ -135,7 +135,7 @@ export class LoyaltyGuestService {
                 await this.propertyLoyaltyRepository.getLoyalityForPropertyWhereTrue(
                     propertyId
                 );
-            console.log(propertyLoyaltyConfig);
+            // console.log(propertyLoyaltyConfig);
             if (!propertyLoyaltyConfig) {
                 return errorResponse(
                     'No active loyalty program found for this property'

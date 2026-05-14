@@ -29,7 +29,6 @@ export default function DeleteConfirmationDialog({
   onConfirm,
   loading,
 }: DeleteConfirmationDialogProps) {
-  console.log(user)
   if (!user) {
     return;
   }

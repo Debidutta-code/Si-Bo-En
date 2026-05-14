@@ -17,7 +17,7 @@ export const fetchPaymentDetailsService = async (propertyId: string) => {
 export const createBookingService = async (bookingData: ICreateBookingPayload) => {
     try {
         // Validate required fields
-console.log(bookingData);
+// console.log(bookingData);
         if (!bookingData.guestDetails || bookingData.guestDetails.length === 0) {
             return { success: false, message: "At least one guest is required." };
         }

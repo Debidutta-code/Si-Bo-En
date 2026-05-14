@@ -14,7 +14,7 @@ interface PriceEdit {
 }
 
 interface CustomTier {
-  baseGuests: number[];
+  baseGuests: Array<{ numberOfGuests: number; ageQualifyingCode: string }>;  // ✅ Changed to objects
   additionalCharges: Array<{ ageCode: string; id: string }>;
 }
 
@@ -39,9 +39,7 @@ export const toggleOccupancyExpansion = (
   setExpandedOccupancy(newExpanded);
 };
 
-/**
- * Add guest tier
- */
+
 export const addGuestTier = (
   roomType: string,
   ratePlan: string,
@@ -52,61 +50,56 @@ export const addGuestTier = (
   pendingChanges: Set<string>,
   setCustomTiers: (tiers: Map<string, CustomTier>) => void,
   setPriceEdits: (edits: Map<string, PriceEdit>) => void,
-  setPendingChanges: (changes: Set<string>) => void
+  setPendingChanges: (changes: Set<string>) => void,
+  ageQualifyingCode: string = "10"
 ) => {
+  // console.log(ageQualifyingCode, numberOfGuests, roomType);
+  
   const key = generateKey.customTier(roomType, ratePlan);
   const current = customTiers.get(key) || { baseGuests: [], additionalCharges: [] };
 
-  if (!current.baseGuests.includes(numberOfGuests)) {
-    current.baseGuests.push(numberOfGuests);
-    current.baseGuests.sort((a, b) => a - b);
+  // ✅ Check if this specific combo already exists
+  const alreadyExists = current.baseGuests.some(
+    (guest) => guest.numberOfGuests === numberOfGuests && guest.ageQualifyingCode === ageQualifyingCode
+  );
+  
+  if (!alreadyExists) {
+    // ✅ Store as object with both number and age code
+    current.baseGuests.push({ 
+      numberOfGuests, 
+      ageQualifyingCode 
+    });
+    current.baseGuests.sort((a, b) => a.numberOfGuests - b.numberOfGuests);
 
     const newCustomTiers = new Map(customTiers);
     newCustomTiers.set(key, current);
     setCustomTiers(newCustomTiers);
 
-    // Auto-fill the new tier with data from first tier
     const newEdits = new Map(priceEdits);
     const newPending = new Set(pendingChanges);
 
-    days.forEach((day, dayIndex) => {
-      const firstTierKey = generateKey.price(roomType, ratePlan, dayIndex, 1);
-      const firstTierEdit = priceEdits.get(firstTierKey);
-
-      if (firstTierEdit && firstTierEdit.value) {
-        const newTierKey = generateKey.price(roomType, ratePlan, dayIndex, numberOfGuests);
-        newEdits.set(newTierKey, {
-          roomType,
-          ratePlan,
-          dayIndex,
-          value: firstTierEdit.value,
-          numberOfGuests,
-        });
-        newPending.add(newTierKey);
-      } else {
-        const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlan);
-        const firstTierData = ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts?.find(
-          (t: any) => t.numberOfGuests === 1
-        );
-
-        if (firstTierData && firstTierData.amountBeforeTax) {
-          const newTierKey = generateKey.price(roomType, ratePlan, dayIndex, numberOfGuests);
-          newEdits.set(newTierKey, {
-            roomType,
-            ratePlan,
-            dayIndex,
-            value: firstTierData.amountBeforeTax.toString(),
-            numberOfGuests,
-          });
-          newPending.add(newTierKey);
-        }
-      }
+    days.forEach((_, dayIndex) => {
+      const newTierKey = generateKey.price(roomType, ratePlan, dayIndex, numberOfGuests, ageQualifyingCode);
+      newEdits.set(newTierKey, {
+        roomType,
+        ratePlan,
+        dayIndex,
+        value: "",
+        numberOfGuests,
+        ageQualifyingCode,
+      });
+      newPending.add(newTierKey);
     });
 
     setPriceEdits(newEdits);
     setPendingChanges(newPending);
-
-    toast.success(`Added ${numberOfGuests} Guest tier with copied pricing`);
+    
+    const label = ageQualifyingCode === "8" ? "Child" : 
+                  ageQualifyingCode === "7" ? "Infant" : 
+                  `${numberOfGuests} Adult`;
+    toast.success(`Added ${label} tier`);
+  } else {
+    toast.error(`Tier already exists`);
   }
 };
 
@@ -117,6 +110,7 @@ export const removeGuestTier = (
   roomType: string,
   ratePlan: string,
   numberOfGuests: number,
+  ageQualifyingCode: string,
   customTiers: Map<string, CustomTier>,
   setCustomTiers: (tiers: Map<string, CustomTier>) => void
 ) => {
@@ -124,7 +118,9 @@ export const removeGuestTier = (
   const current = customTiers.get(key);
 
   if (current) {
-    current.baseGuests = current.baseGuests.filter(g => g !== numberOfGuests);
+    current.baseGuests = current.baseGuests.filter(
+      (guest) => !(guest.numberOfGuests === numberOfGuests && guest.ageQualifyingCode === ageQualifyingCode)
+    );
     const newCustomTiers = new Map(customTiers);
     newCustomTiers.set(key, current);
     setCustomTiers(newCustomTiers);

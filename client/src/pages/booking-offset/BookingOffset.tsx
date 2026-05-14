@@ -95,8 +95,6 @@ export default function BookingOffset() {
   useEffect(() => {
     if (propertyId) {
       loadRatePlans();
-    } else {
-      console.log("Property ID is required");
     }
   }, [propertyId]);
 

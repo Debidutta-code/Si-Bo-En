@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { downloadReportService, getFilterOptionsService } from './services';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, FileBarChart, CalendarRange, Building2, Filter } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import type { ReportType, IFilterOptionsResponse } from './interfaces';
 
@@ -130,26 +130,37 @@ const Report = () => {
     };
 
     return (
-        <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-6">
-            <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-            <p className="text-muted-foreground mb-8">Generated detailed insights and exports for your properties.</p>
+        <div className="p-6 md:p-10 max-w-5xl mx-auto space-y-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 flex items-center gap-3">
+                        <FileBarChart className="w-10 h-10 text-primary" />
+                        Reports Dashboard
+                    </h1>
+                    <p className="text-muted-foreground mt-2 text-lg">Generate and export detailed analytical insights for your properties.</p>
+                </div>
+            </div>
             
-            <Card>
-                <CardHeader>
-                    <CardTitle>Generate Report</CardTitle>
-                    <CardDescription>Select a report type and date range to export data.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label>Report Type <span className="text-red-500">*</span></Label>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column: Report Settings */}
+                <Card className="lg:col-span-2 shadow-sm border-gray-200">
+                    <CardHeader className="bg-gray-50/50 border-b pb-6">
+                        <CardTitle className="text-xl flex items-center gap-2">
+                            <CalendarRange className="w-5 h-5 text-gray-500" />
+                            Report Settings
+                        </CardTitle>
+                        <CardDescription>Select the type of data and date range you want to analyze.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-8 pt-8">
+                        <div className="space-y-3">
+                            <Label className="text-sm font-semibold text-gray-700">Report Type <span className="text-red-500">*</span></Label>
                             <Select value={reportType} onValueChange={(val) => setReportType(val as ReportType)}>
-                                <SelectTrigger>
+                                <SelectTrigger className="w-full h-12 text-base">
                                     <SelectValue placeholder="Select report type" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {REPORT_TYPES.map((type) => (
-                                        <SelectItem key={type.value} value={type.value}>
+                                        <SelectItem key={type.value} value={type.value} className="py-3">
                                             {type.label}
                                         </SelectItem>
                                     ))}
@@ -157,105 +168,137 @@ const Report = () => {
                             </Select>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label>Start Date</Label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <Label className="text-sm font-semibold text-gray-700">Start Date</Label>
                                 <Input 
                                     type="date" 
                                     value={startDate} 
                                     onChange={(e) => setStartDate(e.target.value)} 
+                                    className="h-12"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label>End Date</Label>
+                            <div className="space-y-3">
+                                <Label className="text-sm font-semibold text-gray-700">End Date</Label>
                                 <Input 
                                     type="date" 
                                     value={endDate} 
                                     onChange={(e) => setEndDate(e.target.value)} 
+                                    className="h-12"
                                 />
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
+                <div className="space-y-8">
+                    <Card className="shadow-sm border-gray-200">
+                        <CardHeader className="bg-gray-50/50 border-b pb-6">
+                            <CardTitle className="text-xl flex items-center gap-2">
+                                <Filter className="w-5 h-5 text-gray-500" />
+                                Portfolio Filters
+                            </CardTitle>
+                            <CardDescription>Filter data by specific properties or groups.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-8">
+                            {isLoadingFilters ? (
+                                <div className="flex flex-col items-center justify-center py-10 space-y-4">
+                                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                                    <span className="text-sm text-muted-foreground">Loading portfolio data...</span>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    {(showGroupFilter || showBrandFilter || showPropertyFilter) ? (
+                                        <>
+                                            {showGroupFilter && (
+                                                <div className="space-y-3">
+                                                    <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                        <Building2 className="w-4 h-4" />
+                                                        Group
+                                                    </Label>
+                                                    <Select value={selectedGroupId} onValueChange={handleGroupChange}>
+                                                        <SelectTrigger className="h-11">
+                                                            <SelectValue placeholder="All Groups" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="all">All Groups</SelectItem>
+                                                            {filterOptions!.groups.map((group) => (
+                                                                <SelectItem key={group.id} value={group.id}>
+                                                                    {group.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            )}
 
-                        {/* Role-based cascading filter dropdowns */}
-                        {isLoadingFilters ? (
-                            <div className="flex items-center gap-2 text-muted-foreground text-sm py-2">
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                Loading filters...
-                            </div>
-                        ) : (
-                            (showGroupFilter || showBrandFilter || showPropertyFilter) && (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {showGroupFilter && (
-                                        <div className="space-y-2">
-                                            <Label>Group</Label>
-                                            <Select value={selectedGroupId} onValueChange={handleGroupChange}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="All Groups" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Groups</SelectItem>
-                                                    {filterOptions!.groups.map((group) => (
-                                                        <SelectItem key={group.id} value={group.id}>
-                                                            {group.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    )}
+                                            {showBrandFilter && (
+                                                <div className="space-y-3">
+                                                    <Label className="text-sm font-semibold text-gray-700">Brand</Label>
+                                                    <Select value={selectedBrandId} onValueChange={handleBrandChange}>
+                                                        <SelectTrigger className="h-11">
+                                                            <SelectValue placeholder="All Brands" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="all">All Brands</SelectItem>
+                                                            {filteredBrands.map((brand) => (
+                                                                <SelectItem key={brand.id} value={brand.id}>
+                                                                    {brand.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            )}
 
-                                    {showBrandFilter && (
-                                        <div className="space-y-2">
-                                            <Label>Brand</Label>
-                                            <Select value={selectedBrandId} onValueChange={handleBrandChange}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="All Brands" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Brands</SelectItem>
-                                                    {filteredBrands.map((brand) => (
-                                                        <SelectItem key={brand.id} value={brand.id}>
-                                                            {brand.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    )}
-
-                                    {showPropertyFilter && (
-                                        <div className="space-y-2">
-                                            <Label>Property</Label>
-                                            <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="All Properties" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="all">All Properties</SelectItem>
-                                                    {filteredProperties.map((prop) => (
-                                                        <SelectItem key={prop.id} value={prop.id}>
-                                                            {prop.property?.propertyName || prop.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            {showPropertyFilter && (
+                                                <div className="space-y-3">
+                                                    <Label className="text-sm font-semibold text-gray-700">Property</Label>
+                                                    <Select value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
+                                                        <SelectTrigger className="h-11">
+                                                            <SelectValue placeholder="All Properties" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="all">All Properties</SelectItem>
+                                                            {filteredProperties.map((prop) => (
+                                                                <SelectItem key={prop.id} value={prop.id}>
+                                                                    {prop.property?.propertyName || prop.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <div className="text-center py-6 text-sm text-muted-foreground">
+                                            No portfolio filters available
                                         </div>
                                     )}
                                 </div>
-                            )
-                        )}
-                    </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
                     <Button 
                         onClick={handleDownload} 
                         disabled={isDownloading || !reportType}
-                        className="w-full md:w-auto mt-4"
+                        className="w-full h-14 text-lg shadow-md hover:shadow-lg transition-all disabled:opacity-70"
+                        size="lg"
                     >
-                        <Download className="w-4 h-4 mr-2" />
-                        {isDownloading ? "Downloading..." : "Download Report"}
+                        {isDownloading ? (
+                            <>
+                                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                Generating...
+                            </>
+                        ) : (
+                            <>
+                                <Download className="w-5 h-5 mr-2" />
+                                Export Report
+                            </>
+                        )}
                     </Button>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 };

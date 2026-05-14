@@ -101,7 +101,7 @@ export const LoyaltyContainer = ({
 
           if (response.ok && data.success && data.data?.isLoyaltyMember) {
             setIsRegistered(true);
-            console.log("Loyalty member", data);
+            // console.log("Loyalty member", data);
             setRegisteredEmail(loyaltyMemberEmail);
             setDiscountInfo(data.data.discount);
             setIsToggleOn(true);

@@ -1,3 +1,4 @@
+import { config } from "../../config";
 import { capitalizeFirstLetter } from "../utils/capitalizefirstLetter.util";
 
 // Re-export CurrencyCode type for local use
@@ -633,13 +634,13 @@ export const BookingConfirmationEmail = ({
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
               <tr>
                 <td style="padding-right:12px;">
-                  <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}&bookingCode=${reservation.bookingCode.split("-")[1] ?? ""}"
+                  <a href="${config.bookingengineUrl}/my-trip?propertyCode=${property.propertyCode}&code=${reservation.bookingCode.split("-")[1] ?? ""}"
                      style="display:inline-block;background-color:#00b5c8;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:8px;letter-spacing:0.2px;">
                     Manage My Booking
                   </a>
                 </td>
                 <td>
-                  <a href="https://bookings.revchilltech.com/cancel?propertyCode=${property.propertyCode}&bookingCode=${reservation.bookingCode.split("-")[1] ?? ""}"
+                  <a href="${config.bookingengineUrl}/my-trip?propertyCode=${property.propertyCode}&code=${reservation.bookingCode.split("-")[1] ?? ""}"
                      style="display:inline-block;background-color:#ffffff;color:#dc2626;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:8px;border:1px solid #fecaca;letter-spacing:0.2px;">
                     Cancel Booking
                   </a>
@@ -1515,13 +1516,13 @@ export const BookingAmendmentEmail = ({
             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
               <tr>
                 <td style="padding-right:12px;">
-                  <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}&bookingCode=${(reservation.bookingCode ?? "").split("-")[1] ?? ""}"
+                  <a href="${config.bookingengineUrl}/my-trip?propertyCode=${property.propertyCode}&code=${(reservation.bookingCode ?? "").split("-")[1] ?? ""}"
                      style="display:inline-block;background-color:#2563eb;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:8px;letter-spacing:0.2px;">
                     View My Booking
                   </a>
                 </td>
                 <td>
-                  <a href="https://bookings.revchilltech.com/cancel?propertyCode=${property.propertyCode}&bookingCode=${(reservation.bookingCode ?? "").split("-")[1] ?? ""}"
+                  <a href="${config.bookingengineUrl}/my-trip?propertyCode=${property.propertyCode}&code=${(reservation.bookingCode ?? "").split("-")[1] ?? ""}"
                      style="display:inline-block;background-color:#ffffff;color:#dc2626;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:8px;border:1px solid #fecaca;letter-spacing:0.2px;">
                     Cancel Booking
                   </a>

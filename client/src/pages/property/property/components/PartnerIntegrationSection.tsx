@@ -25,7 +25,7 @@ export default function PartnerIntegrationSection({
     onManageFields,
     isLoading
 }: PartnerIntegrationSectionProps) {
-    console.log(isLoading)
+    // console.log(isLoading)
     const filteredPartners = partners.filter(partner => partner.type === type);
 
     if (filteredPartners.length === 0) {

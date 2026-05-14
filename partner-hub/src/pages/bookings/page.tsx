@@ -91,7 +91,7 @@ export default function BookingPage() {
   const selectedProperty = useAppSelector(
     (state: RootState) => state.property.selectedProperty
   );
-  console.log(selectedProperty)
+  // console.log(selectedProperty)
 
   const user = useAppSelector(
     (state: RootState) => state.auth.user
@@ -324,7 +324,7 @@ export default function BookingPage() {
           dateOfBirth: guest.dateOfBirth || "",
         })),
       };
-      console.log("bookimg", bookingPayload)
+      // console.log("bookimg", bookingPayload)
       const result = await createBookingService(bookingPayload);
 
       if (result.success) {

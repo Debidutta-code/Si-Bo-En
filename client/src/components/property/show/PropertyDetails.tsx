@@ -37,7 +37,6 @@ import {
   getPropertyEmails,
   updatePropertyEmail,
 } from "../api/create/propertyEmails.apis";
-import { useAppSelector } from "@/redux/hooks";
 import { useNavigate } from "react-router-dom";
 
 export default function PropertyDetails({
@@ -93,7 +92,6 @@ export default function PropertyDetails({
   const [deleteEmailId, setDeleteEmailId] = useState<string | null>(null);
   const [deleteEmailLoading, setDeleteEmailLoading] = useState(false);
   const navigate = useNavigate();
-  const user = useAppSelector((state) => state.user.user);
   useEffect(() => {
     if (!propertyId) {
       toast.error("Property id not found");
@@ -102,7 +100,7 @@ export default function PropertyDetails({
     fetchPropertyDetails(propertyId);
     fetchEmails(propertyId);
   }, [propertyId]);
-console.log(propertyDetails,"propertyDetails.creationId")
+// console.log(propertyDetails,"propertyDetails.creationId")
   const fetchEmails = async (propId: string) => {
     setEmailsLoading(true);
     try {
@@ -316,7 +314,6 @@ console.log(propertyDetails,"propertyDetails.creationId")
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-          {(user?.userLevel === 0 || user?.userLevel === 1) && (
             <Button
               className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90"
               onClick={() => navigate(`/app/property/property/${propertyDetails?.creationId}`)}
@@ -324,7 +321,6 @@ console.log(propertyDetails,"propertyDetails.creationId")
               <Settings className="h-4 w-4 mr-2" />
               Property Configuration
             </Button>
-          )}
 
         </div>
       </div>

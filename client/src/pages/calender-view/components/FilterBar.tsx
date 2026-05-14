@@ -152,14 +152,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     if (selectedRoomTypes.length === roomTypes.length) return 'All Room Types';
     return `${selectedRoomTypes.length} Room Type${selectedRoomTypes.length > 1 ? 's' : ''}`;
   };
-console.log("all the prop data ",{
-  
-  selectedRoomTypes,
-  selectedRatePlans,
-  dateRange,
-  roomTypes,
-  ratePlans,
-});
+
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-4 relative z-50">
       <div className="flex flex-col gap-3">

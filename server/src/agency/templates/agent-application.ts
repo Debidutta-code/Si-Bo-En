@@ -1,11 +1,11 @@
 import { ICAgencyApplication } from '../types';
 import { agencyTypeLabel, emailShell } from './email.shell';
-
+import config from "../../config/env.config";
 export function templateApplicationSubmitted(
     data: ICAgencyApplication & { id: string }
 ): string {
-    const trackingBaseUrl = `https://bookings-revchilltech.trip-swift.ai/agency-application/track-application`;
-    const trackingUrl = `${trackingBaseUrl}/${data.id}`;
+    const trackingBaseUrl = `${config.bookingengineUrl}/agency-application/track-application`;
+    const trackingUrl = `${trackingBaseUrl}`;
 
     const submittedOn = new Date().toLocaleDateString('en-US', {
         year: 'numeric',
