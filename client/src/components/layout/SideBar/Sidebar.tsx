@@ -32,9 +32,9 @@ import {
   Activity,
   Network,
   ServerCog,
-  // Flower2,
+  Flower2,
   Settings2,
-  // Smile,
+  Smile,
   Logs,
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
@@ -180,13 +180,13 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
           { name: 'Inventory', href: `/property/inventory/${pid}`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff',] },
         ],
       });
-      // main.push({
-      //   name: "Spa & Activities", icon: Flower2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'],
-      //   children: [
-      //     { name: "Configure", href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'] },
-      //     { name: "My spa", href: `/property/spa/me/${pid}`, icon: Smile, userLevels: [0], priority: 1, roles: ['spa_manager'] },
-      //   ]
-      // })
+      main.push({
+        name: "Spa & Activities", icon: Flower2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'],
+        children: [
+          { name: "Configure", href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'] },
+          { name: "My spa", href: `/property/spa/me/${pid}`, icon: Smile, userLevels: [0], priority: 1, roles: ['spa_manager'] },
+        ]
+      })
       // Promotions
       main.push({
         name: 'Promotions', icon: Tag, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'],
