@@ -74,11 +74,11 @@ export default function Dashboard() {
   };
 
   const fetchStatistics = async (selectedCurrency: CurrencyCode, propertyId?: string, propertyCode?: string, propertyName?: string) => {
-    console.log(selectedCurrency)
+    // console.log(selectedCurrency)
     if (!selectedCurrency) return
     try {
       setError(null);
-      console.log(selectedCurrency)
+      // console.log(selectedCurrency)
       const response = await fetchStatisticsComparisonService(
         comparisonType,
         selectedDate.toISOString(),

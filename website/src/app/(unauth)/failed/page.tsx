@@ -37,7 +37,7 @@ export default function PaymentFailedPage() {
         bookingCode = bookingCode || bookingData.bookingCode;
         // Use paymentId as fikafiRefNum if available, otherwise fall back to bookingCode
         fikafiRefNum = bookingData.paymentId || bookingData.fikafiRefNum || bookingCode;
-        console.log("📦 Retrieved from localStorage:", bookingData);
+        // console.log("📦 Retrieved from localStorage:", bookingData);
       } catch (e) {
         console.error("Failed to parse stored booking data:", e);
       }
@@ -55,7 +55,7 @@ export default function PaymentFailedPage() {
         try {
           const currentBookingData = JSON.parse(storedCurrentBooking);
           fikafiRefNum = currentBookingData.paymentId || currentBookingData;
-          console.log("📦 Retrieved paymentId from currentBookingCode:", fikafiRefNum);
+          // console.log("📦 Retrieved paymentId from currentBookingCode:", fikafiRefNum);
         } catch (e) {
           console.error("Failed to parse currentBookingCode:", e);
         }
@@ -71,7 +71,7 @@ export default function PaymentFailedPage() {
       }
     }
 
-    console.log("💸 Failed page loaded, ref:", ref, "code:", code, "final:", bookingCode);
+    // console.log("💸 Failed page loaded, ref:", ref, "code:", code, "final:", bookingCode);
 
     if (!bookingCode || bookingCode === "PENDING_BOOKING") {
       setError("Invalid booking reference. Please contact support.");
@@ -85,7 +85,7 @@ export default function PaymentFailedPage() {
     const timer = setTimeout(() => {
       // Setup timeout to stop loading after 30 seconds (fallback)
       paymentTimeoutRef.current = setTimeout(() => {
-        console.log("⏰ Payment timeout - showing failed UI");
+        // console.log("⏰ Payment timeout - showing failed UI");
         if (socketRef.current) {
           socketRef.current.disconnect();
         }
@@ -108,9 +108,9 @@ export default function PaymentFailedPage() {
           socketRef.current = socket;
 
           socket.on('connect', () => {
-            console.log("🔌 Socket connected:", socket.id);
+            // console.log("🔌 Socket connected:", socket.id);
             const roomName = `payment:${bookingCode}`;
-            console.log("📤 Joining room:", roomName);
+            // console.log("📤 Joining room:", roomName);
             socket.emit('join-payment-room', roomName);
           });
 
@@ -119,7 +119,7 @@ export default function PaymentFailedPage() {
           });
 
           socket.on('room-joined', (data: any) => {
-            console.log("✅ Room joined:", data);
+            // console.log("✅ Room joined:", data);
           });
 
           socket.on('error', (err: any) => {
@@ -127,11 +127,11 @@ export default function PaymentFailedPage() {
           });
 
           socket.on('payment-status-update', (data: { orderReference: string; status: string; message?: string }) => {
-            console.log("📥 Payment status update received:", data);
+            // console.log("📥 Payment status update received:", data);
             
             // Handle empty or null data
             if (!data || !data.orderReference) {
-              console.log("⚠️ Empty payment status received, showing failed UI");
+              // console.log("⚠️ Empty payment status received, showing failed UI");
               setLoading(false);
               return;
             }
@@ -156,7 +156,7 @@ export default function PaymentFailedPage() {
           });
 
           socket.on('disconnect', (reason: any) => {
-            console.log("🔌 Socket disconnected:", reason);
+            // console.log("🔌 Socket disconnected:", reason);
           });
         } catch (err) {
           console.error("Socket setup error:", err);

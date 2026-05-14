@@ -217,7 +217,7 @@ export const MLOSRuleList: React.FC = () => {
         <h2 className="text-2xl font-bold text-foreground">MLOS Rules</h2>
         <button
           onClick={() => {
-            console.log('Button clicked, showForm:', showForm);
+            // console.log('Button clicked, showForm:', showForm);
             setShowForm(true);
           }}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

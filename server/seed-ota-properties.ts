@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 async function main() {
     await connectPostgres();
-    console.log('Starting OTA Dummy Properties Seeder...');
+    // console.log('Starting OTA Dummy Properties Seeder...');
 
     try {
         // 1. Check or create an Admin User
@@ -12,9 +12,9 @@ async function main() {
         });
 
         if (!adminUser) {
-            console.log(
-                'No super_admin user found. Creating a dummy admin user...'
-            );
+            // console.log(
+            //     'No super_admin user found. Creating a dummy admin user...'
+            // );
             adminUser = await prisma.user.create({
                 data: {
                     firstName: 'System',
@@ -26,7 +26,7 @@ async function main() {
                 },
             });
         }
-        console.log(`✅ Using User ID: ${adminUser.id}`);
+        // console.log(`✅ Using User ID: ${adminUser.id}`);
 
         // 2. Check or create a Master Property Category
         let luxuryCategory = await prisma.masterPropertyCategory.findFirst({
@@ -116,9 +116,9 @@ async function main() {
         ];
 
         for (const dp of dummyProperties) {
-            console.log(
-                `Creating Creation & Property for: ${dp.propertyName}...`
-            );
+            // console.log(
+            //     `Creating Creation & Property for: ${dp.propertyName}...`
+            // );
 
             // Create a Creation entity (Required by schema)
             const creation = await prisma.creation.create({
@@ -187,12 +187,12 @@ async function main() {
                 data: { propertyId: property.id },
             });
 
-            console.log(
-                `✅ Successfully created property: ${dp.propertyName} (Code: ${dp.propertyCode})`
-            );
+            // console.log(
+            //     `✅ Successfully created property: ${dp.propertyName} (Code: ${dp.propertyCode})`
+            // );
         }
 
-        console.log('🎉 Database seeding completed successfully!');
+        // console.log('🎉 Database seeding completed successfully!');
     } catch (error) {
         console.error('❌ Error seeding properties:', error);
     } finally {

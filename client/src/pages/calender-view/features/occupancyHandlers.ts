@@ -53,7 +53,7 @@ export const addGuestTier = (
   setPendingChanges: (changes: Set<string>) => void,
   ageQualifyingCode: string = "10"
 ) => {
-  console.log(ageQualifyingCode, numberOfGuests, roomType);
+  // console.log(ageQualifyingCode, numberOfGuests, roomType);
   
   const key = generateKey.customTier(roomType, ratePlan);
   const current = customTiers.get(key) || { baseGuests: [], additionalCharges: [] };

@@ -23,7 +23,7 @@ const PriceSummarySidebar: React.FC<PriceSummarySidebarProps> = ({
   bookingContext,
   onClose
 }) => {
-  console.log(finalPrice)
+  // console.log(finalPrice)
 const currency = currentRatePlan?.currencycode || finalPrice?.currencyCode || 'USD';
 const currencySymbol = currencies.find((c) => c.code === currency)?.symbol ?? currency;
   const formatDate = (dateString: string) => {

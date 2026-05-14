@@ -30,7 +30,7 @@ export class AgentDashboardController {
                         )
                     );
             }
-            console.log('agencyId', agencyId, 'agentId', agentId);
+            // console.log('agencyId', agencyId, 'agentId', agentId);
             const filters: IAgentDashboardFilters = {};
 
             if (req.query.propertyId) {

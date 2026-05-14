@@ -281,7 +281,7 @@ export class PropertyAminityService {
         try {
             const daoRes =
                 await PropertyAmenityDao.getActiveAmenities(propertyId);
-            console.log(daoRes);
+            // console.log(daoRes);
             if (daoRes) {
                 return successResponse(
                     'Property Aminity fetched successfully',

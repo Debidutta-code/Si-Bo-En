@@ -1,7 +1,9 @@
-
-import { RateTigerDao } from '../../rate-tiger/dao'; // adjust path to your actual RateTiger dao
+import { RateTigerDao } from '../../rate-tiger/dao';
 import { SiteMinderDao } from '../dao';
 import { SiteMinderXmlParser } from '../utils/xml-parser';
+import { ServiceLogger, LogBuilder } from '../../../logs/services/service-log.service';
+
+const logger = new ServiceLogger('SiteMinderARI');
 
 export class SiteMinderRoomsRatesService {
 
@@ -9,30 +11,80 @@ export class SiteMinderRoomsRatesService {
         hotelCode: string;
         echoToken: string;
         version: string;
-    }): Promise<string> {
+    }, log: LogBuilder): Promise<string> {
         const { hotelCode, echoToken, version } = params;
 
         try {
-            // Reuse exact same dao you already have for RateTiger
-            const property = await SiteMinderDao.getProperty(hotelCode);
+            // ── Repo: getProperty ─────────────────────────────────────────────
+            let property: any;
+            const t0 = Date.now();
+            try {
+                property = await SiteMinderDao.getProperty(hotelCode);
+                log.addRepoCall({
+                    repoName: 'SiteMinderDao',
+                    method: 'getProperty',
+                    input: { hotelCode },
+                    response: property ?? null,
+                    success: !!property,
+                    durationMs: Date.now() - t0,
+                });
+            } catch (err: any) {
+                log.addRepoCall({
+                    repoName: 'SiteMinderDao',
+                    method: 'getProperty',
+                    input: { hotelCode },
+                    success: false,
+                    durationMs: Date.now() - t0,
+                    error: { message: err?.message },
+                });
+                throw err;
+            }
+
             if (!property) {
+                log.pushMessage(`Property ${hotelCode} not found`, 'error');
                 return SiteMinderXmlParser.buildRoomsRatesResponse({
                     echoToken, version, roomStays: [],
                     error: { type: 3, code: 392, text: `Property ${hotelCode} not found` },
                 });
             }
-            const mappingData = await RateTigerDao.getPropertyMappingData(property.propertyCode);
+
+            // ── Repo: getPropertyMappingData ──────────────────────────────────
+            let mappingData: any;
+            const t1 = Date.now();
+            try {
+                mappingData = await RateTigerDao.getPropertyMappingData(property.propertyCode);
+                log.addRepoCall({
+                    repoName: 'RateTigerDao',
+                    method: 'getPropertyMappingData',
+                    input: { propertyCode: property.propertyCode },
+                    response: mappingData ? {
+                        roomTypesCount: mappingData.roomTypes?.length ?? 0,
+                        ratePlansCount: mappingData.ratePlans?.length ?? 0,
+                        roomRatesCount: mappingData.roomRates?.length ?? 0,
+                    } : undefined,
+                    success: !!mappingData,
+                    durationMs: Date.now() - t1,
+                });
+            } catch (err: any) {
+                log.addRepoCall({
+                    repoName: 'RateTigerDao',
+                    method: 'getPropertyMappingData',
+                    input: { propertyCode: property.propertyCode },
+                    success: false,
+                    durationMs: Date.now() - t1,
+                    error: { message: err?.message },
+                });
+                throw err;
+            }
+
             if (!mappingData) {
+                log.pushMessage(`Mapping data not found for property ${property.propertyCode}`, 'error');
                 return SiteMinderXmlParser.buildRoomsRatesResponse({
-                    echoToken,
-                    version,
-                    roomStays: [],
+                    echoToken, version, roomStays: [],
                     error: { type: 3, code: 392, text: `Property ${hotelCode} not found` },
                 });
             }
 
-            // Build one RoomStay per room+rate combination
-            // SiteMinder spec requires each combination to be its own RoomStay
             const roomStays: Array<{
                 roomTypeCode: string;
                 roomTypeName: string;
@@ -43,38 +95,31 @@ export class SiteMinderRoomsRatesService {
 
             for (const roomRate of mappingData.roomRates) {
                 if (roomRate.status !== 'Active') continue;
-
-                // Find room details
                 const room = mappingData.roomTypes.find(
-                    r => r.roomTypeCode === roomRate.roomTypeCode
+                    (r: any) => r.roomTypeCode === roomRate.roomTypeCode
                 );
-                // Find rate plan details
                 const ratePlan = mappingData.ratePlans.find(
-                    rp => rp.ratePlanCode === roomRate.ratePlanCode
+                    (rp: any) => rp.ratePlanCode === roomRate.ratePlanCode
                 );
-
                 if (!room || !ratePlan) continue;
 
                 roomStays.push({
                     roomTypeCode: room.roomTypeCode,
                     roomTypeName: room.roomTypeName,
-                    maxOccupancy: room.maxNumberOfAdults,  // Critical for OBP
+                    maxOccupancy: room.maxNumberOfAdults,
                     ratePlanCode: ratePlan.ratePlanCode,
                     ratePlanName: ratePlan.ratePlanName,
                 });
             }
 
-            return SiteMinderXmlParser.buildRoomsRatesResponse({
-                echoToken,
-                version,
-                roomStays,
-            });
+            log.pushMessage(`Built ${roomStays.length} room+rate combinations`, 'info', { roomStays });
+
+            return SiteMinderXmlParser.buildRoomsRatesResponse({ echoToken, version, roomStays });
 
         } catch (error: any) {
+            log.setError(error);
             return SiteMinderXmlParser.buildRoomsRatesResponse({
-                echoToken,
-                version,
-                roomStays: [],
+                echoToken, version, roomStays: [],
                 error: { type: 3, text: error?.message ?? 'Failed to retrieve rooms and rates' },
             });
         }

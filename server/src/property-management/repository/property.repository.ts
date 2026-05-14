@@ -270,7 +270,7 @@ export class PropertyDao {
                 },
             });
         } catch (error) {
-            console.log('Error updating property category:', error);
+            // console.log('Error updating property category:', error);
             throw new Error('Failed to update property category');
         }
     }
@@ -292,7 +292,7 @@ export class PropertyDao {
                 },
             });
         } catch (error) {
-            console.log('Error updating property category:', error);
+            // console.log('Error updating property category:', error);
             throw new Error('Failed to update property category');
         }
     }
@@ -541,7 +541,7 @@ export class PropertyAmenityDao {
             if (selectedAmenityIds.length === 0) {
                 throw new Error('No amenities selected');
             }
-            console.log('Selected Amenity IDs:', selectedAmenityIds);
+            // console.log('Selected Amenity IDs:', selectedAmenityIds);
 
             const amenitySelections = selectedAmenityIds.map(amenityId => ({
                 propertyId: propertyId,
@@ -691,7 +691,7 @@ export class PropertyAmenityDao {
     ): Promise<{ id: string; name: string }[]> {
         try {
             const amenitySelections = await this.findByPropertyId(propertyId);
-            console.log(amenitySelections);
+            // console.log(amenitySelections);
             return amenitySelections.map(selection => ({
                 id: selection.amenity.id,
                 name: selection.amenity.amenityName,

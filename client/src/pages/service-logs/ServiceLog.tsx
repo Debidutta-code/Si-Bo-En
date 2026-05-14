@@ -43,7 +43,6 @@ function LevelBadge({ level }: { level: IServiceLog['level'] }) {
   );
 }
 
-// ─── Repo calls mini-table ────────────────────────────────────────────────────
 
 function RepoCallsTable({ calls }: { calls: IServiceLog['repoCalls'] }) {
   if (!calls?.length) return <p className="text-sm text-muted-foreground">No repo calls recorded.</p>;
@@ -54,6 +53,8 @@ function RepoCallsTable({ calls }: { calls: IServiceLog['repoCalls'] }) {
           <TableRow>
             <TableHead>Repo</TableHead>
             <TableHead>Method</TableHead>
+            <TableHead>Input sent</TableHead>
+            <TableHead>Response received</TableHead>
             <TableHead>Duration</TableHead>
             <TableHead>Status</TableHead>
           </TableRow>
@@ -63,6 +64,16 @@ function RepoCallsTable({ calls }: { calls: IServiceLog['repoCalls'] }) {
             <TableRow key={i}>
               <TableCell className="font-mono text-xs">{c.repoName}</TableCell>
               <TableCell className="font-mono text-xs">{c.method}</TableCell>
+              <TableCell>
+                <pre className="overflow-auto rounded bg-muted p-2 text-xs whitespace-pre-wrap max-h-24">
+                  {JSON.stringify(c.input, null, 2)}
+                </pre>
+              </TableCell>
+              <TableCell>
+                <pre className="overflow-auto rounded bg-muted p-2 text-xs whitespace-pre-wrap max-h-24">
+                  {c.response ? JSON.stringify(c.response, null, 2) : c.error ? JSON.stringify(c.error, null, 2) : '—'}
+                </pre>
+              </TableCell>
               <TableCell className="text-xs">{formatDuration(c.durationMs)}</TableCell>
               <TableCell>
                 {c.success
@@ -109,25 +120,23 @@ function LogDetailDialog({
         <ScrollArea className="h-[65vh] pr-4">
           <div className="space-y-6">
 
-            {/* Error block */}
-            {log.error && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                <h3 className="mb-2 flex items-center gap-2 font-semibold text-red-700">
-                  <XCircle className="h-4 w-4" /> Error
-                </h3>
-                <p className="text-sm font-medium text-red-800">{log.error.message}</p>
-                {log.error.code && (
-                  <p className="text-xs text-red-600 mt-1">Code: {log.error.code}</p>
-                )}
-                {log.error.stack && (
-                  <pre className="mt-2 overflow-auto rounded bg-red-100 p-3 text-xs text-red-700 whitespace-pre-wrap">
-                    {log.error.stack}
-                  </pre>
-                )}
+            {/* 1. Incoming Data */}
+            {log.incomingData && (
+              <div>
+                <h3 className="mb-3 font-semibold">Incoming Data</h3>
+                <pre className="overflow-auto rounded-md bg-muted p-4 text-xs whitespace-pre-wrap">
+                  {JSON.stringify(log.incomingData, null, 2)}
+                </pre>
               </div>
             )}
 
-            {/* Messages */}
+            {/* 2. Repository Calls */}
+            <div>
+              <h3 className="mb-3 font-semibold">Repository Calls</h3>
+              <RepoCallsTable calls={log.repoCalls} />
+            </div>
+
+            {/* 3. Messages */}
             {log.messages?.length > 0 && (
               <div>
                 <h3 className="mb-3 font-semibold">Messages</h3>
@@ -152,23 +161,7 @@ function LogDetailDialog({
               </div>
             )}
 
-            {/* Repo calls */}
-            <div>
-              <h3 className="mb-3 font-semibold">Repository Calls</h3>
-              <RepoCallsTable calls={log.repoCalls} />
-            </div>
-
-            {/* Incoming data */}
-            {log.incomingData && (
-              <div>
-                <h3 className="mb-3 font-semibold">Incoming Data</h3>
-                <pre className="overflow-auto rounded-md bg-muted p-4 text-xs whitespace-pre-wrap">
-                  {JSON.stringify(log.incomingData, null, 2)}
-                </pre>
-              </div>
-            )}
-
-            {/* Service response */}
+            {/* 4. Service Response */}
             {log.serviceResponse && (
               <div>
                 <h3 className="mb-3 font-semibold">Service Response</h3>
@@ -178,7 +171,7 @@ function LogDetailDialog({
               </div>
             )}
 
-            {/* Meta */}
+            {/* 5. Meta */}
             {log.meta && (
               <div>
                 <h3 className="mb-3 font-semibold">Meta</h3>
@@ -187,6 +180,25 @@ function LogDetailDialog({
                 </pre>
               </div>
             )}
+
+            {/* 6. Error — always last */}
+            {log.error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                <h3 className="mb-2 flex items-center gap-2 font-semibold text-red-700">
+                  <XCircle className="h-4 w-4" /> Error
+                </h3>
+                <p className="text-sm font-medium text-red-800">{log.error.message}</p>
+                {log.error.code && (
+                  <p className="text-xs text-red-600 mt-1">Code: {log.error.code}</p>
+                )}
+                {log.error.stack && (
+                  <pre className="mt-2 overflow-auto rounded bg-red-100 p-3 text-xs text-red-700 whitespace-pre-wrap">
+                    {log.error.stack}
+                  </pre>
+                )}
+              </div>
+            )}
+
           </div>
         </ScrollArea>
       </DialogContent>

@@ -147,7 +147,7 @@ export class SpaSubCategory {
     public async getByCategoryId(
         categoryId: string
     ): Promise<ISpaSubCategory[]> {
-        console.log('This is being called');
+        // console.log('This is being called');
         try {
             return await prisma.spaSubCategory.findMany({
                 where: {

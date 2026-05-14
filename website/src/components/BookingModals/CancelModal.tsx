@@ -26,7 +26,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     reservationStartDate,
     reservationEndDate,
   } = bookingData;
-  console.log("bookingdatsdfsjdfhcdsa", bookingData)
+  // console.log("bookingdatsdfsjdfhcdsa", bookingData)
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -80,7 +80,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     if (diffDays > 1) return { label: "🔁 50% refund", refund: 50 };
     return { label: "❌ No refund", refund: 0 };
   }, [reservationStartDate]);
-console.log("property",property)
+// console.log("property",property)
 
   useEffect(() => {
     document.body.classList.add("overflow-hidden");

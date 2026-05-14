@@ -24,7 +24,7 @@ export class LoyalityUserService {
         try {
             const loyalityGuest =
                 await this.loyalityLoginRepository.login(email);
-            console.log('loyalityGuest', loyalityGuest);
+            // console.log('loyalityGuest', loyalityGuest);
             if (!loyalityGuest) {
                 return errorResponse('User not found');
             }

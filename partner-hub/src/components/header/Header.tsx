@@ -101,12 +101,12 @@ export default function Header({ setMobileMenuOpen }: HeaderProps) {
                 Agent Details
               </p>
               {user?.agentPhone && (
-                <DropdownMenuItem className="cursor-default focus:bg-transparent">
+                <DropdownMenuItem className="cursor-default focus:bg-transparent hover:text-foreground focus:text-foreground">
                   <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">{user.agentPhone}</span>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem className="cursor-default focus:bg-transparent">
+              <DropdownMenuItem className="cursor-default focus:bg-transparent hover:text-foreground focus:text-foreground">
                 <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">{user?.agentEmail}</span>
               </DropdownMenuItem>
@@ -120,22 +120,22 @@ export default function Header({ setMobileMenuOpen }: HeaderProps) {
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Agency Details
                   </p>
-                  <DropdownMenuItem className="cursor-default focus:bg-transparent">
+                  <DropdownMenuItem className="cursor-default focus:bg-transparent hover:text-foreground focus:text-foreground">
                     <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">{user.agency.agencyName}</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-default focus:bg-transparent">
+                  <DropdownMenuItem className="cursor-default focus:bg-transparent hover:text-foreground focus:text-foreground">
                     <Shield className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span className="text-sm capitalize">{user.agency.agencyType.replace('_', ' ')}</span>
                   </DropdownMenuItem>
                   {user.agency.agencyEmail && (
-                    <DropdownMenuItem className="cursor-default focus:bg-transparent">
+                    <DropdownMenuItem className="cursor-default focus:bg-transparent hover:text-foreground focus:text-foreground">
                       <Mail className="mr-2 h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{user.agency.agencyEmail}</span>
                     </DropdownMenuItem>
                   )}
                   {user.agency.contactNo && (
-                    <DropdownMenuItem className="cursor-default focus:bg-transparent">
+                    <DropdownMenuItem className="cursor-default focus:bg-transparent hover:text-foreground focus:text-foreground">
                       <Phone className="mr-2 h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{user.agency.contactNo}</span>
                     </DropdownMenuItem>

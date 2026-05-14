@@ -19,7 +19,7 @@ export default function SuccessPage() {
   const bookingCodeRef = useRef<string | null>(null);  // Use ref to avoid stale closure
 
   const handlePaymentConfirmed = useCallback((bookingCode: string, paymentId?: string) => {
-    console.log("✅ Payment confirmed via WebSocket!");
+    // console.log("✅ Payment confirmed via WebSocket!");
 
     // Clear timeout
     if (paymentTimeoutRef.current) {
@@ -38,7 +38,7 @@ export default function SuccessPage() {
   }, [router]);
 
   const handlePaymentTimeout = useCallback((bookingCode: string) => {
-    console.log("⏰ Payment confirmation timeout - redirecting with pending status");
+    // console.log("⏰ Payment confirmation timeout - redirecting with pending status");
 
     // Disconnect socket
     if (socketRef.current) {
@@ -75,45 +75,45 @@ export default function SuccessPage() {
       socketRef.current = socket;
 
       socket.on('connect', () => {
-        console.log("🔌 Socket connected:", socket.id);
+        // console.log("🔌 Socket connected:", socket.id);
         socketConnectedRef.current = true;
 
         // Join the payment room with correct format matching server's payment:{bookingCode}
         const roomName = `payment:${bookingCode}`;
         socket.emit('join-payment-room', roomName);
-        console.log(`📌 Joining payment room: ${roomName}`);
+        // console.log(`📌 Joining payment room: ${roomName}`);
       });
 
       socket.on('payment-status-update', (data: { orderReference: string; status: string; message?: string }) => {
-        console.log("🎉 Payment status update received:", data);
-        console.log("📋 Comparing:", data.orderReference, "===", bookingCodeRef.current);
+        // console.log("🎉 Payment status update received:", data);
+        // console.log("📋 Comparing:", data.orderReference, "===", bookingCodeRef.current);
 
         // Prevent double processing in StrictMode
         if (data.orderReference === bookingCodeRef.current && !paymentHandledRef.current) {
           paymentHandledRef.current = true;  // Mark as handled immediately
-          console.log("✅ Match found! Status:", data.status);
+          // console.log("✅ Match found! Status:", data.status);
           
           if (data.status === 'success') {
-            console.log("➡️ Calling handlePaymentConfirmed");
+            // console.log("➡️ Calling handlePaymentConfirmed");
             handlePaymentConfirmed(bookingCodeRef.current!);
           }
           // Note: failed payments are handled by /failed page, not here
         } else {
-          console.log("❌ No match or already handled - ignoring event");
+          // console.log("❌ No match or already handled - ignoring event");
         }
       });
 
       socket.on('disconnect', () => {
-        console.log("🔌 Socket disconnected");
+        // console.log("🔌 Socket disconnected");
         socketConnectedRef.current = false;
       });
 
       socket.on('connect_error', (err: any) => {
-        console.error("Socket connection error:", err);
+        // console.error("Socket connection error:", err);
         socketConnectedRef.current = false;
       });
     }).catch((err: any) => {
-      console.error("Failed to load socket.io-client:", err);
+      // console.error("Failed to load socket.io-client:", err);
     });
   }, [handlePaymentConfirmed]);
 
@@ -130,9 +130,9 @@ export default function SuccessPage() {
         try {
           const bookingData = JSON.parse(storedFikafiBooking);
           bookingCode = bookingData.bookingCode;
-          console.log("📦 Retrieved bookingCode from localStorage:", bookingCode);
+          // console.log("📦 Retrieved bookingCode from localStorage:", bookingCode);
         } catch (e) {
-          console.error("Failed to parse stored booking data:", e);
+          // console.error("Failed to parse stored booking data:", e);
         }
       }
     }
@@ -142,11 +142,11 @@ export default function SuccessPage() {
       const currentBookingCode = localStorage.getItem('currentBookingCode');
       if (currentBookingCode) {
         bookingCode = currentBookingCode;
-        console.log("📦 Retrieved bookingCode from currentBookingCode:", bookingCode);
+        // console.log("📦 Retrieved bookingCode from currentBookingCode:", bookingCode);
       }
     }
 
-    console.log("🎉 Success page loaded, ref:", ref, "code:", code, "final:", bookingCode);
+    // console.log("🎉 Success page loaded, ref:", ref, "code:", code, "final:", bookingCode);
 
     // Validate we have a real booking code, not a placeholder
 
@@ -170,7 +170,7 @@ export default function SuccessPage() {
     // Set a timeout as fallback (e.g., 5 minutes) - in case WebSocket fails
     // This is just a safety net, the main flow should be WebSocket
     paymentTimeoutRef.current = setTimeout(() => {
-      console.log("⚠️ WebSocket timeout reached, using fallback");
+      // console.log("⚠️ WebSocket timeout reached, using fallback");
       handlePaymentTimeout(confirmedBookingCode);
     }, 5 * 60 * 1000); // 5 minutes timeout
 

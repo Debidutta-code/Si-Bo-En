@@ -119,13 +119,13 @@ export class BankService {
                         propertyId,
                         selectedPaymentIntegration
                     );
-                console.log('Al Ready exist', isAlreadyExists);
+                // console.log('Al Ready exist', isAlreadyExists);
                 if (isAlreadyExists) {
                     const isAnyRunning =
                         await PaymentIntegrationDao.deactivatePropertyIntegrations(
                             propertyId
                         );
-                    console.log('Checking if its running', isAnyRunning);
+                    // console.log('Checking if its running', isAnyRunning);
                     if (isAnyRunning) {
                         await PaymentIntegrationDao.togglePropertyIntegration(
                             isAnyRunning.id,

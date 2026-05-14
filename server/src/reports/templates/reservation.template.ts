@@ -39,7 +39,7 @@ export const generateBookingVoucherHTML = (data: any): string => {
         reservationGuests,
         ratePlanName,
     } = data;
-console.log('Data received for voucher generation:', {  property, room, reservation, primaryGuest, addOns, priceData, reservationGuests, ratePlanName });
+// console.log('Data received for voucher generation:', {  property, room, reservation, primaryGuest, addOns, priceData, reservationGuests, ratePlanName });
     const cur = priceData?.currencyCode || reservation.currencyCode || 'AED';
 
     const checkIn = new Date(reservation.checkInDate);

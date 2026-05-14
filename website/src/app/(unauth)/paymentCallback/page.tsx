@@ -236,7 +236,7 @@ const PaymentCallbackPage = () => {
 
         // Handle connection error immediately if it happens
         if (connectionError && isMounted && !hasCheckedRef.current) {
-          console.log("⚠️ Connection error detected, falling back to polling immediately");
+          // console.log("⚠️ Connection error detected, falling back to polling immediately");
           setUsePolling(true);
           hasCheckedRef.current = true;
           performPaymentCheck(orderRef, isMounted);
