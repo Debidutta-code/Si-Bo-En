@@ -8,7 +8,7 @@ const siteMinderRoute = Router();
 
 siteMinderRoute.post(
     '/ari',
-    // SiteMinderMiddleware.validateSoapCredentials,
+
     SiteMinderController.handlePush
 );
 

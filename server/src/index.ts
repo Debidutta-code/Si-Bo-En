@@ -19,7 +19,24 @@ const connection = {
 
 export const currencyQueue = new CurrencyQueue(connection);
 export const emailQueue = new EmailQueue(connection);
+app.use((req: any, res, next) => {
+    console.log("\n================ REQUEST START ================");
+    console.log("METHOD:", req.method);
+    console.log("URL:", req.originalUrl);
+    console.log("CONTENT-TYPE:", req.headers["content-type"]);
+    console.log("ORIGIN:", req.headers["origin"]);
+    console.log("HEADERS:", req.headers);
 
+    console.log("RAW BODY:");
+    console.log(req.rawBody);
+
+    console.log("PARSED BODY:");
+    console.log(req.body);
+
+    console.log("================ REQUEST END =================\n");
+
+    next();
+});
 initializeExpressRoutes({ app }).then(async () => {
     try {
         await connectMongo();
