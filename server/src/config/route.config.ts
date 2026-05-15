@@ -86,11 +86,8 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/ota', otaRouter);
     apiV1Router.use('/multi-language', multiLanguageRouter);
 
-    // Handle 404 for any undefined route under /api/v1
     app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {
         next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
     });
 
-    // Global error handler
-    // app.use(errorHandler);
 }

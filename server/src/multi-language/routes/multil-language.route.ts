@@ -1,8 +1,60 @@
 import { Router } from 'express';
-
+import { creationTranslationRouter } from './core/creation.route';
+import { propertyTranslationRouter } from './property/property.route';
+import { propertyAddressTranslationRouter } from './property/property-address.route';
+import { masterPropertyCategoryTranslationRouter } from './property/property-masters.route';
+import { masterPropertyTypeTranslationRouter } from './property/property-masters.route';
+import { masterAmenityTranslationRouter } from './property/property-masters.route';
+import { masterRoomViewTranslationRouter } from './property/property-masters.route';
+import { propertyLoyaltyConfigTranslationRouter } from './features/loyalty/property-loyalty.route';
+import { loyaltyConditionsTranslationRouter } from './features/loyalty/loyalty-configs.route';
+import { loyaltySpecialConditionTranslationRouter } from './features/loyalty/loyalty-configs.route';
+import { promotionTranslationRouter } from './features/promocodes/promocodes.route';
+import { touristTaxTranslationRouter } from './features/tax-system/tourist-tax.route';
+import { taxRuleTranslationRouter } from './features/tax-system/tax-system.route';
+import { taxGroupTranslationRouter } from './features/tax-system/tax-system.route';
+import { spaTranslationRouter } from './features/spa/spa.route';
+import { addonVariantTranslationRouter } from './features/addons/variant.route';
+import { addonTranslationRouter } from './features/addons/addon.route';
+import { addonCategoryTranslationRouter } from './features/addons/category.route';
+import { addonSubCategoryTranslationRouter } from './features/addons/sub-catrgory.route';
+import { roomTranslationRouter } from './room/rooms.route';
+import { ratePlanTranslationRouter } from './ari/rate-plan.route';
+import { chargeTranslationRouter } from './ari/charges.route';
+import { policyTranslationRouter } from './ari/policy.route';
+import { masterIntegrationTranslationRouter } from './masters/integration.master.route';
+import { spaCategoryTranslationRouter } from './masters/spa-type.route';
+import { spaSubCategoryTranslationRouter } from './masters/spa-type.route';
+import { masterLoyaltyRegistrationFieldTranslationRouter } from './masters/loyalty.master.route';
 
 const multiLanguageRouter = Router();
 
-
+multiLanguageRouter.use('/creation', creationTranslationRouter);
+multiLanguageRouter.use('/property', propertyTranslationRouter);
+multiLanguageRouter.use('/property-address', propertyAddressTranslationRouter);
+multiLanguageRouter.use('/master-property-category', masterPropertyCategoryTranslationRouter);
+multiLanguageRouter.use('/master-property-type', masterPropertyTypeTranslationRouter);
+multiLanguageRouter.use('/master-amenity', masterAmenityTranslationRouter);
+multiLanguageRouter.use('/master-room-view', masterRoomViewTranslationRouter);
+multiLanguageRouter.use('/property-loyalty-config', propertyLoyaltyConfigTranslationRouter);
+multiLanguageRouter.use('/loyalty-condition', loyaltyConditionsTranslationRouter);
+multiLanguageRouter.use('/loyalty-special-condition', loyaltySpecialConditionTranslationRouter);
+multiLanguageRouter.use('/promotion', promotionTranslationRouter);
+multiLanguageRouter.use('/tourist-tax', touristTaxTranslationRouter);
+multiLanguageRouter.use('/tax-rule', taxRuleTranslationRouter);
+multiLanguageRouter.use('/tax-group', taxGroupTranslationRouter);
+multiLanguageRouter.use('/spa', spaTranslationRouter);
+multiLanguageRouter.use('/addon-variant', addonVariantTranslationRouter);
+multiLanguageRouter.use('/addon', addonTranslationRouter);
+multiLanguageRouter.use('/addon-category', addonCategoryTranslationRouter);
+multiLanguageRouter.use('/addon-sub-category', addonSubCategoryTranslationRouter);
+multiLanguageRouter.use('/room', roomTranslationRouter);
+multiLanguageRouter.use('/rate-plan', ratePlanTranslationRouter);
+multiLanguageRouter.use('/charge', chargeTranslationRouter);
+multiLanguageRouter.use('/policy', policyTranslationRouter);
+multiLanguageRouter.use('/master-integration', masterIntegrationTranslationRouter);
+multiLanguageRouter.use('/spa-category', spaCategoryTranslationRouter);
+multiLanguageRouter.use('/spa-sub-category', spaSubCategoryTranslationRouter);
+multiLanguageRouter.use('/master-loyalty-registration-field', masterLoyaltyRegistrationFieldTranslationRouter);
 
 export { multiLanguageRouter };
