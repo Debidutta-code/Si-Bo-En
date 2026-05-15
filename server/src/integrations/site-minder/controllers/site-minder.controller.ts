@@ -12,7 +12,8 @@ const logger = new ServiceLogger('SiteMinderARI');
 
 export class SiteMinderController {
     public static async handlePush(req: Request, res: Response) {
-        console.log("request from siteminder",req.body)
+        console.log("request from siteminder",req)
+        console.log("request body from siteminder",req.body)
         const rawXml = req.body as string;
         const parsed = (req as any).siteMinderParsed as SiteMinderParsedRequest;
 
