@@ -56,7 +56,8 @@ model Property {
   AddonSubCategories          AddonSubCategory[]
   AddonVariants               AddonVariant[]
   WishLists                   WishList[]
-
+  ActiveLanguage              PropertyActiveLanguages[]
+  
   @@index([createdById])
   @@index([creationId])
   @@index([propertyCode])

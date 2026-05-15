@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import type { IPropertyCreations, HotelManagerMapping, IpropertyCDetails } from '../types/types';
 import Loader from '@/components/Loader/Loader';
 import BackButton from '@/components/shared/BackButton';
-import { User2Icon, Settings, MoreVertical, CloudCog, Upload, Trash2 } from "lucide-react"
+import { User2Icon, Settings, MoreVertical, CloudCog, Upload, Trash2, Languages, X, Check, Lock } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,6 +32,7 @@ import {
 import type {
     IUPropertyConfig,
     IMasterPartnersWProperty,
+    IPropertyActiveLanguage,
 } from "./types";
 import DeleteCreationDialog from '@/components/creation/Delete-Creation.dialog';
 import IntegrationDialog from './components/IntegrationDialog';
@@ -41,10 +42,17 @@ import ManageIntegrationFieldsDialog from './components/ManageIntegrationFieldsD
 import { Award, FileText, LayoutDashboard, Shield, Users as UsersIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { capitalizeFirstLetter } from '@/lib/utils';
+import {
+    addPropertyLanguageService,
+    deletePropertyLanguageService,
+    getPropertyLanguagesService
+} from "./services/property-language.services"
+import { languages, type LanguageCode } from '@/components/language/language';
+
 
 export default function PropertyPage() {
     const { user } = useAppSelector((state) => state.user);
-    const [addMemberDialogOpen,setAddMemberDialogOpen]=useState<boolean>(false)
+    const [addMemberDialogOpen, setAddMemberDialogOpen] = useState<boolean>(false)
     const { creationId } = useParams<{ creationId: string }>();
     const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
         channelManagerIntegrationActive: false,
@@ -71,7 +79,6 @@ export default function PropertyPage() {
         under: "",
         users: []
     });
-    // const [propertyCreationDetails,setPropertyCreationDetails] = useState<IpropertyCDetails | null>(null);
     const [propertyDetails, setPropertyDetails] = useState<IPropertyCreations | null>(null);
     const [isCreationCompleted, setIsCreationCompleted] = useState<boolean>(false);
     const [isDrafted, setIsDrafted] = useState<boolean>(false);
@@ -79,7 +86,6 @@ export default function PropertyPage() {
         { value: "hotel_manager", label: "Hotel Manager" },
         { value: "staff", label: "Staff" },
         { value: "spa_manager", label: "Spa Manager" },
-
     ];
     const [selectedRole, setSelectedRole] = useState<string>(roles[0].value);
     const [selectedUser, setSelectedUser] = useState<string>('');
@@ -89,19 +95,14 @@ export default function PropertyPage() {
         revenueManagers: [],
         spaManagers: []
     });
-
-    // Add loading state for user assignment
     const [isAssigningUser, setIsAssigningUser] = useState<boolean>(false);
     const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
     const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
-
-    // Integration dialog state
     const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState<IMasterPartnersWProperty | null>(null);
     const [isPropertyConfigDialogOpen, setIsPropertyConfigDialogOpen] = useState(false);
     const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
     const [isManageFieldsDialogOpen, setIsManageFieldsDialogOpen] = useState(false);
-
     const [updatePropertyDetails, setUpdatePropertyDetails] = useState<IUpdateCreation>({
         id: creationDetails.id,
         name: creationDetails.name,
@@ -109,24 +110,30 @@ export default function PropertyPage() {
         isActive: creationDetails.isActive
     });
 
-    useEffect(() => {
+    // ── Language state ──────────────────────────────────────────────
+    const [propertyLanguages, setPropertyLanguages] = useState<IPropertyActiveLanguage[]>([]);
+    const [isLangPanelOpen, setIsLangPanelOpen] = useState(false);
+    const [isDeletingLang, setIsDeletingLang] = useState<string | null>(null);
+    const [isAddingLang, setIsAddingLang] = useState<string | null>(null);
+    // ────────────────────────────────────────────────────────────────
 
+    useEffect(() => {
         initialFetch();
     }, [creationId, navigate]);
+
     const initialFetch = async () => {
         await Promise.all([
             fetchProperty(),
             fetchUsers()
-
         ]);
     }
+
     const fetchProperty = async () => {
         try {
             if (!creationId) {
                 navigate('/app/property');
                 return;
             }
-
             const response = await getPropertyCreationId(creationId);
             if (response.success) {
                 setIsCreationCompleted(response.isPropertyCreated);
@@ -134,7 +141,6 @@ export default function PropertyPage() {
                 setPropertyDetails(response.data.propertyDetails);
                 setIsDrafted(response.data.propertyDetails.isDrafted);
                 fetchPartners(response.data.propertyDetails.id);
-
             } else {
                 toast.error(response.message || "Failed to fetch property");
             }
@@ -142,17 +148,14 @@ export default function PropertyPage() {
             console.error("Error fetching property:", error);
             toast.error("Failed to fetch property");
         } finally {
-
             setIsLoading(false);
         }
     };
 
     const fetchPartners = async (propertyId: string) => {
         try {
-            if (!user || user.role != "super_admin") {
-                return;
-            }
-            if (!propertyId) return
+            if (!user || user.role != "super_admin") return;
+            if (!propertyId) return;
             const response = await getAllPartnerIntegrationsService(propertyId);
             if (response.success) {
                 setMasterPartners(response.data);
@@ -164,7 +167,6 @@ export default function PropertyPage() {
             toast.error("Failed to fetch partners");
         }
     }
-
 
     const fetchUsers = async () => {
         try {
@@ -179,59 +181,79 @@ export default function PropertyPage() {
             toast.error("Failed to fetch users");
         }
     }
+
     const updatePropertyConfig = async () => {
         if (user?.role != "super_admin") {
             toast.error("Only SuperAdmin can update the config");
-            return
+            return;
         }
         if (!propertyDetails?.id) {
             toast.error("Property Not Selected");
-            return
+            return;
         }
         try {
-            setIsLoading(true)
-            const response = await updatePropertyConfigService(propertyDetails.id, propertyConfig)
+            setIsLoading(true);
+            const response = await updatePropertyConfigService(propertyDetails.id, propertyConfig);
             if (response.success) {
-                toast.success("property Config Updated successfully")
-                fetchPropertyConfig(propertyDetails.id)
+                toast.success("property Config Updated successfully");
+                fetchPropertyConfig(propertyDetails.id);
             } else {
-                toast.error(response.message || "Failed to update Property config")
+                toast.error(response.message || "Failed to update Property config");
             }
         } catch (error) {
-            toast.error("Failed to Update Property")
+            toast.error("Failed to Update Property");
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     }
+
     const fetchPropertyConfig = async (creationId: string) => {
-        if (user?.role != "super_admin") {
-            return
-        }
+        if (user?.role != "super_admin") return;
         if (!creationId) {
             toast.error("Property Not Selected");
-            return
+            return;
         }
         try {
-            setIsLoading(true)
-            const response = await fetchPropertyConfigService(creationId)
+            setIsLoading(true);
+            const response = await fetchPropertyConfigService(creationId);
             if (response.success) {
                 setPropertyConfig(response.data);
-                // toast.success("Property Config fetched successfully")
             } else {
-                toast.error(response.message || "Failed to fetch Property config")
+                toast.error(response.message || "Failed to fetch Property config");
             }
         } catch (error) {
-            toast.error("Failed to fetch Property config")
+            toast.error("Failed to fetch Property config");
         } finally {
-            setIsLoading(false)
+            setIsLoading(false);
         }
     }
+
     useEffect(() => {
-        // console.log(propertyDetails)
         if (propertyDetails?.id) {
-            fetchPropertyConfig(propertyDetails.id)
+            fetchPropertyConfig(propertyDetails.id);
         }
-    }, [propertyDetails])
+    }, [propertyDetails]);
+
+    // ── Language fetch ───────────────────────────────────────────────
+    const fetchPropertyLanguages = async (propertyId: string) => {
+        try {
+            const response = await getPropertyLanguagesService(propertyId);
+            if (response.success) {
+                setPropertyLanguages(response.data);
+            } else {
+                toast.error(response.message || "Failed to fetch languages");
+            }
+        } catch (error) {
+            console.error("Error fetching languages:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (propertyDetails?.id && isCreationCompleted && isDrafted) {
+            fetchPropertyLanguages(propertyDetails.id);
+        }
+    }, [propertyDetails, isCreationCompleted, isDrafted]);
+    // ────────────────────────────────────────────────────────────────
 
     const handleCreateProperty = () => {
         if (!propertyDetails?.id) {
@@ -245,23 +267,12 @@ export default function PropertyPage() {
         navigate(`/property/${propertyDetails?.id}?creationId=${creationId}`);
     };
 
-    // Reset dialog state when dialog closes
-    // const handleDialogOpenChange = (open: boolean) => {
-    //     if (!open) {
-    //         setSelectedRole(roles[0].value);
-    //         setSelectedUser('');
-    //     }
-    // };
-
     const handleAddMember = async () => {
         if (!selectedUser) {
             toast.error("Please select a user");
             return;
         }
-
-
         setIsAssigningUser(true);
-
         try {
             if (!creationDetails?.id) {
                 toast.error("Creation ID is missing");
@@ -273,10 +284,8 @@ export default function PropertyPage() {
                 userId: selectedUser,
                 role: selectedRole
             });
-
             if (response.success) {
                 toast.success("User assigned successfully");
-                // Reset form
                 setSelectedUser('');
                 setAddMemberDialogOpen(false);
                 initialFetch();
@@ -297,7 +306,7 @@ export default function PropertyPage() {
             name: creationDetails.name,
             images: creationDetails.images,
             isActive: creationDetails.isActive
-        })
+        });
         setIsUpdateDialogOpen(true);
     };
 
@@ -328,12 +337,51 @@ export default function PropertyPage() {
                 return;
             }
             toast.success('Property updated successfully');
-            // Refresh property data
             window.location.reload();
         } catch (err: any) {
             toast.error('Failed to update property');
         }
     };
+
+    // ── Language handlers ────────────────────────────────────────────
+    const handleAddLanguage = async (languageCode: LanguageCode) => {
+        if (!propertyDetails?.id) return;
+        setIsAddingLang(languageCode);
+        try {
+            const response = await addPropertyLanguageService({
+                propertyId: propertyDetails.id,
+                language:languageCode,
+            });
+            if (response.success) {
+                toast.success("Language added");
+                await fetchPropertyLanguages(propertyDetails.id);
+            } else {
+                toast.error(response.message || "Failed to add language");
+            }
+        } catch {
+            toast.error("Failed to add language");
+        } finally {
+            setIsAddingLang(null);
+        }
+    };
+
+    const handleDeleteLanguage = async (propertyLanguageId: string) => {
+        setIsDeletingLang(propertyLanguageId);
+        try {
+            const response = await deletePropertyLanguageService(propertyLanguageId);
+            if (response.success) {
+                toast.success("Language removed");
+                setPropertyLanguages(prev => prev.filter(l => l.id !== propertyLanguageId));
+            } else {
+                toast.error(response.message || "Failed to remove language");
+            }
+        } catch {
+            toast.error("Failed to remove language");
+        } finally {
+            setIsDeletingLang(null);
+        }
+    };
+    // ────────────────────────────────────────────────────────────────
 
     // Integration handlers
     const handleIntegrateClick = (partner: IMasterPartnersWProperty) => {
@@ -350,7 +398,6 @@ export default function PropertyPage() {
             const response = await createPropertyIntegrationService(data);
             if (response.success) {
                 toast.success(`Successfully integrated with ${selectedPartner?.name}`);
-                // Refresh partners to show updated status
                 if (propertyDetails?.id) {
                     await fetchPartners(propertyDetails.id);
                 }
@@ -364,20 +411,15 @@ export default function PropertyPage() {
         }
     };
 
-    const handleIntegrationSuccess = () => {
-        // This is called after successful integration
-        // Could add analytics or additional UI updates here
-    };
+    const handleIntegrationSuccess = () => {};
 
     const handleToggleIntegrationStatus = async (integrationId: string, currentStatus: boolean) => {
         setIsIntegrating(prev => ({ ...prev, [integrationId]: true }));
         try {
             const newStatus = !currentStatus;
             const response = await updatePropertyIntegrationStatusService(integrationId, newStatus);
-
             if (response.success) {
                 toast.success(`Integration ${newStatus ? 'activated' : 'deactivated'} successfully`);
-                // Refresh partners to show updated status
                 if (propertyDetails?.id) {
                     await fetchPartners(propertyDetails.id);
                 }
@@ -406,10 +448,7 @@ export default function PropertyPage() {
             const response = await addPropertyIntegrationFieldService(integrationId, data);
             if (response.success) {
                 toast.success('Field added successfully');
-                // Refresh partners
-                if (propertyDetails?.id) {
-                    await fetchPartners(propertyDetails.id);
-                }
+                if (propertyDetails?.id) await fetchPartners(propertyDetails.id);
             } else {
                 toast.error(response.message || 'Failed to add field');
                 throw new Error(response.message);
@@ -425,10 +464,7 @@ export default function PropertyPage() {
             const response = await updatePropertyIntegrationFieldService(fieldId, { value });
             if (response.success) {
                 toast.success('Field updated successfully');
-                // Refresh partners
-                if (propertyDetails?.id) {
-                    await fetchPartners(propertyDetails.id);
-                }
+                if (propertyDetails?.id) await fetchPartners(propertyDetails.id);
             } else {
                 toast.error(response.message || 'Failed to update field');
                 throw new Error(response.message);
@@ -444,10 +480,7 @@ export default function PropertyPage() {
             const response = await deletePropertyIntegrationFieldService(fieldId);
             if (response.success) {
                 toast.success('Field deleted successfully');
-                // Refresh partners
-                if (propertyDetails?.id) {
-                    await fetchPartners(propertyDetails.id);
-                }
+                if (propertyDetails?.id) await fetchPartners(propertyDetails.id);
             } else {
                 toast.error(response.message || 'Failed to delete field');
                 throw new Error(response.message);
@@ -495,7 +528,6 @@ export default function PropertyPage() {
 
             {/* Property Details Section */}
             <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden">
-                {/* Hero Image Slider Section */}
                 {creationDetails?.images && creationDetails.images.length > 0 && (
                     <div className="w-full">
                         <ImageSlider
@@ -505,7 +537,6 @@ export default function PropertyPage() {
                         />
                     </div>
                 )}
-
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-6">
                         <div>
@@ -527,7 +558,6 @@ export default function PropertyPage() {
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -540,7 +570,6 @@ export default function PropertyPage() {
                     </p>
                 </div>
                 <div className='flex'>
-
                     <div className="px-2">
                         {isCreationCompleted ? (
                             <Button onClick={handleEditProperty} className="w-full">
@@ -579,13 +608,12 @@ export default function PropertyPage() {
                                 </DropdownMenuItem>
                             )}
 
-                            <Dialog onOpenChange={setAddMemberDialogOpen} open={addMemberDialogOpen} >
+                            <Dialog onOpenChange={setAddMemberDialogOpen} open={addMemberDialogOpen}>
                                 <DialogTrigger asChild>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                                        <Button variant={"secondary"}
-                                        onClick={()=>{
-                                            setAddMemberDialogOpen(true)
-                                        }}
+                                        <Button
+                                            variant={"secondary"}
+                                            onClick={() => { setAddMemberDialogOpen(true) }}
                                         >
                                             <User2Icon className='h-4 w-4 mr-2' /> Add Members
                                         </Button>
@@ -614,7 +642,6 @@ export default function PropertyPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-
                                         <div className='space-y-2'>
                                             <Label htmlFor='user'>User</Label>
                                             <Select value={selectedUser} onValueChange={setSelectedUser}>
@@ -666,6 +693,21 @@ export default function PropertyPage() {
                                 </DialogContent>
                             </Dialog>
 
+                            {/* ── Add Language — only when property is live ── */}
+                            {isCreationCompleted && isDrafted && (
+                                <DropdownMenuItem
+                                    onSelect={(e) => {
+                                        e.preventDefault();
+                                        setIsLangPanelOpen(true);
+                                    }}
+                                    className="cursor-pointer"
+                                >
+                                    <Button variant={"secondary"}>
+                                        <Languages className='h-4 w-4 mr-2' /> Add Language
+                                    </Button>
+                                </DropdownMenuItem>
+                            )}
+
                             <div className='ml-5'>
                                 <DeleteCreationDialog type={"property"} name={creationDetails.name} id={creationDetails.id} />
                             </div>
@@ -681,7 +723,6 @@ export default function PropertyPage() {
                         <DialogTitle>Update Property</DialogTitle>
                         <DialogDescription>Update basic property details.</DialogDescription>
                     </DialogHeader>
-
                     <div className="space-y-4 py-2">
                         <div>
                             <Label className="text-sm font-medium">Name</Label>
@@ -691,8 +732,6 @@ export default function PropertyPage() {
                                 className="mt-1"
                             />
                         </div>
-
-                        {/* Images Section */}
                         <div className="space-y-2">
                             <Label className="text-sm font-medium">Images</Label>
                             <Button
@@ -704,8 +743,6 @@ export default function PropertyPage() {
                                 <Upload className="mr-2 h-4 w-4" />
                                 Upload Images
                             </Button>
-
-                            {/* Image Preview Grid */}
                             {updatePropertyDetails.images.length > 0 && (
                                 <div className="grid grid-cols-3 gap-2 mt-2">
                                     {updatePropertyDetails.images.map((url, index) => (
@@ -727,7 +764,6 @@ export default function PropertyPage() {
                                 </div>
                             )}
                         </div>
-
                         <div className="flex items-center gap-3">
                             <input
                                 id="active"
@@ -738,15 +774,11 @@ export default function PropertyPage() {
                             <Label htmlFor="active" className="text-sm cursor-pointer">Active</Label>
                         </div>
                     </div>
-
-                    {/* Image Upload Modal */}
                     <ImageUploadModal
                         isOpen={isImageUploadModalOpen}
                         onClose={() => setIsImageUploadModalOpen(false)}
-                        // uploadImages={uploadImages}
                         onUploadSuccess={handleUploadSuccess}
                     />
-
                     <div className="flex justify-end gap-2 mt-4">
                         <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>Cancel</Button>
                         <Button onClick={handleUpdateProperty}>Save</Button>
@@ -772,12 +804,10 @@ export default function PropertyPage() {
                         )}
                     </div>
                     <div className="ml-3">
-                        <p className={`text-sm font-medium ${isCreationCompleted && isDrafted ? 'text-green-800' : 'text-yellow-800'
-                            }`}>
+                        <p className={`text-sm font-medium ${isCreationCompleted && isDrafted ? 'text-green-800' : 'text-yellow-800'}`}>
                             {isCreationCompleted && isDrafted ? 'Property Setup Complete' : 'Property Setup Incomplete'}
                         </p>
-                        <p className={`text-sm ${isCreationCompleted && isDrafted ? 'text-green-700' : 'text-yellow-700'
-                            }`}>
+                        <p className={`text-sm ${isCreationCompleted && isDrafted ? 'text-green-700' : 'text-yellow-700'}`}>
                             {isCreationCompleted && isDrafted
                                 ? 'Your property is ready for bookings and management.'
                                 : 'Please complete the property setup to start accepting bookings.'
@@ -797,16 +827,13 @@ export default function PropertyPage() {
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m0 0h2M9 21h4" />
                             </svg>
                         </div>
-
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
                             Property Setup Required
                         </h3>
-
                         <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
                             Your property creation "{creationDetails.name}" exists, but the hotel property details
                             need to be completed before you can start managing bookings and inventory.
                         </p>
-
                         <div className="space-y-3">
                             <Button onClick={handleCreateProperty} className="mr-3">
                                 Complete Property Setup
@@ -840,6 +867,123 @@ export default function PropertyPage() {
                 )}
             </div>
 
+            {/* ── Property Languages Section ────────────────────────────── */}
+            {isCreationCompleted && isDrafted && (
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <div className="flex items-center justify-between mb-5">
+                        <div>
+                            <h3 className="text-lg font-bold text-gray-900">Property Languages</h3>
+                            <p className="text-sm text-gray-500 mt-0.5">
+                                Languages available to guests on this property's portal
+                            </p>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsLangPanelOpen(prev => !prev)}
+                            className="gap-2"
+                        >
+                            <Languages className="h-4 w-4" />
+                            {isLangPanelOpen ? 'Close' : 'Add language'}
+                        </Button>
+                    </div>
+
+                    {/* Language picker panel */}
+                    {isLangPanelOpen && (
+                        <div className="mb-5 border border-dashed border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
+                                Select languages to add
+                            </p>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                {languages.map((lang) => {
+                                    const isEn = lang.code === 'en';
+                                    const isAdded = isEn || propertyLanguages.some(l => l.language === lang.code);
+                                    const isCurrentlyAdding = isAddingLang === lang.code;
+                                    return (
+                                        <button
+                                            key={lang.code}
+                                            disabled={isAdded || isCurrentlyAdding}
+                                            onClick={() => handleAddLanguage(lang.code)}
+                                            className={`flex items-center justify-between px-3 py-2 rounded-md border text-sm font-medium transition-all
+                                                ${isAdded
+                                                    ? 'bg-white border-gray-100 text-gray-300 cursor-not-allowed'
+                                                    : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700 cursor-pointer active:scale-95'
+                                                }`}
+                                        >
+                                            <span className="flex items-center gap-2 truncate">
+                                                <span className={`text-xs font-mono px-1.5 py-0.5 rounded flex-shrink-0
+                                                    ${isEn
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : isAdded
+                                                            ? 'bg-gray-100 text-gray-400'
+                                                            : 'bg-gray-100 text-gray-500'
+                                                    }`}>
+                                                    {lang.code.toUpperCase()}
+                                                </span>
+                                                <span className="truncate">{lang.name}</span>
+                                            </span>
+                                            {isCurrentlyAdding ? (
+                                                <div className="h-3.5 w-3.5 border border-blue-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                                            ) : isAdded ? (
+                                                <Check className="h-3.5 w-3.5 text-green-400 flex-shrink-0" />
+                                            ) : null}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Active language chips */}
+                    <div className="flex flex-wrap gap-2">
+                        {/* EN chip — always present, locked */}
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border bg-blue-50 border-blue-200 text-blue-800 select-none">
+                            <Lock className="h-3 w-3" />
+                            English
+                            <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-mono leading-none">
+                                EN
+                            </span>
+                        </span>
+
+                        {propertyLanguages
+                            .filter(l => l.language !== 'en')
+                            .map(pl => {
+                                const lang = languages.find(l => l.code === pl.language);
+                                const isDeleting = isDeletingLang === pl.id;
+                                return (
+                                    <span
+                                        key={pl.id}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border bg-gray-50 border-gray-200 text-gray-700"
+                                    >
+                                        {lang?.name ?? pl.language}
+                                        <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-mono leading-none">
+                                            {pl.language.toUpperCase()}
+                                        </span>
+                                        <button
+                                            onClick={() => handleDeleteLanguage(pl.id)}
+                                            disabled={isDeleting}
+                                            className="ml-0.5 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50 flex items-center"
+                                            aria-label={`Remove ${lang?.name}`}
+                                        >
+                                            {isDeleting
+                                                ? <div className="h-3.5 w-3.5 border border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                                : <X className="h-3.5 w-3.5" />
+                                            }
+                                        </button>
+                                    </span>
+                                );
+                            })}
+
+                        {propertyLanguages.filter(l => l.language !== 'en').length === 0 && (
+                            <span className="text-sm text-gray-400 italic py-1.5">
+                                No additional languages added yet.
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )}
+            {/* ──────────────────────────────────────────────────────────── */}
+
             {/* Loyalty Configuration Section */}
             {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') && (
                 <div className="bg-white p-6 rounded-lg shadow">
@@ -854,7 +998,6 @@ export default function PropertyPage() {
                                 <p className="text-xs text-gray-500">Manage general loyalty settings</p>
                             </div>
                         </Link>
-
                         <Link to={`/app/loyalty/register-form/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="bg-green-100 p-2 rounded-full text-green-600">
                                 <FileText className="h-5 w-5" />
@@ -864,7 +1007,6 @@ export default function PropertyPage() {
                                 <p className="text-xs text-gray-500">Configure member registration</p>
                             </div>
                         </Link>
-
                         <Link to={`/app/loyalty/content-config/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="bg-purple-100 p-2 rounded-full text-purple-600">
                                 <UsersIcon className="h-5 w-5" />
@@ -874,7 +1016,6 @@ export default function PropertyPage() {
                                 <p className="text-xs text-gray-500">Manage loyalty content</p>
                             </div>
                         </Link>
-
                         {user?.role === 'super_admin' && (
                             <Link to={`/app/loyalty/loyalty-guests/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                                 <div className="bg-red-100 p-2 rounded-full text-red-600">
@@ -886,7 +1027,6 @@ export default function PropertyPage() {
                                 </div>
                             </Link>
                         )}
-
                         <Link to={`/app/loyalty/levels/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="bg-yellow-100 p-2 rounded-full text-yellow-600">
                                 <Award className="h-5 w-5" />

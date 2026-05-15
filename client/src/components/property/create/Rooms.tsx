@@ -226,7 +226,7 @@ export default function Rooms() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <Label htmlFor="roomType" className="text-gray-800 font-medium">Room Type *</Label>
+                      <Label htmlFor="roomType" className="text-gray-800 font-medium">Room Code *</Label>
                       <Input
                         id="roomType"
                         value={roomDetails.roomType || ""}

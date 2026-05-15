@@ -39,3 +39,4 @@ export * from './vedio.types';
 export * from './integration.type';
 export * from './room.type';
 export * from './propertyModel.types';
+export * from './active-language.types';

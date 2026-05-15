@@ -12,6 +12,7 @@ import { attachPropertyDetails } from '../../middlewares/property.middleware';
 import { propertyPartnerRouter } from './property-integration.route';
 import { propertyEmailRouter } from './propertyEmails.route';
 import { vedioRouter } from './vedio.route';
+import { propertyLanguageRouter } from './proeprty-activelanguage.route';
 export const propertyRouter = Router();
 propertyRouter
     .route('/')
@@ -20,6 +21,8 @@ propertyRouter.use('/booking-engine', bookingEngineRoute);
 propertyRouter.use('/video', vedioRouter);
 propertyRouter.use('/integration', propertyPartnerRouter);
 propertyRouter.use('/emails', propertyEmailRouter);
+propertyRouter.use(
+    '/active-language', propertyLanguageRouter)
 propertyRouter
     .route('/:id')
     .get(

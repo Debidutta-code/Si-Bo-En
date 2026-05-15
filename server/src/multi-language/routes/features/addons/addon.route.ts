@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { AddonTranslationController } from '../../controllers/features/addons/addon.controller';
+import { AddonTranslationController } from '../../../controllers/features/addons';
 
 const addonTranslationRouter = Router();
 const addonTranslationController = new AddonTranslationController();

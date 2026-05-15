@@ -18,3 +18,5 @@ export{
     updatePropertyIntegrationField,
     updatePropertyIntegrationStatus
 }
+
+export * from "./property-language.api"

@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { ChargeTranslationController } from '../../controllers/ari/charges.controller';
-
 const chargeTranslationRouter = Router();
 const chargeTranslationController = new ChargeTranslationController();
 

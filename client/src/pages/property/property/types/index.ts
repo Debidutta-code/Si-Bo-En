@@ -11,3 +11,5 @@ IMasterPartnersWProperty,
 ImasterIntegrationURLFields,
 IrequiredFieldsForMasterIntegration
 }
+
+export * from "./active-language.types";

@@ -24,10 +24,21 @@ model PropertyConfigs {
   reservationResetMinutes         Int          @default(570) @map("reservation_reset_minutes")
   isAvailableForBooking           Boolean      @default(true) @map("is_available_for_booking")
   isAvailableForOTA               Boolean      @default(true) @map("is_available_for_ota")
+
   createdAt                       DateTime     @default(now())
   updatedAt                       DateTime     @updatedAt
 
   @@map("property_configs")
+}
+model PropertyActiveLanguages {
+  id         String   @id @default(uuid())
+  propertyId String   @map("property_id")
+  language   Language @default(hi)
+  
+  Property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, language])
+  @@map("property_active_languages")
 }
 
 model BookingEngineConfigurations {

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TouristTaxTranslationController } from '../../controllers/features/tax-system/tourist-tax.controller';
+import { TouristTaxTranslationController } from '../../../controllers/features/tax-system';
 
 const touristTaxTranslationRouter = Router();
 const touristTaxTranslationController = new TouristTaxTranslationController();

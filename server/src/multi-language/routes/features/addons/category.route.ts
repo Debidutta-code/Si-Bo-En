@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { AddonCategoryTranslationController } from '../../controllers/features/addons/category.controller';
+import { AddonCategoryTranslationController } from '../../../controllers/features/addons';
 
 const addonCategoryTranslationRouter = Router();
 const addonCategoryTranslationController = new AddonCategoryTranslationController();

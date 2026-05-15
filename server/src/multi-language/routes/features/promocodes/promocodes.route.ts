@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PromotionTranslationController } from '../../controllers/features/promocodes/promocodes.controller';
+import { PromotionTranslationController } from '../../../controllers/features/promocodes';
 
 const promotionTranslationRouter = Router();
 const promotionTranslationController = new PromotionTranslationController();

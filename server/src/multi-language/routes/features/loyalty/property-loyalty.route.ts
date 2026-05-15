@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PropertyLoyaltyConfigTranslationController } from '../../controllers/features/loyalty/property-loyalty.controller';
+import { PropertyLoyaltyConfigTranslationController } from '../../../controllers/features/loyalty';
 
 const propertyLoyaltyConfigTranslationRouter = Router();
 const propertyLoyaltyConfigTranslationController = new PropertyLoyaltyConfigTranslationController();

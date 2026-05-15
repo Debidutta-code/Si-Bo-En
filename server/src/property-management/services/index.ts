@@ -21,3 +21,4 @@ export {
 };
 export * from '../services/property-integration.service';
 export * from '../services/propertyEmails.service';
+export * from './active-language.service';

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TaxRuleTranslationController, TaxGroupTranslationController } from '../../controllers/features/tax-system/tax-system.controller';
+import { TaxRuleTranslationController, TaxGroupTranslationController } from '../../../controllers/features/tax-system';
 
 const taxRuleTranslationRouter = Router();
 const taxRuleTranslationController = new TaxRuleTranslationController();

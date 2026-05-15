@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { LoyaltyConditionsTranslationController, LoyaltySpecialConditionTranslationController } from '../../controllers/features/loyalty/loyalty-configs.controller';
+import { LoyaltyConditionsTranslationController, LoyaltySpecialConditionTranslationController } from '../../../controllers/features/loyalty';
 
 const loyaltyConditionsTranslationRouter = Router();
 const loyaltyConditionsTranslationController = new LoyaltyConditionsTranslationController();

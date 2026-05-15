@@ -19,3 +19,5 @@ export{
     updatePropertyIntegrationFieldService,
     updatePropertyIntegrationStatusService
 }
+
+export * from "./property-language.services"

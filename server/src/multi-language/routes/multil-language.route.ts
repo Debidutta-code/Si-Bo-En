@@ -26,9 +26,10 @@ import { masterIntegrationTranslationRouter } from './masters/integration.master
 import { spaCategoryTranslationRouter } from './masters/spa-type.route';
 import { spaSubCategoryTranslationRouter } from './masters/spa-type.route';
 import { masterLoyaltyRegistrationFieldTranslationRouter } from './masters/loyalty.master.route';
+import { protect } from '../../middlewares/auth.middleware';
 
 const multiLanguageRouter = Router();
-
+multiLanguageRouter.use(protect);
 multiLanguageRouter.use('/creation', creationTranslationRouter);
 multiLanguageRouter.use('/property', propertyTranslationRouter);
 multiLanguageRouter.use('/property-address', propertyAddressTranslationRouter);

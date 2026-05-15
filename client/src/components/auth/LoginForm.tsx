@@ -9,7 +9,18 @@ import { Mail, Lock, Eye, EyeOff, Building2, Shield, Zap } from 'lucide-react';
 import AxiosInstance from "@/components/axiosInstance";
 import { z } from 'zod';
 import toast from 'react-hot-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { setLanguage } from '@/redux/language.slice';
+import { useDispatch } from 'react-redux';
 
+import { Languages } from "lucide-react";
+import { languages, type LanguageCode } from '../language/language';
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z
@@ -19,12 +30,14 @@ const loginSchema = z.object({
     .regex(/[@$&]/, { message: "Password must contain one of the special characters: @, $, &." })
     .regex(/[0-9]/, { message: "Password must contain at least one number." }),
 });
-
 export default function LoginForm() {
   const [loginDetails, setLoginDetails] = useState({
     email: "",
     password: "",
   });
+  const dispatch = useDispatch();
+
+  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>('en');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +63,9 @@ export default function LoginForm() {
       const axiosInstance = AxiosInstance();
       const response = await axiosInstance.get('/user/me');
       if (response.data.success) {
+        dispatch(setLanguage(selectedLanguage));
+        localStorage.setItem("exlang", selectedLanguage);
+
         navigate('/app');
       } else {
 
@@ -83,6 +99,9 @@ export default function LoginForm() {
         } else {
           localStorage.removeItem("swiftRoomsLogCred");
         }
+        dispatch(setLanguage(selectedLanguage));
+        localStorage.setItem("exlang", selectedLanguage);
+
         toast.success("Login Successfull")
 
         navigate('/app');
@@ -280,6 +299,7 @@ export default function LoginForm() {
                 >
                   Forgot password?
                 </button>
+
               </div>
 
               {/* Sign In Button */}
@@ -297,6 +317,38 @@ export default function LoginForm() {
                   'Sign In'
                 )}
               </Button>
+              <div className="flex items-center justify-end">
+                <div className="w-full sm:w-[220px]">
+                  <Select
+                    value={selectedLanguage}
+                    onValueChange={(value) => setSelectedLanguage(value as LanguageCode)}    >
+                    <SelectTrigger className="h-11 rounded-xl border bg-background/60 backdrop-blur-sm transition-all hover:border-primary/40">
+                      <div className="flex items-center gap-2">
+                        <Languages className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue placeholder="Select language" />
+                      </div>
+                    </SelectTrigger>
+
+                    <SelectContent className="rounded-xl">
+                      {languages.map((language) => (
+                        <SelectItem
+                          key={language.code}
+                          value={language.code}
+                          className="cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between w-full gap-3">
+                            <span>{language.name}</span>
+                            <span className="text-xs text-muted-foreground uppercase">
+                              {language.code}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
 
             </CardContent>
           </Card>

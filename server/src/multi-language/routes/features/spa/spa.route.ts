@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { SpaTranslationController } from '../../controllers/features/spa/spa.controller';
+import { SpaTranslationController } from '../../../controllers/features/spa';
 
 const spaTranslationRouter = Router();
 const spaTranslationController = new SpaTranslationController();
@@ -12,3 +12,4 @@ spaTranslationRouter.get('/:spaId/all', spaTranslationController.getAllTranslati
 spaTranslationRouter.delete('/:spaId/:locale', spaTranslationController.deleteLocale.bind(spaTranslationController));
 
 export { spaTranslationRouter };
+    
