@@ -1,4 +1,3 @@
-// types.ts
 export interface IApiResponse<T = any> {
     success: boolean;
     message: string;
