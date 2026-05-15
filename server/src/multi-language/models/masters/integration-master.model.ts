@@ -1,9 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MasterIntegrations Translation
-// Translatable: name
-// ─────────────────────────────────────────────────────────────────────────────
 
 const LOCALE_REGEX = /^[a-z]{2,3}$/;
 const isValidLocale = (locale: string): boolean => LOCALE_REGEX.test(locale);

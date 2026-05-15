@@ -1,160 +1,106 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import {
+  SpaCategoryTranslation,
+  ISpaCategoryTranslation,
+  ISpaCategoryLocaleBlock,
+  SpaSubCategoryTranslation,
+  ISpaSubCategoryTranslation,
+  ISpaSubCategoryLocaleBlock,
+} from '../../models/masters/spa-type.model';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SpaCategory Translation
-// Translatable: name
-// ─────────────────────────────────────────────────────────────────────────────
+export class SpaCategoryTranslationRepository {
+  public async upsert(
+    spaCategoryId: string,
+    localeData: Partial<Record<string, Partial<ISpaCategoryLocaleBlock>>>
+  ): Promise<ISpaCategoryTranslation> {
+    try {
+      return await SpaCategoryTranslation.upsert(spaCategoryId, localeData);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to upsert spa category translation'
+      );
+    }
+  }
 
-const LOCALE_REGEX = /^[a-z]{2,3}$/;
-const isValidLocale = (locale: string): boolean => LOCALE_REGEX.test(locale);
-const validateLocaleKeys = (localeData: Record<string, unknown>): void => {
-  const invalid = Object.keys(localeData).filter((l) => !isValidLocale(l));
-  if (invalid.length > 0) throw new Error(`Invalid locale(s): ${invalid.join(', ')}. Must be 2-3 lowercase letters.`);
-};
+  public async getTranslated(
+    spaCategoryId: string,
+    locale: string = 'en'
+  ): Promise<ISpaCategoryLocaleBlock | null> {
+    try {
+      return await SpaCategoryTranslation.getTranslated(spaCategoryId, locale);
+    } catch (error) {
+      throw new Error('Failed to get spa category translation');
+    }
+  }
 
-export interface ISpaCategoryLocaleBlock {
-  name: string;
+  public async getAllTranslations(
+    spaCategoryId: string
+  ): Promise<Record<string, ISpaCategoryLocaleBlock> | null> {
+    try {
+      return await SpaCategoryTranslation.getAllTranslations(spaCategoryId);
+    } catch (error) {
+      throw new Error('Failed to get all spa category translations');
+    }
+  }
+
+  public async deleteLocale(
+    spaCategoryId: string,
+    locale: string
+  ): Promise<ISpaCategoryTranslation | null> {
+    try {
+      return await SpaCategoryTranslation.deleteLocale(spaCategoryId, locale);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to delete spa category translation locale'
+      );
+    }
+  }
 }
 
-export interface ISpaCategoryTranslation extends Document {
-  spaCategoryId: string;
-  translations: Map<string, ISpaCategoryLocaleBlock>;
-  createdAt: Date;
-  updatedAt: Date;
+export class SpaSubCategoryTranslationRepository {
+  public async upsert(
+    spaSubCategoryId: string,
+    localeData: Partial<Record<string, Partial<ISpaSubCategoryLocaleBlock>>>
+  ): Promise<ISpaSubCategoryTranslation> {
+    try {
+      return await SpaSubCategoryTranslation.upsert(spaSubCategoryId, localeData);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to upsert spa sub-category translation'
+      );
+    }
+  }
+
+  public async getTranslated(
+    spaSubCategoryId: string,
+    locale: string = 'en'
+  ): Promise<ISpaSubCategoryLocaleBlock | null> {
+    try {
+      return await SpaSubCategoryTranslation.getTranslated(spaSubCategoryId, locale);
+    } catch (error) {
+      throw new Error('Failed to get spa sub-category translation');
+    }
+  }
+
+  public async getAllTranslations(
+    spaSubCategoryId: string
+  ): Promise<Record<string, ISpaSubCategoryLocaleBlock> | null> {
+    try {
+      return await SpaSubCategoryTranslation.getAllTranslations(spaSubCategoryId);
+    } catch (error) {
+      throw new Error('Failed to get all spa sub-category translations');
+    }
+  }
+
+  public async deleteLocale(
+    spaSubCategoryId: string,
+    locale: string
+  ): Promise<ISpaSubCategoryTranslation | null> {
+    try {
+      return await SpaSubCategoryTranslation.deleteLocale(spaSubCategoryId, locale);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to delete spa sub-category translation locale'
+      );
+    }
+  }
 }
-
-export interface ISpaCategoryTranslationModel extends Model<ISpaCategoryTranslation> {
-  upsert(id: string, localeData: Partial<Record<string, Partial<ISpaCategoryLocaleBlock>>>): Promise<ISpaCategoryTranslation>;
-  getTranslated(id: string, locale?: string): Promise<ISpaCategoryLocaleBlock | null>;
-  getAllTranslations(id: string): Promise<Record<string, ISpaCategoryLocaleBlock> | null>;
-  deleteLocale(id: string, locale: string): Promise<ISpaCategoryTranslation | null>;
-}
-
-const spaCategoryLocaleBlockSchema = new Schema<ISpaCategoryLocaleBlock>(
-  { name: { type: String, default: '' } },
-  { _id: false }
-);
-
-const spaCategoryTranslationSchema = new Schema<ISpaCategoryTranslation, ISpaCategoryTranslationModel>(
-  {
-    spaCategoryId: { type: String, required: [true, 'spaCategoryId is required'], unique: true, index: true, trim: true },
-    translations: {
-      type: Map,
-      of: spaCategoryLocaleBlockSchema,
-      default: {},
-      validate: {
-        validator(map: Map<string, ISpaCategoryLocaleBlock>) {
-          for (const key of map.keys()) if (!isValidLocale(key)) return false;
-          return true;
-        },
-        message: 'Invalid locale key. Must be 2-3 lowercase letters (e.g. en, hi, ja)',
-      },
-    },
-  },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
-);
-
-spaCategoryTranslationSchema.statics.upsert = async function (id, localeData) {
-  validateLocaleKeys(localeData);
-  const update: Record<string, Partial<ISpaCategoryLocaleBlock>> = {};
-  for (const [locale, fields] of Object.entries(localeData)) update[`translations.${locale}`] = fields!;
-  const doc = await this.findOneAndUpdate({ spaCategoryId: id }, { $set: update }, { upsert: true, new: true, runValidators: true });
-  if (!doc) throw new Error(`Failed to upsert translation for spaCategoryId: ${id}`);
-  return doc;
-};
-spaCategoryTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
-  const doc = await this.findOne({ spaCategoryId: id }).lean<ISpaCategoryTranslation>();
-  if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ISpaCategoryLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
-};
-spaCategoryTranslationSchema.statics.getAllTranslations = async function (id) {
-  const doc = await this.findOne({ spaCategoryId: id }).lean<ISpaCategoryTranslation>();
-  if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ISpaCategoryLocaleBlock>);
-};
-spaCategoryTranslationSchema.statics.deleteLocale = async function (id, locale) {
-  if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);
-  return this.findOneAndUpdate({ spaCategoryId: id }, { $unset: { [`translations.${locale}`]: '' } }, { new: true });
-};
-
-export const SpaCategoryTranslation = mongoose.model<ISpaCategoryTranslation, ISpaCategoryTranslationModel>(
-  'SpaCategoryTranslation',
-  spaCategoryTranslationSchema
-);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SpaSubCategory Translation
-// Translatable: name
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface ISpaSubCategoryLocaleBlock {
-  name: string;
-}
-
-export interface ISpaSubCategoryTranslation extends Document {
-  spaSubCategoryId: string;
-  translations: Map<string, ISpaSubCategoryLocaleBlock>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ISpaSubCategoryTranslationModel extends Model<ISpaSubCategoryTranslation> {
-  upsert(id: string, localeData: Partial<Record<string, Partial<ISpaSubCategoryLocaleBlock>>>): Promise<ISpaSubCategoryTranslation>;
-  getTranslated(id: string, locale?: string): Promise<ISpaSubCategoryLocaleBlock | null>;
-  getAllTranslations(id: string): Promise<Record<string, ISpaSubCategoryLocaleBlock> | null>;
-  deleteLocale(id: string, locale: string): Promise<ISpaSubCategoryTranslation | null>;
-}
-
-const spaSubCategoryLocaleBlockSchema = new Schema<ISpaSubCategoryLocaleBlock>(
-  { name: { type: String, default: '' } },
-  { _id: false }
-);
-
-const spaSubCategoryTranslationSchema = new Schema<ISpaSubCategoryTranslation, ISpaSubCategoryTranslationModel>(
-  {
-    spaSubCategoryId: { type: String, required: [true, 'spaSubCategoryId is required'], unique: true, index: true, trim: true },
-    translations: {
-      type: Map,
-      of: spaSubCategoryLocaleBlockSchema,
-      default: {},
-      validate: {
-        validator(map: Map<string, ISpaSubCategoryLocaleBlock>) {
-          for (const key of map.keys()) if (!isValidLocale(key)) return false;
-          return true;
-        },
-        message: 'Invalid locale key. Must be 2-3 lowercase letters (e.g. en, hi, ja)',
-      },
-    },
-  },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
-);
-
-spaSubCategoryTranslationSchema.statics.upsert = async function (id, localeData) {
-  validateLocaleKeys(localeData);
-  const update: Record<string, Partial<ISpaSubCategoryLocaleBlock>> = {};
-  for (const [locale, fields] of Object.entries(localeData)) update[`translations.${locale}`] = fields!;
-  const doc = await this.findOneAndUpdate({ spaSubCategoryId: id }, { $set: update }, { upsert: true, new: true, runValidators: true });
-  if (!doc) throw new Error(`Failed to upsert translation for spaSubCategoryId: ${id}`);
-  return doc;
-};
-spaSubCategoryTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
-  const doc = await this.findOne({ spaSubCategoryId: id }).lean<ISpaSubCategoryTranslation>();
-  if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ISpaSubCategoryLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
-};
-spaSubCategoryTranslationSchema.statics.getAllTranslations = async function (id) {
-  const doc = await this.findOne({ spaSubCategoryId: id }).lean<ISpaSubCategoryTranslation>();
-  if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ISpaSubCategoryLocaleBlock>);
-};
-spaSubCategoryTranslationSchema.statics.deleteLocale = async function (id, locale) {
-  if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);
-  return this.findOneAndUpdate({ spaSubCategoryId: id }, { $unset: { [`translations.${locale}`]: '' } }, { new: true });
-};
-
-export const SpaSubCategoryTranslation = mongoose.model<ISpaSubCategoryTranslation, ISpaSubCategoryTranslationModel>(
-  'SpaSubCategoryTranslation',
-  spaSubCategoryTranslationSchema
-);

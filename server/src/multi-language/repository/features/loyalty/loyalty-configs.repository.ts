@@ -1,186 +1,106 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import {
+  LoyaltyConditionsTranslation,
+  ILoyaltyConditionsTranslation,
+  ILoyaltyConditionsLocaleBlock,
+  LoyaltySpecialConditionTranslation,
+  ILoyaltySpecialConditionTranslation,
+  ILoyaltySpecialConditionLocaleBlock,
+} from '../../../models/features/loyalty/loyalty-configs.model';
 
-
-const LOCALE_REGEX = /^[a-z]{2,3}$/;
-
-const isValidLocale = (locale: string): boolean => LOCALE_REGEX.test(locale);
-
-const validateLocaleKeys = (localeData: Record<string, unknown>): void => {
-  const invalid = Object.keys(localeData).filter((l) => !isValidLocale(l));
-  if (invalid.length > 0) {
-    throw new Error(`Invalid locale(s): ${invalid.join(', ')}. Must be 2-3 lowercase letters.`);
+export class LoyaltyConditionsTranslationRepository {
+  public async upsert(
+    loyaltyConditionId: string,
+    localeData: Partial<Record<string, Partial<ILoyaltyConditionsLocaleBlock>>>
+  ): Promise<ILoyaltyConditionsTranslation> {
+    try {
+      return await LoyaltyConditionsTranslation.upsert(loyaltyConditionId, localeData);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to upsert loyalty conditions translation'
+      );
+    }
   }
-};
 
+  public async getTranslated(
+    loyaltyConditionId: string,
+    locale: string = 'en'
+  ): Promise<ILoyaltyConditionsLocaleBlock | null> {
+    try {
+      return await LoyaltyConditionsTranslation.getTranslated(loyaltyConditionId, locale);
+    } catch (error) {
+      throw new Error('Failed to get loyalty conditions translation');
+    }
+  }
 
-export interface ILoyaltyConditionsLocaleBlock {
-  text: string;
+  public async getAllTranslations(
+    loyaltyConditionId: string
+  ): Promise<Record<string, ILoyaltyConditionsLocaleBlock> | null> {
+    try {
+      return await LoyaltyConditionsTranslation.getAllTranslations(loyaltyConditionId);
+    } catch (error) {
+      throw new Error('Failed to get all loyalty conditions translations');
+    }
+  }
+
+  public async deleteLocale(
+    loyaltyConditionId: string,
+    locale: string
+  ): Promise<ILoyaltyConditionsTranslation | null> {
+    try {
+      return await LoyaltyConditionsTranslation.deleteLocale(loyaltyConditionId, locale);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to delete loyalty conditions translation locale'
+      );
+    }
+  }
 }
 
-export interface ILoyaltyConditionsTranslation extends Document {
-  loyaltyConditionId: string;
-  translations: Map<string, ILoyaltyConditionsLocaleBlock>;
-  createdAt: Date;
-  updatedAt: Date;
+export class LoyaltySpecialConditionTranslationRepository {
+  public async upsert(
+    loyaltySpecialConditionId: string,
+    localeData: Partial<Record<string, Partial<ILoyaltySpecialConditionLocaleBlock>>>
+  ): Promise<ILoyaltySpecialConditionTranslation> {
+    try {
+      return await LoyaltySpecialConditionTranslation.upsert(loyaltySpecialConditionId, localeData);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to upsert loyalty special condition translation'
+      );
+    }
+  }
+
+  public async getTranslated(
+    loyaltySpecialConditionId: string,
+    locale: string = 'en'
+  ): Promise<ILoyaltySpecialConditionLocaleBlock | null> {
+    try {
+      return await LoyaltySpecialConditionTranslation.getTranslated(loyaltySpecialConditionId, locale);
+    } catch (error) {
+      throw new Error('Failed to get loyalty special condition translation');
+    }
+  }
+
+  public async getAllTranslations(
+    loyaltySpecialConditionId: string
+  ): Promise<Record<string, ILoyaltySpecialConditionLocaleBlock> | null> {
+    try {
+      return await LoyaltySpecialConditionTranslation.getAllTranslations(loyaltySpecialConditionId);
+    } catch (error) {
+      throw new Error('Failed to get all loyalty special condition translations');
+    }
+  }
+
+  public async deleteLocale(
+    loyaltySpecialConditionId: string,
+    locale: string
+  ): Promise<ILoyaltySpecialConditionTranslation | null> {
+    try {
+      return await LoyaltySpecialConditionTranslation.deleteLocale(loyaltySpecialConditionId, locale);
+    } catch (error) {
+      throw new Error(
+        error instanceof Error ? error.message : 'Failed to delete loyalty special condition translation locale'
+      );
+    }
+  }
 }
-
-export interface ILoyaltyConditionsTranslationModel extends Model<ILoyaltyConditionsTranslation> {
-  upsert(id: string, localeData: Partial<Record<string, Partial<ILoyaltyConditionsLocaleBlock>>>): Promise<ILoyaltyConditionsTranslation>;
-  getTranslated(id: string, locale?: string): Promise<ILoyaltyConditionsLocaleBlock | null>;
-  getAllTranslations(id: string): Promise<Record<string, ILoyaltyConditionsLocaleBlock> | null>;
-  deleteLocale(id: string, locale: string): Promise<ILoyaltyConditionsTranslation | null>;
-}
-
-const loyaltyConditionsLocaleBlockSchema = new Schema<ILoyaltyConditionsLocaleBlock>(
-  {
-    text: { type: String, default: '' },
-  },
-  { _id: false }
-);
-
-const loyaltyConditionsTranslationSchema = new Schema<ILoyaltyConditionsTranslation, ILoyaltyConditionsTranslationModel>(
-  {
-    loyaltyConditionId: { type: String, required: true, unique: true, index: true, trim: true },
-    translations: {
-      type: Map,
-      of: loyaltyConditionsLocaleBlockSchema,
-      default: {},
-      validate: {
-        validator(map: Map<string, ILoyaltyConditionsLocaleBlock>) {
-          for (const key of map.keys()) if (!isValidLocale(key)) return false;
-          return true;
-        },
-        message: 'Invalid locale key. Must be 2-3 lowercase letters (e.g. en, hi, ja)',
-      },
-    },
-  },
-  { timestamps: true }
-);
-
-loyaltyConditionsTranslationSchema.statics.upsert = async function (id, localeData) {
-  validateLocaleKeys(localeData);
-  const update: Record<string, any> = {};
-  for (const [locale, fields] of Object.entries(localeData)) update[`translations.${locale}`] = fields;
-  const doc = await this.findOneAndUpdate(
-    { loyaltyConditionId: id },
-    { $set: update },
-    { upsert: true, new: true, runValidators: true }
-  );
-  if (!doc) throw new Error(`Failed to upsert for loyaltyConditionId: ${id}`);
-  return doc;
-};
-
-loyaltyConditionsTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
-  const doc = await this.findOne({ loyaltyConditionId: id }).lean<ILoyaltyConditionsTranslation>();
-  if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ILoyaltyConditionsLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
-};
-
-loyaltyConditionsTranslationSchema.statics.getAllTranslations = async function (id) {
-  const doc = await this.findOne({ loyaltyConditionId: id }).lean<ILoyaltyConditionsTranslation>();
-  if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ILoyaltyConditionsLocaleBlock>);
-};
-
-loyaltyConditionsTranslationSchema.statics.deleteLocale = async function (id, locale) {
-  if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}`);
-  return this.findOneAndUpdate(
-    { loyaltyConditionId: id },
-    { $unset: { [`translations.${locale}`]: '' } },
-    { new: true }
-  );
-};
-
-export const LoyaltyConditionsTranslation = mongoose.model<ILoyaltyConditionsTranslation, ILoyaltyConditionsTranslationModel>(
-  'LoyaltyConditionsTranslation',
-  loyaltyConditionsTranslationSchema
-);
-
-// ─── Interfaces & Schemas for LoyaltySpecialCondition ─────────────────────────
-
-export interface ILoyaltySpecialConditionLocaleBlock {
-  title: string;
-  subTitle: string;
-}
-
-export interface ILoyaltySpecialConditionTranslation extends Document {
-  loyaltySpecialConditionId: string;
-  translations: Map<string, ILoyaltySpecialConditionLocaleBlock>;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ILoyaltySpecialConditionTranslationModel extends Model<ILoyaltySpecialConditionTranslation> {
-  upsert(id: string, localeData: Partial<Record<string, Partial<ILoyaltySpecialConditionLocaleBlock>>>): Promise<ILoyaltySpecialConditionTranslation>;
-  getTranslated(id: string, locale?: string): Promise<ILoyaltySpecialConditionLocaleBlock | null>;
-  getAllTranslations(id: string): Promise<Record<string, ILoyaltySpecialConditionLocaleBlock> | null>;
-  deleteLocale(id: string, locale: string): Promise<ILoyaltySpecialConditionTranslation | null>;
-}
-
-const loyaltySpecialConditionLocaleBlockSchema = new Schema<ILoyaltySpecialConditionLocaleBlock>(
-  {
-    title: { type: String, default: '' },
-    subTitle: { type: String, default: '' },
-  },
-  { _id: false }
-);
-
-const loyaltySpecialConditionTranslationSchema = new Schema<ILoyaltySpecialConditionTranslation, ILoyaltySpecialConditionTranslationModel>(
-  {
-    loyaltySpecialConditionId: { type: String, required: true, unique: true, index: true, trim: true },
-    translations: {
-      type: Map,
-      of: loyaltySpecialConditionLocaleBlockSchema,
-      default: {},
-      validate: {
-        validator(map: Map<string, ILoyaltySpecialConditionLocaleBlock>) {
-          for (const key of map.keys()) if (!isValidLocale(key)) return false;
-          return true;
-        },
-        message: 'Invalid locale key. Must be 2-3 lowercase letters (e.g. en, hi, ja)',
-      },
-    },
-  },
-  { timestamps: true }
-);
-
-loyaltySpecialConditionTranslationSchema.statics.upsert = async function (id, localeData) {
-  validateLocaleKeys(localeData);
-  const update: Record<string, any> = {};
-  for (const [locale, fields] of Object.entries(localeData)) update[`translations.${locale}`] = fields;
-  const doc = await this.findOneAndUpdate(
-    { loyaltySpecialConditionId: id },
-    { $set: update },
-    { upsert: true, new: true, runValidators: true }
-  );
-  if (!doc) throw new Error(`Failed to upsert for loyaltySpecialConditionId: ${id}`);
-  return doc;
-};
-
-loyaltySpecialConditionTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
-  const doc = await this.findOne({ loyaltySpecialConditionId: id }).lean<ILoyaltySpecialConditionTranslation>();
-  if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ILoyaltySpecialConditionLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
-};
-
-loyaltySpecialConditionTranslationSchema.statics.getAllTranslations = async function (id) {
-  const doc = await this.findOne({ loyaltySpecialConditionId: id }).lean<ILoyaltySpecialConditionTranslation>();
-  if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ILoyaltySpecialConditionLocaleBlock>);
-};
-
-loyaltySpecialConditionTranslationSchema.statics.deleteLocale = async function (id, locale) {
-  if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}`);
-  return this.findOneAndUpdate(
-    { loyaltySpecialConditionId: id },
-    { $unset: { [`translations.${locale}`]: '' } },
-    { new: true }
-  );
-};
-
-export const LoyaltySpecialConditionTranslation = mongoose.model<ILoyaltySpecialConditionTranslation, ILoyaltySpecialConditionTranslationModel>(
-  'LoyaltySpecialConditionTranslation',
-  loyaltySpecialConditionTranslationSchema
-);
