@@ -4,8 +4,10 @@ import { TouristTaxTranslationController } from '../../controllers/features/tax-
 const touristTaxTranslationRouter = Router();
 const touristTaxTranslationController = new TouristTaxTranslationController();
 
-touristTaxTranslationRouter.put('/:touristTaxId', touristTaxTranslationController.upsert.bind(touristTaxTranslationController));
-touristTaxTranslationRouter.get('/:touristTaxId', touristTaxTranslationController.getTranslated.bind(touristTaxTranslationController));
+touristTaxTranslationRouter.route('/:touristTaxId')
+  .put(touristTaxTranslationController.upsert.bind(touristTaxTranslationController))
+  .get(touristTaxTranslationController.getTranslated.bind(touristTaxTranslationController));
+
 touristTaxTranslationRouter.get('/:touristTaxId/all', touristTaxTranslationController.getAllTranslations.bind(touristTaxTranslationController));
 touristTaxTranslationRouter.delete('/:touristTaxId/:locale', touristTaxTranslationController.deleteLocale.bind(touristTaxTranslationController));
 

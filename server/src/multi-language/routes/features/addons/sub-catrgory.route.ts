@@ -4,8 +4,10 @@ import { AddonSubCategoryTranslationController } from '../../controllers/feature
 const addonSubCategoryTranslationRouter = Router();
 const addonSubCategoryTranslationController = new AddonSubCategoryTranslationController();
 
-addonSubCategoryTranslationRouter.put('/:addonSubCategoryId', addonSubCategoryTranslationController.upsert.bind(addonSubCategoryTranslationController));
-addonSubCategoryTranslationRouter.get('/:addonSubCategoryId', addonSubCategoryTranslationController.getTranslated.bind(addonSubCategoryTranslationController));
+addonSubCategoryTranslationRouter.route('/:addonSubCategoryId')
+  .put(addonSubCategoryTranslationController.upsert.bind(addonSubCategoryTranslationController))
+  .get(addonSubCategoryTranslationController.getTranslated.bind(addonSubCategoryTranslationController));
+
 addonSubCategoryTranslationRouter.get('/:addonSubCategoryId/all', addonSubCategoryTranslationController.getAllTranslations.bind(addonSubCategoryTranslationController));
 addonSubCategoryTranslationRouter.delete('/:addonSubCategoryId/:locale', addonSubCategoryTranslationController.deleteLocale.bind(addonSubCategoryTranslationController));
 

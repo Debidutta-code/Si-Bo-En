@@ -4,8 +4,10 @@ import { PromotionTranslationController } from '../../controllers/features/promo
 const promotionTranslationRouter = Router();
 const promotionTranslationController = new PromotionTranslationController();
 
-promotionTranslationRouter.put('/:promotionId', promotionTranslationController.upsert.bind(promotionTranslationController));
-promotionTranslationRouter.get('/:promotionId', promotionTranslationController.getTranslated.bind(promotionTranslationController));
+promotionTranslationRouter.route('/:promotionId')
+  .put(promotionTranslationController.upsert.bind(promotionTranslationController))
+  .get(promotionTranslationController.getTranslated.bind(promotionTranslationController));
+
 promotionTranslationRouter.get('/:promotionId/all', promotionTranslationController.getAllTranslations.bind(promotionTranslationController));
 promotionTranslationRouter.delete('/:promotionId/:locale', promotionTranslationController.deleteLocale.bind(promotionTranslationController));
 

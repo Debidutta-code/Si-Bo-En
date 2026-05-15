@@ -4,8 +4,10 @@ import { RatePlanTranslationController } from '../../controllers/ari/rate-plan.c
 const ratePlanTranslationRouter = Router();
 const ratePlanTranslationController = new RatePlanTranslationController();
 
-ratePlanTranslationRouter.put('/:ratePlanId', ratePlanTranslationController.upsert.bind(ratePlanTranslationController));
-ratePlanTranslationRouter.get('/:ratePlanId', ratePlanTranslationController.getTranslated.bind(ratePlanTranslationController));
+ratePlanTranslationRouter.route('/:ratePlanId')
+  .put(ratePlanTranslationController.upsert.bind(ratePlanTranslationController))
+  .get(ratePlanTranslationController.getTranslated.bind(ratePlanTranslationController));
+
 ratePlanTranslationRouter.get('/:ratePlanId/all', ratePlanTranslationController.getAllTranslations.bind(ratePlanTranslationController));
 ratePlanTranslationRouter.delete('/:ratePlanId/:locale', ratePlanTranslationController.deleteLocale.bind(ratePlanTranslationController));
 

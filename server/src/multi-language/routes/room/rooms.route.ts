@@ -4,8 +4,10 @@ import { RoomTranslationController } from '../../controllers/room/rooms.controll
 const roomTranslationRouter = Router();
 const roomTranslationController = new RoomTranslationController();
 
-roomTranslationRouter.put('/:roomId', roomTranslationController.upsert.bind(roomTranslationController));
-roomTranslationRouter.get('/:roomId', roomTranslationController.getTranslated.bind(roomTranslationController));
+roomTranslationRouter.route('/:roomId')
+  .put(roomTranslationController.upsert.bind(roomTranslationController))
+  .get(roomTranslationController.getTranslated.bind(roomTranslationController));
+
 roomTranslationRouter.get('/:roomId/all', roomTranslationController.getAllTranslations.bind(roomTranslationController));
 roomTranslationRouter.delete('/:roomId/:locale', roomTranslationController.deleteLocale.bind(roomTranslationController));
 
