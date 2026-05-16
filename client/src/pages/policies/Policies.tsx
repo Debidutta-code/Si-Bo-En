@@ -51,6 +51,8 @@ import {
 } from "@/components/ui/tabs";
 import { createPolicyService, getPoliciesService, fetchRatePlansService, addPolicyToRatePlanService, deletePolicyService, updatePolicyDetailsService } from "./services";
 import type { IPolicy, PolicyTypes, ICPolicy, RatePlan } from "./interfaces";
+import { languages } from "@/components/language/language";
+import { upsertPolicyTranslationService, getAllPolicyTranslationsService, deletePolicyTranslationLocaleService } from "./services/policy-multilang.services";
 
 interface GroupedPolicy {
     id: string;
@@ -87,6 +89,15 @@ export default function PoliciesPage() {
         policyName: "",
         description: "",
     });
+
+    const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null);
+    const [isAddLanguageOpen, setIsAddLanguageOpen] = useState(false);
+    const [isCheckLanguagesOpen, setIsCheckLanguagesOpen] = useState(false);
+    const [selectedLang, setSelectedLang] = useState("");
+    const [langForm, setLangForm] = useState({ policyName: "", description: "" });
+    const [langTranslations, setLangTranslations] = useState<Record<string, any>>({});
+    const [langLoading, setLangLoading] = useState(false);
+    const [langSubmitting, setLangSubmitting] = useState(false);
 
     const groupedPolicies = useMemo(() => {
         const map = new Map<string, GroupedPolicy>();
@@ -272,6 +283,55 @@ export default function PoliciesPage() {
         }
     };
 
+    const handleSaveLanguage = async () => {
+        if (!selectedPolicyId || !selectedLang) {
+            toast.error("Please select a language");
+            return;
+        }
+        if (!langForm.policyName && !langForm.description) {
+            toast.error("Fill at least one translated field");
+            return;
+        }
+        setLangSubmitting(true);
+        const payload = { [selectedLang]: { policyName: langForm.policyName, description: langForm.description } };
+        const res = await upsertPolicyTranslationService(selectedPolicyId, payload);
+        if (res.success) {
+            toast.success("Translation saved");
+            setIsAddLanguageOpen(false);
+            setLangForm({ policyName: "", description: "" });
+            setSelectedLang("");
+        } else {
+            toast.error(res.message || "Failed to save translation");
+        }
+        setLangSubmitting(false);
+    };
+
+    const fetchPolicyTranslations = async (id: string) => {
+        setLangLoading(true);
+        const res = await getAllPolicyTranslationsService(id);
+        if (res.success && res.data) {
+            setLangTranslations(res.data);
+        } else {
+            setLangTranslations({});
+        }
+        setLangLoading(false);
+    };
+
+    const handleDeleteLocale = async (locale: string) => {
+        if (!selectedPolicyId) return;
+        const res = await deletePolicyTranslationLocaleService(selectedPolicyId, locale);
+        if (res.success) {
+            toast.success("Translation deleted");
+            const updated = { ...langTranslations };
+            delete updated[locale];
+            setLangTranslations(updated);
+        } else {
+            toast.error(res.message || "Failed to delete translation");
+        }
+    };
+
+    const getLangName = (code: string) => languages.find((l) => l.code === code)?.name || code;
+
     const getPolicyIcon = (type: PolicyTypes) => {
         switch (type) {
             case "cancellation": return <AlertCircle className="h-4 w-4" />;
@@ -451,6 +511,27 @@ export default function PoliciesPage() {
                                                             <DropdownMenuItem onClick={() => handleAssignClick(policy)} className="cursor-pointer text-sm">
                                                                 <Link2 className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
                                                                 Add to Rate Plan
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() => {
+                                                                    setSelectedPolicyId(policy.id);
+                                                                    setLangForm({ policyName: "", description: "" });
+                                                                    setSelectedLang("");
+                                                                    setIsAddLanguageOpen(true);
+                                                                }}
+                                                                className="cursor-pointer text-sm"
+                                                            >
+                                                                Add Language
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() => {
+                                                                    setSelectedPolicyId(policy.id);
+                                                                    fetchPolicyTranslations(policy.id);
+                                                                    setIsCheckLanguagesOpen(true);
+                                                                }}
+                                                                className="cursor-pointer text-sm"
+                                                            >
+                                                                Check Languages
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem
@@ -648,6 +729,88 @@ export default function PoliciesPage() {
                                 {isSubmitting ? "Updating..." : "Update Policy"}
                             </Button>
                         </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+                {/* Add Language Dialog */}
+                <Dialog open={isAddLanguageOpen} onOpenChange={(open) => { setIsAddLanguageOpen(open); if (!open) { setSelectedLang(""); setLangForm({ policyName: "", description: "" }); } }}>
+                    <DialogContent className="sm:max-w-[440px]">
+                        <DialogHeader>
+                            <DialogTitle>Add Translation</DialogTitle>
+                            <DialogDescription>Add a translation for this policy.</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <Label>Language</Label>
+                                <Select value={selectedLang} onValueChange={setSelectedLang}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select Language" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {languages.map((lang) => (
+                                            <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Policy Name</Label>
+                                <Input
+                                    placeholder="Translated policy name"
+                                    value={langForm.policyName}
+                                    onChange={(e) => setLangForm({ ...langForm, policyName: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Description</Label>
+                                <Textarea
+                                    placeholder="Translated description"
+                                    className="min-h-[90px]"
+                                    value={langForm.description}
+                                    onChange={(e) => setLangForm({ ...langForm, description: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsAddLanguageOpen(false)} disabled={langSubmitting}>Cancel</Button>
+                            <Button onClick={handleSaveLanguage} disabled={langSubmitting} className="bg-primary text-white hover:bg-primary/80">
+                                {langSubmitting ? "Saving..." : "Save Translation"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Check Languages Dialog */}
+                <Dialog open={isCheckLanguagesOpen} onOpenChange={setIsCheckLanguagesOpen}>
+                    <DialogContent className="sm:max-w-[480px]">
+                        <DialogHeader>
+                            <DialogTitle>Available Translations</DialogTitle>
+                            <DialogDescription>All saved translations for this policy.</DialogDescription>
+                        </DialogHeader>
+                        <div className="py-2 space-y-3 max-h-[360px] overflow-y-auto">
+                            {langLoading ? (
+                                <p className="text-sm text-[#94a3b8] text-center py-6">Loading translations...</p>
+                            ) : Object.keys(langTranslations).length === 0 ? (
+                                <p className="text-sm text-[#94a3b8] text-center py-6">No translations found.</p>
+                            ) : (
+                                Object.entries(langTranslations).map(([locale, data]) => (
+                                    <div key={locale} className="flex items-start justify-between border border-[#e2e8f0] rounded-lg p-3 gap-3">
+                                        <div className="space-y-0.5">
+                                            <p className="text-sm font-semibold text-[#0f172a]">{getLangName(locale)}</p>
+                                            {data.policyName && <p className="text-xs text-[#475569]">Name: {data.policyName}</p>}
+                                            {data.description && <p className="text-xs text-[#94a3b8] line-clamp-2">Desc: {data.description}</p>}
+                                        </div>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            className="shrink-0"
+                                            onClick={() => handleDeleteLocale(locale)}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </DialogContent>
                 </Dialog>
             </div>

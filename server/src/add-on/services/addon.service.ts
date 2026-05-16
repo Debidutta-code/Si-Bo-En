@@ -61,7 +61,7 @@ constructor() {
     /**
      * Get all addons by property ID
      */
-    async getAllAddonsByPropertyId(propertyId: string): Promise<IApiResponse> {
+    async getAllAddonsByPropertyId(propertyId: string): Promise<IApiResponse<IAddon[]>> {
         try {
             const addons =
                 await AddonRepository.getAllAddonsByPropertyId(propertyId);

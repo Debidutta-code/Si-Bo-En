@@ -21,6 +21,7 @@ router.get(
 );
 
 // GET /api/addon/addon-datewise/available?propertyCode=XXX&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+//debug and remove bellow two apis
 router.get(
     '/available',
     attachPropertyDetails({

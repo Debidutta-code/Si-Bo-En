@@ -103,14 +103,13 @@ policyTranslationSchema.statics.getTranslated = async function (
   const doc = await this.findOne({ policyId }).lean<IPolicyTranslation>();
   if (!doc?.translations) return null;
 
-  const map = doc.translations as unknown as Map<string, ILocaleBlock>;
-
-  return (
-    map.get(locale) ??
-    map.get('en') ??
-    map.values().next().value ??
-    null
-  );
+  const map = doc.translations as unknown as Record<string, ILocaleBlock>;
+  
+    return (
+      map[locale] ??
+      Object.values(map)[0] ??
+      null
+    );
 };
 
 // GET ALL — every locale as a plain object
@@ -120,9 +119,8 @@ policyTranslationSchema.statics.getAllTranslations = async function (
   const doc = await this.findOne({ policyId }).lean<IPolicyTranslation>();
   if (!doc?.translations) return null;
 
-  return Object.fromEntries(
-    doc.translations as unknown as Map<string, ILocaleBlock>
-  );
+    return doc.translations as unknown as Record<string, ILocaleBlock>;
+  
 };
 
 // DELETE a single locale

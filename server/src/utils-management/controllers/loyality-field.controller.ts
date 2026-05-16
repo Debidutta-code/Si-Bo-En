@@ -2,6 +2,8 @@ import { CustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { LoyaltyGuestFields } from '../services';
 import { Response } from 'express';
+import { MasterLoyaltyFieldInterceptor } from '../../multi-language/interceptors/masters/master-loyalty-field.interceptor';
+
 export class LoyaltyGuestFieldControllers {
     private loyaltyGuestFields: LoyaltyGuestFields;
     constructor() {
@@ -9,8 +11,11 @@ export class LoyaltyGuestFieldControllers {
     }
     public async getLoyaltyGuestFields(req: CustomRequest, res: Response) {
         try {
-            const serRes =
-                await this.loyaltyGuestFields.getLoyaltyGuestFields();
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let serRes = await this.loyaltyGuestFields.getLoyaltyGuestFields();
+            serRes = await MasterLoyaltyFieldInterceptor.intercept(serRes as any, locale);
+
             if (serRes.success) {
                 return res.status(200).json(serRes);
             } else {

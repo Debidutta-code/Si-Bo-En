@@ -3,6 +3,7 @@ import { TouristTaxService } from '../services/tourist-tax.service';
 import { Request, Response } from 'express';
 import { CustomRequest } from '../../utils/customRequest';
 import { ICTouristTax } from '../interfaces';
+import { TouristTaxInterceptor } from '../../multi-language/interceptors/tax-system/tourist-tax.interceptor';
 
 export class TouristTaxController {
     touristTaxService: TouristTaxService;
@@ -54,10 +55,14 @@ export class TouristTaxController {
                     .json(errorResponse('Property ID is required'));
             }
 
-            const serviceRes =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let serviceRes =
                 await this.touristTaxService.getTouristTaxesByPropertyId(
                     propertyId
                 );
+
+            serviceRes = await TouristTaxInterceptor.intercept(serviceRes, locale);
 
             const status = serviceRes.success ? 200 : 400;
             return res.status(status).json(serviceRes);

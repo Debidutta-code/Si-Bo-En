@@ -10,6 +10,8 @@ import {
     IULoyalityCondition,
     IULoyalitySpecialCondition,
 } from '../types';
+import { LoyaltyConditionInterceptor } from '../../multi-language/interceptors/loyalty/loyalty-condition.interceptor';
+import { LoyaltySpecialConditionInterceptor } from '../../multi-language/interceptors/loyalty/loyalty-special-condition.interceptor';
 
 export class LoyalityConditionController {
     private loyalityConditionService: LoyalityConditionService;
@@ -188,10 +190,15 @@ export class LoyalityConditionController {
                     );
             }
 
-            const result =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let result =
                 await this.loyalityConditionService.getConditionsByProgramId(
                     loyaltyProgramId
                 );
+            
+            result = await LoyaltyConditionInterceptor.intercept(result as any, locale);
+
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {
@@ -399,10 +406,15 @@ export class LoyalitySpecialConditionController {
                     );
             }
 
-            const result =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let result =
                 await this.loyalitySpecialConditionService.getSpecialConditionsByProgramId(
                     loyaltyProgramId
                 );
+            
+            result = await LoyaltySpecialConditionInterceptor.intercept(result as any, locale);
+
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {

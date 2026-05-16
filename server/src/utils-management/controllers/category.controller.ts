@@ -2,6 +2,8 @@ import { CustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { CategoryService } from '../services';
 import { Response } from 'express';
+import { MasterPropertyCategoryInterceptor } from '../../multi-language/interceptors/masters/master-property-category.interceptor';
+
 export class Category {
     private categoryService: CategoryService;
     constructor() {
@@ -36,7 +38,11 @@ export class Category {
     }
     public async getCategory(req: CustomRequest, res: Response) {
         try {
-            const serRes = await this.categoryService.getCategory();
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let serRes = await this.categoryService.getCategory();
+            serRes = await MasterPropertyCategoryInterceptor.intercept(serRes as any, locale);
+
             if (serRes.success) {
                 return res.status(200).json(serRes);
             } else {

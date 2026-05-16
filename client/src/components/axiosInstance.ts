@@ -1,6 +1,5 @@
 import axios, { type AxiosInstance } from "axios";
 
-import { store } from "@/redux/store";
 
 const createAxiosInstance = (): AxiosInstance => {
   const baseUrl = import.meta.env.VITE_BACKEND_URI;
@@ -11,8 +10,7 @@ const createAxiosInstance = (): AxiosInstance => {
     );
   }
 
-  const language =
-    store.getState().language.selectedLanguage || "en";
+const language=localStorage.getItem("exlang")  
 
   const axiosInstance = axios.create({
     baseURL: baseUrl,

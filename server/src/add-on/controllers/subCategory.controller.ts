@@ -3,6 +3,7 @@ import { SubCategoryService } from '../services';
 import { generateAddOnSubCategoryCode } from '../utils';
 import { successResponse, errorResponse } from '../../utils/return';
 import { CustomRequest, PropertyCustomRequest } from '../../utils';
+import { SubCategoryInterceptor } from '../../multi-language/interceptors/addon/subcategory.interceptor';
 
 export class SubCategoryController {
     private subCategoryService: SubCategoryService;
@@ -56,12 +57,15 @@ export class SubCategoryController {
 
     public async getAllSubCategories(req: CustomRequest, res: Response) {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const id = req.query?.id as string;
             if (!id) {
                 return res.status(400).json(errorResponse('Property detail is required for creating category'));
             }
-            const subCategories =
+            let subCategories =
                 await this.subCategoryService.getAllSubCategories(id);
+
+            subCategories = await SubCategoryInterceptor.intercept(subCategories, locale);
 
             return res
                 .status(subCategories.success ? 200 : 400)
@@ -80,10 +84,13 @@ export class SubCategoryController {
 
     public async getSubCategoryById(req: CustomRequest, res: Response) {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const { subcategoryId } = req.params;
 
-            const subCategory =
+            let subCategory =
                 await this.subCategoryService.getSubCategoryById(subcategoryId);
+
+            subCategory = await SubCategoryInterceptor.intercept(subCategory, locale);
 
             return res
                 .status(subCategory.success ? 200 : 400)

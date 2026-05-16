@@ -82,7 +82,7 @@ export class CategoryService {
                 );
             }
 
-            
+
 
             const updatedCategory =
                 await this.categoryAddonRepository.updateCategory(

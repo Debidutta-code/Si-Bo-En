@@ -2,6 +2,8 @@ import { CustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { RoomAmenityServices } from '../services';
 import { Response } from 'express';
+import { MasterAmenityInterceptor } from '../../multi-language/interceptors/masters/master-amenity.interceptor';
+
 export class RoomAminityController {
     private roomAmenityServices: RoomAmenityServices;
     constructor() {
@@ -28,7 +30,11 @@ export class RoomAminityController {
     }
     public async getRoomAmenities(req: CustomRequest, res: Response) {
         try {
-            const serRes = await this.roomAmenityServices.getRoomAmenity();
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let serRes = await this.roomAmenityServices.getRoomAmenity();
+            serRes = await MasterAmenityInterceptor.intercept(serRes as any, locale);
+
             if (serRes.success) {
                 return res.status(200).json(serRes);
             } else {

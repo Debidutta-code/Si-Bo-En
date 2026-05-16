@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { CategoryService } from '../services';
 import { successResponse, errorResponse } from '../../utils/return';
 import { CustomRequest, PropertyCustomRequest } from '../../utils';
+import { CategoryInterceptor } from '../../multi-language/interceptors/addon/category.interceptor';
 export class CategoryController {
     private categoryService: CategoryService;
 
@@ -44,11 +45,14 @@ export class CategoryController {
 
     public async getAllCategories(req: CustomRequest, res: Response) {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const id = req.query?.id as string;
             if (!id) {
                 return res.status(400).json(errorResponse('Property detail is required for fetching categories'));
             }
-            const categories = await this.categoryService.getAllCategories(id);
+            let categories = await this.categoryService.getAllCategories(id);
+
+            categories = await CategoryInterceptor.intercept(categories, locale);
 
             return res.status(categories.success ? 200 : 400).json(categories);
         } catch (error) {
@@ -75,10 +79,13 @@ export class CategoryController {
 
     public async getCategoryById(req: CustomRequest, res: Response) {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const { categoryId } = req.params;
 
-            const category =
+            let category =
                 await this.categoryService.getCategoryById(categoryId);
+
+            category = await CategoryInterceptor.intercept(category, locale);
 
             return res.status(category.success ? 200 : 400).json(category);
         } catch (error) {

@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { ICreatePromoCode } from '../types';
 import { errorResponse } from '../../utils/return';
 import { PropertyCustomRequest, PropertyRequest } from '../../utils';
+import { PromoCodeInterceptor } from '../../multi-language/interceptors/promocode/promocode.interceptor';
 export class PromoCodeController {
     promoCodeService: PromoCodeService;
     constructor() {
@@ -77,10 +78,9 @@ export class PromoCodeController {
                     .status(400)
                     .json(errorResponse('Property ID is required'));
             }
-            const result =
-                await this.promoCodeService.getAllPromoCodesByPropertyId(
-                    propertyId
-                );
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            let result = await this.promoCodeService.getAllPromoCodesByPropertyId(propertyId);
+            result = await PromoCodeInterceptor.interceptGetAllByPropertyId(result, locale);
             if (result.success) {
                 return res.status(200).json(result);
             }

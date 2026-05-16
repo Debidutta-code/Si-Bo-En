@@ -11,6 +11,8 @@ import {
     ICMasterIntegrationUrlFields,
     ICMasterIntegrationsS,
 } from '../types';
+import { MasterIntegrationInterceptor } from '../../multi-language/interceptors/masters/master-integration.interceptor';
+
 export class IntegrationPartnerController {
     private integrationPartnerService: IntegrationPartnerService;
 
@@ -72,8 +74,11 @@ export class IntegrationPartnerController {
         res: Response
     ): Promise<Response> {
         try {
-            const serRes =
-                await this.integrationPartnerService.getAllPartnerService();
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let serRes = await this.integrationPartnerService.getAllPartnerService();
+            serRes = await MasterIntegrationInterceptor.intercept(serRes as any, locale);
+
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {

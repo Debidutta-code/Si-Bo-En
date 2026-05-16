@@ -2,6 +2,8 @@ import { SpaService } from '../services';
 import { CustomRequest, IApiResponse, errorResponse } from '../../utils';
 import { ICSpaC, ICSpaR, IUSpaR } from '../types';
 import { Response, Request } from 'express';
+import { SpaInterceptor } from '../../multi-language/interceptors/spa/spa.interceptor';
+
 export class SpaController {
     private spaService: SpaService;
 
@@ -67,8 +69,13 @@ export class SpaController {
     ): Promise<Response> {
         try {
             const propertyId = req.params.propertyId;
-            const response =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let response =
                 await this.spaService.getSpaForProperty(propertyId);
+            
+            response = await SpaInterceptor.intercept(response as any, locale);
+
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

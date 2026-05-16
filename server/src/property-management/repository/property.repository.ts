@@ -167,7 +167,7 @@ export class PropertyDao {
                     return room;
                 }),
             };
-
+            
             return transformedProperty;
         } catch (error: any) {
             throw new Error(`Failed to get property by ID: ${error?.message}`);
@@ -695,6 +695,7 @@ export class PropertyAmenityDao {
             return amenitySelections.map(selection => ({
                 id: selection.amenity.id,
                 name: selection.amenity.amenityName,
+                masterId: selection.amenity.id,
             }));
         } catch (error: any) {
             throw new Error(`Failed to get active amenities: ${error.message}`);

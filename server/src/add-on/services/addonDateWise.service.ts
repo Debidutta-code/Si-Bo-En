@@ -11,10 +11,6 @@ export class AddonDateWiseService {
     constructor() {
         this.addonDateWiseDao = new AddonDateWiseDao();
     }
-
-    /**
-     * ✅ UPDATED: Upsert addon date-wise availability (bulk)
-     */
     async createAddonDateWise(
         data: ICreateAddonAvailability[]
     ): Promise<IApiResponse> {

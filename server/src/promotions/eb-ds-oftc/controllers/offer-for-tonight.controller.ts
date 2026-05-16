@@ -6,6 +6,7 @@ import {
 import { errorResponse } from '../../../utils/return';
 import { OfferForTonightPromotionService } from '../services';
 import { PromotionType } from '../interfaces';
+import { PromotionInterceptor } from '../../../multi-language/interceptors/promotion/promotion.interceptor';
 
 export class OfferForTonightPromotionController {
     offerForTonightService: OfferForTonightPromotionService;
@@ -131,10 +132,15 @@ export class OfferForTonightPromotionController {
                     .json(errorResponse('Property ID is required'));
             }
 
-            const result =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let result =
                 await this.offerForTonightService.getOfferForTonightPromotionsByProperty(
                     propertyId
                 );
+            
+            result = await PromotionInterceptor.intercept(result as any, locale);
+
             const status = result.success ? 200 : 400;
             return res.status(status).json(result);
         } catch (error: any) {

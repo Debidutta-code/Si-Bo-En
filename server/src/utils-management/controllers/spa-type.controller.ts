@@ -5,6 +5,7 @@ import {
     SpaSubCategoryService,
 } from '../services/spa-type.service';
 import { ICSpaCatrgory, ICSpaSubCategory, IUSpaSubCategory } from '../types';
+import { SpaCategoryTranslation, SpaSubCategoryTranslation } from '../../multi-language/models/masters/spa-type.model';
 
 export class SpaCategoryController {
     private spaCategoryService: SpaCategoryService;
@@ -50,7 +51,19 @@ export class SpaCategoryController {
         res: Response
     ): Promise<Response> {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const response = await this.spaCategoryService.getSpaCategories();
+
+            if (response.success && locale !== 'en' && Array.isArray(response.data)) {
+                response.data = await Promise.all(
+                    response.data.map(async (item: any) => {
+                        if (!item?.id) return item;
+                        const translation = await SpaCategoryTranslation.getTranslated(item.id, locale);
+                        return translation ? { ...item, _translations: translation } : item;
+                    })
+                );
+            }
+
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {
@@ -194,10 +207,21 @@ export class SpaSubCategoryController {
             if (categoryId === 'undefined' || categoryId === 'null') {
                 categoryId = undefined;
             }
-            const response =
-                await this.spaSubCategoryService.getSpaSubCategories(
-                    categoryId ? categoryId : undefined
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            const response = await this.spaSubCategoryService.getSpaSubCategories(
+                categoryId ? categoryId : undefined
+            );
+
+            if (response.success && locale !== 'en' && Array.isArray(response.data)) {
+                response.data = await Promise.all(
+                    response.data.map(async (item: any) => {
+                        if (!item?.id) return item;
+                        const translation = await SpaSubCategoryTranslation.getTranslated(item.id, locale);
+                        return translation ? { ...item, _translations: translation } : item;
+                    })
                 );
+            }
+
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

@@ -3,6 +3,8 @@ import { TaxGroupService } from '../services';
 import { Request, Response } from 'express';
 import { CustomRequest } from '../../utils/customRequest';
 
+import { TaxGroupInterceptor } from '../../multi-language/interceptors/tax-system/tax-group.interceptor';
+
 export class TaxGroupController {
     taxGroupService: TaxGroupService;
 
@@ -46,8 +48,14 @@ export class TaxGroupController {
                     .status(400)
                     .json(errorResponse('Property ID is required'));
             }
-            const serviceRes =
+
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let serviceRes =
                 await this.taxGroupService.getTaxGroupsByPropertyId(propertyId);
+
+            serviceRes = await TaxGroupInterceptor.intercept(serviceRes, locale);
+
             const status = serviceRes.success ? 200 : 400;
             return res.status(status).json(serviceRes);
         } catch (error: any) {

@@ -6,6 +6,7 @@ import { errorResponse } from '../../utils/return';
 import { RatePlanServices } from '../services';
 import { Response } from 'express';
 import getPropertyIdFromPropertyId from '../utils/getPropertyCodeFromPropertyId';
+import { RatePlanInterceptor } from '../../multi-language/interceptors/ari/rate-plan.interceptor';
 export class RatePlanController {
     public static async createRatePlan(
         req: PropertyCustomRequest,
@@ -62,8 +63,14 @@ export class RatePlanController {
                     .status(400)
                     .json(errorResponse('Property ID is not provided'));
             }
-            const ratePlans =
+
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let ratePlans =
                 await RatePlanServices.getAllRatePlanByPropertyId(propertyId);
+
+            ratePlans = await RatePlanInterceptor.intercept(ratePlans as any, locale);
+
             const status = ratePlans.success ? 200 : 400;
             return res.status(status).json(ratePlans);
         } catch (error: any) {

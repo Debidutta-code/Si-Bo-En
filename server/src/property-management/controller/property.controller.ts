@@ -7,6 +7,7 @@ import {
     PropertyAminityService,
 } from '../services';
 import type { IUpdatePropertyData } from '../types/propertyModel.types';
+import { PropertyInterceptor } from '../../multi-language/interceptors/property/property.interceptor';
 export class Property {
     public static async createProperty(req: CustomRequest, res: Response) {
         try {
@@ -98,7 +99,9 @@ export class Property {
                     .status(400)
                     .json(errorResponse('Property Id Not found'));
             }
-            const serRes = await PropertyService.getPropertyById(id);
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            let serRes = await PropertyService.getPropertyById(id);
+            serRes = await PropertyInterceptor.interceptGetPropertyById(serRes, locale);
             if (serRes.success) {
                 return res.status(200).json(serRes);
             } else {
@@ -366,8 +369,9 @@ export class PropertyAminityController {
                     .status(400)
                     .json(errorResponse('Property id not found'));
             }
-            const serviceRes =
-                await PropertyAminityService.findAminityByPropertyId(id);
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            let serviceRes = await PropertyAminityService.findAminityByPropertyId(id);
+            serviceRes = await PropertyInterceptor.interceptFindAmenityByPropertyId(serviceRes, locale);
             if (serviceRes?.success) {
                 return res.status(200).json(serviceRes);
             } else {

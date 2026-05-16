@@ -2,6 +2,7 @@ import { CustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { AminityServices, CategoryService } from '../services';
 import { Response } from 'express';
+import { MasterAmenityInterceptor } from '../../multi-language/interceptors/masters/master-amenity.interceptor';
 
 export class AminityController {
     private aminityServices: AminityServices;
@@ -29,7 +30,11 @@ export class AminityController {
     public async getAmenities(req: CustomRequest, res: Response) {
         try {
             const type = req.query.type as string | 'property';
-            const serRes = await this.aminityServices.getCategory(type);
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let serRes = await this.aminityServices.getCategory(type);
+            serRes = await MasterAmenityInterceptor.intercept(serRes as any, locale);
+
             if (serRes.success) {
                 return res.status(200).json(serRes);
             } else {

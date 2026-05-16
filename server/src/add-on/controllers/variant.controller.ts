@@ -3,6 +3,7 @@ import { VariantService } from '../services';
 import { generateAddOnVariantCode } from '../utils';
 import { successResponse, errorResponse } from '../../utils/return';
 import { CustomRequest, PropertyCustomRequest } from '../../utils';
+import { VariantInterceptor } from '../../multi-language/interceptors/addon/variant.interceptor';
 
 export class VariantController {
     private variantService: VariantService;
@@ -56,11 +57,14 @@ export class VariantController {
 
     public async getAllVariants(req: CustomRequest, res: Response) {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const propertyId = req.query.id as string;
             if(!propertyId){
                 return res.status(400).json(errorResponse('Property detail is required for fetching variants'));
             }
-            const variants = await this.variantService.getAllVariants(propertyId);
+            let variants = await this.variantService.getAllVariants(propertyId);
+
+            variants = await VariantInterceptor.intercept(variants, locale);
 
             return res.status(variants.success ? 200 : 400).json(variants);
         } catch (error: any) {
@@ -82,9 +86,12 @@ export class VariantController {
 
     public async getVariantById(req: CustomRequest, res: Response) {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const { variantId } = req.params;
 
-            const variant = await this.variantService.getVariantById(variantId);
+            let variant = await this.variantService.getVariantById(variantId);
+
+            variant = await VariantInterceptor.intercept(variant, locale);
 
             return res.status(variant.success ? 200 : 400).json(variant);
         } catch (error) {
@@ -109,12 +116,15 @@ export class VariantController {
 
     public async getVariantsBySubCategoryId(req: CustomRequest, res: Response) {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const { subcategoryId } = req.params;
 
-            const variants =
+            let variants =
                 await this.variantService.getVariantsBySubCategoryId(
                     subcategoryId
                 );
+
+            variants = await VariantInterceptor.intercept(variants, locale);
 
             return res.status(variants.success ? 200 : 400).json(variants);
         } catch (error) {

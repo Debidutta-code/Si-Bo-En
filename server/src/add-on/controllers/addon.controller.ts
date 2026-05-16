@@ -4,6 +4,7 @@ import { successResponse, errorResponse } from '../../utils/return';
 import { generateAddOnCode } from '../utils';
 import { add } from 'date-fns';
 import { PropertyCustomRequest } from '../../utils';
+import { AddonInterceptor } from '../../multi-language/interceptors/addon/addon.interceptor';
 export class AddonController {
     private addonService: AddonService;
 
@@ -11,10 +12,7 @@ export class AddonController {
         this.addonService = new AddonService();
     }
 
-    /**
-     * Create a new addon
-     */
-    createAddon = async (req: Request, res: Response) => {
+    public createAddon = async (req: Request, res: Response) => {
         try {
             const addonData = req.body;
 
@@ -48,18 +46,18 @@ export class AddonController {
         }
     };
 
-    /**
-     * Get all addons by property ID
-     */
-    getAllAddonsByPropertyId = async (
+    public getAllAddonsByPropertyId = async (
         req: PropertyCustomRequest,
         res: Response
     ) => {
         try {
             const { propertyId } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
 
-            const addons =
+            let addons =
                 await this.addonService.getAllAddonsByPropertyId(propertyId);
+
+            addons = await AddonInterceptor.intercept(addons, locale);
 
             return res.status(addons.success ? 200 : 400).json(addons);
         } catch (error: any) {
@@ -84,15 +82,15 @@ export class AddonController {
         }
     };
 
-    /**
-     * Get all active addons by property ID with populated category details for booking
-     */
-    getAddonsForBooking = async (req: PropertyCustomRequest, res: Response) => {
+    public getAddonsForBooking = async (req: PropertyCustomRequest, res: Response) => {
         try {
             const { propertyId } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
 
-            const addons =
+            let addons =
                 await this.addonService.getAddonsForBooking(propertyId);
+
+            addons = await AddonInterceptor.intercept(addons, locale);
 
             return res.status(addons.success ? 200 : 400).json(addons);
         } catch (error: any) {
@@ -129,8 +127,11 @@ export class AddonController {
     getAddonById = async (req: Request, res: Response) => {
         try {
             const { addonId } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
 
-            const addon = await this.addonService.getAddonById(addonId);
+            let addon = await this.addonService.getAddonById(addonId);
+
+            addon = await AddonInterceptor.intercept(addon, locale);
 
             return res.status(addon.success ? 200 : 400).json(addon);
         } catch (error: any) {

@@ -39,17 +39,13 @@ export default class AddonRepository {
     }
     public static async deleteAddon(addonId: string): Promise<IAddon | null> {
         try {
-            // Delete dependent booking addon entries first to avoid FK constraint violations
-            // Then delete any availability records, and finally the addon itself.
             const results = await prisma.$transaction([
                 prisma.bookingAddon.deleteMany({ where: { addonId } }),
                 prisma.addonAvailability.deleteMany({ where: { addonId } }),
                 prisma.addon.delete({ where: { id: addonId } }),
             ]);
-            // The deleted addon object is the third result
             return results[2] as IAddon;
         } catch (error) {
-            // Re-throw a clearer error for service/controller layers
             throw new Error(
                 'Error deleting addon: dependent records may exist or database error'
             );

@@ -5,6 +5,7 @@ import CreationService, {
     FetchByCreationId,
     FetchByUserId,
 } from '../services/creation.service';
+import { CreationInterceptor } from '../../multi-language/interceptors/creation/creation.interceptor';
 export default class CreationController {
     public static async createController(req: CustomRequest, res: Response) {
         try {
@@ -152,10 +153,13 @@ export default class CreationController {
                     .json(errorResponse('Insufficient user data'));
             }
             // Call the service without page and limit
-            const serRes = await CreationService.getPropertyByRole(
+            let serRes = await CreationService.getPropertyByRole(
                 requestUserLevel,
                 creationId
             );
+
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            serRes = await CreationInterceptor.interceptGetCreationByRole(serRes, locale);
 
             if (serRes.success) {
                 return res.status(200).json(serRes);
@@ -171,7 +175,11 @@ export default class CreationController {
     public static async getSpecificCreation(req: CustomRequest, res: Response) {
         try {
             const id = req.params.creationId;
-            const serRes = await CreationService.getSpecificCreation(id);
+            let serRes = await CreationService.getSpecificCreation(id);
+
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            serRes = await CreationInterceptor.interceptGetSpecificCreation(serRes, locale);
+
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error: any) {
             return res
