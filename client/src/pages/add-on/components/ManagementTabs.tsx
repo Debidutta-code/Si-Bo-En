@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2, MoreVertical, Layers, FolderTree, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, MoreVertical, Layers, FolderTree, Package, Languages, PlusCircle } from "lucide-react";
+import { AddTranslationDialog, CheckTranslationsDialog } from "../../management/components/multilang/ManagementTranslationDialogs";
+import { upsertAddonCategoryTranslation, getAllAddonCategoryTranslations, deleteAddonCategoryTranslationLocale } from "../api/category-lang.api";
+import { upsertAddonSubCategoryTranslation, getAllAddonSubCategoryTranslations, deleteAddonSubCategoryTranslationLocale } from "../api/sub-cate-lang.api";
+import { upsertAddonVariantTranslation, getAllAddonVariantTranslations, deleteAddonVariantTranslationLocale } from "../api/variant-lang.api";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -57,6 +61,18 @@ export default function ManagementTabs({
         id: string | null;
         name: string | null;
     }>({ open: false, type: null, id: null, name: null });
+
+    const [translationDialog, setTranslationDialog] = useState<{
+        openAdd: boolean;
+        openCheck: boolean;
+        type: "category" | "subcategory" | "variant" | null;
+        entityId: string | null;
+    }>({
+        openAdd: false,
+        openCheck: false,
+        type: null,
+        entityId: null,
+    });
 
     const handleDelete = async () => {
         if (!deleteDialog.id || !deleteDialog.type) return;
@@ -124,6 +140,18 @@ export default function ManagementTabs({
                                                     Edit
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
+                                                    onClick={() => setTranslationDialog({ openAdd: true, openCheck: false, type: 'category', entityId: category.id })}
+                                                >
+                                                    <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
+                                                    Add Translation
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => setTranslationDialog({ openAdd: false, openCheck: true, type: 'category', entityId: category.id })}
+                                                >
+                                                    <Languages className="w-4 h-4 mr-2 text-green-600" />
+                                                    Check Translations
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
                                                     onClick={() => setDeleteDialog({
                                                         open: true,
                                                         type: "category",
@@ -177,6 +205,18 @@ export default function ManagementTabs({
                                                     <DropdownMenuItem onClick={() => onEditSubCategory(subCategory)}>
                                                         <Pencil className="w-4 h-4 mr-2" />
                                                         Edit
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => setTranslationDialog({ openAdd: true, openCheck: false, type: 'subcategory', entityId: subCategory.id })}
+                                                    >
+                                                        <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
+                                                        Add Translation
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => setTranslationDialog({ openAdd: false, openCheck: true, type: 'subcategory', entityId: subCategory.id })}
+                                                    >
+                                                        <Languages className="w-4 h-4 mr-2 text-green-600" />
+                                                        Check Translations
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => setDeleteDialog({
@@ -241,6 +281,18 @@ export default function ManagementTabs({
                                                         Edit
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
+                                                        onClick={() => setTranslationDialog({ openAdd: true, openCheck: false, type: 'variant', entityId: variant.id })}
+                                                    >
+                                                        <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
+                                                        Add Translation
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => setTranslationDialog({ openAdd: false, openCheck: true, type: 'variant', entityId: variant.id })}
+                                                    >
+                                                        <Languages className="w-4 h-4 mr-2 text-green-600" />
+                                                        Check Translations
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
                                                         onClick={() => setDeleteDialog({
                                                             open: true,
                                                             type: "variant",
@@ -290,6 +342,83 @@ export default function ManagementTabs({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Translation Dialogs */}
+            {translationDialog.entityId && translationDialog.type === "category" && (
+                <>
+                    <AddTranslationDialog
+                        open={translationDialog.openAdd}
+                        onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
+                        entityId={translationDialog.entityId}
+                        title="Add Category Translation"
+                        fields={[
+                            { key: "name", label: "Category Name", placeholder: "e.g. Comida..." }
+                        ]}
+                        onSave={async (id, locale, data) => {
+                            return await upsertAddonCategoryTranslation(id, { [locale]: data });
+                        }}
+                    />
+                    <CheckTranslationsDialog
+                        open={translationDialog.openCheck}
+                        onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
+                        entityId={translationDialog.entityId}
+                        title="Category Translations"
+                        displayFields={[{ key: "name", label: "Name" }]}
+                        onFetch={getAllAddonCategoryTranslations}
+                        onDelete={deleteAddonCategoryTranslationLocale}
+                    />
+                </>
+            )}
+            {translationDialog.entityId && translationDialog.type === "subcategory" && (
+                <>
+                    <AddTranslationDialog
+                        open={translationDialog.openAdd}
+                        onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
+                        entityId={translationDialog.entityId}
+                        title="Add Subcategory Translation"
+                        fields={[
+                            { key: "name", label: "Subcategory Name", placeholder: "e.g. Desayuno..." }
+                        ]}
+                        onSave={async (id, locale, data) => {
+                            return await upsertAddonSubCategoryTranslation(id, { [locale]: data });
+                        }}
+                    />
+                    <CheckTranslationsDialog
+                        open={translationDialog.openCheck}
+                        onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
+                        entityId={translationDialog.entityId}
+                        title="Subcategory Translations"
+                        displayFields={[{ key: "name", label: "Name" }]}
+                        onFetch={getAllAddonSubCategoryTranslations}
+                        onDelete={deleteAddonSubCategoryTranslationLocale}
+                    />
+                </>
+            )}
+            {translationDialog.entityId && translationDialog.type === "variant" && (
+                <>
+                    <AddTranslationDialog
+                        open={translationDialog.openAdd}
+                        onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
+                        entityId={translationDialog.entityId}
+                        title="Add Variant Translation"
+                        fields={[
+                            { key: "name", label: "Variant Name", placeholder: "e.g. Grande..." }
+                        ]}
+                        onSave={async (id, locale, data) => {
+                            return await upsertAddonVariantTranslation(id, { [locale]: data });
+                        }}
+                    />
+                    <CheckTranslationsDialog
+                        open={translationDialog.openCheck}
+                        onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
+                        entityId={translationDialog.entityId}
+                        title="Variant Translations"
+                        displayFields={[{ key: "name", label: "Name" }]}
+                        onFetch={getAllAddonVariantTranslations}
+                        onDelete={deleteAddonVariantTranslationLocale}
+                    />
+                </>
+            )}
         </>
     );
 }

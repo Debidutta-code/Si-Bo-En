@@ -5,7 +5,10 @@ import Loader from "../../Loader/Loader";
 import toast from "react-hot-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "../../ui/button";
-import { PenTool, X } from "lucide-react";
+import { PenTool, X, Globe, Languages, Plus } from "lucide-react";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import AddPropertyAddressLangDialog from "../multilang/components/AddPropertyAddressLangDialog";
+import CheckPropertyAddressLangDialog from "../multilang/components/CheckPropertyAddressLangDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +28,8 @@ interface PropertyId {
 
 export default function PropertyAddress({ propertyId }: PropertyId) {
   const [loading, setLoading] = useState(true);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
   const [propertyAddress, setPropertyAddress] = useState<IPropertyAddress>({
     addressLine1: "",
     addressLine2: "",
@@ -116,7 +121,8 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
               Complete address and location details
             </p>
           </div>
-          <AlertDialog>
+          <div className="flex gap-2">
+            <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
                 <PenTool className="h-4 w-4" />
@@ -156,8 +162,29 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                   {loading ? "Updating..." : "Update Address"}
                 </AlertDialogAction>
               </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
+                  <Globe className="h-4 w-4" />
+                  Translations
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setAddTranslationOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Add Translation
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCheckTranslationsOpen(true)}>
+                  <Languages className="h-4 w-4 mr-2" /> Check Translations
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <AddPropertyAddressLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} propertyAddressId={propertyId} />
+            <CheckPropertyAddressLangDialog open={checkTranslationsOpen} onOpenChange={setCheckTranslationsOpen} propertyAddressId={propertyId} />
+          </div>
         </div>
       </CardHeader>
 

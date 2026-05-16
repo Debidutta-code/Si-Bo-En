@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, MoreVertical, Pencil, Trash2, Languages } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +32,15 @@ import {
   updateSpaSubCategoryService,
   deleteSpaSubCategoryService,
 } from '../services/spa.services';
+import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import {
+  upsertSpaCategoryTranslationService,
+  getAllSpaCategoryTranslationsService,
+  deleteSpaCategoryTranslationLocaleService,
+  upsertSpaSubCategoryTranslationService,
+  getAllSpaSubCategoryTranslationsService,
+  deleteSpaSubCategoryTranslationLocaleService,
+} from '../services/multilanguage.services';
 
 export default function Spa() {
   const [categories, setCategories] = useState<ISpaCategory[]>([]);
@@ -49,6 +58,12 @@ export default function Spa() {
   
   // Delete state
   const [deleteItem, setDeleteItem] = useState<{ id: string, type: 'category' | 'subcategory', name: string } | null>(null);
+
+  // Translation state
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [translationEntityType, setTranslationEntityType] = useState<'category' | 'subcategory'>('category');
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
   // Filter state
   const [selectedCategoryIdFilter, setSelectedCategoryIdFilter] = useState<string>("all");
@@ -242,7 +257,13 @@ export default function Spa() {
                   <DropdownMenuItem onClick={() => handleOpenCategoryDialog(cat)}>
                     <Pencil className="mr-2 h-4 w-4" /> Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
+                  <DropdownMenuItem onClick={() => { setTranslationEntityId(cat.id); setTranslationEntityType('category'); setAddTranslationOpen(true); }}>
+                    <Plus className="mr-2 h-4 w-4" /> Add Translation
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { setTranslationEntityId(cat.id); setTranslationEntityType('category'); setCheckTranslationsOpen(true); }}>
+                    <Languages className="mr-2 h-4 w-4" /> Check Translations
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
                     className="text-red-600"
                     onClick={() => {
                         setDeleteItem({ id: cat.id, type: 'category', name: cat.name });
@@ -308,7 +329,13 @@ export default function Spa() {
                       <DropdownMenuItem onClick={() => handleOpenSubCategoryDialog(sub)}>
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
+                      <DropdownMenuItem onClick={() => { setTranslationEntityId(sub.id); setTranslationEntityType('subcategory'); setAddTranslationOpen(true); }}>
+                        <Plus className="mr-2 h-4 w-4" /> Add Translation
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setTranslationEntityId(sub.id); setTranslationEntityType('subcategory'); setCheckTranslationsOpen(true); }}>
+                        <Languages className="mr-2 h-4 w-4" /> Check Translations
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         className="text-red-600"
                         onClick={() => {
                             setDeleteItem({ id: sub.id, type: 'subcategory', name: sub.name });
@@ -426,6 +453,33 @@ export default function Spa() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title={translationEntityType === 'category' ? 'Add Spa Category Translation' : 'Add Spa Sub-Category Translation'}
+            fields={[{ key: "name", label: "Name", placeholder: "e.g., Masajes" }]}
+            onSave={async (id, locale, data) => {
+              if (translationEntityType === 'category') {
+                return await upsertSpaCategoryTranslationService(id, { [locale]: data });
+              }
+              return await upsertSpaSubCategoryTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title={translationEntityType === 'category' ? 'Spa Category Translations' : 'Spa Sub-Category Translations'}
+            displayFields={[{ key: "name", label: "Name" }]}
+            onFetch={translationEntityType === 'category' ? getAllSpaCategoryTranslationsService : getAllSpaSubCategoryTranslationsService}
+            onDelete={translationEntityType === 'category' ? deleteSpaCategoryTranslationLocaleService : deleteSpaSubCategoryTranslationLocaleService}
+          />
+        </>
+      )}
     </div>
   );
 }

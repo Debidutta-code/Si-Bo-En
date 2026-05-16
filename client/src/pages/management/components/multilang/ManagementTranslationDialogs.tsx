@@ -1,0 +1,167 @@
+import { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
+import { languages } from "@/components/language/language";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Trash2 } from "lucide-react";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Generic Add Translation Dialog
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface Field {
+  key: string;
+  label: string;
+  placeholder?: string;
+}
+
+interface AddTranslationDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  entityId: string;
+  title: string;
+  fields: Field[];
+  onSave: (id: string, locale: string, data: Record<string, string>) => Promise<{ success: boolean; message?: string }>;
+}
+
+export function AddTranslationDialog({ open, onOpenChange, entityId, title, fields, onSave }: AddTranslationDialogProps) {
+  const [selectedLang, setSelectedLang] = useState("");
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setSelectedLang("");
+      setFieldValues({});
+    }
+  }, [open]);
+
+  const handleSave = async () => {
+    if (!selectedLang) { toast.error("Please select a language"); return; }
+    const hasValue = Object.values(fieldValues).some((v) => v.trim());
+    if (!hasValue) { toast.error("Please fill in at least one field"); return; }
+
+    setLoading(true);
+    const res = await onSave(entityId, selectedLang, fieldValues);
+    if (res.success) {
+      toast.success("Translation saved successfully!");
+      onOpenChange(false);
+    } else {
+      toast.error(res.message || "Failed to save translation");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>Language</Label>
+            <Select value={selectedLang} onValueChange={setSelectedLang}>
+              <SelectTrigger><SelectValue placeholder="Select Language" /></SelectTrigger>
+              <SelectContent>
+                {languages.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {fields.map((field) => (
+            <div key={field.key} className="space-y-2">
+              <Label>{field.label}</Label>
+              <Input
+                placeholder={field.placeholder || field.label}
+                value={fieldValues[field.key] || ""}
+                onChange={(e) => setFieldValues({ ...fieldValues, [field.key]: e.target.value })}
+              />
+            </div>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
+          <Button onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Generic Check Translations Dialog
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface CheckTranslationsDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  entityId: string;
+  title: string;
+  displayFields: { key: string; label: string }[];
+  onFetch: (id: string) => Promise<{ success: boolean; data?: Record<string, any>; message?: string }>;
+  onDelete: (id: string, locale: string) => Promise<{ success: boolean; message?: string }>;
+}
+
+export function CheckTranslationsDialog({ open, onOpenChange, entityId, title, displayFields, onFetch, onDelete }: CheckTranslationsDialogProps) {
+  const [translations, setTranslations] = useState<Record<string, any>>({});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open && entityId) {
+      setLoading(true);
+      onFetch(entityId).then((res) => {
+        if (res.success && res.data) setTranslations(res.data);
+        else setTranslations({});
+        setLoading(false);
+      });
+    }
+  }, [open, entityId]);
+
+  const handleDelete = async (locale: string) => {
+    const res = await onDelete(entityId, locale);
+    if (res.success) {
+      toast.success("Translation deleted!");
+      const updated = { ...translations };
+      delete updated[locale];
+      setTranslations(updated);
+    } else {
+      toast.error(res.message || "Failed to delete");
+    }
+  };
+
+  const getLangName = (code: string) => languages.find((l) => l.code === code)?.name || code;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
+        <div className="space-y-3 py-2">
+          {loading && <p className="text-center text-gray-500 py-4">Loading translations...</p>}
+          {!loading && Object.keys(translations).length === 0 && (
+            <p className="text-center text-gray-500 py-4">No translations found.</p>
+          )}
+          {!loading && Object.entries(translations).map(([locale, data]) => (
+            <div key={locale} className="flex justify-between items-start border rounded-lg p-3 gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm">{getLangName(locale)}</p>
+                {displayFields.map((f) => data[f.key] && (
+                  <p key={f.key} className="text-xs text-gray-600 truncate">
+                    <span className="font-medium">{f.label}:</span> {data[f.key]}
+                  </p>
+                ))}
+              </div>
+              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleDelete(locale)}>
+                <Trash2 className="h-3.5 w-3.5 text-red-500" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

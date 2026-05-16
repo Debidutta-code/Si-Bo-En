@@ -4,10 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Plus, Trash2, MoreVertical, Languages } from "lucide-react";
 import toast from "react-hot-toast";
 import type { ICategory } from "../types";
 import { createCategoryService, deleteCategoryService } from "../services/management.services";
+import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import {
+  upsertMasterPropertyCategoryTranslationService,
+  getAllMasterPropertyCategoryTranslationsService,
+  deleteMasterPropertyCategoryTranslationLocaleService,
+} from "../services/multilanguage.services";
 
 interface CategoriesTabProps {
   categories: ICategory[];
@@ -17,6 +24,10 @@ interface CategoriesTabProps {
 export default function CategoriesTab({ categories, setCategories }: CategoriesTabProps) {
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState<boolean>(false);
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
+
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
   const handleCreateCategory = async () => {
     const response = await createCategoryService(categoryForm.name, categoryForm.description);
@@ -39,6 +50,9 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
       toast.error(response.error || "Failed to delete category");
     }
   };
+
+  const openAddTranslation = (id: string) => { setTranslationEntityId(id); setAddTranslationOpen(true); };
+  const openCheckTranslations = (id: string) => { setTranslationEntityId(id); setCheckTranslationsOpen(true); };
 
   return (
     <Card>
@@ -81,9 +95,7 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>Cancel</Button>
                 <Button onClick={handleCreateCategory}>Create</Button>
               </DialogFooter>
             </DialogContent>
@@ -100,13 +112,24 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
                     <CardTitle className="text-lg">{category.categoryName}</CardTitle>
                     <CardDescription className="mt-1">{category.categoryDescription}</CardDescription>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteCategory(category.categoryName)}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openAddTranslation(category.id)}>
+                        <Plus className="h-4 w-4 mr-2" /> Add Translation
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openCheckTranslations(category.id)}>
+                        <Languages className="h-4 w-4 mr-2" /> Check Translations
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteCategory(category.categoryName)}>
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardHeader>
             </Card>
@@ -118,6 +141,36 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
           )}
         </div>
       </CardContent>
+
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title="Add Category Translation"
+            fields={[
+              { key: "categoryName", label: "Category Name", placeholder: "e.g., Lujo" },
+              { key: "categoryDescription", label: "Description", placeholder: "Describe this category" },
+            ]}
+            onSave={async (id, locale, data) => {
+              return await upsertMasterPropertyCategoryTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title="Category Translations"
+            displayFields={[
+              { key: "categoryName", label: "Name" },
+              { key: "categoryDescription", label: "Description" },
+            ]}
+            onFetch={getAllMasterPropertyCategoryTranslationsService}
+            onDelete={deleteMasterPropertyCategoryTranslationLocaleService}
+          />
+        </>
+      )}
     </Card>
   );
 }

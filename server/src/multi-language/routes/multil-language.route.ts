@@ -29,17 +29,17 @@ import { protect } from '../../middlewares/auth.middleware';
 
 const multiLanguageRouter = Router();
 multiLanguageRouter.use(protect);
-multiLanguageRouter.use('/creation', creationTranslationRouter);//
-multiLanguageRouter.use('/property', propertyTranslationRouter);//
-multiLanguageRouter.use('/property-address', propertyAddressTranslationRouter);//
-multiLanguageRouter.use('/master-property-category', masterPropertyCategoryTranslationRouter);//
-multiLanguageRouter.use('/master-property-type', masterPropertyTypeTranslationRouter);//
-multiLanguageRouter.use('/master-amenity', masterAmenityTranslationRouter);//
-multiLanguageRouter.use('/master-room-view', masterRoomViewTranslationRouter);//
-multiLanguageRouter.use('/loyalty-condition', loyaltyConditionsTranslationRouter);
-multiLanguageRouter.use('/loyalty-special-condition', loyaltySpecialConditionTranslationRouter);//
-multiLanguageRouter.use('/promotion', promotionTranslationRouter);//
-multiLanguageRouter.use('/promocode', promocodeTranslationRouter);//
+multiLanguageRouter.use('/creation', creationTranslationRouter);// i
+multiLanguageRouter.use('/property', propertyTranslationRouter);// i
+multiLanguageRouter.use('/property-address', propertyAddressTranslationRouter);// i
+multiLanguageRouter.use('/master-property-category', masterPropertyCategoryTranslationRouter);//i
+multiLanguageRouter.use('/master-property-type', masterPropertyTypeTranslationRouter);//i
+multiLanguageRouter.use('/master-amenity', masterAmenityTranslationRouter);//i
+multiLanguageRouter.use('/master-room-view', masterRoomViewTranslationRouter);//i
+multiLanguageRouter.use('/loyalty-condition', loyaltyConditionsTranslationRouter);//i
+multiLanguageRouter.use('/loyalty-special-condition', loyaltySpecialConditionTranslationRouter);//i
+multiLanguageRouter.use('/promotion', promotionTranslationRouter);//i
+multiLanguageRouter.use('/promocode', promocodeTranslationRouter);//i
 multiLanguageRouter.use('/tourist-tax', touristTaxTranslationRouter);
 multiLanguageRouter.use('/tax-rule', taxRuleTranslationRouter);//
 multiLanguageRouter.use('/tax-group', taxGroupTranslationRouter);//
@@ -48,12 +48,12 @@ multiLanguageRouter.use('/addon-variant', addonVariantTranslationRouter);//
 multiLanguageRouter.use('/addon', addonTranslationRouter);//
 multiLanguageRouter.use('/addon-category', addonCategoryTranslationRouter);//
 multiLanguageRouter.use('/addon-sub-category', addonSubCategoryTranslationRouter);//
-multiLanguageRouter.use('/room', roomTranslationRouter);//
-multiLanguageRouter.use('/rate-plan', ratePlanTranslationRouter);//
+multiLanguageRouter.use('/room', roomTranslationRouter);// i
+multiLanguageRouter.use('/rate-plan', ratePlanTranslationRouter);//i
 multiLanguageRouter.use('/policy', policyTranslationRouter);//
-multiLanguageRouter.use('/master-integration', masterIntegrationTranslationRouter);
-multiLanguageRouter.use('/spa-category', spaCategoryTranslationRouter);
-multiLanguageRouter.use('/spa-sub-category', spaSubCategoryTranslationRouter);
-multiLanguageRouter.use('/master-loyalty-registration-field', masterLoyaltyRegistrationFieldTranslationRouter);
+multiLanguageRouter.use('/master-integration', masterIntegrationTranslationRouter);//i
+multiLanguageRouter.use('/spa-category', spaCategoryTranslationRouter);//i
+multiLanguageRouter.use('/spa-sub-category', spaSubCategoryTranslationRouter);//i
+multiLanguageRouter.use('/master-loyalty-registration-field', masterLoyaltyRegistrationFieldTranslationRouter);//i
 
 export { multiLanguageRouter };

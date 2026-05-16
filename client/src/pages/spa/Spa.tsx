@@ -1,6 +1,6 @@
 import  { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MoreVertical, Plus, Edit, Trash, CalendarPlus, X, Eye, UserPlus } from 'lucide-react';
+import { MoreVertical, Plus, Edit, Trash, CalendarPlus, X, Eye, UserPlus, Languages, PlusCircle } from 'lucide-react';
 import type { ILoader } from '../dashboard/interface';
 import type { ISpa, ICSpaC, IUSpaR } from './interfaces/spa.type';
 import { getSpaService, createSpaService, updateSpaService, deleteSpaService } from './services';
@@ -8,6 +8,8 @@ import { getAllSpaCategoryService, getAllSpaSubCategoriesService } from '../mana
 import type { ISpaCategory, ISpaSubCategory } from '../management/types';
 import { getSpaUsersForPropertyService, assignSpaToUserService } from './services';
 import type { ISpaUser } from './interfaces'; 
+import { AddTranslationDialog, CheckTranslationsDialog } from '../management/components/multilang/ManagementTranslationDialogs';
+import { upsertSpaTranslationService, getAllSpaTranslationsService, deleteSpaTranslationLocaleService } from './services/multilang.services';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -26,6 +28,7 @@ import { format } from 'date-fns';
 import SpaCalendar from './components/SpaCalendar';
 import SpaViewDialog from './components/SpaViewDialog';
 import SpaAssignUserDialog from './components/SpaAssignUserDialog';
+import BackButton from '@/components/shared/BackButton';
 
 export default function Spa() {
   const { propertyId, spaId } = useParams();
@@ -40,6 +43,10 @@ export default function Spa() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [selectedUserForAssign, setSelectedUserForAssign] = useState<string>("");
+  
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -222,6 +229,7 @@ export default function Spa() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
+        <BackButton />
         <h1 className="text-2xl font-bold">Spas & Activities</h1>
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogTrigger asChild>
@@ -379,6 +387,12 @@ export default function Spa() {
                       <DropdownMenuItem onClick={() => openView(spa)}>
                         <Eye className="mr-2 h-4 w-4" /> View Details
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setTranslationEntityId((spa as any).id); setAddTranslationOpen(true); }}>
+                        <PlusCircle className="mr-2 h-4 w-4 text-blue-500" /> Add Translation
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setTranslationEntityId((spa as any).id); setCheckTranslationsOpen(true); }}>
+                        <Languages className="mr-2 h-4 w-4 text-green-600" /> Check Translations
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openAssign(spa)}>
                         <UserPlus className="mr-2 h-4 w-4" /> Assign User
                       </DropdownMenuItem>
@@ -527,6 +541,38 @@ export default function Spa() {
         onClose={() => setIsImageUploadOpen(false)}
         onUploadSuccess={handleImageUploadSuccess}
       />
+
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title="Add Spa Translation"
+            fields={[
+              { key: "name", label: "Spa Name", placeholder: "e.g. Masaje Relajante" },
+              { key: "description", label: "Description", placeholder: "Enter translated description..." },
+              { key: "location", label: "Location", placeholder: "Enter translated location..." }
+            ]}
+            onSave={async (id, locale, data) => {
+              return await upsertSpaTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title="Spa Translations"
+            displayFields={[
+              { key: "name", label: "Name" },
+              { key: "description", label: "Description" },
+              { key: "location", label: "Location" }
+            ]}
+            onFetch={getAllSpaTranslationsService}
+            onDelete={deleteSpaTranslationLocaleService}
+          />
+        </>
+      )}
     </div>
   );
 }

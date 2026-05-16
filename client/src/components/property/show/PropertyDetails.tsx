@@ -6,8 +6,11 @@ import toast from "react-hot-toast";
 import { type IPropertyDetails, type IPropertyEmail } from "../types/types";
 import { getPropertyDetails } from "../api/show/propertyDetails";
 import { Button } from "../../ui/button";
-import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus, Copy, Settings } from "lucide-react";
+import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus, Copy, Settings, Globe, Languages } from "lucide-react";
 import ExpandableDescription from "@/components/ExplandableDescription";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import AddPropertyDetailsLangDialog from "../multilang/components/AddPropertyDetailsLangDialog";
+import CheckPropertyDetailsLangDialog from "../multilang/components/CheckPropertyDetailsLangDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -92,6 +95,9 @@ export default function PropertyDetails({
   const [deleteEmailId, setDeleteEmailId] = useState<string | null>(null);
   const [deleteEmailLoading, setDeleteEmailLoading] = useState(false);
   const navigate = useNavigate();
+
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
   useEffect(() => {
     if (!propertyId) {
       toast.error("Property id not found");
@@ -321,6 +327,26 @@ export default function PropertyDetails({
               <Settings className="h-4 w-4 mr-2" />
               Property Configuration
             </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90">
+                  <Globe className="h-4 w-4 mr-2" />
+                  Translations
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setAddTranslationOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Add Translation
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setCheckTranslationsOpen(true)}>
+                  <Languages className="h-4 w-4 mr-2" /> Check Translations
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <AddPropertyDetailsLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} propertyId={propertyId} />
+            <CheckPropertyDetailsLangDialog open={checkTranslationsOpen} onOpenChange={setCheckTranslationsOpen} propertyId={propertyId} />
 
         </div>
       </div>

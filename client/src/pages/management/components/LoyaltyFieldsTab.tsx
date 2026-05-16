@@ -3,11 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, MoreVertical, Languages } from "lucide-react";
 import toast from "react-hot-toast";
 import type { ILoyaltyGuestField } from "../types";
 import { createLoyaltyGuestFieldsService, deleteLoyaltyGuestFieldService } from "../services/management.services";
+import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import {
+  upsertMasterLoyaltyRegistrationFieldTranslationService,
+  getAllMasterLoyaltyRegistrationFieldTranslationsService,
+  deleteMasterLoyaltyRegistrationFieldTranslationLocaleService,
+} from "../services/multilanguage.services";
 
 interface LoyaltyFieldsTabProps {
   loyaltyGuestFields: ILoyaltyGuestField[];
@@ -18,6 +25,10 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
   const [isLoyaltyFieldDialogOpen, setIsLoyaltyFieldDialogOpen] = useState<boolean>(false);
   const [loyaltyFieldInput, setLoyaltyFieldInput] = useState("");
   const [loyaltyFieldsList, setLoyaltyFieldsList] = useState<string[]>([]);
+
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
   const handleAddLoyaltyFieldToList = () => {
     if (!loyaltyFieldInput.trim()) return;
@@ -51,6 +62,9 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
     }
   };
 
+  const openAddTranslation = (id: string) => { setTranslationEntityId(id); setAddTranslationOpen(true); };
+  const openCheckTranslations = (id: string) => { setTranslationEntityId(id); setCheckTranslationsOpen(true); };
+
   return (
     <Card>
       <CardHeader>
@@ -78,10 +92,7 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
                     onChange={(e) => setLoyaltyFieldInput(e.target.value)}
                     placeholder="e.g., Phone Number, Date of Birth"
                     onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddLoyaltyFieldToList();
-                      }
+                      if (e.key === "Enter") { e.preventDefault(); handleAddLoyaltyFieldToList(); }
                     }}
                   />
                   <Button onClick={handleAddLoyaltyFieldToList}>Add</Button>
@@ -90,26 +101,13 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
                   {loyaltyFieldsList.map((field, index) => (
                     <Badge key={index} variant="secondary" className="flex items-center gap-1">
                       {field}
-                      <button
-                        onClick={() => setLoyaltyFieldsList(loyaltyFieldsList.filter((_, i) => i !== index))}
-                        className="ml-1 hover:text-red-500"
-                      >
-                        ×
-                      </button>
+                      <button onClick={() => setLoyaltyFieldsList(loyaltyFieldsList.filter((_, i) => i !== index))} className="ml-1 hover:text-red-500">×</button>
                     </Badge>
                   ))}
                 </div>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsLoyaltyFieldDialogOpen(false);
-                    setLoyaltyFieldsList([]);
-                  }}
-                >
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => { setIsLoyaltyFieldDialogOpen(false); setLoyaltyFieldsList([]); }}>Cancel</Button>
                 <Button onClick={handleCreateLoyaltyFields}>Create All</Button>
               </DialogFooter>
             </DialogContent>
@@ -119,14 +117,26 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
       <CardContent>
         <div className="flex flex-wrap gap-2">
           {loyaltyGuestFields.map((field) => (
-            <Badge key={field.id} variant="outline" className="text-sm py-2 px-3">
+            <Badge key={field.id} variant="outline" className="text-sm py-2 px-3 flex items-center gap-2">
               {field.fieldName}
-              <button
-                onClick={() => handleDeleteLoyaltyField(field.id)}
-                className="ml-2 hover:text-red-500"
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="hover:text-blue-600 ml-1">
+                    <MoreVertical className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => openAddTranslation(field.id)}>
+                    <Plus className="h-4 w-4 mr-2" /> Add Translation
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openCheckTranslations(field.id)}>
+                    <Languages className="h-4 w-4 mr-2" /> Check Translations
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteLoyaltyField(field.id)}>
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </Badge>
           ))}
           {loyaltyGuestFields.length === 0 && (
@@ -136,6 +146,32 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
           )}
         </div>
       </CardContent>
+
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title="Add Loyalty Field Translation"
+            fields={[
+              { key: "fieldName", label: "Field Name", placeholder: "e.g., Número de teléfono" },
+            ]}
+            onSave={async (id, locale, data) => {
+              return await upsertMasterLoyaltyRegistrationFieldTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title="Loyalty Field Translations"
+            displayFields={[{ key: "fieldName", label: "Field Name" }]}
+            onFetch={getAllMasterLoyaltyRegistrationFieldTranslationsService}
+            onDelete={deleteMasterLoyaltyRegistrationFieldTranslationLocaleService}
+          />
+        </>
+      )}
     </Card>
   );
 }

@@ -23,11 +23,17 @@ import {
 } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Smartphone, Tablet, Monitor, MoreVertical, Edit, Trash2, Check, X } from 'lucide-react';
+import { Smartphone, Tablet, Monitor, MoreVertical, Edit, Trash2, Check, X, Plus, Languages } from 'lucide-react';
 import { convertBackendToApplicableDays } from './interfaces/mobilePromotion.type';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import BackButton from '@/components/shared/BackButton';
 import type { ILoader } from '@/pages/dashboard/interface';
+import { AddTranslationDialog, CheckTranslationsDialog } from '@/pages/management/components/multilang/ManagementTranslationDialogs';
+import {
+  upsertPromotionTranslationService,
+  getAllPromotionTranslationsService,
+  deletePromotionTranslationLocaleService,
+} from '../multilanguage/service/promotion.service';
 
 export const DeviceSpecificPromotionList: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -41,6 +47,10 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   const [editData, setEditData] = useState<DeviceSpecificPromotionWithRatePlan | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [promotionToDelete, setPromotionToDelete] = useState<string | null>(null);
+
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -378,6 +388,20 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
+                            onClick={() => { setTranslationEntityId(promotion.id); setAddTranslationOpen(true); }}
+                            className="cursor-pointer"
+                          >
+                            <Plus className="w-4 h-4 mr-3 text-blue-500" />
+                            Add Translation
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => { setTranslationEntityId(promotion.id); setCheckTranslationsOpen(true); }}
+                            className="cursor-pointer"
+                          >
+                            <Languages className="w-4 h-4 mr-3 text-green-600" />
+                            Check Translations
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             onClick={() => handleDeleteClick(promotion.id)}
                             className="cursor-pointer text-destructive focus:text-destructive"
                           >
@@ -426,6 +450,30 @@ export const DeviceSpecificPromotionList: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title="Add Promotion Translation"
+            fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Oferta Móvil" }]}
+            onSave={async (id, locale, data) => {
+              return await upsertPromotionTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title="Promotion Translations"
+            displayFields={[{ key: "promotionName", label: "Name" }]}
+            onFetch={getAllPromotionTranslationsService}
+            onDelete={deletePromotionTranslationLocaleService}
+          />
+        </>
       )}
     </div>
   );

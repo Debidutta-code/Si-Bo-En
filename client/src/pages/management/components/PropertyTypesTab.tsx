@@ -4,10 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Plus, Trash2, MoreVertical, Languages } from "lucide-react";
 import toast from "react-hot-toast";
 import type { IPropertyType } from "../types";
 import { createPropertyTypeService, deletePropertyTypeService } from "../services/management.services";
+import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import {
+  upsertMasterPropertyTypeTranslationService,
+  getAllMasterPropertyTypeTranslationsService,
+  deleteMasterPropertyTypeTranslationLocaleService,
+} from "../services/multilanguage.services";
 
 interface PropertyTypesTabProps {
   propertyTypes: IPropertyType[];
@@ -17,6 +24,10 @@ interface PropertyTypesTabProps {
 export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: PropertyTypesTabProps) {
   const [isPropertyTypeDialogOpen, setIsPropertyTypeDialogOpen] = useState<boolean>(false);
   const [propertyTypeForm, setPropertyTypeForm] = useState({ name: "", description: "" });
+
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
   const handleCreatePropertyType = async () => {
     const response = await createPropertyTypeService(propertyTypeForm.name, propertyTypeForm.description);
@@ -39,6 +50,9 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
       toast.error(response.error || "Failed to delete property type");
     }
   };
+
+  const openAddTranslation = (id: string) => { setTranslationEntityId(id); setAddTranslationOpen(true); };
+  const openCheckTranslations = (id: string) => { setTranslationEntityId(id); setCheckTranslationsOpen(true); };
 
   return (
     <Card>
@@ -75,17 +89,13 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
                   <Input
                     id="propertyTypeDescription"
                     value={propertyTypeForm.description}
-                    onChange={(e) =>
-                      setPropertyTypeForm({ ...propertyTypeForm, description: e.target.value })
-                    }
+                    onChange={(e) => setPropertyTypeForm({ ...propertyTypeForm, description: e.target.value })}
                     placeholder="Describe this property type"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsPropertyTypeDialogOpen(false)}>
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => setIsPropertyTypeDialogOpen(false)}>Cancel</Button>
                 <Button onClick={handleCreatePropertyType}>Create</Button>
               </DialogFooter>
             </DialogContent>
@@ -102,13 +112,24 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
                     <CardTitle className="text-lg">{type.propertyTypeName}</CardTitle>
                     <CardDescription className="mt-1">{type.propertyTypeDescription}</CardDescription>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeletePropertyType(type.propertyTypeName)}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openAddTranslation(type.id)}>
+                        <Plus className="h-4 w-4 mr-2" /> Add Translation
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openCheckTranslations(type.id)}>
+                        <Languages className="h-4 w-4 mr-2" /> Check Translations
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="text-red-600" onClick={() => handleDeletePropertyType(type.propertyTypeName)}>
+                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </CardHeader>
             </Card>
@@ -120,6 +141,36 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
           )}
         </div>
       </CardContent>
+
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title="Add Property Type Translation"
+            fields={[
+              { key: "propertyTypeName", label: "Property Type Name", placeholder: "e.g., Hotel" },
+              { key: "propertyTypeDescription", label: "Description", placeholder: "Describe this type" },
+            ]}
+            onSave={async (id, locale, data) => {
+              return await upsertMasterPropertyTypeTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title="Property Type Translations"
+            displayFields={[
+              { key: "propertyTypeName", label: "Name" },
+              { key: "propertyTypeDescription", label: "Description" },
+            ]}
+            onFetch={getAllMasterPropertyTypeTranslationsService}
+            onDelete={deleteMasterPropertyTypeTranslationLocaleService}
+          />
+        </>
+      )}
     </Card>
   );
 }

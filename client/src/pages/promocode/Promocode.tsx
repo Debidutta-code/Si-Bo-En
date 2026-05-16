@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Plus, Pencil, Trash2, Smartphone, Monitor, Tablet } from "lucide-react";
+import { Plus, Pencil, Trash2, Smartphone, Monitor, Tablet, Languages } from "lucide-react";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
 import { Button } from "@/components/ui/button";
@@ -17,15 +17,21 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "react-hot-toast";
-import { usePropertyContext } from "@/contexts/PropertyContext";
-import { createPromoCodeService, deletePromoCodeService, fetchPromoCodesService, updatePromoCodeService, fetchRatePlansService, fetchRoomTypesService, getAllPromoCodeTranslationsService } from "./services";
-import type { DiscountType, ICreatePromoCode, IRPromoCode, RatePlan, RoomTypes, UpsertPromoCodeTranslationPayload } from "./interfaces";
+// import { usePropertyContext } from "@/contexts/PropertyContext";
+import { createPromoCodeService, deletePromoCodeService, fetchPromoCodesService, updatePromoCodeService, fetchRatePlansService, fetchRoomTypesService } from "./services";
+import type { DiscountType, ICreatePromoCode, IRPromoCode, RatePlan, RoomTypes } from "./interfaces";
 import { currencies } from "@/components/currency-code/cuurency";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { AddTranslationDialog, CheckTranslationsDialog } from "../management/components/multilang/ManagementTranslationDialogs";
+import {
+    upsertPromoCodeTranslationService,
+    getAllPromoCodeTranslationsService,
+    deletePromoCodeTranslationLocaleService,
+} from "./services/promo-code-multilang.service";
 
 export default function PromoCodePage() {
     const { propertyId } = useParams<{ propertyId: string }>();
-    const { languages } = usePropertyContext();
+    // const { languages } = usePropertyContext();
     const [loading, setLoading] = useState<{
         isLoading: boolean;
         text: string;
@@ -43,7 +49,10 @@ export default function PromoCodePage() {
     const [isSpecificRatePlans, setIsSpecificRatePlans] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [promoCodeToDelete, setPromoCodeToDelete] = useState<string | null>(null);
-    const [translations, setTranslations] = useState<UpsertPromoCodeTranslationPayload>({});
+
+    const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+    const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+    const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
     const [formData, setFormData] = useState<ICreatePromoCode>({
         name: "",
@@ -118,28 +127,14 @@ export default function PromoCodePage() {
         }
     };
 
-    const loadPromoCodeTranslations = async (promoCodeId: string) => {
-        if (!promoCodeId) return;
-        try {
-            const response = await getAllPromoCodeTranslationsService(promoCodeId);
-            if (response.success && response.data) {
-                setTranslations(response.data);
-            } else {
-                setTranslations({});
-            }
-        } catch (error) {
-            console.error("Failed to load promo code translations", error);
-        }
-    };
-
     const handleCreateOrUpdate = async () => {
         setLoading({ isLoading: true, text: editingPromoCode ? "Updating promo code..." : "Creating promo code..." });
         try {
             let response;
             if (editingPromoCode) {
-                response = await updatePromoCodeService(editingPromoCode.id, { ...formData, id: editingPromoCode.id, translations } as any);
+                response = await updatePromoCodeService(editingPromoCode.id, { ...formData, id: editingPromoCode.id } as any);
             } else {
-                response = await createPromoCodeService({ ...formData, translations });
+                response = await createPromoCodeService(formData);
             }
 
             if (response.success) {
@@ -215,7 +210,6 @@ export default function PromoCodePage() {
         const hasSpecificRatePlans = promoCode.applicableRatePlans && promoCode.applicableRatePlans.length > 0 && !promoCode.applicableRatePlans.includes("all");
         setIsSpecificRoomTypes(hasSpecificRoomTypes);
         setIsSpecificRatePlans(hasSpecificRatePlans);
-        loadPromoCodeTranslations(promoCode.id);
         setIsDialogOpen(true);
     };
 
@@ -223,7 +217,6 @@ export default function PromoCodePage() {
         setEditingPromoCode(null);
         setIsSpecificRoomTypes(false);
         setIsSpecificRatePlans(false);
-        setTranslations({});
         setFormData({
             name: "",
             code: "",
@@ -326,74 +319,7 @@ export default function PromoCodePage() {
                                 </div>
                             </div>
 
-                            <Separator />
-
-                            {/* Translations */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold">Translations</h3>
-                                    <p className="text-sm text-muted-foreground">Save locale-specific name and description.</p>
-                                </div>
-                                {languages?.length === 0 ? (
-                                    <p className="text-sm text-muted-foreground">No active property languages configured.</p>
-                                ) : (
-                                    <div className="grid gap-4">
-                                        {languages.map((language) => {
-                                            const locale = language.language;
-                                            const localeValue = translations[locale] || {};
-                                            return (
-                                                <div key={locale} className="rounded-lg border border-slate-200 p-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <p className="font-medium">{locale.toUpperCase()}</p>
-                                                            <p className="text-sm text-muted-foreground">Locale code: {locale}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-3 mt-4">
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor={`translation-name-${locale}`}>Translated name</Label>
-                                                            <Input
-                                                                id={`translation-name-${locale}`}
-                                                                value={localeValue.name || ""}
-                                                                onChange={(e) =>
-                                                                    setTranslations((prev) => ({
-                                                                        ...prev,
-                                                                        [locale]: {
-                                                                            ...prev[locale],
-                                                                            name: e.target.value,
-                                                                        },
-                                                                    }))
-                                                                }
-                                                                placeholder={`Name in ${locale.toUpperCase()}`}
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor={`translation-description-${locale}`}>Translated description</Label>
-                                                            <Textarea
-                                                                id={`translation-description-${locale}`}
-                                                                value={localeValue.description || ""}
-                                                                onChange={(e) =>
-                                                                    setTranslations((prev) => ({
-                                                                        ...prev,
-                                                                        [locale]: {
-                                                                            ...prev[locale],
-                                                                            description: e.target.value,
-                                                                        },
-                                                                    }))
-                                                                }
-                                                                placeholder={`Description in ${locale.toUpperCase()}`}
-                                                                rows={3}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-
-                            <Separator />
+                            {/* Translations section removed in favor of independent translation dialogs */}
 
                             {/* Discount Configuration */}
                             <div className="space-y-4">
@@ -767,6 +693,22 @@ export default function PromoCodePage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
+                                                    title="Add Translation"
+                                                    onClick={() => { setTranslationEntityId(promoCode.id); setAddTranslationOpen(true); }}
+                                                >
+                                                    <Plus className="h-4 w-4 text-blue-500" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    title="Check Translations"
+                                                    onClick={() => { setTranslationEntityId(promoCode.id); setCheckTranslationsOpen(true); }}
+                                                >
+                                                    <Languages className="h-4 w-4 text-green-600" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
                                                     onClick={() => handleEdit(promoCode)}
                                                 >
                                                     <Pencil className="h-4 w-4" />
@@ -813,6 +755,36 @@ export default function PromoCodePage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {translationEntityId && (
+                <>
+                    <AddTranslationDialog
+                        open={addTranslationOpen}
+                        onOpenChange={setAddTranslationOpen}
+                        entityId={translationEntityId}
+                        title="Add Promo Code Translation"
+                        fields={[
+                            { key: "name", label: "Promo Name", placeholder: "e.g. Oferta de Verano" },
+                            { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                        ]}
+                        onSave={async (id, locale, data) => {
+                            return await upsertPromoCodeTranslationService(id, { [locale]: data });
+                        }}
+                    />
+                    <CheckTranslationsDialog
+                        open={checkTranslationsOpen}
+                        onOpenChange={setCheckTranslationsOpen}
+                        entityId={translationEntityId}
+                        title="Promo Code Translations"
+                        displayFields={[
+                            { key: "name", label: "Name" },
+                            { key: "description", label: "Description" }
+                        ]}
+                        onFetch={getAllPromoCodeTranslationsService}
+                        onDelete={deletePromoCodeTranslationLocaleService}
+                    />
+                </>
+            )}
         </div>
     );
 }

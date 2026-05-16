@@ -63,6 +63,9 @@ import {
 } from "@/components/ui/dialog";
 import VideoUploadModal from "../VedioUpload.modal";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import AddRoomLangDialog from "../multilang/components/AddRoomLangDialog";
+import CheckRoomLangDialog from "../multilang/components/CheckRoomLangDialog";
+import {  Languages } from "lucide-react";
 
 interface PropertyId {
   propertyId: string;
@@ -115,6 +118,9 @@ export default function Rooms({ propertyId }: PropertyId) {
   const [panoramaUrl, setPanoramaUrl] = useState<string>("");
   const [panoramaRoomName, setPanoramaRoomName] = useState<string>("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [translationRoomId, setTranslationRoomId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!propertyId) {
@@ -506,6 +512,34 @@ export default function Rooms({ propertyId }: PropertyId) {
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
+                        </DropdownMenuItem>
+
+                        {/* Translations */}
+                        <DropdownMenuItem
+                          className="p-0 focus:bg-transparent"
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            setTranslationRoomId(room.id);
+                            setAddTranslationOpen(true);
+                          }}
+                        >
+                          <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Translation
+                          </Button>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="p-0 focus:bg-transparent"
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            setTranslationRoomId(room.id);
+                            setCheckTranslationsOpen(true);
+                          }}
+                        >
+                          <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal">
+                            <Languages className="h-4 w-4 mr-2" />
+                            Check Translations
+                          </Button>
                         </DropdownMenuItem>
 
                         {/* Add 360° View */}
@@ -1011,6 +1045,13 @@ export default function Rooms({ propertyId }: PropertyId) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {translationRoomId && (
+        <>
+          <AddRoomLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} roomId={translationRoomId} />
+          <CheckRoomLangDialog open={checkTranslationsOpen} onOpenChange={setCheckTranslationsOpen} roomId={translationRoomId} />
+        </>
+      )}
     </div>
   );
 }

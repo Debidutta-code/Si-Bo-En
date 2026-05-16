@@ -3,11 +3,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, MoreVertical, Languages } from "lucide-react";
 import toast from "react-hot-toast";
 import type { IAmenity } from "../types";
 import { createPropertyAmenitiesService, deletePropertyAmenitiesService } from "../services/management.services";
+import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import {
+  upsertMasterAmenityTranslationService,
+  getAllMasterAmenityTranslationsService,
+  deleteMasterAmenityTranslationLocaleService,
+} from "../services/multilanguage.services";
 
 interface PropertyAmenitiesTabProps {
   propertyAmenities: IAmenity[];
@@ -18,6 +25,10 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
   const [isPropertyAmenityDialogOpen, setIsPropertyAmenityDialogOpen] = useState<boolean>(false);
   const [propertyAmenityInput, setPropertyAmenityInput] = useState("");
   const [amenitiesList, setAmenitiesList] = useState<string[]>([]);
+
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
   const handleAddPropertyAmenityToList = () => {
     if (!propertyAmenityInput.trim()) return;
@@ -33,7 +44,7 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
     const response = await createPropertyAmenitiesService(amenitiesList);
     if (response.success) {
       toast.success("Property amenities created successfully");
-      setPropertyAmenities([ ...response.data]);
+      setPropertyAmenities([...response.data]);
       setAmenitiesList([]);
       setIsPropertyAmenityDialogOpen(false);
     } else {
@@ -50,6 +61,9 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
       toast.error(response.error || "Failed to delete amenity");
     }
   };
+
+  const openAddTranslation = (id: string) => { setTranslationEntityId(id); setAddTranslationOpen(true); };
+  const openCheckTranslations = (id: string) => { setTranslationEntityId(id); setCheckTranslationsOpen(true); };
 
   return (
     <Card>
@@ -84,10 +98,7 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
                     onChange={(e) => setPropertyAmenityInput(e.target.value)}
                     placeholder="e.g., Swimming Pool"
                     onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddPropertyAmenityToList();
-                      }
+                      if (e.key === "Enter") { e.preventDefault(); handleAddPropertyAmenityToList(); }
                     }}
                   />
                   <Button onClick={handleAddPropertyAmenityToList}>Add</Button>
@@ -96,26 +107,13 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
                   {amenitiesList.map((amenity, index) => (
                     <Badge key={index} variant="secondary" className="flex items-center gap-1">
                       {amenity}
-                      <button
-                        onClick={() => setAmenitiesList(amenitiesList.filter((_, i) => i !== index))}
-                        className="ml-1 hover:text-red-500"
-                      >
-                        ×
-                      </button>
+                      <button onClick={() => setAmenitiesList(amenitiesList.filter((_, i) => i !== index))} className="ml-1 hover:text-red-500">×</button>
                     </Badge>
                   ))}
                 </div>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsPropertyAmenityDialogOpen(false);
-                    setAmenitiesList([]);
-                  }}
-                >
-                  Cancel
-                </Button>
+                <Button variant="outline" onClick={() => { setIsPropertyAmenityDialogOpen(false); setAmenitiesList([]); }}>Cancel</Button>
                 <Button onClick={handleCreatePropertyAmenities}>Create All</Button>
               </DialogFooter>
             </DialogContent>
@@ -125,14 +123,26 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
       <CardContent>
         <div className="flex flex-wrap gap-2">
           {propertyAmenities.map((amenity) => (
-            <Badge key={amenity.id} variant="outline" className="text-sm py-2 px-3">
+            <Badge key={amenity.id} variant="outline" className="text-sm py-2 px-3 flex items-center gap-2">
               {amenity.amenityName}
-              <button
-                onClick={() => handleDeletePropertyAmenity(amenity.amenityName)}
-                className="ml-2 hover:text-red-500"
-              >
-                <Trash2 className="h-3 w-3" />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="hover:text-blue-600 ml-1">
+                    <MoreVertical className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => openAddTranslation(amenity.id)}>
+                    <Plus className="h-4 w-4 mr-2" /> Add Translation
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openCheckTranslations(amenity.id)}>
+                    <Languages className="h-4 w-4 mr-2" /> Check Translations
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600" onClick={() => handleDeletePropertyAmenity(amenity.amenityName)}>
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </Badge>
           ))}
           {propertyAmenities.length === 0 && (
@@ -142,6 +152,36 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
           )}
         </div>
       </CardContent>
+
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title="Add Amenity Translation"
+            fields={[
+              { key: "amenityName", label: "Amenity Name", placeholder: "e.g., Piscina" },
+              { key: "description", label: "Description", placeholder: "Describe this amenity" },
+            ]}
+            onSave={async (id, locale, data) => {
+              return await upsertMasterAmenityTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title="Amenity Translations"
+            displayFields={[
+              { key: "amenityName", label: "Name" },
+              { key: "description", label: "Description" },
+            ]}
+            onFetch={getAllMasterAmenityTranslationsService}
+            onDelete={deleteMasterAmenityTranslationLocaleService}
+          />
+        </>
+      )}
     </Card>
   );
 }

@@ -14,6 +14,8 @@ import {
   Pencil,
   Trash2,
   Baby,
+  Languages,
+  PlusCircle,
 } from "lucide-react";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
@@ -101,6 +103,12 @@ import ManagementTabs from "./components/ManagementTabs";
 import AddOnAvailabilityDialog from "./components/AddOnAvailabilityDialog";
 import AddOnAvailabilityTable from "./components/AddOnAvailabilityTable";
 import ChildAddonDialog from "./components/ChildAddonDialog";
+import { AddTranslationDialog, CheckTranslationsDialog } from "../management/components/multilang/ManagementTranslationDialogs";
+import {
+  upsertAddonTranslation,
+  getAllAddonTranslations,
+  deleteAddonTranslationLocale
+} from "./api/addon-langa.api";
 
 interface LoaderProps {
   isLoading: boolean;
@@ -181,6 +189,15 @@ export default function AddOns() {
     addonId: string | null;
   }>({
     open: false,
+    addonId: null,
+  });
+  const [translationDialog, setTranslationDialog] = useState<{
+    openAdd: boolean;
+    openCheck: boolean;
+    addonId: string | null;
+  }>({
+    openAdd: false,
+    openCheck: false,
     addonId: null,
   });
   const [childAddons, setChildAddons] = useState<IChildAddon[]>([]);
@@ -1021,6 +1038,22 @@ export default function AddOns() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
+                                setTranslationDialog({ openAdd: true, openCheck: false, addonId: addOn.id })
+                              }
+                            >
+                              <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
+                              Add Translation
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setTranslationDialog({ openAdd: false, openCheck: true, addonId: addOn.id })
+                              }
+                            >
+                              <Languages className="w-4 h-4 mr-2 text-green-600" />
+                              Check Translations
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
                                 setAddOnDialog({
                                   open: true,
                                   mode: "edit",
@@ -1170,6 +1203,37 @@ export default function AddOns() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Translation Dialogs */}
+        {translationDialog.addonId && (
+          <>
+            <AddTranslationDialog
+              open={translationDialog.openAdd}
+              onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
+              entityId={translationDialog.addonId}
+              title="Add Add-On Translation"
+              fields={[
+                { key: "name", label: "Add-On Name", placeholder: "e.g. Desayuno Extra" },
+                { key: "description", label: "Description", placeholder: "Enter translated description..." }
+              ]}
+              onSave={async (id, locale, data) => {
+                return await upsertAddonTranslation(id, { [locale]: data });
+              }}
+            />
+            <CheckTranslationsDialog
+              open={translationDialog.openCheck}
+              onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
+              entityId={translationDialog.addonId}
+              title="Add-On Translations"
+              displayFields={[
+                { key: "name", label: "Name" },
+                { key: "description", label: "Description" }
+              ]}
+              onFetch={getAllAddonTranslations}
+              onDelete={deleteAddonTranslationLocale}
+            />
+          </>
+        )}
       </div>
     </div>
   );

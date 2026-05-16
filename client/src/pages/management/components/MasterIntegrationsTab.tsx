@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Eye, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Eye, ExternalLink, Languages } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import toast from "react-hot-toast";
@@ -19,6 +19,12 @@ import {
   addRequiredFieldService,
   deleteRequiredFieldService,
 } from "../services/integration.services.ts";
+import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import {
+  upsertMasterIntegrationTranslationService,
+  getAllMasterIntegrationTranslationsService,
+  deleteMasterIntegrationTranslationLocaleService,
+} from "../services/multilanguage.services";
 
 interface MasterIntegrationsTabProps {
   masterIntegrations: IMasterIntegrations[];
@@ -37,6 +43,10 @@ export default function MasterIntegrationsTab({
   const [selectedIntegration, setSelectedIntegration] = useState<IMasterIntegrations | null>(null);
   const [integrationToDelete, setIntegrationToDelete] = useState<{ id: string; name: string } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
   // Form state for creating integration
   const [formData, setFormData] = useState<ICMasterIntegrationsS>({
@@ -376,6 +386,22 @@ export default function MasterIntegrationsTab({
                           title="View Details"
                         >
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Add Translation"
+                          onClick={() => { setTranslationEntityId(integration.id); setAddTranslationOpen(true); }}
+                        >
+                          <Plus className="h-4 w-4 text-blue-500" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Check Translations"
+                          onClick={() => { setTranslationEntityId(integration.id); setCheckTranslationsOpen(true); }}
+                        >
+                          <Languages className="h-4 w-4 text-green-600" />
                         </Button>
                         <Button
                           variant="ghost"
@@ -785,6 +811,30 @@ export default function MasterIntegrationsTab({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title="Add Integration Translation"
+            fields={[{ key: "name", label: "Integration Name", placeholder: "e.g., Opera PMS" }]}
+            onSave={async (id, locale, data) => {
+              return await upsertMasterIntegrationTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title="Integration Translations"
+            displayFields={[{ key: "name", label: "Name" }]}
+            onFetch={getAllMasterIntegrationTranslationsService}
+            onDelete={deleteMasterIntegrationTranslationLocaleService}
+          />
+        </>
+      )}
     </Card>
   );
 }

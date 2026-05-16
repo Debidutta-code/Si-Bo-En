@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, Trash2, Edit } from "lucide-react";
+import { Plus, Trash2, Edit, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
@@ -30,6 +30,15 @@ import {
   deleteSpecialConditionService,
   getSpecialConditionsByProgramIdService
 } from "./services/loyality-condition.service";
+import { AddTranslationDialog, CheckTranslationsDialog } from "../management/components/multilang/ManagementTranslationDialogs";
+import {
+  upsertLoyaltyConditionsTranslationService,
+  getAllLoyaltyConditionsTranslationsService,
+  deleteLoyaltyConditionsTranslationLocaleService,
+  upsertLoyaltySpecialConditionTranslationService,
+  getAllLoyaltySpecialConditionTranslationsService,
+  deleteLoyaltySpecialConditionTranslationLocaleService,
+} from "./services/multilang.service";
 import type { ILoyalityCondition, ILoyalitySpecialCondition } from "./interfaces";
 import { getLoyaltyProgramByCreationId } from "./services/loyality-program.service";
 import type { ILoader } from "../dashboard/interface";
@@ -58,6 +67,12 @@ export default function LoyaltyContent() {
   
   const [deleteConditionId, setDeleteConditionId] = useState<string | null>(null);
   const [deleteSpecialConditionId, setDeleteSpecialConditionId] = useState<string | null>(null);
+
+  // Translation states
+  const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
+  const [translationEntityType, setTranslationEntityType] = useState<"condition" | "special">("condition");
+  const [addTranslationOpen, setAddTranslationOpen] = useState(false);
+  const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
 
   useEffect(() => {
     if (creationId) {
@@ -347,6 +362,22 @@ if (isLoading.isLoading) {
                       <Button
                         variant="ghost"
                         size="icon"
+                        title="Add Translation"
+                        onClick={() => { setTranslationEntityId(condition.id); setTranslationEntityType("condition"); setAddTranslationOpen(true); }}
+                      >
+                        <Plus className="w-4 h-4 text-blue-500" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Check Translations"
+                        onClick={() => { setTranslationEntityId(condition.id); setTranslationEntityType("condition"); setCheckTranslationsOpen(true); }}
+                      >
+                        <Languages className="w-4 h-4 text-green-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setDeleteConditionId(condition.id)}
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
@@ -380,9 +411,15 @@ if (isLoading.isLoading) {
               specialConditions.map((condition) => (
                 <Card key={condition.id} className={!condition.isActive ? "opacity-50" : ""}>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      {condition.language.toUpperCase()}
-                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex justify-between">
+                    <div>
+                      <h3 className="font-semibold mb-2">{condition.title}</h3>
+                      {condition.subTitle && (
+                        <p className="text-sm text-muted-foreground">{condition.subTitle}</p>
+                      )}
+                    </div>
+                    
                     <div className="flex items-center gap-2">
                       <Switch
                         checked={condition.isActive}
@@ -398,17 +435,28 @@ if (isLoading.isLoading) {
                       <Button
                         variant="ghost"
                         size="icon"
+                        title="Add Translation"
+                        onClick={() => { setTranslationEntityId(condition.id); setTranslationEntityType("special"); setAddTranslationOpen(true); }}
+                      >
+                        <Plus className="w-4 h-4 text-blue-500" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title="Check Translations"
+                        onClick={() => { setTranslationEntityId(condition.id); setTranslationEntityType("special"); setCheckTranslationsOpen(true); }}
+                      >
+                        <Languages className="w-4 h-4 text-green-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setDeleteSpecialConditionId(condition.id)}
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <h3 className="font-semibold mb-2">{condition.title}</h3>
-                    {condition.subTitle && (
-                      <p className="text-sm text-muted-foreground">{condition.subTitle}</p>
-                    )}
+                  
                   </CardContent>
                 </Card>
               ))
@@ -517,6 +565,47 @@ if (isLoading.isLoading) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {/* Translation Dialogs */}
+      {translationEntityId && (
+        <>
+          <AddTranslationDialog
+            open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+            entityId={translationEntityId}
+            title={translationEntityType === "condition" ? "Add Condition Translation" : "Add Special Condition Translation"}
+            fields={
+              translationEntityType === "condition"
+                ? [{ key: "text", label: "Condition Text", placeholder: "Enter translated text..." }]
+                : [
+                    { key: "title", label: "Title", placeholder: "Enter translated title..." },
+                    { key: "subTitle", label: "Subtitle", placeholder: "Enter translated subtitle..." }
+                  ]
+            }
+            onSave={async (id, locale, data) => {
+              if (translationEntityType === "condition") {
+                return await upsertLoyaltyConditionsTranslationService(id, { [locale]: data });
+              }
+              return await upsertLoyaltySpecialConditionTranslationService(id, { [locale]: data });
+            }}
+          />
+          <CheckTranslationsDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            entityId={translationEntityId}
+            title={translationEntityType === "condition" ? "Condition Translations" : "Special Condition Translations"}
+            displayFields={
+              translationEntityType === "condition"
+                ? [{ key: "text", label: "Text" }]
+                : [
+                    { key: "title", label: "Title" },
+                    { key: "subTitle", label: "Subtitle" }
+                  ]
+            }
+            onFetch={translationEntityType === "condition" ? getAllLoyaltyConditionsTranslationsService : getAllLoyaltySpecialConditionTranslationsService}
+            onDelete={translationEntityType === "condition" ? deleteLoyaltyConditionsTranslationLocaleService : deleteLoyaltySpecialConditionTranslationLocaleService}
+          />
+        </>
+      )}
     </div>
   );
 }
