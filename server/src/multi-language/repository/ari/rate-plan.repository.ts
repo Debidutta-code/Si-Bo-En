@@ -35,6 +35,7 @@ export class RatePlanTranslationRepository {
     try {
       return await RatePlanTranslation.getAllTranslations(ratePlanId);
     } catch (error) {
+      console.log(error);
       throw new Error('Failed to get all rate plan translations');
     }
   }

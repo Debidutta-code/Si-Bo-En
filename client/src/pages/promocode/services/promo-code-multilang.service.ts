@@ -28,6 +28,6 @@ export async function getPromoCodeTranslationService(id: string, locale?: string
 }
 
 export async function deletePromoCodeTranslationLocaleService(id: string, locale: string) {
-    if (!id || !locale) return { success: false, message: "Both ID and locale are required" };
+    if (!id || !locale) return { success: false, message: "Both ID and Locale are required" };
     return await deletePromoCodeTranslationLocale(id, locale);
 }

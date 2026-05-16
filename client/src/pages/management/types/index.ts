@@ -45,3 +45,4 @@ export interface IPaymentIntegration {
 export * from "./integration.interface";
 export * from "./room-view.interface";
 export * from "./spa.type";
+export * from "./multilanguage.interface";

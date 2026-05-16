@@ -7,7 +7,7 @@ import { createRatePlanService, fetchRatePlansService, removeRatePlanService, up
 import { toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Pencil, Trash2, Plus, Package } from "lucide-react"; // ✅ ADDED Package
+import { MoreVertical, Pencil, Trash2, Plus, Package, Globe } from "lucide-react"; // ✅ ADDED Globe
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +37,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import RatePlanRulesDialog from "./components/ratePlanRuleForm";
 import ManageRateWithAddonsForm from "./components/ManageRateWithAddonsForm"; // ✅ ADDED
+import AddRatePlanLanguageDialog from "./components/AddRatePlanLanguageDialog";
+import CheckRatePlanLanguagesDialog from "./components/CheckRatePlanLanguagesDialog";
 import { usePropertyContext } from '@/contexts/PropertyContext';
 
 export default function RatePlan() {
@@ -73,6 +75,16 @@ export default function RatePlan() {
     open: boolean;
     ratePlan: RatePlan | null
   }>({
+    open: false,
+    ratePlan: null,
+  });
+
+  const [addLanguageDialog, setAddLanguageDialog] = useState<{ open: boolean; ratePlan: RatePlan | null }>({
+    open: false,
+    ratePlan: null,
+  });
+
+  const [checkLanguagesDialog, setCheckLanguagesDialog] = useState<{ open: boolean; ratePlan: RatePlan | null }>({
     open: false,
     ratePlan: null,
   });
@@ -240,6 +252,14 @@ export default function RatePlan() {
     setAddonsDialog({ open: true, ratePlan });
   };
 
+  const handleAddLanguageClick = (ratePlan: RatePlan) => {
+    setAddLanguageDialog({ open: true, ratePlan });
+  };
+
+  const handleCheckLanguagesClick = (ratePlan: RatePlan) => {
+    setCheckLanguagesDialog({ open: true, ratePlan });
+  };
+
   if (loader.isLoading) {
     return (
       <div className='min-h-screen w-full flex justify-center items-center'>
@@ -248,7 +268,7 @@ export default function RatePlan() {
     )
   }
 
-  const { languages } = usePropertyContext();
+  // const { languages } = usePropertyContext();
 
   return (
     <>
@@ -407,6 +427,22 @@ export default function RatePlan() {
                         >
                           <Package className="mr-2 h-4 w-4" />
                           <span>Manage Addons</span>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => handleAddLanguageClick(ratePlan)}
+                          className="cursor-pointer"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          <span>Add Language</span>
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem
+                          onClick={() => handleCheckLanguagesClick(ratePlan)}
+                          className="cursor-pointer"
+                        >
+                          <Globe className="mr-2 h-4 w-4" />
+                          <span>Check Languages</span>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem
@@ -652,6 +688,32 @@ export default function RatePlan() {
           ratePlanName={addonsDialog.ratePlan.ratePlanName}
           propertyId={propertyId}
           onSuccess={fetchRatePlans} // ✅ This refetches rate plans after save
+        />
+      )}
+
+      {/* Add Language Dialog */}
+      {addLanguageDialog.ratePlan && (
+        <AddRatePlanLanguageDialog
+          open={addLanguageDialog.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddLanguageDialog({ open: false, ratePlan: null });
+            }
+          }}
+          ratePlanId={addLanguageDialog.ratePlan.id}
+        />
+      )}
+
+      {/* Check Languages Dialog */}
+      {checkLanguagesDialog.ratePlan && (
+        <CheckRatePlanLanguagesDialog
+          open={checkLanguagesDialog.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setCheckLanguagesDialog({ open: false, ratePlan: null });
+            }
+          }}
+          ratePlanId={checkLanguagesDialog.ratePlan.id}
         />
       )}
     </>

@@ -1,8 +1,10 @@
 import createAxiosInstance from "@/components/axiosInstance";
-import type { UpsertPromoCodeTranslationPayload } from "../interfaces/promo-code-multilang.types";
+import type {
+    UpsertPromoCodeTranslationPayload,
+} from "../interfaces/promo-code-multilang.types";
 
 const axiosInstance = createAxiosInstance();
-const BASE_PATH = "/multi-language/promotion";
+const PROMO_CODE_MULTI_LANG_BASE = "/multi-language/promocode";
 
 function buildErrorResponse(error: any) {
     if (error?.response?.data && !error.response.data.success) {
@@ -11,41 +13,44 @@ function buildErrorResponse(error: any) {
     return { success: false, message: error?.message ?? "Unknown error" };
 }
 
-export async function upsertPromoCodeTranslation(promoCodeId: string, payload: UpsertPromoCodeTranslationPayload) {
+export const upsertPromoCodeTranslation = async (
+    promoCodeId: string,
+    payload: UpsertPromoCodeTranslationPayload
+) => {
     try {
-        const response = await axiosInstance.put(`${BASE_PATH}/${promoCodeId}`, payload);
+        const response = await axiosInstance.put(`${PROMO_CODE_MULTI_LANG_BASE}/${promoCodeId}`, payload);
         return response.data;
     } catch (error: any) {
         return buildErrorResponse(error);
     }
-}
+};
 
-export async function getAllPromoCodeTranslations(promoCodeId: string) {
+export const getAllPromoCodeTranslations = async (promoCodeId: string) => {
     try {
-        const response = await axiosInstance.get(`${BASE_PATH}/${promoCodeId}/all`);
+        const response = await axiosInstance.get(`${PROMO_CODE_MULTI_LANG_BASE}/${promoCodeId}/all`);
         return response.data;
     } catch (error: any) {
         return buildErrorResponse(error);
     }
-}
+};
 
-export async function getPromoCodeTranslation(promoCodeId: string, locale?: string) {
+export const getPromoCodeTranslation = async (promoCodeId: string, locale?: string) => {
     try {
         const url = locale
-            ? `${BASE_PATH}/${promoCodeId}?locale=${encodeURIComponent(locale)}`
-            : `${BASE_PATH}/${promoCodeId}`;
+            ? `${PROMO_CODE_MULTI_LANG_BASE}/${promoCodeId}?locale=${encodeURIComponent(locale)}`
+            : `${PROMO_CODE_MULTI_LANG_BASE}/${promoCodeId}`;
         const response = await axiosInstance.get(url);
         return response.data;
     } catch (error: any) {
         return buildErrorResponse(error);
     }
-}
+};
 
-export async function deletePromoCodeTranslationLocale(promoCodeId: string, locale: string) {
+export const deletePromoCodeTranslationLocale = async (promoCodeId: string, locale: string) => {
     try {
-        const response = await axiosInstance.delete(`${BASE_PATH}/${promoCodeId}/${locale}`);
+        const response = await axiosInstance.delete(`${PROMO_CODE_MULTI_LANG_BASE}/${promoCodeId}/${locale}`);
         return response.data;
     } catch (error: any) {
         return buildErrorResponse(error);
     }
-}
+};

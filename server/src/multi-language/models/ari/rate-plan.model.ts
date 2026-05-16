@@ -104,12 +104,12 @@ ratePlanTranslationSchema.statics.getTranslated = async function (
   const doc = await this.findOne({ ratePlanId }).lean<IRatePlanTranslation>();
   if (!doc?.translations) return null;
 
-  const map = doc.translations as unknown as Map<string, ILocaleBlock>;
+  // After .lean(), translations is a plain object, not a Map
+  const map = doc.translations as unknown as Record<string, ILocaleBlock>;
 
   return (
-    map.get(locale) ??
-    map.get('en') ??
-    map.values().next().value ??
+    map[locale] ??
+    Object.values(map)[0] ??
     null
   );
 };
@@ -121,9 +121,8 @@ ratePlanTranslationSchema.statics.getAllTranslations = async function (
   const doc = await this.findOne({ ratePlanId }).lean<IRatePlanTranslation>();
   if (!doc?.translations) return null;
 
-  return Object.fromEntries(
-    doc.translations as unknown as Map<string, ILocaleBlock>
-  );
+  // Already a plain object after .lean() — no conversion needed
+  return doc.translations as unknown as Record<string, ILocaleBlock>;
 };
 
 // DELETE a single locale
