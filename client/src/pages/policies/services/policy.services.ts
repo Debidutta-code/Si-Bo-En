@@ -1,6 +1,9 @@
 import type { PolicyTypes } from "../interfaces";
 import { createPolicy, getPolicies,addPolicyToRatePlan,deletePolicyApi, updatePolicyApi } from "../api"
-export const createPolicyService = async (policyName: string, type: PolicyTypes, propertyId: string, description?: string) => {
+import { upsertPolicyTranslationService } from "./policy-multilang.services";
+import type { UpsertPolicyTranslationPayload } from "../interfaces/policy-multilang.interface";
+
+export const createPolicyService = async (policyName: string, type: PolicyTypes, propertyId: string, description?: string, translations?: UpsertPolicyTranslationPayload) => {
     if (!policyName || !type) {
         return {
             success: false,
@@ -14,12 +17,18 @@ export const createPolicyService = async (policyName: string, type: PolicyTypes,
         }
     }
     try {
-        return await createPolicy({
+        const resp = await createPolicy({
             policyName,
             type,
             description
-        }, propertyId
-        );
+        }, propertyId);
+
+        // Upsert translations if provided and creation succeeded
+        if (resp?.success && resp?.data?.id && translations && Object.keys(translations).length > 0) {
+            await upsertPolicyTranslationService(resp.data.id, translations);
+        }
+
+        return resp;
     } catch (error: any) {
         return {
             success: false,
@@ -76,7 +85,7 @@ export const addPolicyToRatePlanService = async (policyId: string, ratePlanId: s
         }
     }
 }
-export const updatePolicyDetailsService = async (policyId: string, policyName?: string, description?: string) => {
+export const updatePolicyDetailsService = async (policyId: string, policyName?: string, description?: string, translations?: UpsertPolicyTranslationPayload) => {
     if (!policyId) {
         return {
             success: false,
@@ -90,7 +99,11 @@ export const updatePolicyDetailsService = async (policyId: string, policyName?: 
         }
     }
     try {
-        return await updatePolicyApi(policyId, { policyName, description });
+        const resp = await updatePolicyApi(policyId, { policyName, description });
+        if (resp?.success && translations && Object.keys(translations).length > 0) {
+            await upsertPolicyTranslationService(policyId, translations);
+        }
+        return resp;
     } catch (error: any) {
         return {
             success: false,

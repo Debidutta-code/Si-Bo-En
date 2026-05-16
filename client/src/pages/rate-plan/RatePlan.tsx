@@ -37,6 +37,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import RatePlanRulesDialog from "./components/ratePlanRuleForm";
 import ManageRateWithAddonsForm from "./components/ManageRateWithAddonsForm"; // ✅ ADDED
+import { usePropertyContext } from '@/contexts/PropertyContext';
 
 export default function RatePlan() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -247,6 +248,8 @@ export default function RatePlan() {
     )
   }
 
+  const { languages } = usePropertyContext();
+
   return (
     <>
       <div className="container mx-auto px-6 max-w-7xl">
@@ -257,6 +260,7 @@ export default function RatePlan() {
             <h1 className="text-xl font-bold text-gray-900">Rate Plans</h1>
             <p className="text-gray-600 mt-1 text-sm">Manage your property rate plans</p>
           </div>
+
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="w-full sm:w-auto">

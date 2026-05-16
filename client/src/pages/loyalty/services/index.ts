@@ -26,7 +26,7 @@ export {
     createSpecialConditionService,
     updateSpecialConditionService,
     deleteSpecialConditionService,
-    getSpecialConditionsByProgramIdService
+    getSpecialConditionsByProgramIdService,
 } from "./loyality-condition.service";
 
 export {
@@ -35,8 +35,19 @@ export {
     updatePropertyLoyalityConfigService,
     deletePropertyLoyalityConfigService,
     getAllPropertyLoyalityWithLoyalityService,
-    getActiveLoyaltyConfigByPropertyIdService
+    getActiveLoyaltyConfigByPropertyIdService,
 } from "./property-loyality.service";
+
+export {
+    upsertLoyaltyConditionTranslationService,
+    getAllLoyaltyConditionTranslationsService,
+    getLoyaltyConditionTranslationService,
+    deleteLoyaltyConditionTranslationLocaleService,
+    upsertLoyaltySpecialConditionTranslationService,
+    getAllLoyaltySpecialConditionTranslationsService,
+    getLoyaltySpecialConditionTranslationService,
+    deleteLoyaltySpecialConditionTranslationLocaleService,
+} from "./multilanguage.service";
 
 export {
     createCreationLoyalityService,

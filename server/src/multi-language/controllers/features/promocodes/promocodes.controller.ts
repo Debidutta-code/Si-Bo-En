@@ -1,72 +1,72 @@
 import { Response } from 'express';
 import { CustomRequest, errorResponse } from '../../../../utils';
-import { PromotionTranslationService } from '../../../service/features/promocodes/promocodes.service';
+import { PromocodeTranslationService } from '../../../service/features/promocodes/promocodes.service';
 
-export class PromotionTranslationController {
-  private promotionTranslationService: PromotionTranslationService;
+export class PromocodeTranslationController {
+  private promocodeTranslationService: PromocodeTranslationService;
 
   constructor() {
-    this.promotionTranslationService = new PromotionTranslationService();
+    this.promocodeTranslationService = new PromocodeTranslationService();
   }
 
   public async upsert(req: CustomRequest, res: Response): Promise<Response> {
     try {
-      const { promotionId } = req.params;
+      const { promocodeId } = req.params;
       const localeData = req.body;
 
-      const result = await this.promotionTranslationService.upsert(promotionId, localeData);
+      const result = await this.promocodeTranslationService.upsert(promocodeId, localeData);
       return res.status(result.success ? 201 : 400).json(result);
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(500).json(errorResponse('Failed to upsert promotion translation', error.message));
+        return res.status(500).json(errorResponse('Failed to upsert promocode translation', error.message));
       }
-      return res.status(500).json(errorResponse('Internal Server Error', 'Failed to upsert promotion translation'));
+      return res.status(500).json(errorResponse('Internal Server Error', 'Failed to upsert promocode translation'));
     }
   }
 
   public async getTranslated(req: CustomRequest, res: Response): Promise<Response> {
     try {
-      const { promotionId } = req.params;
+      const { promocodeId } = req.params;
       const locale =
         (req.query.locale as string) ??
         req.headers['accept-language']?.slice(0, 2) ??
         'en';
 
-      const result = await this.promotionTranslationService.getTranslated(promotionId, locale);
+      const result = await this.promocodeTranslationService.getTranslated(promocodeId, locale);
       return res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(500).json(errorResponse('Failed to get promotion translation', error.message));
+        return res.status(500).json(errorResponse('Failed to get promocode translation', error.message));
       }
-      return res.status(500).json(errorResponse('Internal Server Error', 'Failed to get promotion translation'));
+      return res.status(500).json(errorResponse('Internal Server Error', 'Failed to get promocode translation'));
     }
   }
 
   public async getAllTranslations(req: CustomRequest, res: Response): Promise<Response> {
     try {
-      const { promotionId } = req.params;
+      const { promocodeId } = req.params;
 
-      const result = await this.promotionTranslationService.getAllTranslations(promotionId);
+      const result = await this.promocodeTranslationService.getAllTranslations(promocodeId);
       return res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(500).json(errorResponse('Failed to get all promotion translations', error.message));
+        return res.status(500).json(errorResponse('Failed to get all promocode translations', error.message));
       }
-      return res.status(500).json(errorResponse('Internal Server Error', 'Failed to get all promotion translations'));
+      return res.status(500).json(errorResponse('Internal Server Error', 'Failed to get all promocode translations'));
     }
   }
 
   public async deleteLocale(req: CustomRequest, res: Response): Promise<Response> {
     try {
-      const { promotionId, locale } = req.params;
+      const { promocodeId, locale } = req.params;
 
-      const result = await this.promotionTranslationService.deleteLocale(promotionId, locale);
+      const result = await this.promocodeTranslationService.deleteLocale(promocodeId, locale);
       return res.status(result.success ? 200 : 400).json(result);
     } catch (error) {
       if (error instanceof Error) {
-        return res.status(500).json(errorResponse('Failed to delete promotion translation locale', error.message));
+        return res.status(500).json(errorResponse('Failed to delete promocode translation locale', error.message));
       }
-      return res.status(500).json(errorResponse('Internal Server Error', 'Failed to delete promotion translation locale'));
+      return res.status(500).json(errorResponse('Internal Server Error', 'Failed to delete promocode translation locale'));
     }
   }
 }

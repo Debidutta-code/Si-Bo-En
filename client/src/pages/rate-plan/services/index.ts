@@ -15,3 +15,4 @@ export {
     removeAddonFromRatePlanService,
     getAddonsByRatePlanCodeService
 }
+export * from "./ratePlan-language.service";

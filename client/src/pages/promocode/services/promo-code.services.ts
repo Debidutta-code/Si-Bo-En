@@ -1,41 +1,54 @@
 import {createPromoCode,deletePromoCode,fetchPromoCodes,updatePromoCode} from "../api";
-import type {ICreatePromoCode,IRPromoCode} from "../interfaces";
-const createPromoCodeService =(promoCodeData:ICreatePromoCode)=>{
+import { upsertPromoCodeTranslationService } from "./promo-code-multilang.service";
+import type {ICreatePromoCode,IRPromoCode, UpsertPromoCodeTranslationPayload} from "../interfaces";
+
+type ICreatePromoCodeWithTranslations = ICreatePromoCode & {
+    translations?: UpsertPromoCodeTranslationPayload;
+};
+
+type IRPromoCodeWithTranslations = IRPromoCode & {
+    translations?: UpsertPromoCodeTranslationPayload;
+};
+
+const createPromoCodeService = async (promoCodeData: ICreatePromoCodeWithTranslations) => {
     try {
-        if(promoCodeData.code.length<8 || promoCodeData.code.length>12){
+        if (promoCodeData.code.length < 8 || promoCodeData.code.length > 12) {
             return {
-                success:false,
-                message:"Promo code must be between 8 to 12 characters"
-            }
+                success: false,
+                message: "Promo code must be between 8 to 12 characters"
+            };
         }
-        if(promoCodeData.isApplicableForDesktop===false && promoCodeData.isApplicableForMobileApp===false && promoCodeData.isApplicableForTablet===false){
+        if (promoCodeData.isApplicableForDesktop === false && promoCodeData.isApplicableForMobileApp === false && promoCodeData.isApplicableForTablet === false) {
             return {
-                success:false,
-                message:"Promo code must be applicable for at least one platform (Desktop, Mobile App, Tablet)"
-            }
+                success: false,
+                message: "Promo code must be applicable for at least one platform (Desktop, Mobile App, Tablet)"
+            };
         }
-        // if(promoCodeData.isApplicableForWalkIn===false && promoCodeData.isApplicableForOTA===false && promoCodeData.isApplicableForCorporate===false){
-        //     return {
-        //         success:false,
-        //         message:"Promo code must be applicable for at least one booking source (Walk-In, OTA, Corporate)"
-        //     }
-        // }
-        if(promoCodeData.discountType==="percentage"){
-            if(promoCodeData.discountValue<=0 || promoCodeData.discountValue>100){
+        if (promoCodeData.discountType === "percentage") {
+            if (promoCodeData.discountValue <= 0 || promoCodeData.discountValue > 100) {
                 return {
-                    success :false,
-                    message:"For percentage discount type, discount value must be between 1 to 100"
-                }
+                    success: false,
+                    message: "For percentage discount type, discount value must be between 1 to 100"
+                };
             }
         }
-        return createPromoCode(promoCodeData);
+
+        const { translations, ...mainPayload } = promoCodeData;
+        const response = await createPromoCode(mainPayload as ICreatePromoCode);
+
+        const promoCodeId = response?.data?.id ?? response?.data?._id;
+        if (response?.success && promoCodeId && translations && Object.keys(translations).length > 0) {
+            await upsertPromoCodeTranslationService(promoCodeId, translations);
+        }
+
+        return response;
     } catch (error) {
         return {
-            success:false,
-            message:"Failed to create promo code"
-        }
+            success: false,
+            message: "Failed to create promo code"
+        };
     }
-}
+};
 const fetchPromoCodesService=async(propertyId:string)=>{
     try {
         if(!propertyId){
@@ -52,7 +65,7 @@ const fetchPromoCodesService=async(propertyId:string)=>{
         }
     }
 }
-const updatePromoCodeService=async(id:string,promoCodeData:IRPromoCode)=>{
+const updatePromoCodeService=async(id:string,promoCodeData:IRPromoCodeWithTranslations)=>{
     try {
         if(!id){
             return {
@@ -60,7 +73,15 @@ const updatePromoCodeService=async(id:string,promoCodeData:IRPromoCode)=>{
                 message:"Promo code ID is required"
             }
         }
-        return await updatePromoCode(id,promoCodeData);
+
+        const { translations, ...mainPayload } = promoCodeData;
+        const response = await updatePromoCode(id, mainPayload as IRPromoCode);
+
+        if (response?.success && translations && Object.keys(translations).length > 0) {
+            await upsertPromoCodeTranslationService(id, translations);
+        }
+
+        return response;
     } catch (error) {
         return {
             success:false,

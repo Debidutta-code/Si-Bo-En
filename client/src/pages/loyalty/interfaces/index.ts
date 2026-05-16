@@ -6,3 +6,4 @@ export * from "./property-loyality.types";
 export * from "./loyalty-guest.types";
 export * from "./loyality-level.types";
 export * from "./loyalty-guest.types";
+export * from "./multilanguage.type";

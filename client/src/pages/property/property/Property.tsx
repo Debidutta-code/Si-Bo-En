@@ -45,9 +45,9 @@ import { capitalizeFirstLetter } from '@/lib/utils';
 import {
     addPropertyLanguageService,
     deletePropertyLanguageService,
-    getPropertyLanguagesService
 } from "./services/property-language.services"
 import { languages, type LanguageCode } from '@/components/language/language';
+import { usePropertyContext } from '@/contexts/PropertyContext';
 
 
 export default function PropertyPage() {
@@ -111,7 +111,7 @@ export default function PropertyPage() {
     });
 
     // ── Language state ──────────────────────────────────────────────
-    const [propertyLanguages, setPropertyLanguages] = useState<IPropertyActiveLanguage[]>([]);
+    const { languages: propertyLanguages, refreshLanguages } = usePropertyContext();
     const [isLangPanelOpen, setIsLangPanelOpen] = useState(false);
     const [isDeletingLang, setIsDeletingLang] = useState<string | null>(null);
     const [isAddingLang, setIsAddingLang] = useState<string | null>(null);
@@ -235,24 +235,7 @@ export default function PropertyPage() {
     }, [propertyDetails]);
 
     // ── Language fetch ───────────────────────────────────────────────
-    const fetchPropertyLanguages = async (propertyId: string) => {
-        try {
-            const response = await getPropertyLanguagesService(propertyId);
-            if (response.success) {
-                setPropertyLanguages(response.data);
-            } else {
-                toast.error(response.message || "Failed to fetch languages");
-            }
-        } catch (error) {
-            console.error("Error fetching languages:", error);
-        }
-    };
-
-    useEffect(() => {
-        if (propertyDetails?.id && isCreationCompleted && isDrafted) {
-            fetchPropertyLanguages(propertyDetails.id);
-        }
-    }, [propertyDetails, isCreationCompleted, isDrafted]);
+    // Handled by PropertyContext globally.
     // ────────────────────────────────────────────────────────────────
 
     const handleCreateProperty = () => {
@@ -354,7 +337,7 @@ export default function PropertyPage() {
             });
             if (response.success) {
                 toast.success("Language added");
-                await fetchPropertyLanguages(propertyDetails.id);
+                refreshLanguages();
             } else {
                 toast.error(response.message || "Failed to add language");
             }
@@ -371,7 +354,7 @@ export default function PropertyPage() {
             const response = await deletePropertyLanguageService(propertyLanguageId);
             if (response.success) {
                 toast.success("Language removed");
-                setPropertyLanguages(prev => prev.filter(l => l.id !== propertyLanguageId));
+                refreshLanguages();
             } else {
                 toast.error(response.message || "Failed to remove language");
             }

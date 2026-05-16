@@ -6,3 +6,4 @@ export type {
     PolicyTypes,
     RatePlan
 }
+export * from "./policy-multilang.interface";

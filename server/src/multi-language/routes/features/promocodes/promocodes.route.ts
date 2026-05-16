@@ -1,14 +1,14 @@
 import { Router } from 'express';
-import { PromotionTranslationController } from '../../../controllers/features/promocodes';
+import { PromocodeTranslationController } from '../../../controllers/features/promocodes';
 
-const promotionTranslationRouter = Router();
-const promotionTranslationController = new PromotionTranslationController();
+const promocodeTranslationRouter = Router();
+const promotionTranslationController = new PromocodeTranslationController();
 
-promotionTranslationRouter.route('/:promotionId')
+promocodeTranslationRouter.route('/:promotionId')
   .put(promotionTranslationController.upsert.bind(promotionTranslationController))
   .get(promotionTranslationController.getTranslated.bind(promotionTranslationController));
 
-promotionTranslationRouter.get('/:promotionId/all', promotionTranslationController.getAllTranslations.bind(promotionTranslationController));
-promotionTranslationRouter.delete('/:promotionId/:locale', promotionTranslationController.deleteLocale.bind(promotionTranslationController));
+promocodeTranslationRouter.get('/:promotionId/all', promotionTranslationController.getAllTranslations.bind(promotionTranslationController));
+promocodeTranslationRouter.delete('/:promotionId/:locale', promotionTranslationController.deleteLocale.bind(promotionTranslationController));
 
-export { promotionTranslationRouter };
+export { promocodeTranslationRouter };

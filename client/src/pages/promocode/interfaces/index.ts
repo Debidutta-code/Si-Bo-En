@@ -4,6 +4,7 @@ import type {DiscountType,
 } from "./promo-code.types";
 import type {RoomTypes} from "../../inventory/types"
 import type {RatePlan} from "../../rate-plan/interfaces"
+import type { UpsertPromoCodeTranslationPayload } from "./promo-code-multilang.types"
 
 
 export type {  
@@ -11,5 +12,6 @@ export type {
     ICreatePromoCode,
     IRPromoCode  ,
     RoomTypes,
-    RatePlan
+    RatePlan,
+    UpsertPromoCodeTranslationPayload
 }

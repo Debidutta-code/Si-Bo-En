@@ -17,13 +17,15 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "react-hot-toast";
-import { createPromoCodeService, deletePromoCodeService, fetchPromoCodesService, updatePromoCodeService, fetchRatePlansService, fetchRoomTypesService } from "./services";
-import type { DiscountType, ICreatePromoCode, IRPromoCode, RatePlan, RoomTypes } from "./interfaces";
+import { usePropertyContext } from "@/contexts/PropertyContext";
+import { createPromoCodeService, deletePromoCodeService, fetchPromoCodesService, updatePromoCodeService, fetchRatePlansService, fetchRoomTypesService, getAllPromoCodeTranslationsService } from "./services";
+import type { DiscountType, ICreatePromoCode, IRPromoCode, RatePlan, RoomTypes, UpsertPromoCodeTranslationPayload } from "./interfaces";
 import { currencies } from "@/components/currency-code/cuurency";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 export default function PromoCodePage() {
     const { propertyId } = useParams<{ propertyId: string }>();
+    const { languages } = usePropertyContext();
     const [loading, setLoading] = useState<{
         isLoading: boolean;
         text: string;
@@ -41,6 +43,7 @@ export default function PromoCodePage() {
     const [isSpecificRatePlans, setIsSpecificRatePlans] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [promoCodeToDelete, setPromoCodeToDelete] = useState<string | null>(null);
+    const [translations, setTranslations] = useState<UpsertPromoCodeTranslationPayload>({});
 
     const [formData, setFormData] = useState<ICreatePromoCode>({
         name: "",
@@ -115,14 +118,28 @@ export default function PromoCodePage() {
         }
     };
 
+    const loadPromoCodeTranslations = async (promoCodeId: string) => {
+        if (!promoCodeId) return;
+        try {
+            const response = await getAllPromoCodeTranslationsService(promoCodeId);
+            if (response.success && response.data) {
+                setTranslations(response.data);
+            } else {
+                setTranslations({});
+            }
+        } catch (error) {
+            console.error("Failed to load promo code translations", error);
+        }
+    };
+
     const handleCreateOrUpdate = async () => {
         setLoading({ isLoading: true, text: editingPromoCode ? "Updating promo code..." : "Creating promo code..." });
         try {
             let response;
             if (editingPromoCode) {
-                response = await updatePromoCodeService(editingPromoCode.id, { ...formData, id: editingPromoCode.id } as any);
+                response = await updatePromoCodeService(editingPromoCode.id, { ...formData, id: editingPromoCode.id, translations } as any);
             } else {
-                response = await createPromoCodeService(formData);
+                response = await createPromoCodeService({ ...formData, translations });
             }
 
             if (response.success) {
@@ -198,6 +215,7 @@ export default function PromoCodePage() {
         const hasSpecificRatePlans = promoCode.applicableRatePlans && promoCode.applicableRatePlans.length > 0 && !promoCode.applicableRatePlans.includes("all");
         setIsSpecificRoomTypes(hasSpecificRoomTypes);
         setIsSpecificRatePlans(hasSpecificRatePlans);
+        loadPromoCodeTranslations(promoCode.id);
         setIsDialogOpen(true);
     };
 
@@ -205,6 +223,7 @@ export default function PromoCodePage() {
         setEditingPromoCode(null);
         setIsSpecificRoomTypes(false);
         setIsSpecificRatePlans(false);
+        setTranslations({});
         setFormData({
             name: "",
             code: "",
@@ -305,6 +324,73 @@ export default function PromoCodePage() {
                                         rows={3}
                                     />
                                 </div>
+                            </div>
+
+                            <Separator />
+
+                            {/* Translations */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-semibold">Translations</h3>
+                                    <p className="text-sm text-muted-foreground">Save locale-specific name and description.</p>
+                                </div>
+                                {languages?.length === 0 ? (
+                                    <p className="text-sm text-muted-foreground">No active property languages configured.</p>
+                                ) : (
+                                    <div className="grid gap-4">
+                                        {languages.map((language) => {
+                                            const locale = language.language;
+                                            const localeValue = translations[locale] || {};
+                                            return (
+                                                <div key={locale} className="rounded-lg border border-slate-200 p-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <p className="font-medium">{locale.toUpperCase()}</p>
+                                                            <p className="text-sm text-muted-foreground">Locale code: {locale}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-3 mt-4">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`translation-name-${locale}`}>Translated name</Label>
+                                                            <Input
+                                                                id={`translation-name-${locale}`}
+                                                                value={localeValue.name || ""}
+                                                                onChange={(e) =>
+                                                                    setTranslations((prev) => ({
+                                                                        ...prev,
+                                                                        [locale]: {
+                                                                            ...prev[locale],
+                                                                            name: e.target.value,
+                                                                        },
+                                                                    }))
+                                                                }
+                                                                placeholder={`Name in ${locale.toUpperCase()}`}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`translation-description-${locale}`}>Translated description</Label>
+                                                            <Textarea
+                                                                id={`translation-description-${locale}`}
+                                                                value={localeValue.description || ""}
+                                                                onChange={(e) =>
+                                                                    setTranslations((prev) => ({
+                                                                        ...prev,
+                                                                        [locale]: {
+                                                                            ...prev[locale],
+                                                                            description: e.target.value,
+                                                                        },
+                                                                    }))
+                                                                }
+                                                                placeholder={`Description in ${locale.toUpperCase()}`}
+                                                                rows={3}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
 
                             <Separator />

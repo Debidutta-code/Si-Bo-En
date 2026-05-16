@@ -10,3 +10,4 @@ export {
     removeAddonFromRatePlan,
     getAddonsByRatePlanCode
 }
+export * from "./ratePlan-language.api";

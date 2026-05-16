@@ -6,13 +6,41 @@ import {
     createSpecialCondition,
     updateSpecialCondition,
     deleteSpecialCondition,
-    getSpecialConditionsByProgramId
+    getSpecialConditionsByProgramId,
 } from "../api";
+import {
+    upsertLoyaltyConditionTranslationService,
+    upsertLoyaltySpecialConditionTranslationService,
+} from "./multilanguage.service";
+import type {
+    ICLoyalityCondition,
+    IULoyalityCondition,
+    ICLoyalitySpecialCondition,
+    IULoyalitySpecialCondition,
+} from "../interfaces";
+import type {
+    UpsertLoyaltyConditionTranslationPayload,
+    UpsertLoyaltySpecialConditionTranslationPayload,
+} from "../interfaces/multilanguage.type";
 
-import type { ICLoyalityCondition, IULoyalityCondition, ICLoyalitySpecialCondition, IULoyalitySpecialCondition } from "../interfaces";
+export type ICLoyalityConditionWithTranslations = ICLoyalityCondition & {
+    translations?: UpsertLoyaltyConditionTranslationPayload;
+};
+
+export type IULoyalityConditionWithTranslations = IULoyalityCondition & {
+    translations?: UpsertLoyaltyConditionTranslationPayload;
+};
+
+export type ICLoyalitySpecialConditionWithTranslations = ICLoyalitySpecialCondition & {
+    translations?: UpsertLoyaltySpecialConditionTranslationPayload;
+};
+
+export type IULoyalitySpecialConditionWithTranslations = IULoyalitySpecialCondition & {
+    translations?: UpsertLoyaltySpecialConditionTranslationPayload;
+};
 
 // ===== Loyalty Condition Services =====
-export const createConditionService = async (data: ICLoyalityCondition) => {
+export const createConditionService = async (data: ICLoyalityConditionWithTranslations) => {
     try {
         if (!data.loyaltyProgramId || data.loyaltyProgramId.trim() === "") {
             return { success: false, message: "Loyalty Program ID is required." };
@@ -24,13 +52,24 @@ export const createConditionService = async (data: ICLoyalityCondition) => {
             return { success: false, message: "Language is required." };
         }
         const response = await createCondition(data);
+        const loyaltyConditionId = response?.data?.id ?? response?.data?._id;
+
+        if (
+            response?.success &&
+            loyaltyConditionId &&
+            data.translations &&
+            Object.keys(data.translations).length > 0
+        ) {
+            await upsertLoyaltyConditionTranslationService(loyaltyConditionId, data.translations);
+        }
+
         return response;
     } catch (error) {
         return { success: false, message: "Failed to create condition." };
     }
 };
 
-export const updateConditionService = async (id: string, data: IULoyalityCondition) => {
+export const updateConditionService = async (id: string, data: IULoyalityConditionWithTranslations) => {
     try {
         if (!id || id.trim() === "") {
             return { success: false, message: "Condition ID is required." };
@@ -45,6 +84,15 @@ export const updateConditionService = async (id: string, data: IULoyalityConditi
             return { success: false, message: "Active status is required." };
         }
         const response = await updateCondition(id, data);
+
+        if (
+            response?.success &&
+            data.translations &&
+            Object.keys(data.translations).length > 0
+        ) {
+            await upsertLoyaltyConditionTranslationService(id, data.translations);
+        }
+
         return response;
     } catch (error) {
         return { success: false, message: "Failed to update condition." };
@@ -76,7 +124,9 @@ export const getConditionsByProgramIdService = async (loyaltyProgramId: string) 
 };
 
 // ===== Loyalty Special Condition Services =====
-export const createSpecialConditionService = async (data: ICLoyalitySpecialCondition) => {
+export const createSpecialConditionService = async (
+    data: ICLoyalitySpecialConditionWithTranslations
+) => {
     try {
         if (!data.loyaltyProgramId || data.loyaltyProgramId.trim() === "") {
             return { success: false, message: "Loyalty Program ID is required." };
@@ -88,13 +138,27 @@ export const createSpecialConditionService = async (data: ICLoyalitySpecialCondi
             return { success: false, message: "Language is required." };
         }
         const response = await createSpecialCondition(data);
+        const specialConditionId = response?.data?.id ?? response?.data?._id;
+
+        if (
+            response?.success &&
+            specialConditionId &&
+            data.translations &&
+            Object.keys(data.translations).length > 0
+        ) {
+            await upsertLoyaltySpecialConditionTranslationService(specialConditionId, data.translations);
+        }
+
         return response;
     } catch (error) {
         return { success: false, message: "Failed to create special condition." };
     }
 };
 
-export const updateSpecialConditionService = async (id: string, data: IULoyalitySpecialCondition) => {
+export const updateSpecialConditionService = async (
+    id: string,
+    data: IULoyalitySpecialConditionWithTranslations
+) => {
     try {
         if (!id || id.trim() === "") {
             return { success: false, message: "Special Condition ID is required." };
@@ -109,6 +173,15 @@ export const updateSpecialConditionService = async (id: string, data: IULoyality
             return { success: false, message: "Active status is required." };
         }
         const response = await updateSpecialCondition(id, data);
+
+        if (
+            response?.success &&
+            data.translations &&
+            Object.keys(data.translations).length > 0
+        ) {
+            await upsertLoyaltySpecialConditionTranslationService(id, data.translations);
+        }
+
         return response;
     } catch (error) {
         return { success: false, message: "Failed to update special condition." };

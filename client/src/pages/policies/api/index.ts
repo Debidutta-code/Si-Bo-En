@@ -8,3 +8,4 @@ export {
     deletePolicyApi,
     updatePolicyApi
 };
+export * from "./policy-multilang.api";

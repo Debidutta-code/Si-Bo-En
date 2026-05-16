@@ -69,3 +69,15 @@ export {
     updateLoyalityLevel,
     deleteLoyalityLevel
 } from "./loyality-level.api";
+
+// Loyalty Multilanguage APIs
+export {
+    upsertLoyaltyConditionTranslation,
+    getAllLoyaltyConditionTranslations,
+    getLoyaltyConditionTranslation,
+    deleteLoyaltyConditionTranslationLocale,
+    upsertLoyaltySpecialConditionTranslation,
+    getAllLoyaltySpecialConditionTranslations,
+    getLoyaltySpecialConditionTranslation,
+    deleteLoyaltySpecialConditionTranslationLocale,
+} from "./multilanguage.api";
