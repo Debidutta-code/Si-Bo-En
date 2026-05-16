@@ -19,6 +19,20 @@ import {createTouristTaxService,
     updateTouristTaxService
 } from "./tourist-tax.service";
 import {fetchRatePlansService} from "../../rate-plan/services";
+import {
+    deleteTaxGroupTranslationLocaleService,
+    deleteTaxRuleTranslationLocaleService,
+    deleteTouristTaxTranslationLocaleService,
+    getAllTaxGroupTranslationsService,
+    getAllTaxRuleTranslationsService,
+    getAllTouristTaxTranslationsService,
+    getTaxGroupTranslationService,
+    getTaxRuleTranslationService,
+    getTouristTaxTranslationService,
+    upsertTaxGroupTranslationService,
+    upsertTaxRuleTranslationService,
+    upsertTouristTaxTranslationService,
+} from "./multilanguage.services";
 
 
 export {
@@ -38,7 +52,18 @@ export {
     updateTaxRuleService,
     fetchRatePlansService,
 
-
+    upsertTaxGroupTranslationService,
+    getAllTaxGroupTranslationsService,
+    getTaxGroupTranslationService,
+    deleteTaxGroupTranslationLocaleService,
+    upsertTaxRuleTranslationService,
+    getAllTaxRuleTranslationsService,
+    getTaxRuleTranslationService,
+    deleteTaxRuleTranslationLocaleService,
+    upsertTouristTaxTranslationService,
+    getAllTouristTaxTranslationsService,
+    getTouristTaxTranslationService,
+    deleteTouristTaxTranslationLocaleService,
     
     createTouristTaxService,
     deleteTouristTaxService,

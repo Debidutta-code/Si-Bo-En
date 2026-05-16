@@ -20,6 +20,20 @@ import {
     fetchTouristTaxesByPropertyApi,
     updateTouristTaxApi
 } from "./tourist-tax.api";
+import {
+    deleteTaxGroupTranslationLocale,
+    deleteTaxRuleTranslationLocale,
+    deleteTouristTaxTranslationLocale,
+    getAllTaxGroupTranslations,
+    getAllTaxRuleTranslations,
+    getAllTouristTaxTranslations,
+    getTaxGroupTranslation,
+    getTaxRuleTranslation,
+    getTouristTaxTranslation,
+    upsertTaxGroupTranslation,
+    upsertTaxRuleTranslation,
+    upsertTouristTaxTranslation,
+} from "./multilanguage.api";
 export {
     createTaxGroup,
     addRulesToTaxGroup,
@@ -36,5 +50,17 @@ export {
     createTouristTaxApi,
     deleteTouristTaxApi,
     fetchTouristTaxesByPropertyApi,
-    updateTouristTaxApi
+    updateTouristTaxApi,
+    upsertTaxGroupTranslation,
+    getAllTaxGroupTranslations,
+    getTaxGroupTranslation,
+    deleteTaxGroupTranslationLocale,
+    upsertTaxRuleTranslation,
+    getAllTaxRuleTranslations,
+    getTaxRuleTranslation,
+    deleteTaxRuleTranslationLocale,
+    upsertTouristTaxTranslation,
+    getAllTouristTaxTranslations,
+    getTouristTaxTranslation,
+    deleteTouristTaxTranslationLocale,
 }
