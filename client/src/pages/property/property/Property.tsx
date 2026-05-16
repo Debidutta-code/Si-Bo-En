@@ -32,7 +32,7 @@ import {
 import type {
     IUPropertyConfig,
     IMasterPartnersWProperty,
-    IPropertyActiveLanguage,
+    IPropertyActiveLanguage
 } from "./types";
 import DeleteCreationDialog from '@/components/creation/Delete-Creation.dialog';
 import IntegrationDialog from './components/IntegrationDialog';
@@ -45,9 +45,12 @@ import { capitalizeFirstLetter } from '@/lib/utils';
 import {
     addPropertyLanguageService,
     deletePropertyLanguageService,
+    getPropertyLanguagesService,
 } from "./services/property-language.services"
 import { languages, type LanguageCode } from '@/components/language/language';
-import { usePropertyContext } from '@/contexts/PropertyContext';
+import { Plus, Globe } from "lucide-react";
+import AddCreationLanguageDialog from "@/components/creation/AddCreationLanguageDialog";
+import CheckCreationLanguagesDialog from "@/components/creation/CheckCreationLanguagesDialog";
 
 
 export default function PropertyPage() {
@@ -110,12 +113,22 @@ export default function PropertyPage() {
         isActive: creationDetails.isActive
     });
 
-    // ── Language state ──────────────────────────────────────────────
-    const { languages: propertyLanguages, refreshLanguages } = usePropertyContext();
+    const [propertyLanguages, setPropertyLanguages] = useState<IPropertyActiveLanguage[]>([]);
+
+    const refreshLanguages = async () => {
+        if (!propertyDetails?.id) return;
+        const response = await getPropertyLanguagesService(propertyDetails.id);
+        if (response.success && response.data) {
+            setPropertyLanguages(response.data);
+        }
+    };
+
     const [isLangPanelOpen, setIsLangPanelOpen] = useState(false);
     const [isDeletingLang, setIsDeletingLang] = useState<string | null>(null);
     const [isAddingLang, setIsAddingLang] = useState<string | null>(null);
-    // ────────────────────────────────────────────────────────────────
+    
+    const [addTranslationDialogOpen, setAddTranslationDialogOpen] = useState(false);
+    const [checkTranslationsDialogOpen, setCheckTranslationsDialogOpen] = useState(false);
 
     useEffect(() => {
         initialFetch();
@@ -126,7 +139,7 @@ export default function PropertyPage() {
             fetchProperty(),
             fetchUsers()
         ]);
-    }
+    };
 
     const fetchProperty = async () => {
         try {
@@ -231,12 +244,10 @@ export default function PropertyPage() {
     useEffect(() => {
         if (propertyDetails?.id) {
             fetchPropertyConfig(propertyDetails.id);
+            refreshLanguages();
         }
     }, [propertyDetails]);
 
-    // ── Language fetch ───────────────────────────────────────────────
-    // Handled by PropertyContext globally.
-    // ────────────────────────────────────────────────────────────────
 
     const handleCreateProperty = () => {
         if (!propertyDetails?.id) {
@@ -574,6 +585,17 @@ export default function PropertyPage() {
                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); openUpdateDialog(); }} className="cursor-pointer">
                                 <Button variant={"secondary"}>
                                     <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Property
+                                </Button>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setAddTranslationDialogOpen(true); }} className="cursor-pointer">
+                                <Button variant={"secondary"}>
+                                    <Plus className="h-4 w-4 mr-2 text-gray-600" /> Add Translation
+                                </Button>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCheckTranslationsDialogOpen(true); }} className="cursor-pointer">
+                                <Button variant={"secondary"}>
+                                    <Globe className="h-4 w-4 mr-2 text-gray-600" /> Check Translations
                                 </Button>
                             </DropdownMenuItem>
 
@@ -1074,6 +1096,21 @@ export default function PropertyPage() {
                 onUpdateField={handleUpdateIntegrationField}
                 onDeleteField={handleDeleteIntegrationField}
             />
+
+            {creationDetails.id && (
+                <>
+                    <AddCreationLanguageDialog
+                        open={addTranslationDialogOpen}
+                        onOpenChange={setAddTranslationDialogOpen}
+                        creationId={creationDetails.id}
+                    />
+                    <CheckCreationLanguagesDialog
+                        open={checkTranslationsDialogOpen}
+                        onOpenChange={setCheckTranslationsDialogOpen}
+                        creationId={creationDetails.id}
+                    />
+                </>
+            )}
         </div>
     );
 }

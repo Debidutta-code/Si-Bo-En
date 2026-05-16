@@ -65,13 +65,18 @@ spaCategoryTranslationSchema.statics.upsert = async function (id, localeData) {
 spaCategoryTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ spaCategoryId: id }).lean<ISpaCategoryTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ISpaCategoryLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+  const map = doc.translations as unknown as Record<string, ISpaCategoryLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 spaCategoryTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ spaCategoryId: id }).lean<ISpaCategoryTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ISpaCategoryLocaleBlock>);
+    return doc.translations as unknown as Record<string, ISpaCategoryLocaleBlock>;
 };
 spaCategoryTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);
@@ -141,13 +146,17 @@ spaSubCategoryTranslationSchema.statics.upsert = async function (id, localeData)
 spaSubCategoryTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ spaSubCategoryId: id }).lean<ISpaSubCategoryTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ISpaSubCategoryLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
-};
+const map = doc.translations as unknown as Record<string, ISpaSubCategoryLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );};
 spaSubCategoryTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ spaSubCategoryId: id }).lean<ISpaSubCategoryTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ISpaSubCategoryLocaleBlock>);
+     return doc.translations as unknown as Record<string, ISpaSubCategoryLocaleBlock>;
 };
 spaSubCategoryTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);

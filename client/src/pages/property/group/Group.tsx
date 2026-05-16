@@ -23,7 +23,11 @@ import {
   Upload,
   Trash2,
   Settings,
+  Plus,
+  Globe,
 } from "lucide-react";
+import AddCreationLanguageDialog from "@/components/creation/AddCreationLanguageDialog";
+import CheckCreationLanguagesDialog from "@/components/creation/CheckCreationLanguagesDialog";
 import {
   Dialog,
   DialogContent,
@@ -89,6 +93,9 @@ export default function page() {
       isActive: true,
     },
   );
+
+  const [addLanguageDialogOpen, setAddLanguageDialogOpen] = useState(false);
+  const [checkLanguagesDialogOpen, setCheckLanguagesDialogOpen] = useState(false);
   const getTabDisplayName = (tab: string): string => {
     const pluralMap: { [key: string]: string } = {
       brand: "brands",
@@ -426,6 +433,18 @@ export default function page() {
               </Button>
             </DropdownMenuItem>
 
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setAddLanguageDialogOpen(true); }} className="cursor-pointer">
+              <Button variant={"secondary"}>
+                <Plus className="h-4 w-4 mr-2 text-gray-600" /> Add Translation
+              </Button>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCheckLanguagesDialogOpen(true); }} className="cursor-pointer">
+              <Button variant={"secondary"}>
+                <Globe className="h-4 w-4 mr-2 text-gray-600" /> Check Translations
+              </Button>
+            </DropdownMenuItem>
+
             <Dialog
               onOpenChange={setAddMemberDialogOpen}
               open={addMemberDialogOpen}
@@ -724,6 +743,21 @@ export default function page() {
           </div>
         )}
       </div>
+
+      {creations.groupData.id && (
+        <>
+          <AddCreationLanguageDialog
+            open={addLanguageDialogOpen}
+            onOpenChange={setAddLanguageDialogOpen}
+            creationId={creations.groupData.id}
+          />
+          <CheckCreationLanguagesDialog
+            open={checkLanguagesDialogOpen}
+            onOpenChange={setCheckLanguagesDialogOpen}
+            creationId={creations.groupData.id}
+          />
+        </>
+      )}
     </div>
   );
 }

@@ -65,13 +65,18 @@ touristTaxTranslationSchema.statics.upsert = async function (id, localeData) {
 touristTaxTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ touristTaxId: id }).lean<ITouristTaxTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ITouristTaxLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+  const map = doc.translations as unknown as Record<string, ITouristTaxLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 touristTaxTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ touristTaxId: id }).lean<ITouristTaxTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ITouristTaxLocaleBlock>);
+    return doc.translations as unknown as Record<string, ITouristTaxLocaleBlock>;
 };
 touristTaxTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);

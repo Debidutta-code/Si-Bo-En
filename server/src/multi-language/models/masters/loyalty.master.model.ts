@@ -74,13 +74,18 @@ masterLoyaltyRegistrationFieldTranslationSchema.statics.upsert = async function 
 masterLoyaltyRegistrationFieldTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ masterLoyaltyRegistrationFieldId: id }).lean<IMasterLoyaltyRegistrationFieldTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, IMasterLoyaltyRegistrationFieldLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+  const map = doc.translations as unknown as Record<string, IMasterLoyaltyRegistrationFieldLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 masterLoyaltyRegistrationFieldTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ masterLoyaltyRegistrationFieldId: id }).lean<IMasterLoyaltyRegistrationFieldTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, IMasterLoyaltyRegistrationFieldLocaleBlock>);
+  return doc.translations as unknown as Record<string, IMasterLoyaltyRegistrationFieldLocaleBlock>;
 };
 masterLoyaltyRegistrationFieldTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);

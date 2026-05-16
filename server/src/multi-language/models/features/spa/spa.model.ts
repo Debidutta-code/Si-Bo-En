@@ -110,12 +110,11 @@ spaTranslationSchema.statics.getTranslated = async function (
   const doc = await this.findOne({ spaId }).lean<ISpaTranslation>();
   if (!doc?.translations) return null;
 
-  const map = doc.translations as unknown as Map<string, ILocaleBlock>;
+  const map = doc.translations as unknown as Record<string, ILocaleBlock>;
 
   return (
-    map.get(locale) ??
-    map.get('en') ??
-    map.values().next().value ??
+    map[locale] ??
+    Object.values(map)[0] ??
     null
   );
 };
@@ -126,9 +125,8 @@ spaTranslationSchema.statics.getAllTranslations = async function (
   const doc = await this.findOne({ spaId }).lean<ISpaTranslation>();
   if (!doc?.translations) return null;
 
-  return Object.fromEntries(
-    doc.translations as unknown as Map<string, ILocaleBlock>
-  );
+      return doc.translations as unknown as Record<string, ILocaleBlock>;
+
 };
 
 spaTranslationSchema.statics.deleteLocale = async function (

@@ -69,13 +69,18 @@ taxRuleTranslationSchema.statics.upsert = async function (id, localeData) {
 taxRuleTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ taxRuleId: id }).lean<ITaxRuleTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ITaxRuleLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+  const map = doc.translations as unknown as Record<string, ITaxRuleLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 taxRuleTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ taxRuleId: id }).lean<ITaxRuleTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ITaxRuleLocaleBlock>);
+    return doc.translations as unknown as Record<string, ITaxRuleLocaleBlock>;
 };
 taxRuleTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);
@@ -145,13 +150,18 @@ taxGroupTranslationSchema.statics.upsert = async function (id, localeData) {
 taxGroupTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ taxGroupId: id }).lean<ITaxGroupTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, ITaxGroupLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+  const map = doc.translations as unknown as Record<string, ITaxGroupLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 taxGroupTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ taxGroupId: id }).lean<ITaxGroupTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ITaxGroupLocaleBlock>);
+    return doc.translations as unknown as Record<string, ITaxGroupLocaleBlock>;
 };
 taxGroupTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);

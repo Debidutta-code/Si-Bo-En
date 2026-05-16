@@ -73,14 +73,20 @@ loyaltyConditionsTranslationSchema.statics.upsert = async function (id, localeDa
 loyaltyConditionsTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ loyaltyConditionId: id }).lean<ILoyaltyConditionsTranslation>();
   if (!doc?.translations) return null;
+
   const map = doc.translations as unknown as Map<string, ILoyaltyConditionsLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+
+  return (
+    map.get(locale) ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 
 loyaltyConditionsTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ loyaltyConditionId: id }).lean<ILoyaltyConditionsTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, ILoyaltyConditionsLocaleBlock>);
+  return doc.translations as unknown as Record<string, ILoyaltyConditionsLocaleBlock>;
 };
 
 loyaltyConditionsTranslationSchema.statics.deleteLocale = async function (id, locale) {

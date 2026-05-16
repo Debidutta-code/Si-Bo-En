@@ -61,13 +61,18 @@ masterIntegrationTranslationSchema.statics.upsert = async function (id, localeDa
 masterIntegrationTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ masterIntegrationId: id }).lean<IMasterIntegrationTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, IMasterIntegrationLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+  const map = doc.translations as unknown as Record<string, IMasterIntegrationLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 masterIntegrationTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ masterIntegrationId: id }).lean<IMasterIntegrationTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, IMasterIntegrationLocaleBlock>);
+    return doc.translations as unknown as Record<string, IMasterIntegrationLocaleBlock>;
 };
 masterIntegrationTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);

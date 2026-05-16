@@ -1,10 +1,5 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MasterPropertyCategory Translation
-// Translatable: categoryName, categoryDescription
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface IMasterPropertyCategoryLocaleBlock {
   categoryName:        string;
   categoryDescription: string;
@@ -69,13 +64,18 @@ masterPropertyCategoryTranslationSchema.statics.upsert = async function (id, loc
 masterPropertyCategoryTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ masterPropertyCategoryId: id }).lean<IMasterPropertyCategoryTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, IMasterPropertyCategoryLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+const map = doc.translations as unknown as Record<string, IMasterPropertyCategoryLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 masterPropertyCategoryTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ masterPropertyCategoryId: id }).lean<IMasterPropertyCategoryTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, IMasterPropertyCategoryLocaleBlock>);
+    return doc.translations as unknown as Record<string, IMasterPropertyCategoryLocaleBlock>;
 };
 masterPropertyCategoryTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);
@@ -149,13 +149,17 @@ masterPropertyTypeTranslationSchema.statics.upsert = async function (id, localeD
 masterPropertyTypeTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ masterPropertyTypeId: id }).lean<IMasterPropertyTypeTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, IMasterPropertyTypeLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
-};
+const map = doc.translations as unknown as Record<string, IMasterPropertyTypeLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );};
 masterPropertyTypeTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ masterPropertyTypeId: id }).lean<IMasterPropertyTypeTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, IMasterPropertyTypeLocaleBlock>);
+    return doc.translations as unknown as Record<string, IMasterPropertyTypeLocaleBlock>;
 };
 masterPropertyTypeTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);
@@ -229,13 +233,18 @@ masterAmenityTranslationSchema.statics.upsert = async function (id, localeData) 
 masterAmenityTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ masterAmenityId: id }).lean<IMasterAmenityTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, IMasterAmenityLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+  const map = doc.translations as unknown as Record<string, IMasterAmenityLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 masterAmenityTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ masterAmenityId: id }).lean<IMasterAmenityTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, IMasterAmenityLocaleBlock>);
+    return doc.translations as unknown as Record<string, IMasterAmenityLocaleBlock>;
 };
 masterAmenityTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);
@@ -307,13 +316,18 @@ masterRoomViewTranslationSchema.statics.upsert = async function (id, localeData)
 masterRoomViewTranslationSchema.statics.getTranslated = async function (id, locale = 'en') {
   const doc = await this.findOne({ masterRoomViewId: id }).lean<IMasterRoomViewTranslation>();
   if (!doc?.translations) return null;
-  const map = doc.translations as unknown as Map<string, IMasterRoomViewLocaleBlock>;
-  return map.get(locale) ?? map.get('en') ?? map.values().next().value ?? null;
+const map = doc.translations as unknown as Record<string, IMasterRoomViewLocaleBlock>;
+
+  return (
+    map[locale] ??
+    Object.values(map)[0] ??
+    null
+  );
 };
 masterRoomViewTranslationSchema.statics.getAllTranslations = async function (id) {
   const doc = await this.findOne({ masterRoomViewId: id }).lean<IMasterRoomViewTranslation>();
   if (!doc?.translations) return null;
-  return Object.fromEntries(doc.translations as unknown as Map<string, IMasterRoomViewLocaleBlock>);
+  return doc.translations as unknown as Record<string, IMasterRoomViewLocaleBlock>;
 };
 masterRoomViewTranslationSchema.statics.deleteLocale = async function (id, locale) {
   if (!isValidLocale(locale)) throw new Error(`Invalid locale: ${locale}. Must be 2-3 lowercase letters.`);

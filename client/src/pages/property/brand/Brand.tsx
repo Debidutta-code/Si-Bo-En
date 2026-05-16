@@ -18,6 +18,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import ImageSlider from '@/components/shared/ImageSlider';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
 import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
+import { Plus, Globe } from "lucide-react";
+import AddCreationLanguageDialog from "@/components/creation/AddCreationLanguageDialog";
+import CheckCreationLanguagesDialog from "@/components/creation/CheckCreationLanguagesDialog";
 
 
 export default function page() {
@@ -49,6 +52,9 @@ export default function page() {
         isActive: true
     });
     const currentTab = "property"
+
+    const [addLanguageDialogOpen, setAddLanguageDialogOpen] = useState(false);
+    const [checkLanguagesDialogOpen, setCheckLanguagesDialogOpen] = useState(false);
 
     const fetchGroup = async () => {
         try {
@@ -292,6 +298,18 @@ export default function page() {
                             </Button>
                         </DropdownMenuItem>
 
+                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setAddLanguageDialogOpen(true); }} className="cursor-pointer">
+                            <Button variant={"secondary"}>
+                                <Plus className="h-4 w-4 mr-2 text-gray-600" /> Add Translation
+                            </Button>
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCheckLanguagesDialogOpen(true); }} className="cursor-pointer">
+                            <Button variant={"secondary"}>
+                                <Globe className="h-4 w-4 mr-2 text-gray-600" /> Check Translations
+                            </Button>
+                        </DropdownMenuItem>
+
                         <Dialog onOpenChange={() => setAssignBrandManagerDialogOpen} open={assignBrandManagerDialogOpen}>
                             <DialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
@@ -508,6 +526,21 @@ export default function page() {
                     </div>
                 )}
             </div>
+
+            {brandDetails.id && (
+                <>
+                    <AddCreationLanguageDialog
+                        open={addLanguageDialogOpen}
+                        onOpenChange={setAddLanguageDialogOpen}
+                        creationId={brandDetails.id}
+                    />
+                    <CheckCreationLanguagesDialog
+                        open={checkLanguagesDialogOpen}
+                        onOpenChange={setCheckLanguagesDialogOpen}
+                        creationId={brandDetails.id}
+                    />
+                </>
+            )}
         </div>
     )
 }
