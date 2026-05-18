@@ -75,7 +75,7 @@ export default function MyTripPage() {
     setAvailableSpas([]);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode}?propertyCode=${propertyCode}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode.trim().toUpperCase()}?propertyCode=${propertyCode}`
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Booking not found");
@@ -469,8 +469,7 @@ export default function MyTripPage() {
             ref={inputRef}
             type="text"
             value={bookingCode}
-            onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
-            onKeyDown={handleKeyPress}
+            onChange={(e) => setBookingCode(e.target.value.trim().toUpperCase())} onKeyDown={handleKeyPress}
             placeholder={t("MyTrip.placeholder")}
 
             className="w-full sm:w-96 px-5 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 transition-colors uppercase"

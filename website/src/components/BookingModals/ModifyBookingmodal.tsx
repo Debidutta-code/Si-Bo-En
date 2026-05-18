@@ -524,8 +524,6 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
   const formatDateForInput = (date: Date) => date.toISOString().split("T")[0];
-
-  // ── Price breakdown helpers ────────────────────────────────────────────────
   const renderTaxBreakdown = () => {
     const taxes = finalPrice.taxBrakeDown || finalPrice.tax || [];
     if (!taxes.length)
@@ -705,6 +703,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                         setDateErrors((p) => ({ ...p, checkOut: undefined }));
                         setPriceFetched(false);
                       }}
+                      disabled={isBefore(new Date(checkInDate), new Date())}
                       className={`w-full border px-3 py-2 rounded ${dateErrors.checkOut ? "border-red-500" : ""}`}
                     />
                     {dateErrors.checkOut && (
@@ -717,7 +716,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                 <div className="pt-4 border-t">
                   <button
                     onClick={fetchUpdatedPrice}
-                    disabled={priceLoading || !checkInDate || !checkOutDate}
+                    disabled={priceLoading || !checkInDate || !checkOutDate || isBefore(new Date(checkInDate), new Date())}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium flex items-center justify-center gap-2 disabled:bg-gray-400"
                   >
                     {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>{t("ModifyBooking.fetchingPrice")}</span></> : <><RefreshCw className="h-4 w-4" /><span>{t("ModifyBooking.checkUpdatedPrice")}</span></>}
