@@ -234,8 +234,14 @@ export class PropertyAddressController {
                     .status(400)
                     .json(errorResponse('Property id not found'));
             }
-            const serviceRes =
+            
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            
+            let serviceRes =
                 await PropertyAddressService.findAddressByPropertyId(id);
+                
+            serviceRes = await PropertyInterceptor.interceptFindAddressByPropertyId(serviceRes, locale);
+                
             if (serviceRes?.success) {
                 return res.status(200).json(serviceRes);
             } else {

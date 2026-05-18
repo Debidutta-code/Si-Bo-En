@@ -97,7 +97,11 @@ export default function Rooms({ propertyId }: PropertyId) {
     view360Link: "",
     roomVideos: { url: "", thumbnail: "" },
     priority: 0,
-    RoomViews: { MasterRoomView: { id: "", viewName: "" } }
+    RoomViews: { MasterRoomView: { id: "", viewName: "",_translations:{viewName:""} } },
+    _translations:{
+      description:"",
+      roomName:""
+    }
   };
 
   const [roomDetails, setRoomDetails] = useState<IRoomDetails>(emptyRoomDetails);
@@ -133,8 +137,8 @@ export default function Rooms({ propertyId }: PropertyId) {
     setLoading(true);
     try {
       const response = await getPropertyDetails(propertyId);
-      if (response.success && response.data?.propertyRoom) {
-        const data = response.data.propertyRoom;
+      if (response.success && response.data?.propertyRooms) {
+        const data = response.data.propertyRooms;
         setRooms(data);
       } else {
         toast.error(response.message);
@@ -313,7 +317,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <CardTitle className="text-2xl font-semibold text-gray-900">
-                        {room.roomName}
+                        {room._translations?room._translations.roomName:room.roomName}
                       </CardTitle>
                       {!room.available && (
                         <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
@@ -467,6 +471,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                     roomVideos: room.roomVideos,
                                     priority: room.priority,
                                     RoomViews: room.RoomViews,
+                                    _translations:room._translations
                                   });
                                 }}
                               >
@@ -689,7 +694,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           Room View
                         </label>
                         <p className="text-sm text-gray-900">
-                          {room.RoomViews?.MasterRoomView?.viewName || "—"}
+                          {room.RoomViews?.MasterRoomView?._translations?room.RoomViews.MasterRoomView._translations.viewName:room.RoomViews?.MasterRoomView?.viewName || "—"}
                         </p>
                       </div>
 
@@ -833,7 +838,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                     Add Room Amenities
                                   </AlertDialogTitle>
                                   <p className="text-sm text-gray-500 mt-1">
-                                    Select amenities for {room.roomName}
+                                    Select amenities for {room._translations?room._translations.roomName:room.roomName}
                                   </p>
                                 </div>
                                 <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -874,7 +879,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           >
                             <div className="w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0" />
                             <span className="capitalize">
-                              {selection.amenity.amenityName}
+                              {selection.amenity._translations?selection.amenity._translations.amenityName:selection.amenity.amenityName}
                             </span>
                           </div>
                         ))}

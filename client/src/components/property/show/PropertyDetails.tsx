@@ -55,18 +55,17 @@ export default function PropertyDetails({
     description: "",
     propertyEmail: "",
     propertyCode: "",
-    destinationType: {
-      masterDestinationType: {
-        id: "",
-        destinationDescription: "",
-        destinationTypeName: "",
-      }
-    },
     propertyCategory: {
       masterCategory: {
         id: "",
         categoryName: "",
         categoryDescription: "",
+        _translations: {
+          categoryDescription:"",
+          categoryName:""
+        }
+
+
       }
     },
     propertyContact: "",
@@ -75,12 +74,21 @@ export default function PropertyDetails({
         id: "",
         propertyTypeDescription: "",
         propertyTypeName: "",
+        _translations:{
+          propertyTypeDescription:"",
+          propertyTypeName:""
+        }
       }
     },
     image: [],
     propertyEmails: [],
     creationId: "",
-    
+    _translations: {
+      propertyName: "",
+      description: "string"
+    }
+
+
   });
   // Property emails state
   const [propertyEmails, setPropertyEmails] = useState<IPropertyEmail[]>([]);
@@ -106,7 +114,7 @@ export default function PropertyDetails({
     fetchPropertyDetails(propertyId);
     fetchEmails(propertyId);
   }, [propertyId]);
-// console.log(propertyDetails,"propertyDetails.creationId")
+  // console.log(propertyDetails,"propertyDetails.creationId")
   const fetchEmails = async (propId: string) => {
     setEmailsLoading(true);
     try {
@@ -192,7 +200,6 @@ export default function PropertyDetails({
           propertyName: data.propertyName,
           description: data.description,
           propertyCode: data.propertyCode,
-          destinationType: data.destinationType,
           propertyCategory: data.propertyCategory,
           propertyContact: data.propertyContact,
           propertyEmail: data.propertyEmail,
@@ -200,6 +207,7 @@ export default function PropertyDetails({
           image: data.image,
           propertyEmails: data.propertyEmails || [],
           creationId: data.creationId,
+_translations:data._translations
         });
       } else {
         throw new Error(response.message || "Failed to fetch property details");
@@ -268,7 +276,7 @@ export default function PropertyDetails({
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3">
               <h1 className="text-2xl font-bold text-gray-900">
-                {propertyDetails.propertyName}
+                {propertyDetails._translations?propertyDetails._translations.propertyName:propertyDetails.propertyName}
               </h1>
               <span className="px-3 py-1 bg-success/10 text-success-700 text-xs font-semibold rounded-full flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" />
@@ -320,33 +328,33 @@ export default function PropertyDetails({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-            <Button
-              className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90"
-              onClick={() => navigate(`/app/property/property/${propertyDetails?.creationId}`)}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Property Configuration
-            </Button>
+          <Button
+            className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90"
+            onClick={() => navigate(`/app/property/property/${propertyDetails?.creationId}`)}
+          >
+            <Settings className="h-4 w-4 mr-2" />
+            Property Configuration
+          </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90">
-                  <Globe className="h-4 w-4 mr-2" />
-                  Translations
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setAddTranslationOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Translation
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setCheckTranslationsOpen(true)}>
-                  <Languages className="h-4 w-4 mr-2" /> Check Translations
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90">
+                <Globe className="h-4 w-4 mr-2" />
+                Translations
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setAddTranslationOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" /> Add Translation
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setCheckTranslationsOpen(true)}>
+                <Languages className="h-4 w-4 mr-2" /> Check Translations
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-            <AddPropertyDetailsLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} propertyId={propertyId} />
-            <CheckPropertyDetailsLangDialog open={checkTranslationsOpen} onOpenChange={setCheckTranslationsOpen} propertyId={propertyId} />
+          <AddPropertyDetailsLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} propertyId={propertyId} />
+          <CheckPropertyDetailsLangDialog open={checkTranslationsOpen} onOpenChange={setCheckTranslationsOpen} propertyId={propertyId} />
 
         </div>
       </div>
@@ -417,7 +425,7 @@ export default function PropertyDetails({
                   Property Type
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
-                  {propertyDetails.propertyType?.masterPropertyType?.propertyTypeName || "Not specified"}
+                  {propertyDetails.propertyType?.masterPropertyType._translations?propertyDetails.propertyType?.masterPropertyType._translations.propertyTypeName:propertyDetails.propertyType?.masterPropertyType.propertyTypeName || "Not specified"}
                 </span>
               </div>
 
@@ -427,7 +435,7 @@ export default function PropertyDetails({
                   Category
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
-                  {propertyDetails.propertyCategory?.masterCategory?.categoryName || "Not specified"}
+                  {propertyDetails.propertyCategory?.masterCategory._translations?propertyDetails.propertyCategory?.masterCategory._translations.categoryName:propertyDetails.propertyCategory?.masterCategory.categoryName || "Not specified"}
                 </span>
               </div>
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">

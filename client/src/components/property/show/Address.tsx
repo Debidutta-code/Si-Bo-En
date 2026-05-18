@@ -41,6 +41,16 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
     latitude: "",
     longitude: "",
     location: "",
+        _translations: {
+        addressLine1: "",
+        addressLine2: "",
+        country: "",
+        state: "",
+        city: "",
+        location: "",
+        landmark: ""
+    }
+
   });
 
   const fetchPropertyAddress = async (propertyId: string) => {
@@ -60,6 +70,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
           latitude: data.latitude,
           longitude: data.longitude,
           location: data.location,
+          _translations:data._translations
         });
       } else {
         toast.error(response.message);
@@ -197,7 +208,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                 Address Line 1
               </label>
               <p className="text-base text-gray-900">
-                {propertyAddress.addressLine1 || (
+                {propertyAddress._translations?propertyAddress._translations.addressLine1:propertyAddress.addressLine1 || (
                   <span className="text-gray-400 italic">Not specified</span>
                 )}
               </p>
@@ -208,7 +219,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                 Address Line 2
               </label>
               <p className="text-base text-gray-900">
-                {propertyAddress.addressLine2 || (
+                {propertyAddress._translations?propertyAddress._translations.addressLine2:propertyAddress.addressLine2 || (
                   <span className="text-gray-400 italic">Not specified</span>
                 )}
               </p>
@@ -219,7 +230,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                 Location / Area
               </label>
               <p className="text-base text-gray-900">
-                {propertyAddress.location || (
+                {propertyAddress._translations?propertyAddress._translations.location:propertyAddress.location || (
                   <span className="text-gray-400 italic">Not specified</span>
                 )}
               </p>
@@ -230,7 +241,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                 Landmark
               </label>
               <p className="text-base text-gray-900">
-                {propertyAddress.landmark || (
+                {propertyAddress._translations?propertyAddress._translations.landmark:propertyAddress.landmark || (
                   <span className="text-gray-400 italic">Not specified</span>
                 )}
               </p>
@@ -244,7 +255,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                 City
               </label>
               <p className="text-base text-gray-900">
-                {propertyAddress.city || (
+                {propertyAddress._translations?propertyAddress._translations.city:propertyAddress.city || (
                   <span className="text-gray-400 italic">Not specified</span>
                 )}
               </p>
@@ -257,7 +268,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
               <p className="text-base text-gray-900">
                 {propertyAddress.state && propertyAddress.country ? (
                   <>
-                    {propertyAddress.state}, {propertyAddress.country}
+                    {propertyAddress._translations?propertyAddress._translations.state:propertyAddress.state}, {propertyAddress._translations?propertyAddress._translations.country:propertyAddress.country}
                   </>
                 ) : (
                   <span className="text-gray-400 italic">Not specified</span>

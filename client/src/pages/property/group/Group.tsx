@@ -61,7 +61,7 @@ import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 
 export default function page() {
   const { creationId } = useParams<{ creationId: string }>();
-  const [addMemberDialogOpen,setAddMemberDialogOpen]=useState<boolean>(false)
+  const [addMemberDialogOpen, setAddMemberDialogOpen] = useState<boolean>(false)
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [creations, setCreations] = useState<IGroupCreations>({
@@ -75,6 +75,9 @@ export default function page() {
       superGroupName: "",
       users: [],
       images: [],
+      _translations:{
+        name:""
+      }
     },
   });
   const [isAssigningUser, setIsAssigningUser] = useState<boolean>(false);
@@ -112,7 +115,7 @@ export default function page() {
         setCreations(response.data);
         if (response.data.brands.length > 0) {
           setCurrentTab("brand");
-          return  
+          return
         }
         if (response.data.properties.length > 0) {
           setCurrentTab("property");
@@ -278,21 +281,15 @@ export default function page() {
           <div className="flex justify-between items-start mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {creations.groupData.name}
+                {creations.groupData._translations?creations.groupData._translations.name:creations.groupData.name}
               </h1>
               <div className="flex items-center space-x-3">
-                <p className="text-sm text-gray-600">
-                  Parent:{" "}
-                  <span className="font-semibold text-gray-800">
-                    {creations.groupData.superGroupName}
-                  </span>
-                </p>
+
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    creations.groupData.isActive
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${creations.groupData.isActive
                       ? "bg-green-100 text-green-700 ring-1 ring-green-200"
                       : "bg-red-100 text-red-700 ring-1 ring-red-200"
-                  }`}
+                    }`}
                 >
                   {creations.groupData.isActive ? "● Active" : "● Inactive"}
                 </span>
@@ -636,11 +633,10 @@ export default function page() {
             key={tab}
             variant={currentTab === tab ? "secondary" : "ghost"}
             onClick={() => setCurrentTab(tab)}
-            className={`px-4 py-2 rounded-t-lg border-b-2 ${!isCreationButtonVisible(tab) && "hidden"} ${
-              currentTab === tab
+            className={`px-4 py-2 rounded-t-lg border-b-2 ${!isCreationButtonVisible(tab) && "hidden"} ${currentTab === tab
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-transparent hover:border-gray-300"
-            }`}
+              }`}
           >
             {capitalizeFirstLetter(getTabDisplayName(tab))} (
             {tab === "brand"
@@ -701,7 +697,8 @@ export default function page() {
                   {/* This pushes button to bottom */}
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
-                      {item.name}
+                      {item._translations ? item._translations.name : item.name}
+
                     </h3>
                   </div>
                 </div>

@@ -13,7 +13,7 @@ export interface ICreatePromoCode {
     validTo: Date;
     minBookingAmount: number | null;
     maxDiscountAmount: number | null;
-    currencyCode:CurrencyCode;
+    currencyCode: CurrencyCode;
     isApplicableForMobileApp?: boolean;
     isApplicableForDesktop?: boolean;
     isApplicableForTablet?: boolean;
@@ -44,9 +44,9 @@ export interface IRPromoCode {
     isApplicableForMobileApp: boolean;
     isApplicableForDesktop: boolean;
     isApplicableForTablet: boolean;
-    currencyCode:CurrencyCode;
+    currencyCode: CurrencyCode;
 
-    
+
 
     usageLimit: number | null;
     usageLimitPerUser: number | null;
@@ -56,4 +56,9 @@ export interface IRPromoCode {
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
+    _translations?: {
+        name: string,
+        description: string
+    }
+
 }

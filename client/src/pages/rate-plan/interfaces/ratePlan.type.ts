@@ -26,6 +26,9 @@ export interface RatePlan {
     updatedAt?: string;
     ratePlanRules?: RatePlanRule | null;
     Addons?: RatePlanWithAddon[] | null;
+    _translations?:{
+        ratePlanName:string;
+    }
 }
 export interface RatePlanWithAddon {
     id: string;

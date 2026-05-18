@@ -53,9 +53,10 @@ export default function UpdatePropertyAmenity({
         const allAmenities = (amenitiesRes.data || []) as Array<{
           id: string;
           amenityName: string;
+          _translations?: any;
         }>;
         const cleanedAmenities: IAmenity[] = allAmenities
-          .map((a) => ({ id: a.id, name: a.amenityName }))
+          .map((a) => ({ id: a.id, name: a.amenityName, _translations: a._translations || {} }))
           .filter((a) => a.id && a.name);
 
         setAvailableAmenities(cleanedAmenities);
@@ -124,7 +125,7 @@ export default function UpdatePropertyAmenity({
               )}
             >
               <span className="text-xs  font-medium capitalize text-center">
-                {amenity.name}
+                {amenity._translations?amenity._translations.amenityName:amenity.name}
               </span>
               <div
                 className={cn(

@@ -1,4 +1,4 @@
-import type { roomUnit,smokingPolicy } from "../create/types/types";
+import type { roomUnit, smokingPolicy } from "../create/types/types";
 
 export interface IPropertyEmail {
   id: string;
@@ -18,28 +18,36 @@ export interface IPropertyDetails {
       id: string;
       categoryName: string;
       categoryDescription: string
-    }
-  };
-  destinationType: {
-    masterDestinationType: {
+      _translations?: {
+        categoryName: string,
+        categoryDescription: string;
+      }
 
-      id: string;
-      destinationTypeName: string
-      destinationDescription: string;
     }
   };
+
   propertyType: {
     masterPropertyType: {
 
       id: string;
       propertyTypeName: string
       propertyTypeDescription: string;
+      _translations?: {
+        propertyTypeName: string,
+        propertyTypeDescription: string;
+      }
+
     }
 
   };
   description: string;
   image: string[],
   propertyEmails: IPropertyEmail[];
+  _translations?: {
+    propertyName: string,
+    description: string;
+  }
+
 }
 export interface IPropertyAddress {
   addressLine1: string;
@@ -52,6 +60,16 @@ export interface IPropertyAddress {
   longitude: string;
   latitude: string;
   zipCode: string;
+      _translations?: {
+        addressLine1: string,
+        addressLine2: string,
+        country: string,
+        state: string,
+        city: string,
+        location: string,
+        landmark: string
+    }
+
 }
 
 
@@ -61,6 +79,11 @@ export interface IAmenity {
   amenityName: string;
   description: string | null;
   icon: string | null;
+  _translations?: {
+    amenityName: string;
+    description: string;
+  }
+
 }
 
 export interface IRoomAmenitySelection {
@@ -103,8 +126,16 @@ export interface IRoom {
     MasterRoomView?: {
       id: string;
       viewName: string;
+      _translations: {
+        viewName: string;
+      };
     };
   };
+  _translations?: {
+    roomName: string;
+    description: string;
+
+  }
 }
 export interface IRatePlans {
   hotelCode: string

@@ -15,4 +15,8 @@ export interface IPolicy{
     propertyId: string;
     createdAt: Date;
     updatedAt: Date;
+    _translations?:{
+        policyName:string;
+        description:string;
+    }
 }

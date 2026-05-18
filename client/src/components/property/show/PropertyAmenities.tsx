@@ -115,7 +115,7 @@ fetchPropertyAmenity(propertyId)
               >
                 <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary-500 group-hover:bg-primary-600 transition-colors" />
                 <span className="text-sm font-medium text-gray-700 capitalize">
-                  {amenity.name}
+                  {amenity._translations?amenity._translations.amenityName:amenity.name}
                 </span>
               </div>
             ))}

@@ -5,6 +5,7 @@ import {
 import { Response } from 'express';
 import { errorResponse } from '../../utils/return';
 import { PoliciesServices } from '../services';
+import { PolicyInterceptor } from '../../multi-language/interceptors/ari/policy.interceptor';
 export class PolicyController {
     public static async createPolicies(
         req: PropertyCustomRequest,
@@ -129,15 +130,19 @@ export class PolicyController {
         res: Response
     ) {
         try {
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             const { propertyId } = req.query;
             if (!propertyId) {
                 return res
                     .status(400)
                     .json(errorResponse('Hotel code is required'));
             }
-            const serRes = await PoliciesServices.getPoliciesByHotelCode(
+            let serRes = await PoliciesServices.getPoliciesByHotelCode(
                 propertyId.toString()
             );
+            
+            serRes = await PolicyInterceptor.intercept(serRes, locale);
+            
             const resStatus = serRes.success ? 200 : 400;
             return res.status(resStatus).json(serRes);
         } catch (error: any) {

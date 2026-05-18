@@ -246,7 +246,7 @@ export default function PropertyAmenities() {
                       >
                         {getAmenityIcon(amenity.amenityName)}
                         <span className="font-semibold text-sm capitalize">
-                          {amenity.amenityName.replace(/_/g, " ")}
+                          {amenity._translations?amenity._translations.amenityName:amenity.amenityName.replace(/_/g, " ")}
                         </span>
                         <div
                           className={cn(

@@ -80,7 +80,11 @@ export default function PropertyPage() {
         isActive: false,
         createdAt: "",
         under: "",
-        users: []
+        users: [],
+        _translations: {
+            name:""
+      }
+
     });
     const [propertyDetails, setPropertyDetails] = useState<IPropertyCreations | null>(null);
     const [isCreationCompleted, setIsCreationCompleted] = useState<boolean>(false);
@@ -126,7 +130,7 @@ export default function PropertyPage() {
     const [isLangPanelOpen, setIsLangPanelOpen] = useState(false);
     const [isDeletingLang, setIsDeletingLang] = useState<string | null>(null);
     const [isAddingLang, setIsAddingLang] = useState<string | null>(null);
-    
+
     const [addTranslationDialogOpen, setAddTranslationDialogOpen] = useState(false);
     const [checkTranslationsDialogOpen, setCheckTranslationsDialogOpen] = useState(false);
 
@@ -149,6 +153,7 @@ export default function PropertyPage() {
             }
             const response = await getPropertyCreationId(creationId);
             if (response.success) {
+                console.log(response.data)
                 setIsCreationCompleted(response.isPropertyCreated);
                 setCreationDetails(response.data.creationData);
                 setPropertyDetails(response.data.propertyDetails);
@@ -344,7 +349,7 @@ export default function PropertyPage() {
         try {
             const response = await addPropertyLanguageService({
                 propertyId: propertyDetails.id,
-                language:languageCode,
+                language: languageCode,
             });
             if (response.success) {
                 toast.success("Language added");
@@ -405,7 +410,7 @@ export default function PropertyPage() {
         }
     };
 
-    const handleIntegrationSuccess = () => {};
+    const handleIntegrationSuccess = () => { };
 
     const handleToggleIntegrationStatus = async (integrationId: string, currentStatus: boolean) => {
         setIsIntegrating(prev => ({ ...prev, [integrationId]: true }));
@@ -535,7 +540,7 @@ export default function PropertyPage() {
                     <div className="flex justify-between items-start mb-6">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                {creationDetails?.name}
+                                {creationDetails?._translations?creationDetails._translations.name:creationDetails.name}
                             </h1>
                             <div className="flex items-center space-x-3">
                                 <p className="text-sm text-gray-600">

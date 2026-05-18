@@ -53,6 +53,10 @@ export default function PropertyDetailsPage() {
     propertyVideos: {
       url: "",
       thumbnail: null
+    },
+    _translations: {
+      propertyName: "",
+      description: ""
     }
   });
 
@@ -68,6 +72,15 @@ export default function PropertyDetailsPage() {
     propertyId: "",
     state: "",
     zipCode: 0,
+    _translations: {
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      country: "",
+      landmark: "",
+      location: "",
+      state: ""
+    }
   });
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -81,6 +94,7 @@ export default function PropertyDetailsPage() {
       const response = await getPropertyDetails(propertyId);
       if (response.data) {
         const data = response.data;
+        console.log("Data", data)
         setPropertyDetails({
           propertyName: data.propertyName,
           propertyEmail: data.propertyEmail,
@@ -92,6 +106,7 @@ export default function PropertyDetailsPage() {
           description: data.description,
           propertyCode: data.propertyCode,
           propertyVideos: data.propertyVideos,
+          _translations: data._translations
         });
         setPropertyImages(data.image || []);
         if (data.propertyAddress) {
@@ -172,9 +187,9 @@ export default function PropertyDetailsPage() {
 
   const getFullAddress = () => {
     const parts = [
-      propertyAddress.city,
-      propertyAddress.state,
-      propertyAddress.country,
+      propertyAddress._translations ? propertyAddress._translations.city : propertyAddress.city,
+      propertyAddress._translations ? propertyAddress._translations.state : propertyAddress.state,
+      propertyAddress._translations ? propertyAddress._translations.country : propertyAddress.country,
       propertyAddress.zipCode?.toString(),
     ].filter(Boolean);
 
@@ -200,7 +215,7 @@ export default function PropertyDetailsPage() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {propertyDetails.propertyName}
+                  {propertyDetails._translations ? propertyDetails._translations.propertyName : propertyDetails.propertyName}
                 </h1>
                 <p className="text-base text-gray-600 flex items-center">
                   <MapPin className="h-5 w-5 mr-2 flex-shrink-0" />

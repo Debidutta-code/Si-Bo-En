@@ -1,4 +1,4 @@
-import type { roomUnit,  smokingPolicy } from "../../create/types/types";
+import type { roomUnit, smokingPolicy } from "../../create/types/types";
 
 export interface IPropertyType {
   id: string;
@@ -90,6 +90,15 @@ export interface IRoomDetails {
     MasterRoomView?: {
       id: string;
       viewName: string;
+      _translations: {
+        viewName: string;
+      };
+
     };
   };
+  _translations?: {
+    roomName: string;
+    description: string;
+
+  }
 }

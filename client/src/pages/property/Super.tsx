@@ -199,7 +199,7 @@ export default function HotelsPage() {
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
-                      {item.name}
+                      {item._translations?item._translations.name:item.name}
                     </h3>
                   </div>
                 </div>

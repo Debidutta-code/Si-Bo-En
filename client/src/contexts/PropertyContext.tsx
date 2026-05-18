@@ -8,6 +8,8 @@ interface PropertyContextType {
     languages: IPropertyActiveLanguage[];
     loadingLanguages: boolean;
     refreshLanguages: () => void;
+    setCreationId: React.Dispatch<React.SetStateAction<string>>;
+    propertyCreationId: string;
 }
 
 const PropertyContext = createContext<PropertyContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const [propertyId, setPropertyId] = useState<string | null>(null);
     const [languages, setLanguages] = useState<IPropertyActiveLanguage[]>([]);
     const [loadingLanguages, setLoadingLanguages] = useState<boolean>(false);
+    const [propertyCreationId,setCreationId]=useState<string>("")
 
     useEffect(() => {
         const segments = location.pathname.split('/');
@@ -56,7 +59,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
 
     return (
-        <PropertyContext.Provider value={{ propertyId, languages, loadingLanguages, refreshLanguages }}>
+        <PropertyContext.Provider value={{ propertyId, languages, loadingLanguages, refreshLanguages,setCreationId, propertyCreationId}}>
             {children}
         </PropertyContext.Provider>
     );

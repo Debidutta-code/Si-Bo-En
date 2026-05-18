@@ -41,7 +41,10 @@ export default function page() {
         name: "",
         under: "",
         users: [],
-        images: []
+        images: [],
+        _translations:{
+        name:""
+      }
     })
     const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
     const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
@@ -206,7 +209,7 @@ export default function page() {
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-6">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{brandDetails.name}</h1>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{brandDetails._translations?brandDetails._translations.name:brandDetails.name}</h1>
                             <div className="flex items-center space-x-3">
                                 <p className="text-sm text-gray-600">
                                     Parent: <span className="font-semibold text-gray-800">{brandDetails.under}</span>
@@ -485,7 +488,7 @@ export default function page() {
 
                                 <div className="flex justify-between items-start mb-3">
                                     <h3 className="font-semibold text-lg text-gray-900 truncate">
-                                        {item.name}
+                                        {item._translations?item._translations.name:item.name}
                                     </h3>
                                 </div>
 

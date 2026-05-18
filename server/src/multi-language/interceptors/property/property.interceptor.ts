@@ -103,6 +103,30 @@ export class PropertyInterceptor {
         }
     }
 
+    public static async interceptFindAddressByPropertyId(
+        response: IApiResponse<any>,
+        locale: string
+    ): Promise<IApiResponse<any>> {
+        if (!response.success || !response.data || locale.toLowerCase() === 'en') {
+            return response;
+        }
+        try {
+            const data = response.data;
+            if (!data?.propertyId) return response; // Ensure it has a associated propertyId that is used to store translations
+            const addressTranslation = await PropertyAddressTranslation.getTranslated(data.propertyId, locale);
+            
+            const result = {
+                ...data,
+                ...(addressTranslation && { _translations: addressTranslation })
+            };
+            return { ...response, data: result };
+
+        } catch (error) {
+            console.error(`[PropertyInterceptor Error]:`, error);
+            return response;
+        }
+    }
+
     private static async attachRoomTranslation(room: any, locale: string): Promise<any> {
         if (!room?.id) return room;
 

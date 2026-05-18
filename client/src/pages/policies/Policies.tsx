@@ -60,7 +60,11 @@ interface GroupedPolicy {
     type: PolicyTypes;
     description?: string;
     propertyId: string;
-    ratePlans: { code: string; name: string }[];
+    ratePlans: { code: string; name: string,_translations?:{ratePlanName:string} }[];
+    _translations?: {
+        policyName: string;
+        description: string;
+    }
 }
 
 export default function PoliciesPage() {
@@ -112,10 +116,16 @@ export default function PoliciesPage() {
                         existing.ratePlans.push({
                             code: policy.ratePlanCode,
                             name: policy.ratePlanName,
+                            _translations: ratePlans.find((singleRatePlan: RatePlan) => singleRatePlan.ratePlanCode === policy.ratePlanCode)?._translations
                         });
                     }
                 }
             } else {
+                let initialTranslations;
+                if (policy.ratePlanName && policy.ratePlanCode) {
+                    initialTranslations = ratePlans.find((singleRatePlan: RatePlan) => singleRatePlan.ratePlanCode === policy.ratePlanCode)?._translations;
+                }
+
                 map.set(policy.id, {
                     id: policy.id,
                     policyName: policy.policyName,
@@ -124,13 +134,14 @@ export default function PoliciesPage() {
                     propertyId: policy.propertyId,
                     ratePlans:
                         policy.ratePlanName && policy.ratePlanCode
-                            ? [{ code: policy.ratePlanCode, name: policy.ratePlanName }]
+                            ? [{ code: policy.ratePlanCode, name: policy.ratePlanName, _translations: initialTranslations }]
                             : [],
+                    _translations: policy._translations
                 });
             }
         });
         return Array.from(map.values());
-    }, [policies]);
+    }, [policies, ratePlans]);
 
     const fetchPolicies = async () => {
         if (!propertyId) return;
@@ -478,126 +489,130 @@ export default function PoliciesPage() {
                                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     {groupedPolicies
                                         .filter((p) => tabValue === "all" || p.type === tabValue)
-                                        .map((policy) => (
-                                            <div
-                                                key={policy.id}
-                                                className="group rounded-xl bg-white border border-[#e2e8f0] overflow-hidden transition-all duration-200 hover:shadow-md hover:border-[#cbd5e1]"
-                                            >
-                                                {/* Card header with dark strip */}
-                                                <div className="bg-primary px-5 py-3 flex items-center justify-between">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className="h-7 w-7 rounded-lg bg-white/15 flex items-center justify-center text-white">
-                                                            {getPolicyIcon(policy.type)}
-                                                        </div>
-                                                        <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
-                                                            {getTypeLabel(policy.type)}
-                                                        </span>
-                                                    </div>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                className="h-7 w-7 p-0 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
-                                                            >
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="w-44">
-                                                            <DropdownMenuLabel className="text-xs text-[#94a3b8]">Actions</DropdownMenuLabel>
-                                                            <DropdownMenuItem onClick={() => handleEditClick(policy)} className="cursor-pointer text-sm">
-                                                                <Pencil className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
-                                                                Edit Policy
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => handleAssignClick(policy)} className="cursor-pointer text-sm">
-                                                                <Link2 className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
-                                                                Add to Rate Plan
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={() => {
-                                                                    setSelectedPolicyId(policy.id);
-                                                                    setLangForm({ policyName: "", description: "" });
-                                                                    setSelectedLang("");
-                                                                    setIsAddLanguageOpen(true);
-                                                                }}
-                                                                className="cursor-pointer text-sm"
-                                                            >
-                                                                Add Language
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={() => {
-                                                                    setSelectedPolicyId(policy.id);
-                                                                    fetchPolicyTranslations(policy.id);
-                                                                    setIsCheckLanguagesOpen(true);
-                                                                }}
-                                                                className="cursor-pointer text-sm"
-                                                            >
-                                                                Check Languages
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuSeparator />
-                                                            <DropdownMenuItem
-                                                                onClick={() => handleDeleteClick(policy)}
-                                                                className="text-red-600 focus:text-red-600 cursor-pointer text-sm"
-                                                            >
-                                                                <Trash2 className="mr-2 h-3.5 w-3.5" />
-                                                                Delete
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-
-                                                {/* Card body */}
-                                                <div className="p-5 space-y-4">
-                                                    <div>
-                                                        <h3 className="text-base font-semibold text-[#0f172a] leading-tight">
-                                                            {policy.policyName}
-                                                        </h3>
-                                                        <p className="text-sm text-gray-500 mt-1 line-clamp-2 leading-relaxed">
-                                                            {policy.description || "No description provided."}
-                                                        </p>
-                                                    </div>
-
-                                                    {/* Rate Plans */}
-                                                    <div className="bg-Primary rounded-lg p-3 border border-[#f1f5f9]">
-                                                        <div className="flex items-center gap-1.5 mb-2">
-                                                            <Tag className="h-3 w-3 text-gray-500" />
-                                                            <span className="text-[10px] font-semibold text-gray-500 ">
-                                                                Linked Rate Plans
-                                                            </span>
-                                                        </div>
-                                                        {policy.ratePlans.length > 0 ? (
-                                                            <div className="flex flex-wrap gap-1.5">
-                                                                {policy.ratePlans.map((rp) => (
-                                                                    <span
-                                                                        key={rp.code}
-                                                                        className="inline-flex items-center gap-1.5 rounded-md bg-white px-2 py-1 text-xs font-medium text-[#475569] border border-[#e2e8f0]"
-                                                                    >
-                                                                        <span className="h-1.5 w-1.5 rounded-full bg-[#3b82f6]" />
-                                                                        {rp.name}
-                                                                    </span>
-                                                                ))}
+                                        .map((policy) => {
+                                            const displayName = policy._translations?policy._translations?.policyName:policy.policyName;
+                                            
+                                            return (
+                                                <div
+                                                    key={policy.id}
+                                                    className="group rounded-xl bg-white border border-[#e2e8f0] overflow-hidden transition-all duration-200 hover:shadow-md hover:border-[#cbd5e1]"
+                                                >
+                                                    {/* Card header with dark strip */}
+                                                    <div className="bg-primary px-5 py-3 flex items-center justify-between">
+                                                        <div className="flex items-center gap-2.5">
+                                                            <div className="h-7 w-7 rounded-lg bg-white/15 flex items-center justify-center text-white">
+                                                                {getPolicyIcon(policy.type)}
                                                             </div>
-                                                        ) : (
-                                                            <p className="text-xs text-[#cbd5e1]">
-                                                                No rate plans linked
-                                                            </p>
-                                                        )}
+                                                            <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+                                                                {getTypeLabel(policy.type)}
+                                                            </span>
+                                                        </div>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    className="h-7 w-7 p-0 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
+                                                                >
+                                                                    <MoreVertical className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end" className="w-44">
+                                                                <DropdownMenuLabel className="text-xs text-[#94a3b8]">Actions</DropdownMenuLabel>
+                                                                <DropdownMenuItem onClick={() => handleEditClick(policy)} className="cursor-pointer text-sm">
+                                                                    <Pencil className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
+                                                                    Edit Policy
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem onClick={() => handleAssignClick(policy)} className="cursor-pointer text-sm">
+                                                                    <Link2 className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
+                                                                    Add to Rate Plan
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => {
+                                                                        setSelectedPolicyId(policy.id);
+                                                                        setLangForm({ policyName: "", description: "" });
+                                                                        setSelectedLang("");
+                                                                        setIsAddLanguageOpen(true);
+                                                                    }}
+                                                                    className="cursor-pointer text-sm"
+                                                                >
+                                                                    Add Language
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => {
+                                                                        setSelectedPolicyId(policy.id);
+                                                                        fetchPolicyTranslations(policy.id);
+                                                                        setIsCheckLanguagesOpen(true);
+                                                                    }}
+                                                                    className="cursor-pointer text-sm"
+                                                                >
+                                                                    Check Languages
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem
+                                                                    onClick={() => handleDeleteClick(policy)}
+                                                                    className="text-red-600 focus:text-red-600 cursor-pointer text-sm"
+                                                                >
+                                                                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                                                    Delete
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </div>
 
-                                                    {/* Status */}
-                                                    <div className="flex items-center justify-between pt-2 border-t border-[#f1f5f9]">
-                                                        <div className={`flex items-center gap-1.5 text-xs font-medium ${policy.ratePlans.length > 0 ? "text-[#22c55e]" : "text-[#cbd5e1]"}`}>
-                                                            <span className={`h-1.5 w-1.5 rounded-full ${policy.ratePlans.length > 0 ? "bg-[#22c55e]" : "bg-[#cbd5e1]"}`} />
-                                                            {policy.ratePlans.length > 0 ? "Active" : "Inactive"}
+                                                    {/* Card body */}
+                                                    <div className="p-5 space-y-4">
+                                                        <div>
+                                                            <h3 className="text-base font-semibold text-[#0f172a] leading-tight">
+                                                                {displayName}
+                                                            </h3>
+                                                            <p className="text-sm text-gray-500 mt-1 line-clamp-2 leading-relaxed">
+                                                                {policy._translations?.description ?? policy.description ?? "No description provided."}
+                                                            </p>
                                                         </div>
-                                                        {policy.ratePlans.length > 0 && (
-                                                            <span className="text-[11px] text-[#94a3b8]">
-                                                                {policy.ratePlans.length} plan{policy.ratePlans.length > 1 ? "s" : ""}
-                                                            </span>
-                                                        )}
+
+                                                        {/* Rate Plans */}
+                                                        <div className="bg-Primary rounded-lg p-3 border border-[#f1f5f9]">
+                                                            <div className="flex items-center gap-1.5 mb-2">
+                                                                <Tag className="h-3 w-3 text-gray-500" />
+                                                                <span className="text-[10px] font-semibold text-gray-500 ">
+                                                                    Linked Rate Plans
+                                                                </span>
+                                                            </div>
+                                                            {policy.ratePlans.length > 0 ? (
+                                                                <div className="flex flex-wrap gap-1.5">
+                                                                    {policy.ratePlans.map((rp) => (
+                                                                        <span
+                                                                            key={rp.code}
+                                                                            className="inline-flex items-center gap-1.5 rounded-md bg-white px-2 py-1 text-xs font-medium text-[#475569] border border-[#e2e8f0]"
+                                                                        >
+                                                                            <span className="h-1.5 w-1.5 rounded-full bg-[#3b82f6]" />
+                                                                            {rp._translations?rp._translations.ratePlanName:rp.name}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-xs text-[#cbd5e1]">
+                                                                    No rate plans linked
+                                                                </p>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Status */}
+                                                        <div className="flex items-center justify-between pt-2 border-t border-[#f1f5f9]">
+                                                            <div className={`flex items-center gap-1.5 text-xs font-medium ${policy.ratePlans.length > 0 ? "text-[#22c55e]" : "text-[#cbd5e1]"}`}>
+                                                                <span className={`h-1.5 w-1.5 rounded-full ${policy.ratePlans.length > 0 ? "bg-[#22c55e]" : "bg-[#cbd5e1]"}`} />
+                                                                {policy.ratePlans.length > 0 ? "Active" : "Inactive"}
+                                                            </div>
+                                                            {policy.ratePlans.length > 0 && (
+                                                                <span className="text-[11px] text-[#94a3b8]">
+                                                                    {policy.ratePlans.length} plan{policy.ratePlans.length > 1 ? "s" : ""}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     {groupedPolicies.filter((p) => tabValue === "all" || p.type === tabValue)
                                         .length === 0 && (
                                             <div className="col-span-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#e2e8f0] bg-white py-16 text-center">

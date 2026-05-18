@@ -45,7 +45,8 @@ export async function getGroupCreationId(id: string) {
             superGroupName: data.super.name,
             createdAt: data.createdAt,
             isActive: data.isActive,
-            images: data.images || []
+            images: data.images || [],
+            _translations: data._translations
         }
         return {
             success: true,
@@ -152,7 +153,8 @@ export async function getPropertyCreationId(id: string) {
                     isActive: data.creation.isActive,
                     under: data.creation.type === "property" ? (data.creation.brand ? data.creation.brand.name : data.creation.group ? data.creation.group.name : data.creation.super.name) : "",
                     createdAt: data.creation.createdAt,
-                    users: data.creation.users
+                    users: data.creation.users,
+                    _translations: data.creation._translations
                 },
                 propertyDetails: {
                     id: data?.propertyDetails?.id,

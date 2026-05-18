@@ -18,7 +18,7 @@ export interface IPropertyDetails {
             description: string
         };
     };
-    
+
     propertyType: {
         masterPropertyType: {
 
@@ -32,8 +32,12 @@ export interface IPropertyDetails {
     description: string;
     propertyCode: string;
     propertyVideos?: {
-      url: string;
-      thumbnail: string | null;
+        url: string;
+        thumbnail: string | null;
+    }
+    _translations?: {
+        propertyName: string,
+        description: string;
     }
 }
 export interface IPropertyAddress {
@@ -48,6 +52,15 @@ export interface IPropertyAddress {
     longitude: number;
     latitude: number;
     zipCode: number;
+    _translations?: {
+        addressLine1: string,
+        addressLine2: string,
+        country: string,
+        state: string,
+        city: string,
+        location: string,
+        landmark: string
+    }
 }
 export interface INewGBP {
     name: string;
@@ -60,9 +73,9 @@ export interface INewGBP {
 }
 export interface ICreation {
     id: string;
-    type: "group" | "brand" | "property"|"regional";
+    type: "group" | "brand" | "property" | "regional";
     name: string;
-    images:string[];
+    images: string[];
     level0Users?: string;
     level1Users?: string;
     level2Users?: string;
@@ -75,9 +88,12 @@ export interface ICreation {
     groupIds?: string[];
     brandIds?: string[];
     propertyIds?: string[];
-    property?:{
-        id:string;
-        isDraft:boolean;
+    property?: {
+        id: string;
+        isDraft: boolean;
+    },
+    _translations?: {
+        name: string
     }
 }
 
@@ -100,8 +116,12 @@ export interface IGroupCreations {
         superGroupName: string;
         createdAt: string;
         isActive: boolean;
-        images:string[];
+        images: string[];
+        _translations?: {
+            name: string
+        }
     }
+
     brands: ICreation[];
     properties: ICreation[];
 }
@@ -114,28 +134,35 @@ export interface IPropertyCreations {
     image: string[];
     isDrafted: boolean;
 }
-export interface IBrandDetails{
-    id:string;
+export interface IBrandDetails {
+    id: string;
     name: string;
-    images:string[]
+    images: string[]
     users: IUnmappedUsers[];
     under: string;
     createdAt: string;
     isActive: boolean;
+    _translations?: {
+        name: string
+    }
+
 }
-export interface IpropertyCDetails{
-    id:string;
+export interface IpropertyCDetails {
+    id: string;
     name: string;
-    images:string[]
+    images: string[]
     users: IUnmappedUsers[];
     under: string;
     createdAt: string;
     isActive: boolean;
+    _translations?: {
+        name: string
+    }
 }
-export interface IUpdateCreation{
-    id:string;
+export interface IUpdateCreation {
+    id: string;
     name: string;
-    images:string[]
+    images: string[]
     isActive: boolean;
 }
 

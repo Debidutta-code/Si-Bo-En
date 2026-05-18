@@ -5,6 +5,7 @@ import {
 } from '../../utils/customRequest';
 import { RoomService, RoomAminityService } from '../services';
 import { errorResponse } from '../../utils/return';
+import { RoomInterceptor } from '../../multi-language/interceptors/room/room.interceptor';
 
 export class RoomController {
     private roomService: RoomService;
@@ -219,8 +220,12 @@ export class RoomController {
                     .status(400)
                     .json(errorResponse('Property id not found'));
             }
-            const response =
+            let response =
                 await this.roomService.findAvailableRoomsForInv(propertyId);
+                
+            const locale = req.headers['accept-language']?.slice(0, 2) || 'en';
+            response = await RoomInterceptor.interceptGetRoomsForInvSetup(response, locale);
+                
             const statusCode = response.success ? 200 : 400;
             return res.status(statusCode).json(response);
         } catch (error) {

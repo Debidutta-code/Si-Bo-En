@@ -91,6 +91,11 @@ export interface IAmenityTypes {
   description: string | null;
   icon: string | null;
   id: string
+  _translations: {
+    amenityName: string,
+    description: string
+  }
+
 }
 export interface IRatePlan {
   propertyCode: string;

@@ -602,7 +602,7 @@ export default function PromoCodePage() {
                                                         }
                                                     }}
                                                 />
-                                                <Label htmlFor={`rp-${ratePlan.id}`}>{ratePlan.ratePlanName}</Label>
+                                                <Label htmlFor={`rp-${ratePlan.id}`}>{ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}</Label>
                                             </div>
                                         ))}
                                     </div>
@@ -654,7 +654,7 @@ export default function PromoCodePage() {
                                 {promoCodes.map((promoCode) => (
                                     <TableRow key={promoCode.id}>
                                         <TableCell className="font-mono font-bold">{promoCode.code}</TableCell>
-                                        <TableCell>{promoCode.name}</TableCell>
+                                        <TableCell>{promoCode._translations?promoCode._translations.name:promoCode.name}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center">
                                                 {promoCode.discountType === "percentage" ? (

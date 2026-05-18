@@ -23,8 +23,8 @@ import { useAppSelector } from '@/redux/hooks';
 
 
 export default function Custom() {
-      const user = useAppSelector((state) => state.user.user);
-    const [assignRegionalManagerDialogOpen,setAddignRegionalManagerDialogOpen]=useState<boolean>(false);
+    const user = useAppSelector((state) => state.user.user);
+    const [assignRegionalManagerDialogOpen, setAddignRegionalManagerDialogOpen] = useState<boolean>(false);
     const { creationId } = useParams<{ creationId: string }>();
     const [customAdmins, setCustomAdmins] = useState<ICustomManagersMapping>({
         customAdmins: []
@@ -47,7 +47,11 @@ export default function Custom() {
         name: "",
         under: "",
         users: [],
-        images: []
+        images: [],
+        _translations: {
+            name: ""
+        }
+
     })
     const [currentTab, setCurrentTab] = useState<"group" | "brand" | "property" | "regional">("property")
 
@@ -256,7 +260,7 @@ export default function Custom() {
                         <Dialog onOpenChange={() => setAddignRegionalManagerDialogOpen} open={assignRegionalManagerDialogOpen}>
                             <DialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                                    <Button variant={"secondary"} onClick={()=>setAddignRegionalManagerDialogOpen(true)}>
+                                    <Button variant={"secondary"} onClick={() => setAddignRegionalManagerDialogOpen(true)}>
 
                                         <User2Icon className='h-4 w-4 mr-2' /> Assign Regional Manager
                                     </Button>
@@ -426,7 +430,7 @@ export default function Custom() {
 
                                 <div className="flex justify-between items-start mb-3">
                                     <h3 className="font-semibold text-lg text-gray-900 truncate">
-                                        {item.name}
+                                        {item._translations?item._translations.name:item.name}
                                     </h3>
                                 </div>
 

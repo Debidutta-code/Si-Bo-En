@@ -44,15 +44,52 @@ export class CreationInterceptor {
                 const translatedPropertyDetails = propertyTranslation
                     ? { ...data.propertyDetails, _translations: propertyTranslation }
                     : data.propertyDetails;
-                return { ...response, data: { ...data, creation: translatedCreation, propertyDetails: translatedPropertyDetails } };
+                
+                const resultData = { ...data, creation: translatedCreation, propertyDetails: translatedPropertyDetails };
+                
+                if (Array.isArray(data.groupChildren)) {
+                    resultData.groupChildren = await this.translateChildren(data.groupChildren, locale);
+                }
+                if (Array.isArray(data.brandChildren)) {
+                    resultData.brandChildren = await this.translateChildren(data.brandChildren, locale);
+                }
+
+                return { ...response, data: resultData };
             } else {
                 const translatedCreation = await this.attachCreationTranslation(data, locale);
-                return { ...response, data: translatedCreation };
+                const resultData = { ...translatedCreation };
+
+                if (Array.isArray(data.groupChildren)) {
+                    resultData.groupChildren = await this.translateChildren(data.groupChildren, locale);
+                }
+                if (Array.isArray(data.brandChildren)) {
+                    resultData.brandChildren = await this.translateChildren(data.brandChildren, locale);
+                }
+
+                return { ...response, data: resultData };
             }
         } catch (error) {
             console.error(`[CreationInterceptor Error]:`, error);
             return response;
         }
+    }
+
+    private static async translateChildren(children: any[], locale: string): Promise<any[]> {
+        return Promise.all(
+            children.map(async (child: any) => {
+                if (!child?.id) return child;
+                const childTranslation = await CreationTranslation.getTranslated(child.id, locale);
+                let translatedChild = childTranslation ? { ...child, _translations: childTranslation } : { ...child };
+                
+                if (translatedChild.type === 'property' && translatedChild.property?.id) {
+                    const propertyTranslation = await PropertyTranslation.getTranslated(translatedChild.property.id, locale);
+                    if (propertyTranslation) {
+                        translatedChild.property = { ...translatedChild.property, _translations: propertyTranslation };
+                    }
+                }
+                return translatedChild;
+            })
+        );
     }
 
     /**
@@ -106,13 +143,15 @@ export class CreationInterceptor {
         }
 
         if (Array.isArray(creation.regionalChildren) && creation.regionalChildren.length > 0) {
-            result.regionalChildren = await Promise.all(
-                creation.regionalChildren.map(async (child: any) => {
-                    if (!child?.id) return child;
-                    const childTranslation = await CreationTranslation.getTranslated(child.id, locale);
-                    return childTranslation ? { ...child, _translations: childTranslation } : child;
-                })
-            );
+            result.regionalChildren = await this.translateChildren(creation.regionalChildren, locale);
+        }
+
+        if (Array.isArray(creation.groupChildren) && creation.groupChildren.length > 0) {
+            result.groupChildren = await this.translateChildren(creation.groupChildren, locale);
+        }
+
+        if (Array.isArray(creation.brandChildren) && creation.brandChildren.length > 0) {
+            result.brandChildren = await this.translateChildren(creation.brandChildren, locale);
         }
 
         return result;

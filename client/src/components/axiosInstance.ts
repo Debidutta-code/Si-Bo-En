@@ -10,15 +10,17 @@ const createAxiosInstance = (): AxiosInstance => {
     );
   }
 
-const language=localStorage.getItem("exlang")  
-
   const axiosInstance = axios.create({
     baseURL: baseUrl,
     withCredentials: true,
+  });
 
-    headers: {
-      "Accept-Language": language,
-    },
+  axiosInstance.interceptors.request.use((config) => {
+    const language = localStorage.getItem("exlang");
+    if (language) {
+      config.headers["Accept-Language"] = language;
+    }
+    return config;
   });
 
   return axiosInstance;
