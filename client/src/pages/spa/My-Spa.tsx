@@ -11,6 +11,7 @@ import { format, startOfDay, endOfDay } from "date-fns";
 import { Calendar, Clock, UserX } from "lucide-react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import ImageSlider from "@/components/shared/ImageSlider";
+import { formatInTimeZone } from "date-fns-tz";
 
 export default function MySpa() {
     const { propertyId } = useParams();
@@ -69,13 +70,13 @@ export default function MySpa() {
         }
     };
 
-    const formatTime = (dateObj: Date | string) => {
-        return format(new Date(dateObj), "hh:mm a");
-    };
+const formatTime = (dateObj: Date | string) => {
+    return formatInTimeZone(new Date(dateObj), "UTC", "hh:mm a");
+};
 
-    const formatDate = (dateObj: Date | string) => {
-        return format(new Date(dateObj), "EEE, MMM do yyyy");
-    };
+const formatDate = (dateObj: Date | string) => {
+    return formatInTimeZone(new Date(dateObj), "UTC", "EEE, MMM do yyyy");
+};
 
   return (
     <div className="container mx-auto py-8">
