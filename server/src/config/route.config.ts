@@ -31,6 +31,7 @@ import { reservationRoute } from '../reservation/routes';
 import { reportsRouter } from '../reports/routes/reports.route';
 import { problemTicketRouter } from '../problem-tickets/routes';
 import { otaRouter } from '../ota/routes';
+import { customerRouter } from '../customer/routes/customer.route';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
     app.head('/status', (_, res: Response) => res.status(200).end());
@@ -82,6 +83,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/service-logs', serviceLogRouter);
     apiV1Router.use('/problem-tickets', problemTicketRouter);
     apiV1Router.use('/ota', otaRouter);
+    apiV1Router.use('/customer', customerRouter);
 
     // Handle 404 for any undefined route under /api/v1
     app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {

@@ -5,11 +5,11 @@ import { ILoginResponseR } from '../types';
 export class LoyalityLoginRepository {
     public async login(email: string): Promise<ILoginResponseR | null> {
         try {
-            return await prisma.loyalityGuest.findUnique({
-                where: { guestEmail: email },
+            return await prisma.customers.findUnique({
+                where: { email },
                 select: {
                     id: true,
-                    guestEmail: true,
+                    email: true,
                     password: true,
                 },
             });
@@ -23,10 +23,10 @@ export class LoyalityLoginRepository {
         hashedPassword: string
     ): Promise<ILoyalityGuests> {
         try {
-            return await prisma.loyalityGuest.update({
-                where: { guestEmail: email },
+            return await prisma.customers.update({
+                where: { email },
                 data: { password: hashedPassword },
-            });
+            }) as unknown as ILoyalityGuests;
         } catch (error) {
             throw new Error('Error occur while finding user');
         }
@@ -34,7 +34,7 @@ export class LoyalityLoginRepository {
 
     public async getByUserId(id: string) {
         try {
-            return await prisma.loyalityGuest.findUnique({
+            return await prisma.customers.findUnique({
                 where: { id },
                 include: {
                     CreationGuest: {
@@ -62,8 +62,7 @@ export class LoyalityLoginRepository {
                             },
                         },
                     },
-                    guest: true,
-                },
+                } as any,
             });
         } catch (error) {
             throw new Error('Error occur while finding user');

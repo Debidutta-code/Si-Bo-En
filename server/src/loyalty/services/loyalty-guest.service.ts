@@ -24,12 +24,12 @@ export class LoyaltyGuestService {
     }
 
     public async deleteLoyaltyGuest(
-        loyaltyGuestId: string
+        customerId: string
     ): Promise<IApiResponse> {
         try {
             const deletedLoyaltyGuest =
                 await this.loyaltyGuestRepository.deleteLoyaltyGuestById(
-                    loyaltyGuestId
+                    customerId
                 );
             return successResponse(
                 'Loyalty guest deleted successfully',
@@ -180,7 +180,7 @@ export class LoyaltyGuestService {
                         this.creationGuestRepository.createPropertyLoyaltyGuest(
                             {
                                 propertyLoyalityId: propertyLoyaltyConfig.id,
-                                loyalityGuestId: existingGuest.id,
+                                customerId: existingGuest.id,
                             }
                         )
                     );
@@ -188,7 +188,7 @@ export class LoyaltyGuestService {
                 if (!existingCreationGuest) {
                     tasks.push(
                         this.creationGuestRepository.createCreationGuest({
-                            loyalityGuestId: existingGuest.id,
+                            customerId: existingGuest.id,
                             creationLoyaltyConfigId,
                             metaData,
                             guestLevel: 1,
@@ -206,10 +206,9 @@ export class LoyaltyGuestService {
             const hashedPassword = await createHash(password);
             const newGuest =
                 await this.loyaltyGuestRepository.createGuestsLoyaltyConfig({
-                    guestEmail: email,
-                    guestId: '',
+                    customerEmail: email,
+                    customerId: '',
                     password: hashedPassword,
-                    otaGuestId: null,
                 });
 
             if (!newGuest) {
@@ -219,10 +218,10 @@ export class LoyaltyGuestService {
             await Promise.all([
                 this.creationGuestRepository.createPropertyLoyaltyGuest({
                     propertyLoyalityId: propertyLoyaltyConfig.id,
-                    loyalityGuestId: newGuest.id,
+                    customerId: newGuest.id,
                 }),
                 this.creationGuestRepository.createCreationGuest({
-                    loyalityGuestId: newGuest.id,
+                    customerId: newGuest.id,
                     creationLoyaltyConfigId,
                     metaData,
                     guestLevel: 1,

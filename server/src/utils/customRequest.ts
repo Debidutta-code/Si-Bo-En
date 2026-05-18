@@ -34,6 +34,10 @@ export interface CustomRequest extends ExpressRequest {
         id: string;
         email: string;
     };
+    customer?: {
+        id: string;
+        email: string;
+    };
     jwt?: string;
     permission?: IUserRolesAndAccess;
 }

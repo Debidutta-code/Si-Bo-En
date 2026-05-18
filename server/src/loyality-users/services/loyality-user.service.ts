@@ -38,7 +38,7 @@ export class LoyalityUserService {
             const accessToken = assignLoyaltyToken(
                 {
                     id: loyalityGuest.id,
-                    email: loyalityGuest.guestEmail,
+                    email: loyalityGuest.email,
                 },
                 config.loyaltyJWTSecret!,
                 config.loyaltyJWTExpiresIn!

@@ -71,7 +71,7 @@ export interface ICReservationR {
     promoId: string | null;
     agencyId: string | null;
     platforms: Platforms;
-    otaGuestId: string | null;
+    customerId: string | null;
     paymentMethod: PaymentMethod;
 }
 
@@ -145,8 +145,8 @@ export interface IPrimaryGuest extends ICPrimaryGuest {
 
 }
 
-export interface IReservationGuest extends ICReservationGuest{
-    id:string
+export interface IReservationGuest extends ICReservationGuest {
+    id: string
 }
 
 export interface INormalizedPromotion {
@@ -385,7 +385,7 @@ export interface ICReservationS {
     agentId?: string;
     ngeniusOrderRef?: string;
     isLoyalityGuest?: boolean;
-    otaGuestId: string | null;
+    customerId: string | null;
 }
 
 export interface IBankDetails {

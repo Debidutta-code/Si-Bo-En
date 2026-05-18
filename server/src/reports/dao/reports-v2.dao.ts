@@ -453,7 +453,7 @@ export class ReportsV2Repository {
         // Query LoyalityGuest (the cross-property loyalty identity) that are
         // enrolled in at least one of the resolved properties via
         // PropertyLoyalityGuests → PropertyLoyaltyConfig.propertyId
-        return prisma.loyalityGuest.findMany({
+        return prisma.customers.findMany({
             where: {
                 PropertyLoyalityGuests: {
                     some: {
@@ -464,8 +464,8 @@ export class ReportsV2Repository {
                 },
             },
             include: {
-                // Primary linked Guests record (home property personal info)
-                guest: {
+                // Primary linked Customers record (home property personal info)
+                PrimaryGuests: {
                     include: {
                         property: {
                             select: { propertyName: true, propertyCode: true },
@@ -508,16 +508,15 @@ export class ReportsV2Repository {
                     },
                 },
             },
-            orderBy: { createdAt: 'asc' },
         });
     }
 
     public async getLoyaltyGuestSpendMap(
-        loyaltyGuests: { guestEmail: string; enrolledPropertyIds: string[] }[]
+        loyaltyGuests: { email: string; enrolledPropertyIds: string[] }[]
     ): Promise<Map<string, number>> {
         if (!loyaltyGuests.length) return new Map();
 
-        const emails = loyaltyGuests.map(g => g.guestEmail);
+        const emails = loyaltyGuests.map(g => g.email);
         const allPropertyIds = [
             ...new Set(loyaltyGuests.flatMap(g => g.enrolledPropertyIds)),
         ];

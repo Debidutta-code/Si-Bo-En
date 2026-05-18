@@ -1,5 +1,5 @@
 export interface ICPropertyWishListR {
-    otaGuestId: string;
+    customerId: string;
     propertyId: string;
     propertyCode: string;
     propertyName: string;

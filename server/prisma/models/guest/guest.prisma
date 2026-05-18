@@ -7,8 +7,8 @@ model Guests {
   primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
   userType             GuestType             @default(adult) @map("user_type")
   propertyId           String                @map("property_id")
-  customerId           String                @map("customer_id")
-  Customer             Customers              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId           String?               @map("customer_id")
+  Customer             Customers?              @relation(fields: [customerId], references: [id], onDelete: Cascade)
   property             Property              @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   address              String?
   city                 String?
