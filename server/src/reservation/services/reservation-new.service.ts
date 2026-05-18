@@ -231,6 +231,7 @@ export class NewReservationService {
                 }
             }
             if (activeIntegration) {
+                console.log("activeIntegration1",activeIntegration)
                 const result = await IntegrationDispatcher.pushCommit(
                     payload,
                     propertyDetails.id,

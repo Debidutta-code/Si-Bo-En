@@ -42,10 +42,12 @@ export class IntegrationDispatcher {
             }
 
             if (activeIntegration.name === 'Site Minder') {
+                console.log("activeIntegration2 siteminder",activeIntegration)
                 const smConfig = await SMIntegrationDao.getSiteMinderConfig(
                     propertyId,
                     activeIntegration.type
                 );
+                console.log("smConfig",smConfig)
                 if (!smConfig) {
                     return { success: false, message: 'Site Minder config not found' };
                 }

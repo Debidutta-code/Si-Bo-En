@@ -236,6 +236,12 @@ export class SiteMinderReservationService {
         smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
+            console.log("payload pushCommit",JSON.stringify(payload))
+            console.log("bookingCode pushCommit",bookingCode)
+            console.log("siteMinderHotelCode",siteMinderHotelCode)
+            console.log("channelCode",channelCode)
+            console.log("channelName",channelName)
+            console.log("smEndpoint",smEndpoint)
             const guestDetails = payload.guestDetails?.[0];
             const paymentMethod: SMPaymentMethod =
                 payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
