@@ -2,9 +2,8 @@
 import { useTranslation } from "react-i18next";
 import CancelModal from "../../../components/BookingModals/CancelModal";
 import ModifyBookingModal from "@/src/components/BookingModals/ModifyBookingmodal";
-import ImageUploadModal from "@/src/components/ImageUploadModal";
 import { useEffect, useRef, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { setBookingData as setBookingViewData } from "../../../store/bookingviewSlice";
 import { useSearchParams } from "next/navigation";
@@ -21,8 +20,10 @@ import {
 import { GiCancel } from "react-icons/gi";
 import { HiOutlineViewGridAdd } from "react-icons/hi";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
+import { getAvailableSpasApi } from "@/src/app/(loyality)/(loyality-guest)/profile/api/profile.api";
+import SpaBookingDialog from "@/src/components/loyalty/SpaBookingDialog";
 
-type userIdentityCardType = "PASSPORT" | "DRIVERS_LICENSE" | "NATIONAL_ID" | "OTHER";
+type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 
 export default function MyTripPage() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,16 +37,17 @@ export default function MyTripPage() {
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
+  const [isSpaDialogOpen, setIsSpaDialogOpen] = useState(false);
+  const [availableSpas, setAvailableSpas] = useState<any[]>([]);
+  const [spasLoading, setSpasLoading] = useState(false);
   const [checkinForm, setCheckinForm] = useState({
-    userIdentityCardType: "NATIONAL_ID",
+    userIdentityCardType: "national_id",
     identityCardNumber: "",
     address: "",
     city: "",
     state: "",
     country: "",
     zipCode: "",
-    identityCardImage:"",
   });
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -70,6 +72,7 @@ export default function MyTripPage() {
     }
     setLoading(true);
     setBookingData(null);
+    setAvailableSpas([]);
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode}?propertyCode=${propertyCode}`
@@ -78,6 +81,8 @@ export default function MyTripPage() {
       if (!res.ok) throw new Error(data.message || "Booking not found");
       setBookingData(data.data); // ✅ local state
       dispatch(setBookingViewData(data.data)); // ✅ global redux state
+      // Fetch available spas for this booking
+      await fetchAvailableSpas(bookingCode.trim());
       // toast.success("Booking found!");
     } catch (err: any) {
       toast.error(err.message || t("MyTrip.errorFetching"));
@@ -110,6 +115,7 @@ export default function MyTripPage() {
     const fetchFromUrl = async () => {
       setLoading(true);
       setBookingData(null);
+      setAvailableSpas([]);
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${codeFromUrl}?propertyCode=${propertyCode}`
@@ -119,6 +125,8 @@ export default function MyTripPage() {
         if (!res.ok) throw new Error(data.message || "Booking not found");
         setBookingData(data.data);
         dispatch(setBookingViewData(data.data));
+        // Fetch available spas for this booking
+        await fetchAvailableSpas(codeFromUrl.trim());
         // toast.success("Booking found!");
       } catch (err: any) {
         toast.error(err.message || "Error fetching booking");
@@ -223,7 +231,6 @@ export default function MyTripPage() {
     yLeft += 10;
     doc.setTextColor(50);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
     if (bookingData.guests && bookingData.guests.length > 0) {
       const primary = bookingData.guests.find((g: any) => g.type === "adult");
       if (primary) {
@@ -375,10 +382,7 @@ export default function MyTripPage() {
   const handleCheckInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingData?.bookingCode) return;
-if(!checkinForm.identityCardImage){
-      toast.error("Add Identity Image")
-      return
-    }
+
     setIsCheckingIn(true);
     try {
       const res = await fetch(
@@ -432,6 +436,24 @@ if(!checkinForm.identityCardImage){
       setIsCheckingOut(false);
     }
   };
+
+  const fetchAvailableSpas = async (code: string) => {
+    setSpasLoading(true);
+    try {
+      const res = await getAvailableSpasApi(`BOOK-${code.trim().toUpperCase()}`);
+      if (res?.success) {
+        setAvailableSpas(res.data || []);
+      } else {
+        setAvailableSpas([]);
+      }
+    } catch (err) {
+      setAvailableSpas([]);
+    } finally {
+      setSpasLoading(false);
+    }
+  };
+
+  // //console.log("bookingdata", bookingData)
 
   return (
     <div className="min-h-screen bg-gray-100 px-4  py-12 flex flex-col items-center">
@@ -540,6 +562,21 @@ if(!checkinForm.identityCardImage){
               </p>
             </div>
           </div>
+
+          {/* Available Spas Section */}
+          {availableSpas.length > 0 && (
+            <div className="px-6 pb-2">
+              <button
+                onClick={() => setIsSpaDialogOpen(true)}
+                className="w-full px-4 py-2.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                style={{ background: "#0d7a87" }}
+              >
+                <span>🧖</span>
+                View & Book Spa Services ({availableSpas.length} available)
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col gap-4 p-6">
             <div className="flex flex-col sm:flex-row gap-4">
               {/* View Booking Details Button */}
@@ -553,15 +590,11 @@ if(!checkinForm.identityCardImage){
               >
                 <HiOutlineViewGridAdd className="inline mr-2" /> {t("MyTrip.viewBooking")}
               </button>
-              {(bookingData.bookingStatus === "confirmed"||bookingData.bookingStatus=="modified") && (
+              {bookingData.bookingStatus === "confirmed" && (
                 <button
                   onClick={() => setIsCheckinDialogOpen(true)}
-                  disabled={new Date(bookingData.reservationStartDate).toDateString() !== new Date().toDateString()}
-                  className="px-4 py-2 rounded-md font-medium hover:opacity-90 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: new Date(bookingData.reservationStartDate).toDateString() === new Date().toDateString() ? colors.primaryColor : "#e5e7eb",
-                    color: new Date(bookingData.reservationStartDate).toDateString() === new Date().toDateString() ? "white" : "#9ca3af"
-                  }}
+                  className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
+                  style={{ background: colors.primaryColor }}
                 >
                   Check In Now
                 </button>
@@ -569,12 +602,8 @@ if(!checkinForm.identityCardImage){
               {bookingData.bookingStatus === "checked_in" && (
                 <button
                   onClick={() => setIsCheckoutDialogOpen(true)}
-                  disabled={new Date(bookingData.reservationEndDate).toDateString() !== new Date().toDateString()}
-                  className="px-4 py-2 rounded-md font-medium hover:opacity-90 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: new Date(bookingData.reservationEndDate).toDateString() === new Date().toDateString() ? "#e53e3e" : "#e5e7eb",
-                    color: new Date(bookingData.reservationEndDate).toDateString() === new Date().toDateString() ? "white" : "#9ca3af"
-                  }}
+                  className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
+                  style={{ background: "#e53e3e" }}
                 >
                   Check Out Now
                 </button>
@@ -854,6 +883,8 @@ if(!checkinForm.identityCardImage){
                     </div>
                   )}
 
+                  {/* Addon Breakdown */}
+                  {/* Addon Breakdown */}
                   {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (() => {
                     // Group by name and sum totalAmount
                     const grouped = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
@@ -950,7 +981,21 @@ if(!checkinForm.identityCardImage){
                     )}
                   </div>
                 </div>
-               
+                {/* Daily Breakdown if available */}
+                {/* {bookingData.finalPrice?.dailyBreakdown && (
+                  <div className="mt-4">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Daily Rate Breakdown:</p>
+                    {bookingData.finalPrice.dailyBreakdown.map((day: any, index: number) => (
+                      <div key={index} className="flex justify-between items-center text-sm border-b py-2 last:border-0">
+                        <div>
+                          <p className="font-medium">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</p>
+                          <p className="text-gray-500 text-xs">{new Date(day.date).toLocaleDateString()}</p>
+                        </div>
+                        <p className="font-semibold">${day.baseRate.toLocaleString()}</p>
+                      </div>
+                    ))}
+                  </div>
+                )} */}
               </div>
               {/* Additional Information */}
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -1150,40 +1195,6 @@ if(!checkinForm.identityCardImage){
                 </div>
               </div>
 
-              {/* Identity Image Upload */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-600">Identity Document Image <span className="text-red-500">*</span></label>
-                <div className="flex items-center gap-2">
-                  {checkinForm.identityCardImage ? (
-                    <div className="flex items-center gap-2 w-full">
-                      <img 
-                        src={checkinForm.identityCardImage} 
-                        alt="Identity" 
-                        className="h-16 w-16 object-cover rounded border border-gray-300"
-                      />
-                      <div className="flex-1 text-sm text-gray-600">
-                        <p>Image uploaded successfully</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setCheckinForm({ ...checkinForm, identityCardImage: "" })}
-                        className="text-red-500 hover:text-red-700 text-sm font-medium"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setIsImageUploadModalOpen(true)}
-                      className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
-                    >
-                      Upload Image
-                    </button>
-                  )}
-                </div>
-              </div>
-
               <div className="pt-4 flex gap-3 justify-end">
                 <button
                   type="button"
@@ -1205,19 +1216,6 @@ if(!checkinForm.identityCardImage){
           </div>
         </div>
       )}
-
-      {/* Image Upload Modal */}
-      <ImageUploadModal
-        isOpen={isImageUploadModalOpen}
-        onClose={() => setIsImageUploadModalOpen(false)}
-        onUploadSuccess={(urls) => {
-          // Accept only the first image
-          if (urls.length > 0) {
-            setCheckinForm({ ...checkinForm, identityCardImage: urls[0] });
-            toast.success("Identity image uploaded successfully");
-          }
-        }}
-      />
 
       {isCheckoutDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -1258,6 +1256,15 @@ if(!checkinForm.identityCardImage){
             </div>
           </div>
         </div>
+      )}
+
+      {isSpaDialogOpen && bookingData && (
+        <SpaBookingDialog
+          bookingCode={bookingData.bookingCode}
+          reservationId={bookingData.id}
+          guestName={bookingData.guests?.[0] ? `${bookingData.guests[0].firstName} ${bookingData.guests[0].lastName}` : ""}
+          onClose={() => setIsSpaDialogOpen(false)}
+        />
       )}
     </div>
   );
