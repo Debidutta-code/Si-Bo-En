@@ -170,8 +170,8 @@ const Rooms = () => {
   });
   const [price, setPrice] = useState<number | null>(null);
   const [loyaltyDiscountInfo, setLoyaltyDiscountInfo] = useState<{
-  type: string; value: number; currencyCode: string;
-} | null>(null);
+    type: string; value: number; currencyCode: string;
+  } | null>(null);
   const [errorRooms, setErrorRooms] = useState<string | null>(null);
   // const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
   const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
@@ -488,16 +488,31 @@ const Rooms = () => {
       };
 
 
-      if (roomsArray.length === 0) {
+      const hasPerRoomData = searchParams.get("room1_adults") !== null;
+
+      if (hasPerRoomData) {
+        // ✅ Per-room params present — read each room's guests + child ages directly
+        for (let i = 1; i <= numRooms; i++) {
+          const roomAdults = parseInt(searchParams.get(`room${i}_adults`) || "1");
+          const roomChildren = parseInt(searchParams.get(`room${i}_children`) || "0");
+          const childAges: number[] = [];
+
+          for (let ci = 1; ci <= roomChildren; ci++) {
+            const ageParam = searchParams.get(`room${i}_child${ci}_age`);
+            childAges.push(ageParam !== null ? parseInt(ageParam) : 0);
+          }
+
+          roomsArray.push({
+            adults: roomAdults,
+            children: roomChildren,
+            childAges,
+          });
+        }
+      } else {
+        // ✅ No per-room data — fall back to smart distribution
         const totalAdults = parseInt(adults || "1");
         const totalChildren = parseInt(children || "0");
-
-        // ✅ Replace the old dumb distribution with smart fallback
-        roomsArray = buildRoomsArrayFallback(
-          numRooms,
-          totalAdults,
-          totalChildren,
-        );
+        roomsArray = buildRoomsArrayFallback(numRooms, totalAdults, totalChildren);
       }
 
       return {
