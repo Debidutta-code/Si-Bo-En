@@ -286,6 +286,7 @@ export interface ITouristTax {
 }
 
 export interface IRoomPrice {
+    ratePlanId?: string;
     ratePlanName: string;
     ratePlanCode: string;
     comboLabel: string;

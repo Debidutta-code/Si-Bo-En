@@ -347,7 +347,7 @@ const Rooms = () => {
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Accept-language": "hi" },
           body: JSON.stringify({
             propertyCode: bookingCtx.PropertyCode,
             startDate: bookingCtx.startDate,
