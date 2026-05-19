@@ -588,7 +588,7 @@ export class ReportsV2ExcelService {
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('All Reservations');
-        const cols = 22;
+        const cols = 21;
 
         this.addTitle(
             ws,
@@ -612,9 +612,8 @@ export class ReportsV2ExcelService {
             'Amount Before Tax',
             'Tax Amount',
             "Amount after Tax",
-            'Total Amount',
-            'Chargeable Amount',
             'Later Payable',
+            'Total Amount',
             'Status',
             'Payment Method',
             'Source',
@@ -628,6 +627,7 @@ export class ReportsV2ExcelService {
 
         for (const r of reservations) {
             const pb = r.PricingBrakeDown;
+        if(!pb) continue; 
 
             const nights = this.roomNights(r.reservationStartDate, r.reservationEndDate);
 
@@ -654,9 +654,8 @@ export class ReportsV2ExcelService {
                 this.fmtNum(amountBeforeTax),
                 this.fmtNum(taxedAmount),
                 this.fmtNum(amountAfterTax),
-                this.fmtNum(totalAmount),
-                this.fmtNum(chargeableAmount),
                 this.fmtNum(laterPayable),
+                this.fmtNum(totalAmount),
                 (r.bookingStatus ?? 'N/A').replace(/_/g, ' '),
                 (r.paymentMethod ?? 'N/A').replace(/_/g, ' '),
                 (r.bookingSource ?? 'N/A').replace(/_/g, ' '),
