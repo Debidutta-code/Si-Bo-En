@@ -1,12 +1,12 @@
 import axios from "axios";
 
-const BASE = `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalit-guest`;
+const CUSTOMER_BASE = `${process.env.NEXT_PUBLIC_BACKEND_URL}/customer`;
 const SPA_BASE = `${process.env.NEXT_PUBLIC_BACKEND_URL}/spa`;
 
-/** Fetch the authenticated loyalty guest's full profile via cookie */
+/** Fetch the authenticated customer's profile via cookie */
 export const getMyProfileApi = async () => {
     try {
-        const response = await axios.get(`${BASE}/me`, { withCredentials: true });
+        const response = await axios.get(`${CUSTOMER_BASE}/me`, { withCredentials: true });
         return response.data;
     } catch (error: any) {
         return error?.response?.data ?? { success: false, message: error?.message };

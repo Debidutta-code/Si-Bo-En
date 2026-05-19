@@ -16,7 +16,7 @@ import bookingReducer from './bookingSlice';
 import userReducer from './userSlice';
 import bookingViewReducer from './bookingviewSlice';
 import loyaltyUserReducer from './loyaltyUserSlice';
-
+import customerReducer from './customerSlice';
 
 const bookingPersistConfig = {
   key: 'booking',
@@ -27,7 +27,7 @@ const bookingPersistConfig = {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['user', 'loyaltyUser'], 
+  whitelist: ['user', 'loyaltyUser', 'customer'],
 };
 
 const rootReducer = combineReducers({
@@ -36,6 +36,7 @@ const rootReducer = combineReducers({
   user: userReducer,
   bookingView: bookingViewReducer,
   loyaltyUser: loyaltyUserReducer,
+  customer: customerReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

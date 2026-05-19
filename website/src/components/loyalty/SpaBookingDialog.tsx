@@ -6,7 +6,7 @@ import {
   getAvailableSpasApi,
   markSlotAsBookedApi,
   markSlotAsAvailableApi,
-} from "../../app/(loyality)/(loyality-guest)/profile/api/profile.api";
+} from "../../app/(auth)/profile/api/profile.api";
 import { format } from "date-fns";
 import { Check, Search, Clock, MapPin, Tag } from "lucide-react";
 import toast from "react-hot-toast";

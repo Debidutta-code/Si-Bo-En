@@ -6,7 +6,11 @@
     "partnerLogin": "Partner Login",
     "myBooking": "My Booking",
     "loyaltyGuestLogin": "Loyalty Guest Login",
-    "becomApartner":"Become A Partner"
+    "becomApartner":"Become A Partner",
+    "customerLogin": "Sign In",
+    "myBookings": "My Bookings",
+    "profile": "Profile",
+    "signOut": "Sign Out"
   },
   "Hero": {
     "title": "Find Next Place To Visit",
