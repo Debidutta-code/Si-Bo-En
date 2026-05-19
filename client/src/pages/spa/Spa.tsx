@@ -63,7 +63,8 @@ export default function Spa() {
     currencyCode: null,
     categoryId: '',
     subCategoryId: '',
-    propertyId: propertyId || ''
+    propertyId: propertyId || '',
+    isActive: false,
   };
   const [formData, setFormData] = useState<ICSpaC>(initialFormState);
 
@@ -169,7 +170,8 @@ export default function Spa() {
       currencyCode: spa.currencyCode,
       categoryId: spa.categoryId,
       subCategoryId: spa.subCategoryId,
-      propertyId: spa.propertyId
+      propertyId: spa.propertyId,
+      isActive: spa.isActive
     });
     setIsEditOpen(true);
   };
@@ -269,7 +271,7 @@ export default function Spa() {
               {!formData.isInclusive && (
                 <>
                   <div className="space-y-2">
-                    <Label>Discount Value</Label>
+                    <Label>Price</Label>
                     <Input type="number" value={formData.discountValue || ''} onChange={(e) => setFormData({...formData, discountValue: e.target.value ? Number(e.target.value) : null})} />
                   </div>
                   <div className="space-y-2">

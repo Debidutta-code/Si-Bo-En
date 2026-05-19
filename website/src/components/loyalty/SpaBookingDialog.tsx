@@ -138,7 +138,7 @@ export default function SpaBookingDialog({
         userName: userName.trim(),
       });
       if (res.success) {
-        toast.success("Spa slot booked!");
+        toast.success("Activity included in your stay");
         setSelectedSlot(null);
         setConfirmOpen(false);
         fetchAvailableSpas();
@@ -146,7 +146,7 @@ export default function SpaBookingDialog({
         toast.error(res.message || "Failed to book");
       }
     } catch {
-      toast.error("Failed to book spa slot");
+      toast.error("Failed to book activity");
     } finally {
       setSubmitting(false);
     }
@@ -158,15 +158,15 @@ export default function SpaBookingDialog({
     try {
       const res = await markSlotAsAvailableApi(cancelSlot.slotId);
       if (res.success) {
-        toast.success("Booking cancelled.");
+        toast.success("Activity removed from your stay.");
         setCancelSlot(null);
         setConfirmOpen(false);
         fetchAvailableSpas();
       } else {
-        toast.error(res.message || "Failed to cancel");
+        toast.error(res.message || "Failed to remove activity");
       }
     } catch {
-      toast.error("Failed to cancel booking");
+      toast.error("Failed to remove activity");
     } finally {
       setSubmitting(false);
     }
