@@ -124,7 +124,7 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
         <div className="flex flex-wrap gap-2">
           {propertyAmenities.map((amenity) => (
             <Badge key={amenity.id} variant="outline" className="text-sm py-2 px-3 flex items-center gap-2">
-              {amenity.amenityName}
+              {amenity._translations?amenity._translations.amenityName:amenity.amenityName}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="hover:text-blue-600 ml-1">
@@ -138,7 +138,7 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
                   <DropdownMenuItem onClick={() => openCheckTranslations(amenity.id)}>
                     <Languages className="h-4 w-4 mr-2" /> Check Translations
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-600" onClick={() => handleDeletePropertyAmenity(amenity.amenityName)}>
+                  <DropdownMenuItem className="text-red-600" onClick={() => handleDeletePropertyAmenity(amenity._translations?amenity._translations.amenityName:amenity.amenityName)}>
                     <Trash2 className="h-4 w-4 mr-2" /> Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -185,3 +185,7 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
     </Card>
   );
 }
+
+
+
+ 

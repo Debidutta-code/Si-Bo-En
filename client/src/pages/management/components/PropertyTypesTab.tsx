@@ -109,8 +109,8 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{type.propertyTypeName}</CardTitle>
-                    <CardDescription className="mt-1">{type.propertyTypeDescription}</CardDescription>
+                    <CardTitle className="text-lg">{type._translations?type._translations.propertyTypeName:type.propertyTypeName}</CardTitle>
+                    <CardDescription className="mt-1">{type._translations?type._translations.propertyTypeDescription:type.propertyTypeDescription}</CardDescription>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -124,7 +124,7 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
         <div className="flex flex-wrap gap-2">
           {roomAmenities.map((amenity) => (
             <Badge key={amenity.id} variant="outline" className="text-sm py-2 px-3 flex items-center gap-2">
-              {amenity.amenityName}
+              {amenity._translations?amenity._translations.amenityName:amenity.amenityName}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="hover:text-blue-600 ml-1">

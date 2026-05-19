@@ -109,8 +109,8 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{category.categoryName}</CardTitle>
-                    <CardDescription className="mt-1">{category.categoryDescription}</CardDescription>
+                    <CardTitle className="text-lg">{category._translations?category._translations.categoryName:category.categoryName}</CardTitle>
+                    <CardDescription className="mt-1">{category._translations?category._translations.categoryName:category.categoryName}</CardDescription>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

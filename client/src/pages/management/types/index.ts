@@ -5,6 +5,11 @@ export interface ICategory {
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
+              _translations: {
+                categoryName: string,
+                categoryDescription: string
+            }
+   
 }
 
 export interface IPropertyType {
@@ -14,6 +19,10 @@ export interface IPropertyType {
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
+  _translations: {
+    propertyTypeName: string,
+    propertyTypeDescription: string
+  }
 }
 
 
@@ -22,7 +31,12 @@ export interface IAmenity {
   amenityName: string;
   description?: string;
   icon?: string;
-}
+  _translations: {
+                amenityName: string,
+                description: string
+            }
+        }
+
 
 export interface ILoyaltyGuestField {
   id: string;
@@ -34,15 +48,18 @@ export interface IPaymentIntegration {
   id: string;
   name: string;
   isActive: boolean;
-  propertyPaymentIntegrations:[{
-    id:string;
-    propertyId:string;
-    paymentIntegrationId:string;
-    isActive:boolean;
-    outletId:string;
+  propertyPaymentIntegrations: [{
+    id: string;
+    propertyId: string;
+    paymentIntegrationId: string;
+    isActive: boolean;
+    outletId: string;
   }]
 }
 export * from "./integration.interface";
 export * from "./room-view.interface";
 export * from "./spa.type";
 export * from "./multilanguage.interface";
+
+
+ 
