@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { errorResponse, CustomRequest } from '../../utils';
 import { ICMasterRoomView, IMasterRoomView } from '../types';
 import { MasterRoomViewService } from '../services';
+import { MasterRoomViewInterceptor } from '../../multi-language/interceptors/masters/master-room-view.interceptor';
 export class MasterRoomViewController {
     private masterRoomViewService: MasterRoomViewService;
     constructor() {
@@ -48,7 +49,9 @@ export class MasterRoomViewController {
         res: Response
     ): Promise<Response> {
         try {
-            const serRes = await this.masterRoomViewService.getAllRoomViews();
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            let serRes = await this.masterRoomViewService.getAllRoomViews();
+            serRes = await MasterRoomViewInterceptor.intercept(serRes, locale);
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {
@@ -77,8 +80,10 @@ export class MasterRoomViewController {
     ): Promise<Response> {
         try {
             const roomId = req.params.id;
-            const serRes =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            let serRes =
                 await this.masterRoomViewService.getRoomViewById(roomId);
+            serRes = await MasterRoomViewInterceptor.intercept(serRes, locale);
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {

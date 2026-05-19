@@ -197,7 +197,7 @@ export class LoyalityConditionController {
                     loyaltyProgramId
                 );
             
-            result = await LoyaltyConditionInterceptor.intercept(result as any, locale);
+            result = await LoyaltyConditionInterceptor.intercept(result, locale);
 
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {

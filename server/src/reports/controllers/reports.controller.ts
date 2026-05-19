@@ -4,6 +4,7 @@ import { ReportsV2Service } from '../services/reports-v2.service';
 import { GBPService } from '../services/gbp.service';
 import { errorResponse, CustomRequest } from '../../utils';
 import { ReportType } from '../interfaces/reports.type';
+import { FilterOptionsInterceptor } from '../../multi-language/interceptors/reports/filter-options.interceptor';
 
 export class ReportsController {
     private reportsService: ReportsService;
@@ -311,13 +312,15 @@ export class ReportsController {
                 return;
             }
 
-            const result = await this.gbpService.getFilterOptions(creationId);
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            let result = await this.gbpService.getFilterOptions(creationId);
 
             if (!result.success) {
                 res.status(400).json(result);
                 return;
             }
 
+            result = await FilterOptionsInterceptor.intercept(result, locale);
             res.status(200).json(result);
         } catch (error) {
             res.status(500).json(

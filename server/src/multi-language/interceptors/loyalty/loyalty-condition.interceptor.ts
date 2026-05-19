@@ -12,7 +12,7 @@ export class LoyaltyConditionInterceptor {
 
         try {
             const data = response.data;
-
+            console.log(data, 'data');
             if (Array.isArray(data)) {
                 const translatedData = await Promise.all(
                     data.map((condition) => this.attachTranslation(condition, locale))
@@ -32,7 +32,7 @@ export class LoyaltyConditionInterceptor {
         if (!condition?.id) return condition;
 
         const result = { ...condition };
-
+        console.log(condition)
         const translation = await LoyaltyConditionsTranslation.getTranslated(condition.id, locale);
         if (translation) {
             result._translations = translation;

@@ -6,6 +6,8 @@ import {
 import { successResponse, errorResponse } from '../../utils/return';
 import { Response } from 'express';
 import { CurrencyCode } from '../../tax-system/interfaces';
+import { DashboardPropertiesInterceptor } from '../../multi-language/interceptors/dashboard/dashboard-properties.interceptor';
+import { DashboardAnalyticsInterceptor } from '../../multi-language/interceptors/dashboard/dashboard-analytics.interceptor';
 export class DashBoardController {
     private dashboardServices: DashBoardServices;
     constructor() {
@@ -61,10 +63,21 @@ export class DashBoardController {
                     );
             }
 
-            const serRes =
+            const locale =
+                (req.headers['accept-language'] as string | undefined)
+                    ?.slice(0, 2)
+                    .toLowerCase() || 'en';
+
+            let serRes =
                 await this.dashboardServices.getPropertyNamesByCreationId(
                     creationId
                 );
+
+            serRes = await DashboardPropertiesInterceptor.intercept(
+                serRes,
+                locale
+            );
+
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {
@@ -97,7 +110,12 @@ export class DashBoardController {
             }
             const { propertyId, propertyCode, propertyName, selectedCurrency } =
                 req.query; // ← add currencyCode
-            const serRes =
+            const locale =
+                (req.headers['accept-language'] as string | undefined)
+                    ?.slice(0, 2)
+                    .toLowerCase() || 'en';
+
+            let serRes =
                 await this.dashboardServices.getPropertyIdsAndCodesServices(
                     req.user.creationId,
                     req.user.level,
@@ -106,6 +124,8 @@ export class DashBoardController {
                     propertyName?.toString(),
                     selectedCurrency as CurrencyCode
                 );
+
+            serRes = await DashboardAnalyticsInterceptor.intercept(serRes, locale);
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {
