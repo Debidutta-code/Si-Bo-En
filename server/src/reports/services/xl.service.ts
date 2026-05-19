@@ -243,7 +243,7 @@ export class ReportsV2ExcelService {
 
         for (const r of reservations) {
             const pb = r.PricingBrakeDown;
-
+if(!pb) continue;
             const amountBeforeTax = Number(pb?.amountBeforeTax ?? 0);
             const taxedAmount = Number(pb?.taxedAmount ?? 0);
             const totalAmount = Number( r.amount ?? 0);
