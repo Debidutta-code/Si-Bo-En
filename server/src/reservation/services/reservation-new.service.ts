@@ -327,7 +327,7 @@ export class NewReservationService {
                     priceBreakdownPayload,
                     finalPrice.dailyPriceBrakeDown || [],
                     finalPrice.taxBrakeDown || [],
-                    finalPrice.addonBrakeDown || [],
+                    finalPrice.addonBrakeDowns || [],
                     finalPrice.promotionBrakeDown || []
                 ),
                 await this.reservationRepository.createReservationGuests(
@@ -355,11 +355,11 @@ export class NewReservationService {
                 });
             }
             if (
-                finalPrice.addonBrakeDown &&
-                finalPrice.addonBrakeDown.length > 0
+                finalPrice.addonBrakeDowns &&
+                finalPrice.addonBrakeDowns.length > 0
             ) {
                 const addonPayloads: IBookingAddonCreate[] =
-                    finalPrice.addonBrakeDown
+                    finalPrice.addonBrakeDowns
                         .filter((addon: IAddonBreakdown) => addon.addonId)
                         .map((addon: IAddonBreakdown) => ({
                             reservationId: reservation.id,
@@ -1038,7 +1038,7 @@ export class NewReservationService {
                 )
             );
             const addonBrakeDown =
-                updatePayload.finalPrice.addonBrakeDown || [];
+                updatePayload.finalPrice.addonBrakeDowns || [];
             const addonPayloads: IBookingAddonCreate[] = addonBrakeDown
                 .filter((addon: IAddonBreakdown) => addon.addonId)
                 .map((addon: IAddonBreakdown) => ({
@@ -1113,7 +1113,7 @@ export class NewReservationService {
                 updateBreakdownHeader,
                 updatePayload.finalPrice.dailyPriceBrakeDown || [],
                 updatePayload.finalPrice.taxBrakeDown || [],
-                updatePayload.finalPrice.addonBrakeDown || [],
+                updatePayload.finalPrice.addonBrakeDowns || [],
                 updatePayload.finalPrice.promotionBrakeDown || []
             );
 
