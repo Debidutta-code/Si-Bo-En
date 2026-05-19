@@ -39,7 +39,7 @@ import RatePlanRulesDialog from "./components/ratePlanRuleForm";
 import ManageRateWithAddonsForm from "./components/ManageRateWithAddonsForm"; // ✅ ADDED
 import AddRatePlanLanguageDialog from "./components/AddRatePlanLanguageDialog";
 import CheckRatePlanLanguagesDialog from "./components/CheckRatePlanLanguagesDialog";
-import { usePropertyContext } from '@/contexts/PropertyContext';
+// import { usePropertyContext } from '@/contexts/PropertyContext';
 
 export default function RatePlan() {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -464,7 +464,7 @@ export default function RatePlan() {
                   </div>
 
                   <h3 className="text-lg font-semibold text-gray-800 mb-3 pr-8">
-                    {ratePlan.ratePlanName}
+                    {ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}
                   </h3>
                   <div className="space-y-3 mb-4 text-xm">
                     <div className="flex justify-between">

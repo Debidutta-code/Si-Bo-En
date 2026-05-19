@@ -42,7 +42,14 @@ export interface DeviceSpecificPromotionWithRatePlan extends DeviceSpecificPromo
     ratePlanCode: string;
     b2bAvailable: boolean;
     b2cAvailable: boolean;
+    _translations?: {
+    ratePlanName: string;
+  }
+
   };
+  _translations?: {
+    promotionName: string;
+  }
 }
 
 export interface CreateDeviceSpecificPromotion {

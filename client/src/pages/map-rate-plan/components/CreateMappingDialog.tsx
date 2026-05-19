@@ -313,7 +313,7 @@ export default function CreateMappingDialog({
                                 <SelectContent>
                                     {roomTypes.map((room) => (
                                         <SelectItem key={room.id} value={room.id}>
-                                            {room.roomName} ({room.roomType})
+                                            {room._translations?room._translations.roomName:room.roomName} ({room.roomType})
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -334,7 +334,7 @@ export default function CreateMappingDialog({
                                 <SelectContent>
                                     {ratePlans.map((plan) => (
                                         <SelectItem key={plan.id} value={plan.ratePlanCode}>
-                                            {plan.ratePlanName}
+                                            {plan._translations?plan._translations.ratePlanName:plan.ratePlanName}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

@@ -25,8 +25,15 @@ export interface ITaxRule {
             id: string;
             name: string;
             isActive: boolean;
+            _translations?: {
+                name: string;
+            }
         }
     }[];
+    _translations?: {
+        name: string;
+        description: string;
+    }
 }
 
 export interface ICTaxRule {

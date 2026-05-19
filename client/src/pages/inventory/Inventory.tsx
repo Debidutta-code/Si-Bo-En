@@ -195,9 +195,9 @@ export default function Inventory() {
                         allRooms.map((room) => (
                           <SelectItem key={room.id} value={room.id}>
                             <div className="flex items-center justify-between w-full">
-                              <span className="font-medium">{room.roomName}</span>
+                              <span className="font-medium">{room._translations?room._translations.roomName:room.roomName}</span>
                               <span className="text-xs text-gray-500 ml-4">
-                                ({room.roomType} • {room.totalRoom} rooms)
+                                ({room.totalRoom} rooms)
                               </span>
                             </div>
                           </SelectItem>
@@ -323,55 +323,6 @@ export default function Inventory() {
           {/* ── RIGHT: Stacked column ── */}
           <div className="flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
-            {/* Card 1: Selected Details */}
-            {/* <Card className="shadow-lg rounded-xl">
-              <CardHeader className="border-b bg-primary text-primary-foreground rounded-t-xl">
-                <CardTitle className="text-lg">Selected Details</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 space-y-4">
-                {selectedRooms.id ? (
-                  <>
-                   <div className=" flex gap-2 flex-col">
-                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Room Name</p>
-                      <p className="text-base font-semibold text-gray-900">{selectedRooms.roomName}</p>
-                    </div>
-                   <div className="flex gap-2">
-                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Room Type</p>
-                      <p className="text-base font-semibold text-gray-900">{selectedRooms.roomType}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Rooms</p>
-                      <p className="text-base font-semibold text-gray-900">{selectedRooms.totalRoom}</p>
-                    </div>
-                   </div>
-                   </div>
-                    {dateRange.from && dateRange.to && (
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Date Range</p>
-                        <p className="text-sm text-gray-900">
-                          {format(dateRange.from, "MMM dd, yyyy")} – {format(dateRange.to, "MMM dd, yyyy")}
-                        </p>
-                      </div>
-                    )}
-                    {selectedRooms.availableRooms > 0 && (
-                      <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Available Rooms</p>
-                        <p className={`text-lg font-bold ${selectedRooms.availableRooms > selectedRooms.totalRoom ? "text-red-400" : "text-green-600"}`}>
-                          {selectedRooms.availableRooms}
-                        </p>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-8">
-                    <Package className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-sm text-gray-500">Select a room type to see details</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card> */}
 
             <AvailabilityCalendar
               availability={availability}

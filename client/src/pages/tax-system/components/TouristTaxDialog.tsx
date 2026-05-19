@@ -145,7 +145,7 @@ export default function TouristTaxDialog({
                             <SelectContent>
                                 {roomTypes.map((roomType) => (
                                     <SelectItem key={roomType.id} value={roomType.id}>
-                                        {roomType.roomName}
+                                        {roomType._translations?roomType._translations.roomName:roomType.roomName}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

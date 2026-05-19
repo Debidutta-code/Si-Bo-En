@@ -1005,7 +1005,7 @@ export default function AddOns() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <CardTitle className="text-lg mb-1">
-                            {addOn.name}
+                            {addOn._translations?addOn._translations.name:addOn.name}
                           </CardTitle>
                           <CardDescription className="text-xs">
                             Code: {addOn.code}
@@ -1080,7 +1080,7 @@ export default function AddOns() {
                     <CardContent>
                       <div className="space-y-3">
                         <p className="text-sm text-gray-600 line-clamp-2 min-h-[40px]">
-                          {addOn.description || "No description provided"}
+                          {addOn._translations?addOn._translations.description:addOn.description || "No description provided"}
                         </p>
                         <div className="flex gap-2 flex-wrap">
                           <Badge

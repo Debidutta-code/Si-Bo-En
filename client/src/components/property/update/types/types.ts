@@ -90,7 +90,7 @@ export interface IRoomDetails {
     MasterRoomView?: {
       id: string;
       viewName: string;
-      _translations: {
+      _translations?: {
         viewName: string;
       };
 

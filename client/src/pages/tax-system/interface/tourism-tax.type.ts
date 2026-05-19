@@ -18,6 +18,9 @@ export interface ITouristTax {
         roomCode: string;
         roomName: string;
     };
+    _translations?:{
+        name:string;
+    }
 }
 
 export interface ICTouristTax {

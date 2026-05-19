@@ -174,8 +174,8 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
                   className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
                 />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{room.roomName}</p>
-                  <p className="text-xs text-muted-foreground">({room.roomType})</p>
+                  <p className="text-sm font-medium text-foreground">{room._translations ? room._translations.roomName : room.roomName}</p>
+                  <p className="text-xs text-muted-foreground">({room._translations ? room._translations.roomType : room.roomType})</p>
                 </div>
               </label>
             ))
@@ -211,8 +211,8 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
                   className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
                 />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{plan.ratePlanName}</p>
-                  <p className="text-xs text-muted-foreground">({plan.ratePlanCode})</p>
+                  <p className="text-sm font-medium text-foreground">{plan._translations ? plan._translations.ratePlanName : plan.ratePlanName}</p>
+                  <p className="text-xs text-muted-foreground">({ plan.ratePlanCode})</p>
                 </div>
               </label>
             ))

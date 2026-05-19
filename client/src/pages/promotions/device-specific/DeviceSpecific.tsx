@@ -322,14 +322,14 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                     <TableCell>
                       <div>
                         <div className="font-medium text-foreground">
-                          {promotion.ratePlan.ratePlanName}
+                          {promotion.ratePlan._translations?promotion.ratePlan._translations.ratePlanName:promotion.ratePlan.ratePlanName}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {promotion.ratePlan.ratePlanCode}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{promotion.promotionName}</TableCell>
+                    <TableCell className="font-medium">{promotion._translations?promotion._translations.promotionName:promotion.promotionName}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         {promotion.deviceType.map((device) => (

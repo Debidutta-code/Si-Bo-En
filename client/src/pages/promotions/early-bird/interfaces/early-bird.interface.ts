@@ -99,10 +99,15 @@ export interface EarlyBirdPromotionWithRatePlan {
     ratePlanCode: string;
     b2bAvailable: boolean;
     b2cAvailable: boolean;
+    _translations?:{
+      ratePlanName:string;
+    }
   };
   roomRatePlans?: RoomRatePlanPair[];
     isAutoApplied: boolean;
-
+_translations?:{
+promotionName:string;
+}
 }
 
 // Convert backend format to frontend format

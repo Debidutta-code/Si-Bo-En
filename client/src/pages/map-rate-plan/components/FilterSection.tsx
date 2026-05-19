@@ -73,7 +73,7 @@ export default function FilterSection({
                                 {roomTypes.length > 0 ? (
                                     roomTypes.map((room) => (
                                         <SelectItem key={room.id} value={room.roomType}>
-                                            {room.roomName} ({room.roomType})
+                                            {room._translations?room._translations.roomName:room.roomName} ({room.roomType})
                                         </SelectItem>
                                     ))
                                 ) : (
@@ -97,7 +97,7 @@ export default function FilterSection({
                                 {ratePlans.length > 0 ? (
                                     ratePlans.map((plan) => (
                                         <SelectItem key={plan.id} value={plan.ratePlanCode}>
-                                            {plan.ratePlanName}
+                                            {plan._translations?plan._translations.ratePlanName:plan.ratePlanName}
                                         </SelectItem>
                                     ))
                                 ) : (

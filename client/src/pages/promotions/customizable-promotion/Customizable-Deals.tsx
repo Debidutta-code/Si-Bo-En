@@ -206,14 +206,14 @@ export const CustomizableDealList: React.FC = () => {
 
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">{deal.Room.roomName}</span>
+                        <span className="text-sm font-medium">{deal.Room._translations?.roomName || deal.Room.roomName}</span>
                         <span className="text-xs text-muted-foreground">({deal.roomType})</span>
                       </div>
                     </TableCell>
 
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">{deal.RatePlan.ratePlanName}</span>
+                        <span className="text-sm font-medium">{deal.RatePlan._translations?.ratePlanName || deal.RatePlan.ratePlanName}</span>
                         <span className="text-xs text-muted-foreground">({deal.ratePlanCode})</span>
                       </div>
                     </TableCell>

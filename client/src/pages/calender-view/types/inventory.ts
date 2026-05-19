@@ -37,6 +37,11 @@ export interface RoomType {
   maxChildren: number;
   occupancy: number;
   status: "open" | "close";
+  _translations?: {
+    roomName: string;
+    roomType: string;
+    description: string;
+  }
 }
 
 
@@ -51,6 +56,10 @@ export interface RatePlan {
   ctd: boolean;
 
   prices: RoomTypePricing[];
+
+  _translations?: {
+    ratePlanName?: string;
+  };
 }
 
 

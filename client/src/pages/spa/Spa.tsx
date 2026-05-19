@@ -256,14 +256,14 @@ export default function Spa() {
                 <Label>Category</Label>
                 <select className="w-full border rounded-md p-2" value={formData.categoryId} onChange={(e) => setFormData({...formData, categoryId: e.target.value})}>
                   <option value="">Select Category</option>
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  {categories.map(c => <option key={c.id} value={c.id}>{c._translations?c._translations.name:c.name}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <Label>Sub-Category</Label>
                 <select className="w-full border rounded-md p-2" value={formData.subCategoryId} onChange={(e) => setFormData({...formData, subCategoryId: e.target.value})}>
                   <option value="">Select Sub-Category</option>
-                  {subCategories.filter(sc => sc.categoryId === formData.categoryId).map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
+                  {subCategories.filter(sc => sc.categoryId === formData.categoryId).map(sc => <option key={sc.id} value={sc.id}>{sc._translations?sc._translations.name:sc.name}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
@@ -348,10 +348,10 @@ export default function Spa() {
             {spas.map((spa) => (
               <TableRow key={(spa as any).id}>
                
-                <TableCell className="font-medium">{spa.name}</TableCell>
+                <TableCell className="font-medium">{spa._translations?spa._translations.name:spa.name}</TableCell>
                 <TableCell>{spa.itemCode}</TableCell>
-                <TableCell>{spa.Category?.name || 'N/A'}</TableCell>
-                <TableCell>{spa.SubCategory?.name || 'N/A'}</TableCell>
+                <TableCell>{spa.Category?._translations?spa.Category._translations.name:spa.Category?.name || 'N/A'}</TableCell>
+                <TableCell>{spa.SubCategory?._translations?spa.SubCategory._translations.name:spa.SubCategory?.name || 'N/A'}</TableCell>
                 <TableCell>{spa.serviceTime}</TableCell>
                 <TableCell>{spa.location}</TableCell>
                 <TableCell>

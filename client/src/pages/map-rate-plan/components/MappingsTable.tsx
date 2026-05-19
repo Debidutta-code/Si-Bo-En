@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Pagination } from "@/components/ui/pagination";
 import Loader from "@/components/Loader/Loader";
-import type { Charges } from "../types";
+import type { Charges, RatePlan, RoomTypes } from "../types";
 
 interface MappingsTableProps {
     mappings: Charges[];
@@ -48,6 +48,8 @@ interface MappingsTableProps {
     totalItems: number;
     onPageChange: (page: number) => void;
     isLoading?: boolean;
+    allRatePlans: RatePlan[];
+    allRoomTypes: RoomTypes[];
 }
 
 export default function MappingsTable({ 
@@ -58,7 +60,9 @@ export default function MappingsTable({
     totalPages,
     totalItems,
     onPageChange,
-    isLoading = false
+    isLoading = false,
+    allRatePlans,
+    allRoomTypes
 }: MappingsTableProps) {
     const [viewPriceDetails, setViewPriceDetails] = useState<Charges | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<Charges | null>(null);
@@ -105,8 +109,18 @@ export default function MappingsTable({
                                                 <TableCell className="font-medium">
                                                     {mapping.date ? format(new Date(mapping.date), "MMM dd, yyyy") : "N/A"}
                                                 </TableCell>
-                                                <TableCell>{mapping.roomTypeName}</TableCell>
-                                                <TableCell>{mapping.ratePlanName}</TableCell>
+                                                <TableCell>
+                                                    {(() => {
+                                                        const room = allRoomTypes.find(r => r.roomType === mapping.roomTypeCode);
+                                                        return room?._translations?.roomName || mapping.roomTypeName;
+                                                    })()}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {(() => {
+                                                        const plan = allRatePlans.find(p => p.ratePlanCode === mapping.ratePlanCode);
+                                                        return plan?._translations?.ratePlanName || mapping.ratePlanName;
+                                                    })()}
+                                                </TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-semibold text-green-600">

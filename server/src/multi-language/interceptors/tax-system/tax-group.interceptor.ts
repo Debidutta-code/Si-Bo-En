@@ -1,6 +1,7 @@
 import { IApiResponse } from '../../../utils/return.types';
 import { ICTaxGroup } from '../../../tax-system/interfaces';
 import { TaxGroupTranslation, TaxRuleTranslation } from '../../models/features/tax-system/tax-system.model';
+import { RatePlanTranslation } from '../../models/ari/rate-plan.model';
 
 export class TaxGroupInterceptor {
     public static async intercept(
@@ -55,6 +56,22 @@ export class TaxGroupInterceptor {
                         }
                     }
                     return mappedRel;
+                })
+            );
+        }
+
+        // Nested RatePlans
+        if (result.ratePlans && Array.isArray(result.ratePlans)) {
+            result.ratePlans = await Promise.all(
+                result.ratePlans.map(async (ratePlan: any) => {
+                    const mappedRatePlan = { ...ratePlan };
+                    if (mappedRatePlan.id) {
+                        const ratePlanTranslation = await RatePlanTranslation.getTranslated(mappedRatePlan.id, locale);
+                        if (ratePlanTranslation) {
+                            mappedRatePlan._translations = ratePlanTranslation;
+                        }
+                    }
+                    return mappedRatePlan;
                 })
             );
         }

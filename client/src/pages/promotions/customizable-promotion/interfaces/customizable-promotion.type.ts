@@ -45,11 +45,17 @@ export interface CustomizableDeal {
     id: string;
     roomName: string;
     roomType: string;
+    _translations?: {
+      roomName: string;
+    };
   };
   RatePlan: {
     id: string;
     ratePlanName: string;
     ratePlanCode: string;
+    _translations?: {
+      ratePlanName: string;
+    };
   };
   CustomizableDealsApplicableAddons: DealApplicableAddon[];
 }

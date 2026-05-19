@@ -1,15 +1,22 @@
 import React, { useState } from 'react';
 import { Bed, Calendar, ChevronDown, X } from 'lucide-react';
+import type { IRatePlan } from '@/pages/promotions/geo/interfaces';
 
 interface RoomTypeFilter {
   invTypeCode: string;
   name?: string;
+  _translations?:{
+                    roomName?: string,
+                    roomType?: string,
+                    description?: string
+
+  }
 }
 
 interface FilterBarProps {
   roomTypes: RoomTypeFilter[];
   selectedRoomTypes: string[];
-  ratePlans: Array<{ ratePlanCode: string; ratePlanName: string }>; // ADD THIS
+  ratePlans: IRatePlan[]// ADD THIS
   selectedRatePlans: string[];
   dateRange: {
     startDate: string | null;
@@ -296,7 +303,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             className="w-4 h-4 mt-0.5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                           />
                           <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900">{roomType.name || roomType.invTypeCode}</div>
+                            <div className="text-sm font-medium text-gray-900">{roomType._translations?roomType._translations.roomName:roomType.name}</div>
                             {/* <div className="text-xs text-gray-500 mt-0.5">
                               {roomType.ratePlanCodes.length} rate plan{roomType.ratePlanCodes.length !== 1 ? 's' : ''}
                             </div> */}
@@ -382,7 +389,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             className="w-4 h-4 mt-0.5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                           />
                           <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900">{ratePlan.ratePlanName}</div>
+                            <div className="text-sm font-medium text-gray-900">{ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}</div>
                             <div className="text-xs text-gray-500 mt-0.5">{ratePlan.ratePlanCode}</div>
                           </div>
                         </label>
@@ -443,7 +450,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     key={roomType}
                     className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
                   >
-                    {roomTypes.find(rt => rt.invTypeCode === roomType)?.name || roomType}
+                    {(() => {
+                      const rt = roomTypes.find(r => r.invTypeCode === roomType);
+                      return rt?._translations?.roomName || rt?.name || roomType;
+                    })()}
                     <button
                       onClick={() => {
                         const newSelection = selectedRoomTypes.filter(rt => rt !== roomType);
@@ -463,7 +473,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     key={ratePlan}
                     className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full"
                   >
-                    {ratePlans.find(rp => rp.ratePlanCode === ratePlan)?.ratePlanName}
+                    {(() => {
+                      const rp = ratePlans.find(r => r.ratePlanCode === ratePlan);
+                      return rp?._translations?.ratePlanName || rp?.ratePlanName || ratePlan;
+                    })()}
                     <button
                       onClick={() => {
                         const newSelection = selectedRatePlans.filter(rp => rp !== ratePlan);

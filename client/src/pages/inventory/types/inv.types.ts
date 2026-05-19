@@ -5,6 +5,12 @@ export interface RoomTypes {
     totalRoom: number;
     maxNumberOfAdults: number;
     maxNumberOfChildren: number;
+    _translations?:{
+        roomName:string;
+        roomType:string;
+        description?:string;
+        
+    }
 }
 
 
@@ -17,6 +23,7 @@ export interface SelectedRoom {
     startDate: string;
     endDate: string;
     pushFromCalender?: boolean; // Add this
+    
 
 }
 

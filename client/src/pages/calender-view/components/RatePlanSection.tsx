@@ -44,6 +44,7 @@ interface RatePlanSectionProps {
   hotelCode: string;
   propertyId: string;
   ratePlanMap: Record<string, string>;
+  ratePlansData?: any[];
   onDataUpdate?: () => void;
   renderMode: "labels" | "data";
 }
@@ -67,6 +68,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   hotelCode,
   propertyId,
   ratePlanMap,
+  ratePlansData,
   onDataUpdate,
   renderMode,
 }) => {
@@ -74,6 +76,9 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
   const hasOccupancy = (ratePlanDetails?.baseByGuestAmts?.length ?? 0) > 0;
   const isExpanded = state.expandedOccupancy.has(`${roomType}-${ratePlanType}`);
+  
+  const fullRatePlan = ratePlansData?.find(rp => rp.ratePlanCode === ratePlanType);
+  const displayName = fullRatePlan?._translations?.ratePlanName || ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType;
 
   const customKey = generateKey.customTier(roomType, ratePlanType);
   const customData = state.customTiers.get(customKey) || {
@@ -319,9 +324,9 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
           <div className="w-40 flex flex-col items-start justify-center px-2 border-r border-gray-300 bg-gray-50 gap-1">
             <span
               className="font-semibold text-gray-700 text-xs truncate w-full"
-              title={ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType}
+              title={displayName}
             >
-              {ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType}
+              {displayName}
             </span>
             {hasOccupancy && (
               <button

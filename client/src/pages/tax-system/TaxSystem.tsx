@@ -818,7 +818,7 @@ export default function TaxSystem() {
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
                                                     <CardTitle className="text-lg mb-1">
-                                                        {rule.name}
+                                                        {rule._translations ? rule._translations.name : rule.name}
                                                     </CardTitle>
                                                     <CardDescription className="text-xs">
                                                         Priority: {rule.priority}
@@ -912,7 +912,7 @@ export default function TaxSystem() {
                                                                                 })
                                                                             }
                                                                         >
-                                                                            {group.name}
+                                                                            {group._translations?group._translations.name:group.name}
                                                                         </DropdownMenuItem>
                                                                     ))
                                                                 )}
@@ -952,7 +952,7 @@ export default function TaxSystem() {
                                                 </div>
                                                 {rule.description && (
                                                     <p className="text-sm text-gray-600 line-clamp-2">
-                                                        {rule.description}
+                                                        {rule._translations?rule._translations.description:rule.description}
                                                     </p>
                                                 )}
                                                 {getGroupsForRule(rule.id).length > 0 && (
@@ -966,7 +966,7 @@ export default function TaxSystem() {
                                                                     className="text-xs bg-green-50 text-green-700 border-green-200"
                                                                 >
                                                                     <Layers className="w-3 h-3 mr-1" />
-                                                                    {group.name}
+                                                                    {group._translations?group._translations.name:group.name}
                                                                 </Badge>
                                                             ))}
                                                         </div>
@@ -1051,7 +1051,7 @@ export default function TaxSystem() {
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
                                                     <CardTitle className="text-lg mb-1">
-                                                        {group.name}
+                                                        {group._translations?group._translations.name:group.name}
                                                     </CardTitle>
                                                     <CardDescription className="text-xs">
                                                         {group.isActive ? (
@@ -1126,7 +1126,7 @@ export default function TaxSystem() {
                                                                                 })
                                                                             }
                                                                         >
-                                                                            {ratePlan.ratePlanName}
+                                                                            {ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}
                                                                         </DropdownMenuItem>
                                                                     ))
                                                                 )}
@@ -1155,7 +1155,7 @@ export default function TaxSystem() {
                                                                                 })
                                                                             }
                                                                         >
-                                                                            {ratePlan.ratePlanName}
+                                                                            {ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}
                                                                         </DropdownMenuItem>
                                                                     ))
                                                                 )}
@@ -1199,7 +1199,7 @@ export default function TaxSystem() {
                                                                     className="text-xs bg-primary/10 text-primary border-primary/20"
                                                                 >
                                                                     <Receipt className="w-3 h-3 mr-1" />
-                                                                    {gr.taxRule.name}
+                                                                    {gr.taxRule._translations?gr.taxRule._translations.name:gr.taxRule.name}
                                                                 </Badge>
                                                             ))}
                                                         </div>
@@ -1218,7 +1218,7 @@ export default function TaxSystem() {
                                                                     className="text-xs bg-purple-50 text-purple-700 border-purple-200"
                                                                 >
                                                                     <Layers className="w-3 h-3 mr-1" />
-                                                                    {ratePlan.ratePlanName}
+                                                                    {ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}
                                                                 </Badge>
                                                             ))}
                                                         </div>
@@ -1307,10 +1307,13 @@ export default function TaxSystem() {
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
                                                     <CardTitle className="text-lg mb-1">
-                                                        {charge.name || charge.Room?.roomName}
+                                                        {charge._translations?charge._translations.name:charge.name}
                                                     </CardTitle>
                                                     <CardDescription className="text-xs">
-                                                        Room name: {charge.Room?.roomName}
+                                                        Room name: {(() => {
+                                                            const matchedRoom = allRooms.find((room) => room.id === charge.Room?.id);
+                                                            return matchedRoom?._translations?.roomName || matchedRoom?.roomName || charge.Room?.roomName;
+                                                        })()}
                                                     </CardDescription>
                                                 </div>
                                                 <DropdownMenu>

@@ -11,6 +11,9 @@ export interface IAddonSubCategory {
     categoryId: string;
     createdAt: Date;
     updatedAt: Date;
+    _translations?: {
+        name: string;
+    }
 }
 
 export interface IAddonSubCategoryCreate {

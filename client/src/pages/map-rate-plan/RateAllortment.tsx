@@ -106,6 +106,8 @@ export default function MapRatePlan() {
                     totalItems={totalItems}
                     onPageChange={handlePageChange}
                     isLoading={isLoading}
+                    allRatePlans={ratePlans}
+                    allRoomTypes={roomTypes}
                 />
 
                 {/* Update Price Dialog */}

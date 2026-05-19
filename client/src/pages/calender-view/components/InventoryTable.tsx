@@ -37,6 +37,7 @@ interface InventoryTableProps {
     totalRoom: number;
   }>;
   ratePlanMap: Record<string, string>;
+  ratePlansData?: any[];
   onDataUpdate?: () => void;
 }
 
@@ -48,6 +49,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   propertyId,
   roomSetupData,
   ratePlanMap,
+  ratePlansData,
   onDataUpdate,
 }) => {
   const state = useInventoryState(days);
@@ -282,6 +284,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                 hotelCode={hotelCode}
                 propertyId={propertyId}
                 ratePlanMap={ratePlanMap}
+                ratePlansData={ratePlansData}
                 onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 onDataUpdate={onDataUpdate}

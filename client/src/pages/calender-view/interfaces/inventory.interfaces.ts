@@ -1,16 +1,16 @@
 // interfaces/inventory.interfaces.ts
 
 export interface InventoryAnalysisFilters {
-  startDate: string; 
-  endDate: string;   
-  roomTypeCodes?: string[]; 
-  ratePlanCodes?: string[]; 
+  startDate: string;
+  endDate: string;
+  roomTypeCodes?: string[];
+  ratePlanCodes?: string[];
 }
 
 export interface RoomTypeResponse {
   id: string;
   roomName: string;
-  roomType: string;  
+  roomType: string;
   totalRoom: number;
 }
 
@@ -18,11 +18,21 @@ export interface RoomTypeWithRatePlans {
   invTypeCode: string;
   name: string;
   ratePlans?: RatePlan[];
+  _translations?: {
+    roomName?: string,
+    roomType?: string,
+    description?: string
+
+  }
 }
 export interface RatePlan {
   id: string;
   name: string;
   code: string;
+  _translations?: {
+    ratePlanName?: string
+  }
+
 }
 
 export interface InventoryAnalysisResponse {

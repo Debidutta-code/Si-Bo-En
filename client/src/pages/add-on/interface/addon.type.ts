@@ -21,6 +21,11 @@ export interface IAddon {
     images: string[];
     createdAt: Date;
     updatedAt: Date;
+    _translations?:{
+        name:string;
+            description: string | null;
+
+    }
 }
 
 export interface IAddonCreate {

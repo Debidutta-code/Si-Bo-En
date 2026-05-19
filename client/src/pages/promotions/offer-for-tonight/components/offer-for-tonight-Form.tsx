@@ -489,7 +489,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                           className="px-3 py-2 bg-muted/30 border border-border rounded-md"
                         >
                           <div className="text-sm font-medium text-foreground truncate">
-                            {roomName}
+                            {room?._translations?.roomName || roomName}
                           </div>
                           {room && (
                             <div className="text-xs text-muted-foreground">
@@ -526,7 +526,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                           />
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-foreground truncate">
-                              {room.roomName}
+                              {room._translations?.roomName || room.roomName}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               ({room.roomType})
@@ -591,7 +591,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                           className="px-3 py-2 bg-muted/30 border border-border rounded-md"
                         >
                           <div className="text-sm font-medium text-foreground truncate">
-                            {planName}
+                            {ratePlan?._translations?.ratePlanName || planName}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             ({planCode})
@@ -626,7 +626,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                           />
                           <div className="flex-1 min-w-0">
                             <div className="text-sm font-medium text-foreground truncate">
-                              {plan.ratePlanName}
+                              {plan._translations?.ratePlanName || plan.ratePlanName}
                             </div>
                             <div className="text-xs text-muted-foreground">
                               ({plan.ratePlanCode})

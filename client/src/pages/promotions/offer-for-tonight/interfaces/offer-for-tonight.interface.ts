@@ -41,8 +41,8 @@ export interface CreateOfferForTonight {
   satApplicable: boolean;
   sunApplicable: boolean;
   advanceBookingDays?: number;
-    isAutoApplied: boolean;
-isActive:boolean;
+  isAutoApplied: boolean;
+  isActive: boolean;
 }
 
 // Update Early Bird Promotion payload
@@ -62,7 +62,7 @@ export interface UpdateOfferForTonight {
   sunApplicable?: boolean;
   isActive?: boolean;
   advanceBookingDays?: number;
-    isAutoApplied: boolean;
+  isAutoApplied: boolean;
 
 }
 
@@ -99,8 +99,14 @@ export interface OfferForTonightWithRatePlan {
     ratePlanCode: string;
     b2bAvailable: boolean;
     b2cAvailable: boolean;
+    _translations?: {
+      ratePlanName: string;
+    };
   };
   roomRatePlans?: RoomRatePlanPair[];
+  _translations?: {
+    promotionName: string
+  }
 }
 
 // Convert backend format to frontend format

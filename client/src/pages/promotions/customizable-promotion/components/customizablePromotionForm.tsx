@@ -340,7 +340,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                 roomTypes.map((room) => (
                   <SelectItem key={room.id} value={room.id}>
                     <div className="flex flex-col">
-                      <span className="font-medium">{room.roomName}</span>
+                      <span className="font-medium">{room._translations?.roomName || room.roomName}</span>
                       <span className="text-xs text-muted-foreground">({room.roomType})</span>
                     </div>
                   </SelectItem>
@@ -353,7 +353,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
                 Selected: <span className="font-semibold">
-                  {roomTypes.find(r => r.id === customizableDeal.roomId)?.roomName}
+                  {roomTypes.find(r => r.id === customizableDeal.roomId)?._translations?.roomName || roomTypes.find(r => r.id === customizableDeal.roomId)?.roomName}
                 </span>
               </p>
             </div>
@@ -377,7 +377,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                 ratePlans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id}>
                     <div className="flex flex-col">
-                      <span className="font-medium">{plan.ratePlanName}</span>
+                      <span className="font-medium">{plan._translations?.ratePlanName || plan.ratePlanName}</span>
                       <span className="text-xs text-muted-foreground">({plan.ratePlanCode})</span>
                     </div>
                   </SelectItem>
@@ -390,7 +390,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
                 Selected: <span className="font-semibold">
-                  {ratePlans.find(r => r.id === customizableDeal.ratePlanId)?.ratePlanName}
+                  {(() => { const p = ratePlans.find(r => r.id === customizableDeal.ratePlanId); return p?._translations?.ratePlanName || p?.ratePlanName; })()}
                 </span>
               </p>
             </div>
@@ -447,7 +447,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                     className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{addon.name}</div>
+                    <div className="text-sm font-medium text-foreground truncate">{addon._translations?.name || addon.name}</div>
                     <div className="text-xs text-muted-foreground">({addon.code})</div>
                   </div>
                 </label>

@@ -217,7 +217,6 @@ export const MLOSRuleList: React.FC = () => {
         <h2 className="text-2xl font-bold text-foreground">MLOS Rules</h2>
         <button
           onClick={() => {
-            // console.log('Button clicked, showForm:', showForm);
             setShowForm(true);
           }}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -255,12 +254,14 @@ export const MLOSRuleList: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                mlosRules.map((rule) => (
+                mlosRules.map((rule) => {
+                  const matchedRatePlan = ratePlans.find((rp) => rp.id === rule.ratePlan.id);
+                  return (
                   <TableRow key={rule.id}>
                     <TableCell>
                       <div>
                         <div className="font-medium text-foreground">
-                          {rule.ratePlan.ratePlanName}
+                          {matchedRatePlan?._translations?.ratePlanName || rule.ratePlan.ratePlanName}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {rule.ratePlan.ratePlanCode}
@@ -336,7 +337,7 @@ export const MLOSRuleList: React.FC = () => {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))
+                )})
               )}
             </TableBody>
           </Table>

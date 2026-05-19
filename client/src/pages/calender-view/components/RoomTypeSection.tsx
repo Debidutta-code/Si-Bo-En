@@ -36,6 +36,7 @@ interface RoomTypeSectionProps {
     totalRoom: number;
   }>;
   ratePlanMap: Record<string, string>;
+  ratePlansData?: any[];
   onMouseEnter: (index: number) => void;
   onMouseLeave: () => void;
   onDataUpdate?: () => void;
@@ -48,6 +49,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
   hotelCode,
   propertyId,
   ratePlanMap,
+  ratePlansData,
   roomSetupData,
   onMouseEnter,
   onMouseLeave,
@@ -55,7 +57,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
 }) => {
   const roomTypeData = getRoomTypeData(roomType, days);
   const matchedRoom = roomSetupData?.find((r) => r.roomType === roomType);
-  const displayName = matchedRoom ? matchedRoom.roomName : roomType;
+  const displayName = matchedRoom ? ((matchedRoom as any)._translations?.roomName || matchedRoom.roomName) : roomType;
 
   const getRoomCTAValue = (day: InventoryDay): boolean => {
     return day.ratePlans?.some(rp =>
@@ -303,6 +305,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 propertyId={propertyId}
                 hotelCode={hotelCode}
                 ratePlanMap={ratePlanMap}
+                ratePlansData={ratePlansData}
                 onDataUpdate={onDataUpdate}
                 renderMode="labels"
               />
@@ -631,6 +634,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   hotelCode={hotelCode}
                   propertyId={propertyId}
                   ratePlanMap={ratePlanMap}
+                  ratePlansData={ratePlansData}
                   onDataUpdate={onDataUpdate}
                   renderMode="data"
                 />

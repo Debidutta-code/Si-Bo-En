@@ -125,7 +125,7 @@ export default function ManagementTabs({
                                 <CardContent className="p-4">
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-lg">{category.name}</h3>
+                                            <h3 className="font-semibold text-lg">{category._translations?category._translations.name:category.name}</h3>
                                             
                                         </div>
                                         <DropdownMenu>
@@ -187,13 +187,12 @@ export default function ManagementTabs({
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {subCategories?.map((subCategory) => {
-                            const category = categories.find(c => c.id === subCategory.categoryId);
                             return (
                                 <Card key={subCategory.id} className="hover:shadow-lg transition-shadow">
                                     <CardContent className="p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-lg">{subCategory.name}</h3>
+                                                <h3 className="font-semibold text-lg">{subCategory._translations?subCategory._translations.name:subCategory.name}</h3>
                                             </div>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -235,7 +234,7 @@ export default function ManagementTabs({
                                         </div>
                                         <div className="flex gap-2 mt-2">
                                             <Badge variant="secondary" className="text-xs">
-                                                {category?.name || "Unknown"}
+                                                {subCategory._translations?subCategory._translations.name:subCategory.name || "Unknown"}
                                             </Badge>
                                             <Badge variant="outline" className="text-xs">
                                                 {variants.filter(v => v.subcategoryId === subCategory.id).length} variants
@@ -267,7 +266,7 @@ export default function ManagementTabs({
                                     <CardContent className="p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-lg">{variant.name}</h3>
+                                                <h3 className="font-semibold text-lg">{variant._translations?variant._translations.name:variant.name}</h3>
                                             </div>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -309,7 +308,7 @@ export default function ManagementTabs({
                                         </div>
                                         <div className="flex flex-col gap-1 mt-2">
                                             <Badge variant="secondary" className="text-xs w-fit">
-                                                {category?.name || "Unknown"} → {subCategory?.name || "Unknown"}
+                                                {category?._translations?category._translations.name:category?.name || "Unknown"} → {subCategory?._translations?subCategory?._translations.name:subCategory?.name || "Unknown"}
                                             </Badge>
                                         </div>
                                     </CardContent>

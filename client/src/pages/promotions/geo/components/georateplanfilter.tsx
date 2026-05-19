@@ -45,7 +45,7 @@ const hasActiveFilters = selectedRoomType !== "all" || selectedRatePlan !== "all
               <SelectItem value="all">All Room Types</SelectItem>
               {roomTypes.map((room) => (
                 <SelectItem key={room.id} value={room.roomType}>
-                  {room.roomName} ({room.roomType})
+                  {room._translations ? room._translations.roomName : room.roomName} ({room.roomType})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -64,7 +64,7 @@ const hasActiveFilters = selectedRoomType !== "all" || selectedRatePlan !== "all
               <SelectItem value="all">All Rate Plans</SelectItem>
               {ratePlans.map((plan) => (
                 <SelectItem key={plan.id} value={plan.ratePlanCode}>
-                  {plan.ratePlanName} ({plan.ratePlanCode})
+                  {plan._translations ? plan._translations.ratePlanName : plan.ratePlanName} ({plan.ratePlanCode})
                 </SelectItem>
               ))}
             </SelectContent>

@@ -9,6 +9,9 @@ export interface IAddonVariant {
     subcategoryId: string;
     createdAt: Date;
     updatedAt: Date;
+    _translations?: {
+        name: string
+    }
 }
 
 export interface IAddonVariantCreate {

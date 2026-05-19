@@ -13,9 +13,17 @@ export interface ITaxGroup {
         id: string;
         taxRuleId: string;
         taxRule: ITaxRule;
+        _translations?: {
+            name: string;
+            description:string;
+        }
     }[];
+    
     createdAt: Date;
     updatedAt: Date;
+    _translations?: {
+        name: string;
+    }
 }
 
 export interface ICTaxGroup {

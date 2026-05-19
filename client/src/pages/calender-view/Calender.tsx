@@ -17,6 +17,7 @@ import toast from "react-hot-toast";
 import Loader from "@/components/Loader/Loader";
 import { fetchRatePlansService } from "../rate-plan/services";
 import type { RatePlan } from "../rate-plan/interfaces";
+import type { IRatePlan } from "../promotions/geo/interfaces";
 
 export default function InventoryPage() {
   // Get propertyId from URL params
@@ -55,9 +56,7 @@ export default function InventoryPage() {
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
   const [inventoryData, setInventoryData] = useState<DayData[]>([]);
   const [_error, setError] = useState<string | null>(null);
-  const [ratePlans, setRatePlans] = useState<
-    Array<{ ratePlanCode: string; ratePlanName: string; id: string }>
-  >([]);
+  const [ratePlans, setRatePlans] = useState<IRatePlan[]>([]);
   const [selectedRatePlans, setSelectedRatePlans] = useState<string[]>([]);
   const [isLoadingRatePlans, setIsLoadingRatePlans] = useState(false);
 
@@ -92,9 +91,10 @@ export default function InventoryPage() {
           invTypeCode: room.roomType,
           name: room.roomName,
           ratePlans: [],
+          _translations: room._translations
         }));
 
-        // console.log('✅ Transformed room types:', transformedRoomTypes);
+        console.log('✅ Transformed room types:', transformedRoomTypes);
 
         setRoomTypes(transformedRoomTypes);
 
@@ -133,10 +133,11 @@ export default function InventoryPage() {
         }
 
         const transformedRatePlans = (response.data || []).map(
-          (rp: RatePlan) => ({
+          (rp: any) => ({
             ratePlanCode: rp.ratePlanCode,
             ratePlanName: rp.ratePlanName,
             id: rp.id,
+            _translations: rp._translations
           }),
         );
 
@@ -647,6 +648,7 @@ export default function InventoryPage() {
                     (acc, rp) => ({ ...acc, [rp.ratePlanCode]: rp.id }),
                     {} as Record<string, string>,
                   )}
+                  ratePlansData={ratePlans}
                   onMouseEnter={(index) => setHoveredDay(index)}
                   onMouseLeave={() => setHoveredDay(null)}
                   onDataUpdate={() => fetchInventoryData(false)}

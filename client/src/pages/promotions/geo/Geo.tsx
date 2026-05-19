@@ -269,10 +269,13 @@ export const GeoRatePlanList: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                geoRatePlans.map((plan) => (
+                geoRatePlans.map((plan) => {
+                  const matchedRoom = roomTypes.find((r) => r.roomType === plan.roomType);
+                  const matchedRatePlan = ratePlans.find((rp) => rp.ratePlanCode === plan.ratePlanCode);
+                  return (
                   <TableRow key={plan.id}>
-                    <TableCell>{plan.roomType || 'All Rooms'}</TableCell>
-                    <TableCell>{plan.ratePlan?.ratePlanName}</TableCell>
+                    <TableCell>{matchedRoom?._translations?.roomName || plan.room?.roomName || plan.roomType || 'All Rooms'}</TableCell>
+                    <TableCell>{matchedRatePlan?._translations?.ratePlanName || plan.ratePlan?.ratePlanName || plan.ratePlanCode}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded text-xs font-medium ${plan.restrictionType === 'restricted'
                         ? 'bg-destructive/10 text-destructive'
@@ -349,7 +352,8 @@ export const GeoRatePlanList: React.FC = () => {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>

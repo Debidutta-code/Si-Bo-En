@@ -194,7 +194,7 @@ export default function TaxGroupDialog({
                                                     htmlFor={`rule-${rule.id}`}
                                                     className="text-sm font-medium cursor-pointer"
                                                 >
-                                                    {rule.name}
+                                                    {rule._translations?rule._translations.name:rule.name}
                                                 </Label>
                                                 <div className="flex items-center gap-2 text-xs text-gray-500">
                                                     <Badge variant="outline" className="text-xs">

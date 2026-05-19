@@ -107,7 +107,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
             {editData ? (
               <div className="px-4 py-2 bg-muted/30 border border-border rounded-md">
                 <div className="text-sm font-medium text-foreground">
-                  {editData.ratePlan?.ratePlanName}
+                  {ratePlans.find(rp => rp.ratePlanCode === editData.ratePlan?.ratePlanCode)?._translations?.ratePlanName || editData.ratePlan?.ratePlanName}
                 </div>
                 <div className="text-xs text-muted-foreground">
                   {editData.ratePlan?.ratePlanCode}
@@ -129,7 +129,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                   ) : (
                     availableRatePlans.map((plan) => (
                       <SelectItem key={plan.id} value={plan.id}>
-                        {plan.ratePlanName} ({plan.ratePlanCode})
+                        {plan._translations ? plan._translations.ratePlanName : plan.ratePlanName} ({plan.ratePlanCode})
                       </SelectItem>
                     ))
                   )}

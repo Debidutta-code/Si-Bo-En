@@ -37,6 +37,9 @@ export interface IRatePlan {
   id: string;
   ratePlanName: string;
   ratePlanCode: string;
+  _translations?: {
+    ratePlanName: string;
+  };
 }
 
 export interface CreateGeoRatePlan {

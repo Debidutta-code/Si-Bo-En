@@ -1,6 +1,6 @@
 import { IApiResponse } from '../../../utils/return.types';
 import { ICTaxRule } from '../../../tax-system/interfaces';
-import { TaxRuleTranslation } from '../../models/features/tax-system/tax-system.model';
+import { TaxRuleTranslation, TaxGroupTranslation } from '../../models/features/tax-system/tax-system.model';
 
 export class TaxRuleInterceptor {
     public static async intercept(
@@ -37,6 +37,27 @@ export class TaxRuleInterceptor {
         const ruleTranslation = await TaxRuleTranslation.getTranslated(rule.id, locale);
         if (ruleTranslation) {
             result._translations = ruleTranslation;
+        }
+
+        if (Array.isArray(result.taxGroupRules) && result.taxGroupRules.length > 0) {
+            result.taxGroupRules = await Promise.all(
+                result.taxGroupRules.map(async (groupRule: any) => {
+                    const grResult = { ...groupRule };
+                    if (grResult.taxGroup && grResult.taxGroup.id) {
+                        const taxGroupTranslation = await TaxGroupTranslation.getTranslated(
+                            grResult.taxGroup.id,
+                            locale
+                        );
+                        if (taxGroupTranslation) {
+                            grResult.taxGroup = {
+                                ...grResult.taxGroup,
+                                _translations: taxGroupTranslation
+                            };
+                        }
+                    }
+                    return grResult;
+                })
+            );
         }
 
         return result;

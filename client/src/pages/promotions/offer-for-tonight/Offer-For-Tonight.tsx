@@ -352,14 +352,14 @@ export const OfferForTonightList: React.FC = () => {
                                         <TableCell>
                                             <div>
                                                 <div className="font-medium text-foreground">
-                                                    {promotion.ratePlan?.ratePlanName || 'Multiple Plans'}
+                                                    {promotion.ratePlan?._translations?.ratePlanName || promotion.ratePlan?.ratePlanName || 'Multiple Plans'}
                                                 </div>
                                                 <div className="text-xs text-muted-foreground">
                                                     {promotion.ratePlan?.ratePlanCode || promotion.ratePlanCode}
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="font-medium">{promotion.promotionName}</TableCell>
+                                        <TableCell className="font-medium">{promotion._translations?.promotionName || promotion.promotionName}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-1 text-xs">
                                                 <Clock className="w-3 h-3 text-muted-foreground" />
