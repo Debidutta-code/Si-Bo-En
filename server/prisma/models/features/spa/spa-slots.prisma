@@ -21,5 +21,23 @@ model SpaSlots {
     Reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
     spaDate SpaDates @relation(fields: [spaDateId], references: [id],onDelete: Cascade)
     spaPricing SpaPricing?
+    SlotBooking SlotBooking?
     @@map("spa_slots")
+}
+
+model SlotBooking {
+    id              String    @id @default(uuid())
+    spaBookingId    String    @map("spa_booking_id")
+    spaId           String    @map("spa_id")
+    spaSlotId       String    @unique @map("spa_slot_id") 
+    
+    amount          Float     @map("amount")
+    
+    createdAt       DateTime  @default(now()) @map("created_at")
+
+    SpaBooking      SpaBooking @relation(fields: [spaBookingId], references: [id], onDelete: Cascade)
+    Spa             Spa        @relation(fields: [spaId], references: [id], onDelete: Cascade)
+    SpaSlot         SpaSlots   @relation(fields: [spaSlotId], references: [id], onDelete: Cascade)
+
+    @@map("slot_bookings")
 }

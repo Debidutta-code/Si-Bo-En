@@ -1,7 +1,7 @@
 import { getCurrencyConverter } from '../../currency-maping/utils';
 import { IApiResponse, successResponse, errorResponse } from '../../utils';
 import { SpaRepository } from '../repository';
-import { ICSpaR, IUSpaR } from '../types';
+import { ICSpaR, IUSpaR, ISpaBookingRequest } from '../types';
 
 export class SpaService {
     private spaRepository: SpaRepository;
@@ -49,6 +49,17 @@ export class SpaService {
     public async getSpaForProperty(propertyId: string): Promise<IApiResponse> {
         try {
             const spas = await this.spaRepository.getSpaForProperty(propertyId);
+            return successResponse('Spas retrieved successfully', spas);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse('Failed to retrieve spas', error.message);
+            }
+            return errorResponse('Failed to retrieve spas');
+        }
+    }
+    public async getSpaForPropertyCode(propertyCode: string): Promise<IApiResponse> {
+        try {
+            const spas = await this.spaRepository.getSpaForPropertyCode(propertyCode);
             return successResponse('Spas retrieved successfully', spas);
         } catch (error) {
             if (error instanceof Error) {
@@ -151,6 +162,50 @@ export class SpaService {
                 );
             }
             return errorResponse('Failed to retrieve available spas');
+        }
+    }
+    public async createSpaReservation(data: ISpaBookingRequest): Promise<IApiResponse> {
+        try {
+            let totalAmount = 0;
+            const processedSlots = [];
+            
+            for (const slot of data.slots) {
+                const spa = await this.spaRepository.getById(slot.spaId);
+                if (!spa) {
+                    return errorResponse(`Spa not found: ${slot.spaId}`);
+                }
+                
+                let slotAmount = 0;
+                if (!spa.isInclusive) {
+                    slotAmount = spa.discountValue || 0; 
+                }
+                
+                totalAmount += slotAmount;
+                
+                processedSlots.push({
+                    spaId: slot.spaId,
+                    spaSlotId: slot.spaSlotId,
+                    amount: slotAmount
+                });
+            }
+            
+            const booking = await this.spaRepository.createSpaBooking(
+                {
+                    userEmail: data.userEmail,
+                    userContactNumber: data.userContactNumber,
+                    userId: data.userId,
+                    totalAmount: totalAmount,
+                    currencyCode: 'AED' 
+                },
+                processedSlots
+            );
+            
+            return successResponse('Spa booking created successfully', booking);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse('Failed to create spa booking', error.message);
+            }
+            return errorResponse('Failed to create spa booking');
         }
     }
 }

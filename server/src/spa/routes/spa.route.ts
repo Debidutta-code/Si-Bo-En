@@ -16,8 +16,12 @@ spaRouter
     .route('/property/:propertyId')
     .get(spaController.getSpaForProperty.bind(spaController));
 spaRouter
+    .route('/property/code/:propertyCode')
+    .get(spaController.getSpaForPropertyCode.bind(spaController));
+spaRouter
     .route('/:id')
     .put(protect, spaController.updateSpa.bind(spaController))
     .delete(protect, spaController.deleteSpa.bind(spaController));
 spaRouter.route("/available/:bookingCode").get(spaController.getAvailableSpaForReservation.bind(spaController));
+spaRouter.route("/reservation").post(spaController.createSpaReservation.bind(spaController));
 export {spaRouter}

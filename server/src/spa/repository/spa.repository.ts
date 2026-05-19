@@ -132,6 +132,56 @@ export class SpaRepository {
             throw new Error('Error occur while fetching spas for property');
         }
     }
+    public async getSpaForPropertyCode(propertyCode: string): Promise<ISpaWSlots[]> {
+        try {
+            return await prisma.spa.findMany({
+                where: {
+                    Property: {
+                        propertyCode: propertyCode,
+                    },
+                },
+                include: {
+                    Category: true,
+                    SubCategory: true,
+                    User: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                        },
+                    },
+                    SpaDates: {
+                        include: {
+                            Slots: {
+                                include: {
+                                    Reservation: {
+                                        select: {
+                                            bookingCode: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    AssignedSpas: {
+                        include: {
+                            User: {
+                                select: {
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    email: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occur while fetching spas for property code');
+        }
+    }
     public async getAvailableSpaForinDateRange(
         propertyId: string,
         startDate: Date,
@@ -174,7 +224,7 @@ export class SpaRepository {
                                     startTime: 'asc',
                                 },
                             },
-                            
+
                         },
                     },
                     AssignedSpas: {
@@ -215,6 +265,52 @@ export class SpaRepository {
             });
         } catch (error) {
             throw new Error('Error occur while fetching spa');
+        }
+    }
+    public async createSpaBooking(
+        data: {
+            userEmail: string;
+            userContactNumber: string;
+            userId?: string;
+            totalAmount: number;
+            currencyCode?: string;
+        },
+        slots: { spaId: string; spaSlotId: string; amount: number }[]
+    ) {
+        try {
+            return await prisma.$transaction(async (tx) => {
+                const booking = await tx.spaBooking.create({
+                    data: {
+                        userEmail: data.userEmail,
+                        userContactNumber: data.userContactNumber,
+                        userId: data.userId,
+                        totalAmount: data.totalAmount,
+                        currencyCode: data.currencyCode,
+                        SlotBookings: {
+                            create: slots.map((s) => ({
+                                spaId: s.spaId,
+                                spaSlotId: s.spaSlotId,
+                                amount: s.amount,
+                            })),
+                        },
+                    },
+                });
+
+                for (const s of slots) {
+                    const slot = await tx.spaSlots.findUnique({ where: { id: s.spaSlotId } });
+                    if (!slot) throw new Error(`Slot not found: ${s.spaSlotId}`);
+                    if (slot.isBooked) throw new Error(`Slot already booked: ${s.spaSlotId}`);
+
+                    await tx.spaSlots.update({
+                        where: { id: s.spaSlotId },
+                        data: { isBooked: true },
+                    });
+                }
+
+                return booking;
+            });
+        } catch (error) {
+            throw new Error('Error occur while creating spa booking');
         }
     }
 }
