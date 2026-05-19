@@ -274,7 +274,7 @@ export class ReportsV2Repository {
                     },
                 },
             },
-            orderBy: { reservationStartDate: 'asc' },
+            orderBy: { reservationStartDate: 'desc' },
         });
     }
 
