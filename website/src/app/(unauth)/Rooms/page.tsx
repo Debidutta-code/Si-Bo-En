@@ -1085,6 +1085,7 @@ const Rooms = () => {
           finalPrice={finalPrice}
           bookingContext={bookingContext}
           loyaltyMemberEmail={loyaltyMemberEmail}
+          loyaltyDiscountInfo={loyaltyDiscountInfo}
           propertyId={propertyDetails?.id || ""}
           onClose={() => {
             setBookingRoom(null);

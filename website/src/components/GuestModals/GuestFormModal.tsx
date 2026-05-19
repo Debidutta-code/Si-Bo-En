@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, Info, Loader2, Mail, Phone, User, Calendar } from "lucide-react";
+import { X, Mail, Phone, User, Calendar, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -23,6 +23,8 @@ interface Props {
   finalPrice: any;
   bookingContext: any;
   loyaltyMemberEmail?: string;
+  loyaltyDiscountInfo?: { type: string; value: number; currencyCode: string } | null;  // ← add
+
   propertyId?: string;
   onClose: () => void;
   handleGuestDetailChange: (
@@ -41,6 +43,7 @@ const GuestFormModal: React.FC<Props> = ({
   finalPrice,
   bookingContext,
   loyaltyMemberEmail,
+  loyaltyDiscountInfo,
   propertyId,
   onClose,
   handleGuestDetailChange,
@@ -53,73 +56,74 @@ const GuestFormModal: React.FC<Props> = ({
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  const [isLoyaltyMember, setIsLoyaltyMember] = useState(false);
-  const [loyaltyDiscount, setLoyaltyDiscount] = useState<any>(null);
-  const [verifyingLoyalty, setVerifyingLoyalty] = useState(false);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // const [isLoyaltyMember, setIsLoyaltyMember] = useState(false);
+  // const [loyaltyDiscount, setLoyaltyDiscount] = useState<any>(null);
+  // const [verifyingLoyalty, setVerifyingLoyalty] = useState(false);
+  // const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const toggleSection = (key: string) =>
     setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   const { t } = useTranslation();
+  const isLoyaltyMember = !!loyaltyMemberEmail && !!loyaltyDiscountInfo;
+  const loyaltyDiscount = loyaltyDiscountInfo ?? null;
 
   useEffect(() => {
     if (loyaltyMemberEmail && !contactInfo.email) {
       handleContactChange("email", loyaltyMemberEmail);
-      verifyLoyaltyMembership(loyaltyMemberEmail);
     }
   }, [loyaltyMemberEmail]);
 
-  const verifyLoyaltyMembership = async (email: string) => {
-    if (!email || !propertyId) return;
+  //   // const verifyLoyaltyMembership = async (email: string) => {
+  //   //   if (!email || !propertyId) return;
 
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+  //   //   if (debounceTimerRef.current) {
+  //   //     clearTimeout(debounceTimerRef.current);
+  //   //   }
 
-    setVerifyingLoyalty(true);
+  //   //   setVerifyingLoyalty(true);
 
-    // Set up new debounce timer
-    debounceTimerRef.current = setTimeout(async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: email,
-              propertyId: propertyId,
-            }),
-          }
-        );
+  //   //   // Set up new debounce timer
+  //   //   debounceTimerRef.current = setTimeout(async () => {
+  //   //     try {
+  //   //       const response = await fetch(
+  //   //         `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
+  //   //         {
+  //   //           method: "POST",
+  //   //           headers: { "Content-Type": "application/json" },
+  //   //           body: JSON.stringify({
+  //   //             email: email,
+  //   //             propertyId: propertyId,
+  //   //           }),
+  //   //         }
+  //   //       );
 
-        const data = await response.json();
+  //   //       const data = await response.json();
 
-        if (response.ok && data.success && data.data?.isLoyaltyMember) {
-          setIsLoyaltyMember(true);
-          setLoyaltyDiscount(data.data.discount);
-        } else {
-          setIsLoyaltyMember(false);
-          setLoyaltyDiscount(null);
-        }
-      } catch (error) {
-        console.error("Error verifying loyalty membership:", error);
-        setIsLoyaltyMember(false);
-        setLoyaltyDiscount(null);
-      } finally {
-        setVerifyingLoyalty(false);
-      }
-    }, 800); // 800ms debounce delay
-  };
+  //   //       if (response.ok && data.success && data.data?.isLoyaltyMember) {
+  //   //         setIsLoyaltyMember(true);
+  //   //         setLoyaltyDiscount(data.data.discount);
+  //   //       } else {
+  //   //         setIsLoyaltyMember(false);
+  //   //         setLoyaltyDiscount(null);
+  //   //       }
+  //   //     } catch (error) {
+  //   //       console.error("Error verifying loyalty membership:", error);
+  //   //       setIsLoyaltyMember(false);
+  //   //       setLoyaltyDiscount(null);
+  //   //     } finally {
+  //   //       setVerifyingLoyalty(false);
+  //   //     }
+  //   //   }, 800); // 800ms debounce delay
+  //   // };
 
-  // Cleanup debounce timer on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
+  //   // Cleanup debounce timer on unmount
+  //   useEffect(() => {
+  //     return () => {
+  //       if (debounceTimerRef.current) {
+  //         clearTimeout(debounceTimerRef.current);
+  //       }
+  //     };
+  //   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -421,20 +425,12 @@ const GuestFormModal: React.FC<Props> = ({
                     value={contactInfo.email}
                     onChange={(e: any) => {
                       handleFieldChange('contact', 'email', 'email', e.target.value);
-                      // Verify loyalty when email changes (debounced)
-                      if (e.target.value && propertyId) {
-                        verifyLoyaltyMembership(e.target.value);
-                      }
                     }}
                     placeholder={t("GuestForm.emailPlaceholder")}
                     className={errors.email ? "border-red-500" : ""}
                     disabled={!!loyaltyMemberEmail}
                   />
-                  {verifyingLoyalty && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                    </div>
-                  )}
+                  
                 </div>
                 {errors.email && (
                   <p className="text-sm text-red-600">{errors.email}</p>
