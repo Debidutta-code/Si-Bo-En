@@ -127,6 +127,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const [checkOutDate, setCheckOutDate] = useState(
     parseDate(bookingData.reservationEndDate),
   );
+  const isCheckInPassed = isBefore(new Date(checkInDate), new Date());
 
   // ── Derive initial room layout from priceBreakdowns (source of truth) ──────
   const initialRoomDistribution = extractGuestDistribution(bookingData);
@@ -668,6 +669,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             </button>
           </div>
 
+
           <div className="px-6 pb-4">
             {activeTab === "dates" ? (
               <div className="space-y-4">
@@ -683,8 +685,8 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                         setDateErrors((p) => ({ ...p, checkIn: undefined }));
                         setPriceFetched(false);
                       }}
-                      disabled={isBefore(new Date(checkInDate), new Date())}
-                      className={`w-full border px-3 py-2 rounded ${dateErrors.checkIn ? "border-red-500" : ""}`}
+                      disabled={isCheckInPassed}
+                      className={`w-full border px-3 py-2 rounded ${dateErrors.checkIn ? "border-red-500" : ""} ${isCheckInPassed ? "bg-gray-100" : ""}`}
                     />
                     {dateErrors.checkIn && (
                       <p className="text-sm text-red-600 mt-1">
@@ -703,8 +705,8 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                         setDateErrors((p) => ({ ...p, checkOut: undefined }));
                         setPriceFetched(false);
                       }}
-                      disabled={isBefore(new Date(checkInDate), new Date())}
-                      className={`w-full border px-3 py-2 rounded ${dateErrors.checkOut ? "border-red-500" : ""}`}
+                      disabled={isCheckInPassed}
+                      className={`w-full border px-3 py-2 rounded ${dateErrors.checkOut ? "border-red-500" : ""} ${isCheckInPassed ? "bg-gray-100" : ""}`}
                     />
                     {dateErrors.checkOut && (
                       <p className="text-sm text-red-600 mt-1">
@@ -716,23 +718,27 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                 <div className="pt-4 border-t">
                   <button
                     onClick={fetchUpdatedPrice}
-                    disabled={priceLoading || !checkInDate || !checkOutDate || isBefore(new Date(checkInDate), new Date())}
+                    disabled={priceLoading || !checkInDate || !checkOutDate || isCheckInPassed}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium flex items-center justify-center gap-2 disabled:bg-gray-400"
                   >
                     {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>{t("ModifyBooking.fetchingPrice")}</span></> : <><RefreshCw className="h-4 w-4" /><span>{t("ModifyBooking.checkUpdatedPrice")}</span></>}
                   </button>
+                  
                 </div>
               </div>
             ) : (
               <>
                 <button
-                  className="w-full text-white font-bold border px-3 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700"
+                  className="w-full text-white font-bold border px-3 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400"
                   onClick={() => setShowGuestSelector(true)}
+                  disabled={isCheckInPassed}
                 >
                   <span className="flex gap-2 items-center justify-center">
                     <Plus /> {guestSummary === "Add Guests" ? t("ModifyBooking.addGuests") : guestSummary}
                   </span>
                 </button>
+
+                
 
                 <div className="mt-4 space-y-2 border p-4 rounded bg-gray-50">
                   {guestForms.map((guest, index) => {
@@ -741,7 +747,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     return (
                       <div key={index} className="bg-white relative border border-gray-300 p-4 rounded shadow-sm">
                         {!(index === 0 && guest.type === "adult") && (
-                          <button onClick={() => handleDeleteClick(index)} className="absolute top-4 right-3 text-red-500 hover:text-red-700">
+                          <button
+                            onClick={() => handleDeleteClick(index)}
+                            disabled={isCheckInPassed}
+                            className="absolute top-4 right-3 text-red-500 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
                             <Trash2 className="w-5 h-5" />
                           </button>
                         )}
@@ -761,13 +771,14 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700">{t("ModifyBooking.lastName")}</label>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">{t("ModifyBooking.firstName")}</label>
                             <input
                               type="text"
                               placeholder="First Name"
                               value={guest.firstName}
                               onChange={(e) => handleGuestDetailChange(index, "firstName", e.target.value)}
-                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${gErr.firstName ? "border-red-500" : "border-gray-300"}`}
+                              disabled={isCheckInPassed}
+                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${gErr.firstName ? "border-red-500" : "border-gray-300"} ${isCheckInPassed ? "bg-gray-100" : ""}`}
                             />
                             {gErr.firstName && <p className="text-sm text-red-600 mt-1">{gErr.firstName}</p>}
                           </div>
@@ -778,7 +789,8 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                               placeholder="Last Name"
                               value={guest.lastName}
                               onChange={(e) => handleGuestDetailChange(index, "lastName", e.target.value)}
-                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${gErr.lastName ? "border-red-500" : "border-gray-300"}`}
+                              disabled={isCheckInPassed}
+                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${gErr.lastName ? "border-red-500" : "border-gray-300"} ${isCheckInPassed ? "bg-gray-100" : ""}`}
                             />
                             {gErr.lastName && <p className="text-sm text-red-600 mt-1">{gErr.lastName}</p>}
                           </div>
@@ -788,7 +800,8 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                               type="date"
                               value={guest.dob}
                               onChange={(e) => handleGuestDetailChange(index, "dob", e.target.value)}
-                              className="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 border-gray-300"
+                              disabled={isCheckInPassed}
+                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 border-gray-300 ${isCheckInPassed ? "bg-gray-100" : ""}`}
                             />
                           </div>
                         </div>
@@ -800,16 +813,16 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                 <div className="pt-4 border-t mt-4">
                   <button
                     onClick={fetchUpdatedPrice}
-                    disabled={priceLoading}
+                    disabled={priceLoading || isCheckInPassed}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium flex items-center justify-center gap-2 disabled:bg-gray-400"
                   >
                     {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching Price...</span></> : <><RefreshCw className="h-4 w-4" /><span>{t("ModifyBooking.checkUpdatedPrice")}</span></>}
                   </button>
+                
                 </div>
               </>
             )}
           </div>
-
           {/* Price section */}
           <div className="px-6 pb-4 text-gray-700 text-sm space-y-2 relative">
             {bookingData?.paymentMethod === "pay_at_hotel" ? (
@@ -1088,6 +1101,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         initialChildren={guestCounts.children}
         initialChildAges={childAges}
         initialRoomDistribution={initialRoomDistribution}
+        isModificationDisabled={isCheckInPassed}
         onClose={() => setShowGuestSelector(false)}
         onApply={(summary, data) => {
           setGuestSummary(summary);
