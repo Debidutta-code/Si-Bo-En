@@ -415,7 +415,7 @@ class BasePriceClass {
         const dailyPriceBrakeDown: DailyPriceBrakeDown[] = [];
 
         this.charges.sort((a, b) => a.date.getTime() - b.date.getTime());
-        this.charges.pop();
+        // this.charges.pop();
 
         this.guestDistributions.forEach((guestDistribution, index) => {
             const { adults, children } = guestDistribution;

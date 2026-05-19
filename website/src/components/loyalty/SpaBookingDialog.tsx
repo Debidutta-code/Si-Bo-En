@@ -250,17 +250,14 @@ export default function SpaBookingDialog({
                           )}
                         </div>
                       )}
-                      {activeSpa.discountValue && (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      {/* Charge — only shown when not inclusive */}
+                      {activeSpa.discountValue && !activeSpa.isInclusive && (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                           <Tag className="h-3 w-3 flex-shrink-0" />
-                          {activeSpa.discountValue}% off · {activeSpa.currencyCode}
-                          {activeSpa.isInclusive && (
-                            <span className="ml-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 text-[10px] font-medium">Inclusive</span>
-                          )}
+                          Charges: {activeSpa.discountValue} {activeSpa.currencyCode}
                         </div>
                       )}
                     </div>
-
                     {activeSpa.description && (
                       <p className="text-xs text-gray-500 leading-relaxed">
                         <span className="font-medium text-gray-700">Description: </span>

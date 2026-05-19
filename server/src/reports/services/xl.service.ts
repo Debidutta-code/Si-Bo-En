@@ -426,13 +426,13 @@ export class ReportsV2ExcelService {
             const leadDays =
                 r.checkInDate && r.bookedAt
                     ? Math.max(
-                          0,
-                          Math.ceil(
-                              (new Date(r.checkInDate).getTime() -
-                                  new Date(r.bookedAt).getTime()) /
-                                  86400000
-                          )
-                      )
+                        0,
+                        Math.ceil(
+                            (new Date(r.checkInDate).getTime() -
+                                new Date(r.bookedAt).getTime()) /
+                            86400000
+                        )
+                    )
                     : 'N/A';
             ws.addRow([
                 propertyNames.get(r.propertyId) || r.hotelName,
@@ -503,8 +503,8 @@ export class ReportsV2ExcelService {
             sortBy === 'revenue'
                 ? b.revenue - a.revenue
                 : sortBy === 'bookings'
-                  ? b.bookings - a.bookings
-                  : b.nights - a.nights
+                    ? b.bookings - a.bookings
+                    : b.nights - a.nights
         );
 
         const hdr = ws.addRow([
@@ -553,14 +553,14 @@ export class ReportsV2ExcelService {
         return Buffer.from(await wb.xlsx.writeBuffer());
     }
 
-    // ── Report 6: All Reservations ────────────────────────────────────────────
-    public async generateAllReservations(
+   public async generateAllReservations(
         reservations: any[],
         propertyNames: Map<string, string>
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('All Reservations');
-        const cols = 16;
+        const cols = 36;
+
         this.addTitle(
             ws,
             'All Reservations Report',
@@ -569,47 +569,130 @@ export class ReportsV2ExcelService {
         );
 
         const hdr = ws.addRow([
-            'Booking Code',
-            'Property',
-            'Guest Name',
-            'Email',
-            'Phone',
-            'Room Type',
-            'Rate Plan',
-            'Check-In',
-            'Check-Out',
-            'Nights',
-            'Amount',
-            'Paid',
-            'Outstanding',
-            'Status',
-            'Source',
-            'Booked At',
+            'Booking Code',           //  1
+            'Property',               //  2
+            'Guest Name',             //  3
+            'Email',                  //  4
+            'Phone',                  //  5
+            'Room Type',              //  6
+            'Rate Plan',              //  7
+            'Check-In',               //  8
+            'Check-Out',              //  9
+            'Nights',                 // 10
+            'Currency',               // 11
+            'Total Base Charges',     // 12  sum(DailyPriceBrakeDown.baseChargesAmount)
+            'Amount Before Tax',      // 13  PricingBreakdown.amountBeforeTax
+            'Total Tax',              // 14  PricingBreakdown.taxedAmount
+            'Service Tax',            // 15  taxBrakeDown where name = 'Service Tax'
+            'Room Charge Tax',        // 16  taxBrakeDown where name = 'Room Charge'
+            'Test Tax',               // 17  taxBrakeDown where name = 'Test Tax'
+            'Addon Amount',           // 18  PricingBreakdown.totalAddonAmount
+            'Spa Amount',             // 19  PricingBreakdown.totalSpa
+            'Promotion Discount',     // 20  PricingBreakdown.totalPromotionAmount
+            'Loyalty Discount',       // 21  PricingBreakdown.loyalityDiscount
+            'Promo Code Discount',    // 22  PricingBreakdown.promoCodeDiscount
+            'Chargeable Amount',      // 23  PricingBreakdown.currentChargeableAmount
+            'Total Amount',           // 24  PricingBreakdown.totalAmount
+            'Reservation Amount',     // 25  r.amount (Reservation.amount)
+            'Paid Amount',            // 26  r.paidAmount
+            'Refund Amount',          // 27  r.refundAmount
+            'Outstanding Amount',     // 28  Reservation Amount - Paid + Refund
+            'Later Payable',          // 29  PricingBreakdown.latterpayableAmount
+            'Status',                 // 30  r.bookingStatus
+            'Payment Method',         // 31  r.paymentMethod
+            'Source',                 // 32  r.bookingSource
+            'Agency',                 // 33  r.agency.agencyName
+            'Device',                 // 34  r.deviceTypes
+            'Platform',               // 35  r.platforms
+            'Booked At',              // 36
         ]);
         this.styleHeader(hdr, cols);
-        ws.columns = Array(cols).fill({ width: 15 });
+        ws.columns = Array(cols).fill({ width: 22 });
+
         const startRow = ws.lastRow!.number + 1;
 
         for (const r of reservations) {
+            // pb comes straight from the Prisma select — every field is a scalar or
+            // a typed relation; no finalPrice needed anywhere.
+            const pb = r.PricingBrakeDown;
+
+            const nights = this.roomNights(r.reservationStartDate, r.reservationEndDate);
+
+            // ── All financial amounts — directly from PricingBreakdown ────────────
+            const amountBeforeTax = Number(pb?.amountBeforeTax ?? 0);
+            const taxedAmount = Number(pb?.taxedAmount ?? 0);
+            const totalAddonAmount = Number(pb?.totalAddonAmount ?? 0);
+            const totalSpa = Number(pb?.totalSpa ?? 0);
+            const promotionDiscount = Number(pb?.totalPromotionAmount ?? 0);
+            const loyaltyDiscount = Number(pb?.loyalityDiscount ?? 0);
+            const promoCodeDiscount = Number(pb?.promoCodeDiscount ?? 0);
+            const chargeableAmount = Number(pb?.currentChargeableAmount ?? 0);
+            const pbTotalAmount = Number(pb?.totalAmount ?? 0);
+            const laterPayable = Number(pb?.latterpayableAmount ?? r.extraAmountToPay ?? 0);
+
+            // ── Reservation-level amounts (on the Reservation model itself) ───────
+            const reservationAmount = Number(r.amount ?? 0);
+            const paidAmount = Number(r.paidAmount ?? 0);
+            const refundAmount = Number(r.refundAmount ?? 0);
+            const outstanding = reservationAmount - paidAmount + refundAmount;
+
+            // ── Per-tax breakdown from PricingBreakdown.taxBrakeDown ──────────────
+            const taxList: Array<{ name: string; taxedAmount: number }> = pb?.taxBrakeDown ?? [];
+
+            const getTax = (name: string) =>
+                taxList
+                    .filter((t) => t.name?.toLowerCase() === name.toLowerCase())
+                    .reduce((sum, t) => sum + Number(t.taxedAmount ?? 0), 0);
+
+            const serviceTax = getTax('Service Tax');
+            const roomChargeTax = getTax('Room Charge');
+            const testTax = getTax('Test Tax');
+
+            // ── Total base charges from PricingBreakdown.DailyPriceBrakeDown ──────
+            const dailyList: Array<{ baseChargesAmount: number }> = pb?.DailyPriceBrakeDown ?? [];
+            const totalBaseCharges = dailyList.reduce(
+                (sum, d) => sum + Number(d.baseChargesAmount ?? 0), 0
+            );
+
             ws.addRow([
-                r.bookingCode,
+                r.bookingCode?.split('-').slice(1).join('-') ?? r.bookingCode,
                 propertyNames.get(r.propertyId) || r.hotelName,
                 r.primaryGuest
-                    ? `${r.primaryGuest.firstName} ${r.primaryGuest.lastName}`
+                    ? `${r.primaryGuest.firstName ?? ''} ${r.primaryGuest.lastName ?? ''}`.trim()
                     : 'N/A',
-                r.primaryGuest?.email || 'N/A',
-                r.primaryGuest?.phoneNumber || 'N/A',
+                r.primaryGuest?.email || r.bookingUserEmail || 'N/A',
+                r.primaryGuest?.phoneNumber || r.bookingUserPhone || 'N/A',
                 r.roomTypeCode || 'N/A',
                 r.ratePlanName || r.ratePlanCode || 'N/A',
                 this.fmtDate(r.reservationStartDate),
                 this.fmtDate(r.reservationEndDate),
-                this.roomNights(r.reservationStartDate, r.reservationEndDate),
-                this.fmtNum(r.amount),
-                this.fmtNum(r.paidAmount),
-                this.fmtNum(r.extraAmountToPay),
-                r.bookingStatus,
-                r.bookingSource,
-                this.fmtDate(r.bookedAt),
+                nights,
+                r.currencyCode || pb?.currencyCode || 'N/A',
+                this.fmtNum(totalBaseCharges),   // 12
+                this.fmtNum(amountBeforeTax),    // 13
+                this.fmtNum(taxedAmount),        // 14
+                this.fmtNum(serviceTax),         // 15
+                this.fmtNum(roomChargeTax),      // 16
+                this.fmtNum(testTax),            // 17
+                this.fmtNum(totalAddonAmount),   // 18
+                this.fmtNum(totalSpa),           // 19
+                this.fmtNum(promotionDiscount),  // 20
+                this.fmtNum(loyaltyDiscount),    // 21
+                this.fmtNum(promoCodeDiscount),  // 22
+                this.fmtNum(chargeableAmount),   // 23
+                this.fmtNum(pbTotalAmount),      // 24
+                this.fmtNum(reservationAmount),  // 25
+                this.fmtNum(paidAmount),         // 26
+                this.fmtNum(refundAmount),       // 27
+                this.fmtNum(outstanding),        // 28
+                this.fmtNum(laterPayable),       // 29
+                (r.bookingStatus ?? 'N/A').replace(/_/g, ' '), // 30
+                (r.paymentMethod ?? 'N/A').replace(/_/g, ' '), // 31
+                (r.bookingSource ?? 'N/A').replace(/_/g, ' '), // 32
+                r.agency?.agencyName || 'N/A',   // 33
+                r.deviceTypes || 'N/A',   // 34
+                r.platforms || 'N/A',   // 35
+                this.fmtDate(r.bookedAt),        // 36
             ]);
         }
 
@@ -617,7 +700,6 @@ export class ReportsV2ExcelService {
         this.styleAltRows(ws, startRow, cols);
         return Buffer.from(await wb.xlsx.writeBuffer());
     }
-
     // ── Report 7: Check-In / Check-Out ───────────────────────────────────────
     public async generateCheckInOut(
         reservations: any[],
