@@ -241,8 +241,6 @@ export class ReportsV2Repository {
 
         return { reservations, groupBy, start, end };
     }
-
-    // ── Report 2: Reservation Overview ────────────────────────────────────────
     public async getReservationOverview(
         propertyIds: string[],
         startDate: string,
@@ -265,10 +263,21 @@ export class ReportsV2Repository {
                         phoneNumber: true,
                     },
                 },
+                PricingBrakeDown: {
+                    select: {
+                        amountBeforeTax: true,
+                        taxedAmount: true,
+                        totalAmount: true,
+                        currentChargeableAmount: true,
+                        latterpayableAmount: true,
+                        currencyCode: true,
+                    },
+                },
             },
             orderBy: { reservationStartDate: 'asc' },
         });
     }
+
 
     // ── Report 3: Revenue Analytics ───────────────────────────────────────────
     public async getRevenueAnalytics(
