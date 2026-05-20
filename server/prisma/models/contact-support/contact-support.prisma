@@ -10,11 +10,9 @@ model ProblemTickets {
   status    TicketStatus   @default(open)
   priority  TicketPriority @default(medium)
 
-  guestId String? @map("guest_id")
-  Guests   Guests? @relation("TicketCreatedBy", fields: [guestId], references: [id])
 
-  otaGuestId String? @map("ota_guest_id")
-  OtaGuest   OtaGuest? @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
+  customerId String @map("customer_id")
+  Customer   Customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -23,3 +21,4 @@ model ProblemTickets {
   @@index([status])
   @@map("problem_tickets")
 }
+//delete problem_tickets

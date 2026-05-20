@@ -31,10 +31,9 @@ export class OtaUserService {
             });
             if (!existAsLoyalityUser) {
                 await this.otaUserRepository.createLoyaltyGuest({
-                    guestId: null,
-                    guestEmail: ICUser.email,
+                    customerId: null,
+                    customerEmail: ICUser.email,
                     password: passwordHash,
-                    otaGuestId: createdUser.id,
                 });
             }
             return successResponse('Signed-up successfully');

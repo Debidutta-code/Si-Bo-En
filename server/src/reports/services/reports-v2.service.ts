@@ -401,7 +401,7 @@ export class ReportsV2Service {
             // Build cross-property spend map: for each loyalty guest collect
             // their email + all enrolled property IDs, then aggregate spend
             const spendInput = guests.map((g: any) => ({
-                guestEmail: g.guestEmail,
+                email: g.email,
                 enrolledPropertyIds: (g.PropertyLoyalityGuests ?? []).map(
                     (plg: any) => plg.PropertyLoyalityConfig?.propertyId
                 ).filter(Boolean),

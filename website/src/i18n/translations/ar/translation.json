@@ -6,7 +6,11 @@
     "partnerLogin": "تسجيل دخول الشريك",
     "myBooking": "حجزي",
     "loyaltyGuestLogin": "تسجيل دخول ضيف الولاء",
-    "becomApartner":"كن شريكاً"
+    "becomApartner":"كن شريكاً",
+    "customerLogin": "تسجيل الدخول",
+    "myBookings": "حجوزاتي",
+    "profile": "الملف الشخصي",
+    "signOut": "تسجيل الخروج"
   },
   "Hero": {
     "title": "اعثر على مكانك القادم للزيارة",

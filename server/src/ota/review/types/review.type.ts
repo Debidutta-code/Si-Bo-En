@@ -2,7 +2,7 @@ export interface ICReview {
     propertyId: string;
     propertyCode: string;
     propertyName: string;
-    otaCustomerId: string;
+    customerId: string;
     reservationId: string;
     rating: number;
     review: string;

@@ -1,5 +1,5 @@
 export interface ILoginResponseR {
     id: string;
-    guestEmail: string;
+    email: string;
     password: string;
 }

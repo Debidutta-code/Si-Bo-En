@@ -6,7 +6,7 @@ import {
   getAvailableSpasApi,
   markSlotAsBookedApi,
   markSlotAsAvailableApi,
-} from "../../app/(loyality)/(loyality-guest)/profile/api/profile.api";
+} from "../../app/(auth)/profile/api/profile.api";
 import { format } from "date-fns";
 import { Check, Search, Clock, MapPin, Tag } from "lucide-react";
 import toast from "react-hot-toast";
@@ -138,7 +138,7 @@ export default function SpaBookingDialog({
         userName: userName.trim(),
       });
       if (res.success) {
-        toast.success("Spa slot booked!");
+        toast.success("Activity included in your stay");
         setSelectedSlot(null);
         setConfirmOpen(false);
         fetchAvailableSpas();
@@ -146,7 +146,7 @@ export default function SpaBookingDialog({
         toast.error(res.message || "Failed to book");
       }
     } catch {
-      toast.error("Failed to book spa slot");
+      toast.error("Failed to book activity");
     } finally {
       setSubmitting(false);
     }
@@ -158,15 +158,15 @@ export default function SpaBookingDialog({
     try {
       const res = await markSlotAsAvailableApi(cancelSlot.slotId);
       if (res.success) {
-        toast.success("Booking cancelled.");
+        toast.success("Activity removed from your stay.");
         setCancelSlot(null);
         setConfirmOpen(false);
         fetchAvailableSpas();
       } else {
-        toast.error(res.message || "Failed to cancel");
+        toast.error(res.message || "Failed to remove activity");
       }
     } catch {
-      toast.error("Failed to cancel booking");
+      toast.error("Failed to remove activity");
     } finally {
       setSubmitting(false);
     }
@@ -250,17 +250,14 @@ export default function SpaBookingDialog({
                           )}
                         </div>
                       )}
-                      {activeSpa.discountValue && (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      {/* Charge — only shown when not inclusive */}
+                      {activeSpa.discountValue && !activeSpa.isInclusive && (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                           <Tag className="h-3 w-3 flex-shrink-0" />
-                          {activeSpa.discountValue}% off · {activeSpa.currencyCode}
-                          {activeSpa.isInclusive && (
-                            <span className="ml-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 text-[10px] font-medium">Inclusive</span>
-                          )}
+                          Charges: {activeSpa.discountValue} {activeSpa.currencyCode}
                         </div>
                       )}
                     </div>
-
                     {activeSpa.description && (
                       <p className="text-xs text-gray-500 leading-relaxed">
                         <span className="font-medium text-gray-700">Description: </span>

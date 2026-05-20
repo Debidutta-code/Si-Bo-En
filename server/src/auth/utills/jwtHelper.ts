@@ -18,6 +18,11 @@ export interface OtaPayload {
     id: string;
     email: string;
 }
+export interface CustomerPayload {
+    id: string;
+    email: string;
+}
+
 const expiresInSeconds = (days: number) => days * 24 * 60 * 60;
 const expiresInSecondsFromHours = (hours: number) => hours * 60 * 60;
 
@@ -57,6 +62,15 @@ export const assignOtaAccessToken = (
         expiresIn: expiresInSecondsFromHours(
             parseInt(expiresIn?.split('h')[0]!)
         ),
+    });
+};
+export const assignCustomerToken = (
+    payload: CustomerPayload,
+    secret: string,
+    expiresIn: string
+) => {
+    return jwt.sign(payload, secret, {
+        expiresIn: expiresInSeconds(parseInt(expiresIn?.split('d')[0]!)),
     });
 };
 

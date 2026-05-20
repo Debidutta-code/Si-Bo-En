@@ -34,7 +34,7 @@ export class ProblemTicketController {
             }
             const ticket = await this.problemTicketService.createTicket({
                 ...data,
-                guestId: guestId,
+                customerId: guestId,
             });
             return res.status(201).json(ticket);
         } catch (error) {
