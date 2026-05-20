@@ -6,6 +6,9 @@ export interface IPropertyLoyalityWithLoyality{
     propertyName: string;
     discountPercentage: number | null;
     loyalityConfigLogo: string | null;
+    _translations?:{
+        propertyName:string
+    }
 }
 export interface ICCreationLoyality {
       creationId: string
@@ -61,6 +64,9 @@ export interface ILoyalityCondition extends ICLoyalityCondition {
     id: string;
     isActive: boolean;
     isDeleted: boolean;
+    _translations?:{
+        text:string;
+    }
 }
 export type Languages = 'en';
 export interface ICLoyaltyField {
@@ -75,11 +81,17 @@ export interface ICLoyaltyField {
 }
 export interface ILoyaltyField extends ICLoyaltyField {
     id: string;
+    _translations?: {
+        fieldName: string;
+    }
 }
 export interface ILoyalitySpecialCondition extends ICLoyalitySpecialCondition {
     id: string;
     isActive: boolean;
     isDeleted: boolean;
+    _translations?:{
+        subTitle:string;
+    }
 }
 export interface ICLoyalitySpecialCondition {
     loyaltyProgramId: string;

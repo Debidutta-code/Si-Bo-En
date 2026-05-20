@@ -25,7 +25,7 @@ export interface IPropertyLoyaltyConfig extends ICPropertyLoyaltyConfig {
 export interface IPropertyLoyalityGuest {
     id: string;
     propertyLoyalityId: string;
-    customerId: string;
+    customerId: string|null;
 }
 export interface IPropertyLoyalityWithLoyality extends IPropertyLoyaltyConfig { }
 

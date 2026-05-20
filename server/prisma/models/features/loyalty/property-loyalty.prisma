@@ -16,12 +16,11 @@ model PropertyLoyaltyConfig {
 model PropertyLoyalityGuests {
   id                     String                @id @default(uuid())
   propertyLoyalityId     String                @map("property_loyality_id")
-  customerId             String                @map("customer_id")
+  customerId             String?                @map("customer_id")
   PropertyLoyalityConfig PropertyLoyaltyConfig @relation(fields: [propertyLoyalityId], references: [id], onDelete: Cascade)
-  Customer               Customers             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  Customer               Customers?             @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@unique([propertyLoyalityId, customerId])
   @@map("property_loyality_guests")
 }
 
-// property_loyality_guests
