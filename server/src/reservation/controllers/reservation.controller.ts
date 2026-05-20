@@ -324,6 +324,26 @@ export class ReservationController {
         }
     }
 
+    /** GET /reservations  (protected via customerProtect) — my reservations for the logged-in customer */
+    public async getMyReservations(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const customerId = req.customer?.id;
+            if (!customerId) {
+                return res.status(401).json(errorResponse('Not authenticated'));
+            }
+            const result = await this.reservationService.getReservationsByGuestId(customerId);
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse('Failed to fetch reservations', error.message));
+            }
+            return res.status(500).json(errorResponse('Failed to fetch reservations'));
+        }
+    }
+
     public async updateReservation(
         req: CustomRequest,
         res: Response

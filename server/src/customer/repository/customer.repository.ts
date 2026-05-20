@@ -29,7 +29,28 @@ export class CustomerRepository {
                     firstName: true,
                     lastName: true,
                     PropertyLoyalityGuests: true,
-                    CreationGuest: true,
+                    CreationGuest: {
+                        include: {
+                            CreationLoyaltyConfig: {
+                                include: {
+                                    LoyalityLevels: true,
+                                    BasicLoyaltyProgram: true,
+                                    AdvanceLoyaltyProgram: true,
+                                    PropertyLoyaltyConfig: {
+                                        include: {
+                                            Property: {
+                                                select: {
+                                                    id: true,
+                                                    propertyCode: true,
+                                                    propertyName: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
                     WishList: true,
                 },
             });
