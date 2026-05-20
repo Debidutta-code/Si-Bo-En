@@ -16,13 +16,13 @@ export class RoomInterceptor {
             if (Array.isArray(data)) {
                 translatedData = await Promise.all(
                     data.map(async (room: any) => {
-                        if (!room.id) return room;
-                        const translation = await RoomTranslation.getTranslated(room.id, locale);
+                        if (!room.roomType) return room;
+                        const translation = await RoomTranslation.getTranslated(room.roomType, locale);
                         return translation ? { ...room, _translations: translation } : room;
                     })
                 );
-            } else if (data.id) {
-                const translation = await RoomTranslation.getTranslated(data.id, locale);
+            } else if (data.roomType) {
+                const translation = await RoomTranslation.getTranslated(data.roomType, locale);
                 if (translation) {
                     translatedData = { ...data, _translations: translation };
                 }

@@ -132,7 +132,7 @@ export class PropertyInterceptor {
 
         const result = { ...room };
 
-        const roomTranslation = await RoomTranslation.getTranslated(room.id, locale);
+        const roomTranslation = await RoomTranslation.getTranslated(room.roomType, locale);
         if (roomTranslation) {
             result._translations = roomTranslation;
         }
