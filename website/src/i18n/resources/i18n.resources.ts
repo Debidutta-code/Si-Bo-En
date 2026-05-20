@@ -18,7 +18,7 @@ export const resources = {
 /**
  * Type for supported languages
  */
-export type SupportedLanguage = 'en' | 'ar';
+export type SupportedLanguage = 'en' | 'ar' | 'hi';
 
 /**
  * Get language display name
@@ -26,13 +26,14 @@ export type SupportedLanguage = 'en' | 'ar';
 export const languageNames: Record<SupportedLanguage, string> = {
   en: 'English',
   ar: 'العربية',
+  hi: 'हिन्दी',
 };
 
 /**
  * Check if language is RTL
  */
 export const isRTL = (lang: string): boolean => {
-  return lang === 'ar';
+  return lang === 'ar' || lang === 'hi';
 };
 
 /**

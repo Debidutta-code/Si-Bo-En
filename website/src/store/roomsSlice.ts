@@ -25,6 +25,11 @@ export interface Room {
   roomUnit: string
   roomView: string;
   roomVideos:IRoomVideo|null;
+  _translations?:{
+    roomName:string;
+    roomType:string;
+    description:string;
+  }
 }
 interface IRoomVideo{
   id:string;

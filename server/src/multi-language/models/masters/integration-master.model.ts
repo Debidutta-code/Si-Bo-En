@@ -65,7 +65,6 @@ masterIntegrationTranslationSchema.statics.getTranslated = async function (id, l
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };

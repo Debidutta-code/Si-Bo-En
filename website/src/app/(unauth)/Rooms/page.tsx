@@ -343,11 +343,16 @@ const Rooms = () => {
     setPriceSummaryData(null);
     setLoyaltyProgram(null);
     try {
+      const currentLanguage = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json", "Accept-language": "hi" },
+          headers: { 
+            "Content-Type": "application/json", 
+            "Accept-Language": currentLanguage 
+          },
           body: JSON.stringify({
             propertyCode: bookingCtx.PropertyCode,
             startDate: bookingCtx.startDate,
@@ -390,7 +395,7 @@ const Rooms = () => {
 
       const updatedContext = {
         ...bookingCtx,
-        hotelName: data.propertyName || propertyDetails?.propertyName,
+        hotelName: propertyDetails?._translations?.propertyName || data.propertyName || propertyDetails?.propertyName,
         PropertyDetails: propertyDetails,
         bookingEngineColor: bookingEngineColor,
       };
@@ -853,7 +858,7 @@ const Rooms = () => {
                       {/* Optional: Video Title Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                         <h3 className="text-white font-semibold text-lg">
-                          {propertyDetails.propertyName} -{" "}
+                          {propertyDetails?._translations?.propertyName || propertyDetails.propertyName} -{" "}
                           {t("Rooms.videoOverlay")}
                         </h3>
                       </div>

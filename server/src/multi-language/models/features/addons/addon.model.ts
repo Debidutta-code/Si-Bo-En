@@ -110,7 +110,6 @@ addonTranslationSchema.statics.getTranslated = async function (
   
     return (
       map[locale] ??
-      Object.values(map)[0] ??
       null
     );
 };

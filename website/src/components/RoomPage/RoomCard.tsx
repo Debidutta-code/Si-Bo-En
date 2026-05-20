@@ -85,6 +85,9 @@ const AmenityIcon = ({ amenityKey }: { amenityKey: string }) => {
 // Get active amenities (show first 6)
 const getActiveAmenities = (amenities: any) => {
   const active = [] as any;
+  if (Array.isArray(amenities)) {
+    return amenities.slice(0, 6);
+  }
   if (!amenities?.amenities) return active;
 
   for (const category of Object.values(amenities.amenities)) {
@@ -558,7 +561,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
               // Image Display
               <img
                 src={images[currentImageIndex]}
-                alt={room.roomName}
+                alt={room._translations?.roomName || room.roomName}
                 className="w-full h-48 object-cover"
               />
             )}
@@ -606,16 +609,16 @@ const RoomCard: React.FC<RoomCardProps> = ({
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
-                  {room.roomName}
+                  {room._translations?.roomName || room.roomName}
                 </h2>
                 <p className="text-xs md:text-sm text-gray-500 font-medium mt-1">
-                  {room.roomType}
+                  {room._translations?.roomType || room.roomType}
                 </p>
               </div>
             </div>
 
             <p className="text-xs md:text-sm text-gray-700 mb-3 leading-relaxed line-clamp-3">
-              {room.description}
+              {room._translations?.description || room.description}
             </p>
 
             <div className="flex flex-wrap gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3">
@@ -639,17 +642,22 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
             {activeAmenities.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {activeAmenities.map((amenity: any) => (
+                {activeAmenities.map((amenity: any) => {
+                  const isObject = typeof amenity === 'object' && amenity !== null;
+                  const amenityKey = isObject ? amenity.amenityName : amenity;
+                  const displayName = isObject ? (amenity._translations?.amenityName || amenity.amenityName) : formatAmenityName(amenity);
+                  
+                  return (
                   <div
-                    key={amenity}
+                    key={isObject ? amenity.id : amenity}
                     className="flex items-center gap-1 text-xs text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-200"
                   >
-                    <AmenityIcon amenityKey={amenity} />
+                    <AmenityIcon amenityKey={amenityKey} />
                     <span className="font-medium">
-                      {formatAmenityName(amenity)}
+                      {displayName}
                     </span>
                   </div>
-                ))}
+                )})}
               </div>
             )}
           </div>
@@ -702,7 +710,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 <div className="flex items-center justify-between p-2 sm:px-4 sm:py-3 border-b border-gray-100">
                   <div className="flex items-center gap-2 flex-wrap min-w-0">
                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                      {firstCombo.ratePlanName}
+                      {firstCombo._translations?.ratePlanName || firstCombo.ratePlanName}
                     </h3>
 
                     {firstCombo.availableRooms && firstCombo.availableRooms <= 5 && (
@@ -795,7 +803,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                         : "🏷"}
                               </span>
                               <div className="min-w-0">
-                                <p className="text-xs font-semibold text-orange-900 truncate">{promo.promotionName}</p>
+                                <p className="text-xs font-semibold text-orange-900 truncate">{promo._translations?.promotionName || promo.promotionName}</p>
                                 <p className="text-[10px] text-orange-600">
                                   {promo.promotionType === "mlos"
                                     ? `Min. ${promo.minLos} nights`
@@ -838,7 +846,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     const rawLabel = match ? match[1] : combo.comboLabel;
                     const isOnlyRoomOnly = combos.length === 1 && rawLabel === "Room Only";
                     const subLabel = isOnlyRoomOnly
-                      ? combo.ratePlanName
+                      ? (combo._translations?.ratePlanName || combo.ratePlanName)
                       : rawLabel === "Room Only"
                         ? "Room Only"
                         : rawLabel.startsWith("+")
@@ -1011,7 +1019,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                   <div className="px-4 py-2 border-t border-amber-100 bg-amber-50 flex items-center justify-center gap-1.5">
                     <span className="text-amber-400 text-xs">ℹ️</span>
                     <p className="text-[11px] text-amber-800 text-center">
-                      <span className="font-semibold">{firstCombo.touristTax.name || t("RoomCard.taxNotIncluded")}</span>
+                      <span className="font-semibold">{firstCombo.touristTax._translations?.name || firstCombo.touristTax.name || t("RoomCard.taxNotIncluded")}</span>
                       {" "}of{" "}
                       <span className="font-semibold">
                         {firstCombo.touristTax.currencyCode || currency} {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}

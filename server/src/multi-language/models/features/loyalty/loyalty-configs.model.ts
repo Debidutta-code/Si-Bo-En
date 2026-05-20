@@ -78,7 +78,6 @@ loyaltyConditionsTranslationSchema.statics.getTranslated = async function (id, l
   
     return (
       map[locale] ??
-      Object.values(map)[0] ??
       null
     );
 };
@@ -171,7 +170,6 @@ loyaltySpecialConditionTranslationSchema.statics.getTranslated = async function 
   
     return (
       map[locale] ??
-      Object.values(map)[0] ??
       null
     );
 };
