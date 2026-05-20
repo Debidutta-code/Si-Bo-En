@@ -12,7 +12,7 @@ export interface ICProblemTicketsS {
     propertyId: string;
     subject: string;
     description: string | null;
-    guestId: string | null;
+    customerId: string | null;
 }
 export interface ICProblemTicketsR extends ICProblemTicketsS {
     ticketNo: string;
@@ -26,5 +26,5 @@ export interface IProblemTickets extends ICProblemTicketsR {
 
 export interface IProblemTicketsWithData extends IProblemTickets {
     Property: IProperty;
-    Guests: IPrimaryGuest | null;
+    Customer: IPrimaryGuest | null;
 }

@@ -2,7 +2,7 @@ import { ILoyalityGuests, ILoyalityGuestsWDP } from '.';
 import { CurrencyCode } from '../../tax-system/interfaces';
 
 export interface ICCreationLoyaltyGuest {
-    loyalityGuestId: string;
+    customerId: string;
     creationLoyaltyConfigId: string;
     metaData: any;
     guestLevel: number;
@@ -12,6 +12,7 @@ export interface ICCreationLoyaltyGuest {
 export interface ICreationLoyaltyGuest extends ICCreationLoyaltyGuest {
     id: string;
 }
+
 export interface ICreationLoyaltyGuestWG extends ICreationLoyaltyGuest {
     LoyalityGuest: ILoyalityGuests;
 }

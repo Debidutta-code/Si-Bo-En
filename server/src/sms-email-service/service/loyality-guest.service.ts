@@ -11,8 +11,8 @@ export class LoyaltyGuestEmailService {
         email: string
     ): Promise<{ success: boolean; message: string }> {
         try {
-            const guest = await prisma.loyalityGuest.findUnique({
-                where: { guestEmail: email },
+            const guest = await prisma.customers.findUnique({
+                where: { email },
             });
             if (!guest) {
                 return { success: false, message: 'Loyalty guest not found' };
@@ -59,8 +59,8 @@ export class LoyaltyGuestEmailService {
         email: string
     ): Promise<{ success: boolean; message: string }> {
         try {
-            const guest = await prisma.loyalityGuest.findUnique({
-                where: { guestEmail: email },
+            const guest = await prisma.customers.findUnique({
+                where: { email },
             });
             if (!guest) {
                 return { success: false, message: 'Loyalty guest not found' };

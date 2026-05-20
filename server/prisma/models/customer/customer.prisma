@@ -1,0 +1,15 @@
+model Customers {
+    id String @id @default(uuid())
+    firstName String @map("first_name")
+    lastName String @map("last_name")
+    email String @unique @map("email")
+    password String @map("password")
+
+    PrimaryGuests Guests[]
+    Reservations Reservation[]
+    CreationGuest          CreationGuest[]
+    ProblemTickets ProblemTickets[]
+    PropertyLoyalityGuests PropertyLoyalityGuests[]
+    WishList WishList[]
+    @@map("customers")
+}

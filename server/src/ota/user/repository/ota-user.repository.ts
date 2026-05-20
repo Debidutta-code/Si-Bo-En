@@ -4,23 +4,21 @@ import { ICUser, IUser, IUserWP, IUUser } from '../types';
 export class OtaUserRepository {
     public async createUser(ICUser: ICUser): Promise<IUser> {
         try {
-            return await prisma.otaGuest.create({
+            return await prisma.customers.create({
                 data: {
                     firstName: ICUser.firstName,
                     lastName: ICUser.lastName,
                     email: ICUser.email,
                     password: ICUser.password,
-                    phoneNumber: ICUser.phoneNumber,
-                    metaData: {},
                 },
-            });
+            }) as any as IUser;
         } catch (error) {
             throw new Error(`Failed to create OTA user `);
         }
     }
     public async getUserByEmail(email: string): Promise<IUserWP | null> {
         try {
-            return await prisma.otaGuest.findUnique({
+            return await prisma.customers.findUnique({
                 where: {
                     email: email,
                 },
@@ -29,18 +27,16 @@ export class OtaUserRepository {
                     firstName: true,
                     lastName: true,
                     email: true,
-                    phoneNumber: true,
-                    createdAt: true,
                     password: true,
                 },
-            });
+            }) as unknown as IUserWP | null;
         } catch (error) {
             throw new Error(`Failed to retrieve OTA user by email: ${email}`);
         }
     }
     public async getUserById(id: string): Promise<IUser | null> {
         try {
-            return await prisma.otaGuest.findUnique({
+            return await prisma.customers.findUnique({
                 where: {
                     id: id,
                 },
@@ -49,10 +45,8 @@ export class OtaUserRepository {
                     firstName: true,
                     lastName: true,
                     email: true,
-                    phoneNumber: true,
-                    createdAt: true,
                 },
-            });
+            }) as unknown as IUser | null;
         } catch (error) {
             throw new Error(`Failed to retrieve OTA user by id: ${id}`);
         }
@@ -62,14 +56,14 @@ export class OtaUserRepository {
         newPassword: string
     ): Promise<IUser> {
         try {
-            return await prisma.otaGuest.update({
+            return await prisma.customers.update({
                 where: {
                     id: userId,
                 },
                 data: {
                     password: newPassword,
                 },
-            });
+            }) as unknown as IUser;
         } catch (error) {
             throw new Error(
                 `Failed to update OTA user password for id: ${userId}`
@@ -81,16 +75,15 @@ export class OtaUserRepository {
         userProfile: IUUser
     ): Promise<IUser> {
         try {
-            return await prisma.otaGuest.update({
+            return await prisma.customers.update({
                 where: {
                     id: userId,
                 },
                 data: {
                     firstName: userProfile.firstName,
                     lastName: userProfile.lastName,
-                    phoneNumber: userProfile.phoneNumber,
                 },
-            });
+            }) as unknown as IUser;
         } catch (error) {
             throw new Error(
                 `Failed to update OTA user profile for id: ${userId}`
@@ -99,25 +92,24 @@ export class OtaUserRepository {
     }
     public async deleteUser(userId: string): Promise<IUser> {
         try {
-            return await prisma.otaGuest.delete({
+            return await prisma.customers.delete({
                 where: {
                     id: userId,
                 },
-            });
+            }) as unknown as IUser;
         } catch (error) {
             throw new Error(`Failed to delete OTA user for id: ${userId}`);
         }
     }
-    //when user signup for ota create the
     public async getLoyaltyGuestById(
         email: string
     ): Promise<ILoyalityGuests | null> {
         try {
-            return await prisma.loyalityGuest.findUnique({
+            return await prisma.customers.findUnique({
                 where: {
-                    guestEmail: email,
+                    email: email,
                 },
-            });
+            }) as ILoyalityGuests | null;
         } catch (error) {
             throw new Error(
                 `Failed to retrieve OTA loyalty guest by email: ${email}`
@@ -128,13 +120,14 @@ export class OtaUserRepository {
         data: ICloyalityGuests
     ): Promise<ILoyalityGuests> {
         try {
-            return await prisma.loyalityGuest.create({
+            return await prisma.customers.create({
                 data: {
-                    guestEmail: data.guestEmail,
+                    email: data.customerEmail,
                     password: data.password,
-                    otaGuestId: data.otaGuestId,
+                    firstName: '',
+                    lastName: '',
                 },
-            });
+            }) as unknown as ILoyalityGuests;
         } catch (error) {
             throw new Error(`Failed to create OTA loyalty guest: ${error}`);
         }

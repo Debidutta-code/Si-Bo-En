@@ -17,7 +17,7 @@ export class PropertyWishList {
                     propertyName: data.propertyName,
                     createdAt: new Date(),
                     propertyId: data.propertyId,
-                    otaGuestId: data.otaGuestId,
+                    customerId: data.customerId,
                 },
             });
         } catch (error) {
@@ -25,12 +25,12 @@ export class PropertyWishList {
         }
     }
     public async getPropertyWishListForGuest(
-        otaGuestId: string
+        customerId: string
     ): Promise<IRoomWishlistWRooms[]> {
         try {
             return await prisma.wishList.findMany({
                 where: {
-                    otaGuestId,
+                    customerId,
                 },
                 include: {
                     Property: {
@@ -49,14 +49,14 @@ export class PropertyWishList {
         }
     }
     public async checkIfPropertyWishListExists(
-        otaGuestId: string,
+        customerId: string,
         propertyId: string
     ): Promise<IPropertyWishlist | null> {
         try {
             return await prisma.wishList.findUnique({
                 where: {
-                    otaGuestId_propertyId: {
-                        otaGuestId,
+                    customerId_propertyId: {
+                        customerId,
                         propertyId,
                     },
                 },
@@ -77,14 +77,14 @@ export class PropertyWishList {
         }
     }
     public async removePropertyFromUserWishList(
-        otaGuestId: string,
+        customerId: string,
         propertyId: string
     ): Promise<IPropertyWishlist | null> {
         try {
             return await prisma.wishList.delete({
                 where: {
-                    otaGuestId_propertyId: {
-                        otaGuestId,
+                    customerId_propertyId: {
+                        customerId,
                         propertyId,
                     },
                 },

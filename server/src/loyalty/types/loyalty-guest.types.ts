@@ -1,14 +1,13 @@
 import { ICPrimaryGuest, ICReservationGuest } from '../../reservation/types';
 
 export interface ICloyalityGuests {
-    guestId: string | null;
-    guestEmail: string;
+    customerId: string | null;
+    customerEmail: string;
     password: string;
-    otaGuestId: string | null;
 }
 export interface ICCloyalityGuests {
-    guestId: string | null;
-    guestEmail: string;
+    customerId: string | null;
+    customerEmail: string;
     password: string;
 }
 export interface ILoyalityGuests extends ICloyalityGuests {
@@ -16,7 +15,7 @@ export interface ILoyalityGuests extends ICloyalityGuests {
     createdAt: Date;
 }
 export interface ILoyalityGuestsWDP extends ILoyalityGuests {
-    guest: ICPrimaryGuest | null;
+    customer: ICPrimaryGuest | null;
 }
 export interface IGetLoyaltyGuestsForCreation {
     LoyalityGuest: ILoyalityGuestsWDP | null;

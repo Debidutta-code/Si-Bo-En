@@ -7,7 +7,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/src/store/store";
-import { loyaltyLogout } from "@/src/store/loyaltyUserSlice";
+import { clearCustomer } from "@/src/store/customerSlice";
 
 const TEAL = "#1595A2";
 
@@ -61,7 +61,6 @@ const IconSignOut = () => (
   </svg>
 );
 
-
 const NAV = [
   {
     section: null,
@@ -70,35 +69,26 @@ const NAV = [
       { href: "/profile/bookings", label: "Reservations", Icon: IconBooking },
     ],
   },
-  // {
-  //   section: "ACCOUNT",
-  //   items: [
-  //     { href: "/profile", label: "Profile", Icon: IconProfile },
-  //     { href: "/profile", label: "Message Centre", Icon: IconMessage },
-  //     { href: "/profile", label: "FAQ", Icon: IconFaq },
-  //   ],
-  // },
 ] as const;
 
 export function ProfileSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
-  const loyaltyUser = useSelector((state: RootState) => (state as any).loyaltyUser);
   const bookingContext = useSelector((state: RootState) => state.booking);
   const dynamicLogo =
     bookingContext?.bookingEngineColor?.logo ||
     bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
-  const profile = loyaltyUser?.profile ?? null;
-  const email = profile?.guestEmail ?? loyaltyUser?.email ?? "";
-  const firstName = profile?.guest?.firstName ?? "";
-  const lastName = profile?.guest?.lastName ?? "";
+  const customerData = useSelector((state: RootState) => state.customer.customer);
+  const email = customerData?.email ?? "";
+  const firstName = customerData?.firstName ?? "";
+  const lastName = customerData?.lastName ?? "";
   const name = firstName ? `${firstName} ${lastName}`.trim() : email.split("@")[0];
   const [collapsed, setCollapsed] = useState(false);
   const STORAGE_KEY = "bodyholiday-sidebar-collapsed";
 
   const handleLogout = () => {
-    dispatch(loyaltyLogout());
+    dispatch(clearCustomer());
     router.push("/login");
   };
 
@@ -434,13 +424,13 @@ export function ProfileSidebar() {
           <div className="bh-user-avatar">
             <IconProfile />
           </div>
-           <span
-             className="bh-user-name"
-             title={name}
-             style={{ opacity: collapsed ? 0 : 1, transition: "opacity 0.2s ease" }}
-           >
-             {name}
-           </span>
+          <span
+            className="bh-user-name"
+            title={name}
+            style={{ opacity: collapsed ? 0 : 1, transition: "opacity 0.2s ease" }}
+          >
+            {name}
+          </span>
           {!collapsed && (
             <button
               className="bh-signout-btn"

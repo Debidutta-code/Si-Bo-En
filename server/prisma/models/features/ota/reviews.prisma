@@ -5,7 +5,7 @@ model Review{
   propertyCode String @map("property_code")
   propertyName String @map("property_name")
 
-  otaCustomerId String @map("ota_customer_id")
+  customerId String @map("customer_id")
 
   reservationId String @unique @map("reservation_id")
 
@@ -16,8 +16,8 @@ model Review{
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   Reservation Reservation @relation(fields: [reservationId], references: [id])
-  OtaGuest OtaGuest @relation(fields: [otaCustomerId], references: [id])
   Property Property @relation(fields: [propertyId], references: [id])
 
   @@map("customer_reviews")
 }
+//delete loyality_guests

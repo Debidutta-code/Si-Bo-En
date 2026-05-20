@@ -32,6 +32,7 @@ import { reportsRouter } from '../reports/routes/reports.route';
 import { problemTicketRouter } from '../problem-tickets/routes';
 import { otaRouter } from '../ota/routes';
 import { multiLanguageRouter } from '../multi-language/routes/multil-language.route';
+import { customerRouter } from '../customer/routes';
 
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
@@ -85,6 +86,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/problem-tickets', problemTicketRouter);
     apiV1Router.use('/ota', otaRouter);
     apiV1Router.use('/multi-language', multiLanguageRouter);
+    apiV1Router.use('/customer', customerRouter);
 
     app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {
         next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

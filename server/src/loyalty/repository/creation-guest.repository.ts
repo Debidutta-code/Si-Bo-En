@@ -31,14 +31,14 @@ export class CreationGuestRepository {
     }
     public async checkIfGuestExist(
         propertyId: string,
-        guestId: string
+        customerId: string
     ): Promise<ICreationLoyaltyGuest | null> {
         try {
             return await prisma.creationGuest.findUnique({
                 where: {
-                    creationLoyaltyConfigId_loyalityGuestId: {
+                    creationLoyaltyConfigId_customerId: {
                         creationLoyaltyConfigId: propertyId,
-                        loyalityGuestId: guestId,
+                        customerId,
                     },
                 },
             });
@@ -48,14 +48,14 @@ export class CreationGuestRepository {
     }
     public async guestExistForProperty(
         propertyLoyalityId: string,
-        loyalityGuestId: string
+        customerId: string
     ): Promise<IPropertyLoyalityGuest | null> {
         try {
             return await prisma.propertyLoyalityGuests.findUnique({
                 where: {
-                    propertyLoyalityId_loyalityGuestId: {
+                    propertyLoyalityId_customerId: {
                         propertyLoyalityId,
-                        loyalityGuestId,
+                        customerId,
                     },
                 },
             });
@@ -65,7 +65,7 @@ export class CreationGuestRepository {
     }
     public async createPropertyLoyaltyGuest(data: {
         propertyLoyalityId: string;
-        loyalityGuestId: string;
+        customerId: string;
     }): Promise<IPropertyLoyalityGuest> {
         try {
             return await prisma.propertyLoyalityGuests.create({

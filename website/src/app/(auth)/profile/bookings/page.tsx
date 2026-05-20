@@ -60,14 +60,14 @@ export default function MyBookingsPage() {
       // Derive unique properties from Redux cache
       const props = Array.from(
         new Map(
-          (loyaltyUser.profile.CreationGuest ?? []).flatMap((cg: any) =>
-            cg.CreationLoyaltyConfig.PropertyLoyaltyConfig.map((p: PropertyLoyaltyConfig) => [
-              p.propertyId,
-              p,
-            ])
-          )
+          (loyaltyUser.profile.CreationGuest ?? [])
+            .flatMap((cg: any) =>
+              (cg.CreationLoyaltyConfig?.PropertyLoyaltyConfig ?? []).map(
+                (p: PropertyLoyaltyConfig) => [p.propertyId, p] as [string, PropertyLoyaltyConfig]
+              )
+            )
         ).values()
-      ) as unknown as PropertyLoyaltyConfig[];
+      ) as PropertyLoyaltyConfig[];
       setAllProperties(props);
     } else {
       // Fetch profile if not cached
