@@ -24,4 +24,5 @@ spaRouter
     .delete(protect, spaController.deleteSpa.bind(spaController));
 spaRouter.route("/available/:bookingCode").get(spaController.getAvailableSpaForReservation.bind(spaController));
 spaRouter.route("/reservation").post(spaController.createSpaReservation.bind(spaController));
+spaRouter.route("/reservation/cancel/:bookingId").put(spaController.cancelSpaReservation.bind(spaController));
 export {spaRouter}

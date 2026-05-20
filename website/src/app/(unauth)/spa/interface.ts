@@ -9,6 +9,7 @@ export interface ISpaCategory {
 }
 
 export interface ISpaSlotReservation {
+  id?: string;
   bookingCode: string;
 }
 
@@ -17,6 +18,10 @@ export interface ISpaSlot {
   startTime: string;
   endTime?: string | null;
   isBooked: boolean;
+  reservationId?: string | null;
+  SlotBooking?: {
+    spaBookingId: string;
+  } | null;
   Reservation?: ISpaSlotReservation | null;
 }
 

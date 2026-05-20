@@ -29,13 +29,24 @@ export const createSpaReservationApi = async (
     }
 };
 
-export const markSpaSlotAvailableApi = async (
-  reservationId: string,
+// export const markSpaSlotAvailableApi = async (
+//   reservationId: string,
+// ): Promise<ISpaApiResponse> => {
+//     try {
+//         const response = await axios.patch(`${SPA_BASE}/slots/slots/available`, {
+//             reservationId,
+//         });
+//         return response.data;
+//     } catch (error: any) {
+//         return error?.response?.data ?? { success: false, message: error?.message };
+//     }
+// };
+
+export const cancelSpaReservationApi = async (
+  bookingId: string,
 ): Promise<ISpaApiResponse> => {
     try {
-        const response = await axios.patch(`${SPA_BASE}/slots/slots/available`, {
-            reservationId,
-        });
+        const response = await axios.put(`${SPA_BASE}/reservation/cancel/${encodeURIComponent(bookingId)}`);
         return response.data;
     } catch (error: any) {
         return error?.response?.data ?? { success: false, message: error?.message };

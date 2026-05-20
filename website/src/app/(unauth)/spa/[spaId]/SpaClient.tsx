@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { MapPin, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
-import { getSpaByPropertyCodeApi, createSpaReservationApi, markSpaSlotAvailableApi } from "../api/spa.api";
+import { getSpaByPropertyCodeApi, createSpaReservationApi, cancelSpaReservationApi } from "../api/spa.api";
 import { ISpa, ISpaDate, ISpaSlot } from "../interface";
 
 interface SelectedSlot {
@@ -37,6 +37,7 @@ export default function SpaClient({ params }: SpaClientProps) {
   const [customerPhone, setCustomerPhone] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [cancellingSlotId, setCancellingSlotId] = useState<string | null>(null);
+  const bookingMapRef = useRef<Record<string, string>>({});
 
   const hasPropertyCode = Boolean(propertyCode.trim());
 
@@ -123,6 +124,35 @@ export default function SpaClient({ params }: SpaClientProps) {
 
       if (response.success) {
         toast.success(response.message || "Spa slot booked successfully.");
+        // attach booking id locally so user can cancel immediately
+        const bookingId = response.data?.id;
+        if (bookingId && selectedSlot) {
+          // store in in-memory map (fast immediate lookup)
+          bookingMapRef.current[selectedSlot.slotId] = bookingId;
+
+          // Also mirror the backend response shape into the slot so cancel works even after refresh
+          setSpas((prev) =>
+            prev.map((s) => ({
+              ...s,
+              SpaDates: s.SpaDates?.map((d) => ({
+                ...d,
+                Slots: d.Slots?.map((sl) =>
+                  sl.id === selectedSlot.slotId
+                    ? {
+                        ...sl,
+                        isBooked: true,
+                        reservationId: bookingId,
+                        SlotBooking: { spaBookingId: bookingId },
+                        Reservation: { bookingCode: sl.Reservation?.bookingCode || "", id: bookingId } as any,
+                      }
+                    : sl,
+                ),
+              })),
+            })),
+          );
+        }
+
+
         setSelectedSlot(null);
         setCustomerName("");
         setCustomerEmail("");
@@ -139,17 +169,34 @@ export default function SpaClient({ params }: SpaClientProps) {
   };
 
   const handleCancelBooking = async (slot: ISpaSlot) => {
+    // prioritize in-memory booking id from recent create to avoid timing issues
+    const bookingId =
+      bookingMapRef.current[slot.id] ||
+      slot.SlotBooking?.spaBookingId ||
+      slot.reservationId ||
+      // your backend returns cancel id as reservation.id (not slot reservation bookingCode)
+      (slot.Reservation as any)?.id ||
+      // last fallback: some APIs may provide bookingId under another name
+      (slot as any)?.bookingId;
+    console.log(bookingId)
+    if (!bookingId) {
+      console.error('Cancel failed — booking id missing for slot:', slot);
+      toast.error("Unable to cancel booking: booking id is missing.");
+      return;
+    }
+    console.debug('Cancelling spa booking', { slotId: slot.id, bookingId });
+
     setCancellingSlotId(slot.id);
     try {
-      const response = await markSpaSlotAvailableApi(slot.id);
+      const response = await cancelSpaReservationApi(bookingId);
       if (response.success) {
-        toast.success(response.message || "Spa booking released successfully.");
+        toast.success(response.message || "Spa booking canceled successfully.");
         await loadSpas(propertyCode.trim());
       } else {
-        toast.error(response.message || "Failed to release spa booking.");
+        toast.error(response.message || "Failed to cancel spa booking.");
       }
     } catch (error) {
-      toast.error("Failed to release spa booking.");
+      toast.error("Failed to cancel spa booking.");
     } finally {
       setCancellingSlotId(null);
     }
