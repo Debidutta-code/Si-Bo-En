@@ -313,4 +313,43 @@ export class SpaRepository {
             throw new Error('Error occur while creating spa booking');
         }
     }
+    public async cancelSpaBooking(bookingId: string) {
+        try {
+            return await prisma.$transaction(async (tx) => {
+                const booking = await tx.spaBooking.findUnique({
+                    where: { id: bookingId },
+                    include: { SlotBookings: true }
+                });
+
+                if (!booking) {
+                    throw new Error('Spa booking not found');
+                }
+
+                if (booking.status === 'cancelled') {
+                    throw new Error('Booking is already cancelled');
+                }
+
+                // Update booking status
+                const updatedBooking = await tx.spaBooking.update({
+                    where: { id: bookingId },
+                    data: { status: 'cancelled' }
+                });
+
+                // Free up all associated slots
+                for (const slotBooking of booking.SlotBookings) {
+                    await tx.spaSlots.update({
+                        where: { id: slotBooking.spaSlotId },
+                        data: { isBooked: false }
+                    });
+                }
+
+                return updatedBooking;
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(error.message);
+            }
+            throw new Error('Error occur while cancelling spa booking');
+        }
+    }
 }

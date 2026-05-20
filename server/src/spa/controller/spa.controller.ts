@@ -281,4 +281,39 @@ export class SpaController {
                 );
         }
     }
+    public async cancelSpaReservation(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const bookingId = req.params.bookingId;
+            if (!bookingId) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Missing required fields',
+                            'bookingId is required'
+                        )
+                    );
+            }
+
+            const response = await this.spaService.cancelSpaReservation(bookingId);
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to cancel spa reservation', error.message));
+            }
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to cancel spa reservation',
+                        'Internal Server Error'
+                    )
+                );
+        }
+    }
 }

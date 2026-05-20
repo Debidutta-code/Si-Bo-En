@@ -208,4 +208,15 @@ export class SpaService {
             return errorResponse('Failed to create spa booking');
         }
     }
+    public async cancelSpaReservation(bookingId: string): Promise<IApiResponse> {
+        try {
+            const booking = await this.spaRepository.cancelSpaBooking(bookingId);
+            return successResponse('Spa booking cancelled successfully', booking);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse('Failed to cancel spa booking', error.message);
+            }
+            return errorResponse('Failed to cancel spa booking');
+        }
+    }
 }
