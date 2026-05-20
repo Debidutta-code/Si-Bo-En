@@ -10,7 +10,7 @@ export class CustomerService {
         this.customerRepository = new CustomerRepository();
     }
 
-    /** Register new customer */
+
     public async register(
         firstName: string,
         lastName: string,
@@ -31,8 +31,8 @@ export class CustomerService {
             });
             const accessToken = assignCustomerToken(
                 { id: customer.id, email: customer.email },
-                config.loyaltyJWTSecret!,
-                config.loyaltyJWTExpiresIn!   // same config loyalty uses
+                config.customerJWTSecret!,
+                config.customerJWTExpiresIn!
             );
             return successResponse('Registration successful', {
                 customer,
@@ -46,7 +46,6 @@ export class CustomerService {
         }
     }
 
-    /** Login with email + password */
     public async login(email: string, password: string): Promise<IApiResponse> {
         try {
             const customer = await this.customerRepository.findByEmail(email.toLowerCase());
@@ -59,8 +58,8 @@ export class CustomerService {
             }
             const accessToken = assignCustomerToken(
                 { id: customer.id, email: customer.email },
-                config.loyaltyJWTSecret!,
-                config.loyaltyJWTExpiresIn!
+                config.customerJWTSecret!,
+                config.customerJWTExpiresIn!
             );
             return successResponse('Login successful', {
                 id: customer.id,
@@ -77,7 +76,6 @@ export class CustomerService {
         }
     }
 
-    /** Get logged-in customer profile */
     public async getMe(id: string): Promise<IApiResponse> {
         try {
             const customer = await this.customerRepository.findById(id);
@@ -93,7 +91,6 @@ export class CustomerService {
         }
     }
 
-    /** Update password */
     public async updatePassword(
         email: string,
         password: string

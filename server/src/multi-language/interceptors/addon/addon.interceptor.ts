@@ -8,27 +8,34 @@ import { AddonVariantTranslation } from '../../models/features/addons/variant.mo
 export class AddonInterceptor {
 
     public static async intercept(
-        response: IApiResponse<IAddon[]>,
+        response: IApiResponse<any>, // Update type from IAddon[] to any
         locale: string
-    ): Promise<IApiResponse<IAddon[]>> {
+    ): Promise<IApiResponse<any>> { // Update type from IAddon[] to any
         if (!response.success || !response.data || locale.toLowerCase() === 'en') {
             return response;
         }
 
         try {
-            const data = response.data;
+            let data = response.data;
 
-            // 2. Handle Array of Addons
+            // 1. Intercept available addons API format (addon date-wise array)
             if (Array.isArray(data)) {
                 const translatedData = await Promise.all(
-                    data.map(async (addon) => {
-                        return await this.applyAddonTranslation(addon, locale);
+                    data.map(async (item: any) => {
+                        // Check if it's an addon datewise array which has addon object nested
+                        if (item.addon && item.addon.id) {
+                            const translatedAddon = await this.applyAddonTranslation(item.addon, locale);
+                            return { ...item, addon: translatedAddon };
+                        } else {
+                            // Or it's a plain addon array
+                            return await this.applyAddonTranslation(item, locale);
+                        }
                     })
                 );
                 return { ...response, data: translatedData };
             }
             
-            // 3. Handle Single Addon Object
+            // 2. Handle Single Addon Object
             else {
                 const translatedAddon = await this.applyAddonTranslation(data, locale);
                 return { ...response, data: translatedAddon };

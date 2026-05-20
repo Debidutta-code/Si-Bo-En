@@ -1554,6 +1554,7 @@ class TaxClass {
                 groupTaxTotal += taxForThisRule;
 
                 taxBrakeDown.push({
+                    id: rule.taxRule.id,
                     name: rule.taxRule.name,
                     taxedAmount: taxForThisRule,
                     currencyCode: this.priceBrakeDown.currencyCode,

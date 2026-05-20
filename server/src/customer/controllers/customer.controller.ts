@@ -26,10 +26,6 @@ export class CustomerController {
             }
             return res
                 .status(201)
-                .cookie('customerToken', result.data?.accessToken, {
-                    httpOnly: true,
-                    secure: true,
-                })
                 .json(result);
         } catch (error) {
             if (error instanceof Error) {
@@ -48,7 +44,6 @@ export class CustomerController {
         }
     }
 
-    /** POST /customers/login */
     public async login(req: Request, res: Response): Promise<Response> {
         try {
             const { email, password } = req.body;

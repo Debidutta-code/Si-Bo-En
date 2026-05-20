@@ -15,8 +15,8 @@ const config = {
     agencyJWTSecret: process.env.AGENT_JWT_SECRET,
     agencyJWTExpiresIn: process.env.AGENT_JWT_EXPIRES_IN,
 
-    loyaltyJWTSecret: process.env.LOYALTY_GUEST_JWT_SECRETE,
-    loyaltyJWTExpiresIn: process.env.LOYALTY_GUEST_JWT_EXPIRES,
+    customerJWTSecret: process.env.CUSTOMER_GUEST_JWT_SECRETE,
+    customerJWTExpiresIn: process.env.CUSTOMER_GUEST_JWT_EXPIRES,
 
     otaJWTSecret: process.env.OTA_GUEST_JWT_SECRET,
     otaJWTExpiresIn: process.env.OTA_GUEST_JWT_EXPIRES,

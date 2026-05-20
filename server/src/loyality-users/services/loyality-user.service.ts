@@ -40,8 +40,8 @@ export class LoyalityUserService {
                     id: loyalityGuest.id,
                     email: loyalityGuest.email,
                 },
-                config.loyaltyJWTSecret!,
-                config.loyaltyJWTExpiresIn!
+                config.customerJWTSecret!,
+                config.customerJWTExpiresIn!
             );
             return successResponse('User logged in successfully', {
                 id: loyalityGuest.id,

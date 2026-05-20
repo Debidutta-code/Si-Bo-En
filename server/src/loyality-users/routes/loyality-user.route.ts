@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { LoyalityUserController } from '../controllers';
 import { verificationRouter } from './verification.route';
-import { loyaltyProtect } from '../../middlewares/loyalty-auth.middleware';
 
 const loyalityGuestRouter = Router();
 const loyalityUserController = new LoyalityUserController();
@@ -22,7 +21,6 @@ loyalityGuestRouter
 loyalityGuestRouter
     .route('/me')
     .get(
-        loyaltyProtect,
         loyalityUserController.getMe.bind(loyalityUserController)
     );
 
