@@ -31,10 +31,11 @@ export class ReportsRepository {
                     // ── Full pricing breakdown with ALL sub-relations ─────────
                     PricingBrakeDown: {
                         include: {
-                            DailyPriceBrakeDown: true,   // nightly room charges
-                            taxBrakeDown: true,           // tax lines
-                            AddonBrakeDowns: true,        // per-day addon amounts
-                            promotionBrakeDown: true,     // ← was missing before
+                            DailyPriceBrakeDown: true,   
+                            taxBrakeDown: true,         
+                            AddonBrakeDowns: true,      
+                            promotionBrakeDown: true,
+                            SpaPricingBrakeDowns:true,   
                         },
                     },
 

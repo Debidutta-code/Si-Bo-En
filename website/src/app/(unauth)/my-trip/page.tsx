@@ -138,228 +138,32 @@ export default function MyTripPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleDownloadPDF = () => {
-    if (!bookingData) return;
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const centerX = pageWidth / 2;
-    let y = 15;
-
-    // === HEADER BAR ===
-    doc.setFillColor(25, 85, 150);
-    doc.rect(0, 0, pageWidth, 25, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("Booking Confirmation", centerX, 15, { align: "center" });
-    y = 35;
-
-    // === STATUS BADGE ===
-    doc.setFontSize(10);
-    let statusColor: [number, number, number] = [34, 197, 94]; // green
-    if (bookingData.bookingStatus === "cancelled") statusColor = [239, 68, 68]; // red
-    if (bookingData.bookingStatus === "modified") statusColor = [234, 179, 8]; // yellow
-    doc.setTextColor(...statusColor);
-    doc.setFont("helvetica", "bold");
-    const statusText = bookingData.bookingStatus
-      ? bookingData.bookingStatus.charAt(0).toUpperCase() + bookingData.bookingStatus.slice(1)
-      : "Unknown";
-    doc.text(`STATUS: ${statusText}`, 20, y);
-    doc.setTextColor(100);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Booking Code: ${bookingData.bookingCode.split("-")[1] || bookingCode.split("-")[1] || "N/A"}`, pageWidth - 20, y, {
-      align: "right",
-    });
-    y += 15;
-
-    const colLeftX = 20;
-    const colRightX = pageWidth / 2 + 10;
-    let yLeft = y;
-    let yRight = y;
-
-    // --- LEFT: HOTEL INFO ---
-    doc.setTextColor(25, 85, 150);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(t("MyTrip.pdf.hotelInfo"), colLeftX, yLeft);
-
-    doc.line(colLeftX, yLeft + 2, colLeftX + 70, yLeft + 2);
-    yLeft += 10;
-    doc.setTextColor(50);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Hotel: ${bookingData.hotelName || "N/A"}`, colLeftX, yLeft);
-    yLeft += 6;
-    doc.text(`Property Code: ${bookingData.propertyCode || "N/A"}`, colLeftX, yLeft);
-    yLeft += 6;
-    doc.text(`Room Type: ${bookingData.roomName || "N/A"}`, colLeftX, yLeft);
-    yLeft += 6;
-    doc.text(`Rate Plan: ${bookingData.ratePlanName || "N/A"}`, colLeftX, yLeft);
-
-    // --- RIGHT: STAY DETAILS ---
-    doc.setTextColor(25, 85, 150);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(t("MyTrip.pdf.stayDetails"), colRightX, yRight);
-
-    doc.line(colRightX, yRight + 2, colRightX + 60, yRight + 2);
-    yRight += 10;
-    doc.setTextColor(50);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Check-In: ${bookingData.reservationStartDate ? new Date(bookingData.reservationStartDate).toDateString() : "N/A"}`, colRightX, yRight);
-    yRight += 6;
-    doc.text(`Check-Out: ${bookingData.reservationEndDate ? new Date(bookingData.reservationEndDate).toDateString() : "N/A"}`, colRightX, yRight);
-    yRight += 6;
-    doc.text(`Rooms: ${bookingData.finalPrice?.requestedRooms || 1}`, colRightX, yRight);
-    yRight += 6;
-    doc.text(`Nights: ${bookingData.finalPrice?.numberOfNights || 1}`, colRightX, yRight);
-
-    // Start second row
-    y = Math.max(yLeft, yRight) + 15;
-
-    // === SPLIT INTO TWO COLUMNS (GUEST INFO + PAYMENT INFO) ===
-    yLeft = y;
-    yRight = y;
-
-    // --- LEFT: GUEST INFO ---
-    doc.setTextColor(25, 85, 150);
-    doc.setFont("helvetica", "bold");
-    doc.text(t("MyTrip.pdf.guestInfo"), colLeftX, yLeft);
-
-    doc.line(colLeftX, yLeft + 2, colLeftX + 75, yLeft + 2);
-    yLeft += 10;
-    doc.setTextColor(50);
-    doc.setFont("helvetica", "normal");
-    if (bookingData.guests && bookingData.guests.length > 0) {
-      const primary = bookingData.guests.find((g: any) => g.type === "adult");
-      if (primary) {
-        const guestName = `${primary.firstName || ""} ${primary.lastName || ""}`.trim();
-        doc.text(`${guestName || "N/A"} (Primary Guest)`, colLeftX + 5, yLeft);
-        yLeft += 6;
-      }
-    } else {
-      doc.text(t("MyTrip.pdf.noGuestInfo"), colLeftX, yLeft);
-      yLeft += 6;
-    }
-    yLeft += 8;
-    doc.text(`Phone: ${bookingData.bookingUserPhone || "N/A"}`, colLeftX, yLeft);
-    yLeft += 6;
-    doc.text(`Email: ${bookingData.bookingUserEmail || "N/A"}`, colLeftX, yLeft);
-
-    // --- RIGHT: PAYMENT INFO ---
-    doc.setTextColor(25, 85, 150);
-    doc.setFont("helvetica", "bold");
-    doc.text(t("MyTrip.pdf.paymentInfo"), colRightX, yRight);
-
-    doc.line(colRightX, yRight + 2, colRightX + 80, yRight + 2);
-    yRight += 10;
-    doc.setTextColor(50);
-    doc.setFont("helvetica", "normal");
-
-    // helper for payment rows with safe property access
-    const addPaymentRow = (label: string, value: any, bold = false) => {
-      doc.setFont("helvetica", bold ? "bold" : "normal");
-      doc.text(label, colRightX, yRight);
-      // Format value safely
-      let formattedValue = "N/A";
-      if (value !== undefined && value !== null) {
-        if (typeof value === "number") {
-          formattedValue = value.toLocaleString("en-IN");
-        } else if (typeof value === "string") {
-          formattedValue = value;
-        } else if (value instanceof Date) {
-          formattedValue = value.toDateString();
-        } else {
-          formattedValue = String(value);
-        }
-      }
-      doc.text(formattedValue, pageWidth - 20, yRight, { align: "right" });
-      yRight += 6;
-    };
-
-    // Safely access all properties with fallbacks
-    const paymentMethod = bookingData.paymentMethod
-      ? bookingData.paymentMethod.replace(/_/g, " ").toLowerCase()
-      : "N/A";
-    const bookingDate = bookingData.bookedAt
-      ? new Date(bookingData.bookedAt)
-      : new Date();
-    const amount = bookingData.amount || 0;
-    const paidAmount = bookingData.paidAmount || 0;
-    const extraAmountToPay = bookingData.extraAmountToPay || 0;
-    const refundAmount = bookingData.refundAmount || 0;
-
-    addPaymentRow("Method:", paymentMethod);
-    addPaymentRow("Booking Date:", bookingDate);
-    addPaymentRow("Total Amount:", `${amount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
-    addPaymentRow("Amount Paid:", `${paidAmount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
-    addPaymentRow("Extra amount to be Paid:", `${extraAmountToPay.toFixed(2)} ${bookingData.currencyCode || "USD"}`);
-    addPaymentRow("Refundable Amount:", `${refundAmount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
-
-    // Add subtotal and tax breakdown if available
-    if (bookingData.finalPrice) {
-      yRight += 3;
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text(t("MyTrip.pdf.priceBreakdown"), colRightX, yRight);
-
-      yRight += 6;
-      addPaymentRow("Method:", paymentMethod);
-      addPaymentRow("Booking Date:", bookingDate);
-      addPaymentRow("Base Amount:", `${bookingData.currencyCode} ${bookingData.finalPrice?.amountBeforeTax?.toFixed(2) || 0}`);
-      // ✅ WITH THIS
-      if (bookingData.finalPrice?.promotionBrakeDown?.length > 0) {
-        bookingData.finalPrice.promotionBrakeDown.forEach((promo: any) => {
-          const isPayLater = promo.restrictionType === 'payLater';
-          const sign = isPayLater ? '+' : '-';
-          addPaymentRow(
-            `${isPayLater ? '(Pay Later)' : '(Discount)'} ${promo.name}:`,
-            `${sign}${bookingData.currencyCode} ${promo.discountAmount?.toFixed(2) || 0}`
-          );
-        });
-      }
-      addPaymentRow("Net Discount:", `-${bookingData.currencyCode} ${bookingData.finalPrice?.totalPromotionAmount?.toFixed(2) || 0}`); addPaymentRow("Taxes:", `${bookingData.currencyCode} ${bookingData.finalPrice?.taxedAmount?.toFixed(2) || 0}`);
-      addPaymentRow("Total Amount:", `${bookingData.currencyCode} ${bookingData.finalPrice?.totalAmount?.toFixed(2) || amount}`, true);
-
-      if (bookingData.paymentMethod === 'pay_at_hotel') {
-        addPaymentRow("Amount to Pay at Hotel:", `${bookingData.currencyCode} ${bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || 0}`, true);
-        if ((bookingData.finalPrice?.latterpayableAmount || 0) > 0) {
-          addPaymentRow("Amount to be Paid Later:", `${bookingData.currencyCode} ${bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}`);
-        }
-      } else {
-        addPaymentRow("Paid Online:", `${bookingData.currencyCode} ${bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || 0}`, true);
-        if ((bookingData.finalPrice?.latterpayableAmount || 0) > 0) {
-          addPaymentRow("Amount to be Paid Later at Hotel:", `${bookingData.currencyCode} ${bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}`);
-        }
-        if (paidAmount > 0) {
-          addPaymentRow("Paid Amount:", `${bookingData.currencyCode} ${paidAmount.toFixed(2)}`);
-        }
-      }
-
-      if (refundAmount > 0) {
-        addPaymentRow("Refundable Amount:", `${bookingData.currencyCode} ${refundAmount.toFixed(2)}`, true);
-      }
-    }
-
-    // === FOOTER ===
-    const footerY = doc.internal.pageSize.getHeight() - 15;
-    doc.setDrawColor(200);
-    doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.setFont("helvetica", "normal");
-    doc.text(
-      t("MyTrip.pdf.footer"),
-      centerX,
-      footerY,
-      { align: "center" }
+ const handleDownloadPDF = async () => {
+  if (!bookingData) return;
+  const toastId = toast.loading("Generating voucher...");
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/booking-voucher/${bookingData.bookingCode}`,
+      { method: "GET" }
     );
+    if (!response.ok) throw new Error("Failed to download voucher");
 
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `voucher-${bookingData.bookingCode}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
 
-    const fileName = `booking-itinerary-${bookingData.bookingCode || bookingCode || "trip"}.pdf`;
-    doc.save(fileName);
-  };
+    toast.dismiss(toastId);
+  } catch (err: any) {
+    toast.dismiss(toastId);
+    toast.error(err.message || "Failed to download voucher");
+  }
+};
 
   useEffect(() => {
     const isAnyModalOpen = showModal || showCancelModal || showUpdateModal;
@@ -557,8 +361,9 @@ export default function MyTripPage() {
             <div>
               <p className="text-gray-500 font-medium">{t("MyTrip.rate")}</p>
               <p className="text-blue-700 font-semibold">
-                {bookingData.currencyCode} {bookingData.amount.toFixed(2)}
-              </p>
+                {bookingData.currencyCode}{" "}
+                {(
+                  (bookingData.amount || 0) + (bookingData?.PricingBrakeDown?.totalSpa || 0)).toFixed(2)}            </p>
             </div>
           </div>
 
@@ -852,8 +657,6 @@ export default function MyTripPage() {
                   </div>
                 </div>
 
-                {/* Price Breakdown */}
-                {/* Price Breakdown */}
                 <div className="mt-4 space-y-2 text-sm">
 
                   {/* 1. Base Amount (room only, no addons) */}
@@ -948,25 +751,6 @@ export default function MyTripPage() {
                   {/* 7. Chargeable Amount + Pay Later + Grand Total */}
                   <div className="border-t pt-2 space-y-2">
 
-                    {/* Chargeable Amount */}
-                    {bookingData.paymentMethod === "pay_at_hotel" ? (
-                      <div className="flex justify-between items-center">
-                        <p className="text-orange-700 font-semibold">{t("MyTrip.amountPayAtHotel")}</p>
-                        <p className="text-orange-700 font-bold text-lg">
-                          {bookingData.currencyCode}{" "}
-                          {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(2) || "0.00"}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
-                        <p className="text-green-700 font-semibold">{t("MyTrip.paidOnline")}</p>
-                        <p className="text-green-700 font-bold text-lg">
-                          {bookingData.currencyCode}{" "}
-                          {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(2) || "0.00"}
-                        </p>
-                      </div>
-                    )}
-
                     {/* Pay Later (Tourist Tax) */}
                     {bookingData.PricingBrakeDown?.latterpayableAmount > 0 && (
                       <>
@@ -974,20 +758,55 @@ export default function MyTripPage() {
                           ?.filter((p: any) => p.restrictionType === "payLater")
                           .map((promo: any, i: number) => (
                             <div key={i} className="flex justify-between items-center">
-                              <p className="text-orange-600 flex items-center gap-1">
-                                ⏳ {promo.name}
-                                
-                              </p>
+                              <p className="text-orange-600 flex items-center gap-1">⏳ {promo.name}</p>
                               <p className="font-medium text-orange-600">+{bookingData.currencyCode} {promo.discountAmount?.toFixed(2)}</p>
                             </div>
                           ))}
-                        <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
-                          <p className="text-orange-700 font-semibold">{t("MyTrip.amountPaidLater")}</p>
-                          <p className="text-orange-700 font-bold text-lg">
+                      </>
+                    )}
+
+                    {/* Spa Charges */}
+                    {bookingData.PricingBrakeDown?.totalSpa > 0 && (
+                      <div className="space-y-1 flex items-center justify-between">
+                        <p className="text-purple-600  gap-1">{t("MyTrip.totalActivityCharges")}</p>
+                        <p className="font-medium text-purple-600">+{bookingData.currencyCode} {bookingData.PricingBrakeDown.totalSpa}</p>
+                      </div>
+                    )}
+
+                    {/* Amount to Pay at Hotel (chargeable + payLater + spa) */}
+                    {bookingData.paymentMethod === "pay_at_hotel" ? (
+                      <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                        <p className="text-orange-700 font-semibold">{t("MyTrip.amountPayAtHotel")}</p>
+                        <p className="text-orange-700 font-bold text-lg">
+                          {bookingData.currencyCode}{" "}
+                          {(
+                            (bookingData.PricingBrakeDown?.currentChargeableAmount || 0) +
+                            (bookingData.PricingBrakeDown?.latterpayableAmount || 0) +
+                            (bookingData.PricingBrakeDown?.totalSpa || 0)
+                          ).toFixed(2)}
+                        </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
+                          <p className="text-green-700 font-semibold">{t("MyTrip.paidOnline")}</p>
+                          <p className="text-green-700 font-bold text-lg">
                             {bookingData.currencyCode}{" "}
-                            {bookingData.PricingBrakeDown?.latterpayableAmount?.toFixed(2)}
+                            {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(2) || "0.00"}
                           </p>
                         </div>
+                        {((bookingData.PricingBrakeDown?.latterpayableAmount || 0) + (bookingData.PricingBrakeDown?.totalSpa || 0)) > 0 && (
+                          <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                            <p className="text-orange-700 font-semibold">{t("MyTrip.amountPaidLater")}</p>
+                            <p className="text-orange-700 font-bold text-lg">
+                              {bookingData.currencyCode}{" "}
+                              {(
+                                (bookingData.PricingBrakeDown?.latterpayableAmount || 0) +
+                                (bookingData.PricingBrakeDown?.totalSpa || 0)
+                              ).toFixed(2)}
+                            </p>
+                          </div>
+                        )}
                       </>
                     )}
 
@@ -996,7 +815,10 @@ export default function MyTripPage() {
                       <p className="text-gray-800 font-semibold">{t("MyTrip.totalAmount")}</p>
                       <p className="text-blue-700 font-bold text-lg">
                         {bookingData.currencyCode}{" "}
-                        {bookingData.PricingBrakeDown?.totalAmount?.toFixed(2) || bookingData.amount.toFixed(2)}
+                        {(
+                          (bookingData.PricingBrakeDown?.totalAmount || 0) +
+                          (bookingData.PricingBrakeDown?.totalSpa || 0)
+                        ).toFixed(2)}
                       </p>
                     </div>
 
@@ -1011,12 +833,17 @@ export default function MyTripPage() {
                     )}
 
                     {/* Refund */}
-                    {bookingData.refundAmount > 0 && (
+                    {bookingData.refundAmount && bookingData.paidAmount > 0 && (
                       <div className="flex justify-between items-center">
                         <p className="text-gray-600">{t("MyTrip.refundableAmount")}</p>
                         <p className="font-medium text-green-600">
-                          {bookingData.currencyCode} {bookingData.refundAmount?.toFixed(2)}
-                        </p>
+                          {bookingData.currencyCode}{" "}
+                          {(
+                            (bookingData.extraAmountToPay || 0) -
+                            (bookingData.PricingBrakeDown?.latterpayableAmount || 0) -
+                            (bookingData.refundAmount || 0) -
+                            (bookingData.PricingBrakeDown?.totalSpa || 0)
+                          ).toFixed(2)}</p>
                       </div>
                     )}
                   </div>

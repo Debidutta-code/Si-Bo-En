@@ -202,23 +202,12 @@ export class SpaPricingService {
             // const newFinalAmount =
             //     pricingBrakedown.amountBeforeTax + newTotalTaxedAmount;
 
-            let refundableAmount = reservation.refundAmount;
-            let newExtraAmountToPay =
-                reservation.extraAmountToPay - spaPricing.price;
-
-            //case for spa amount is paid and got cancelled
-            if (
-                reservation.amount + reservation.extraAmountToPay >=
-                reservation.paidAmount
-            ) {
-                refundableAmount = spaPricing.price;
-            }
+            let refundableAmount = reservation.refundAmount + spaPricing.price;
 
             await Promise.all([
                 this.spaPricingRepository.updatePricingForPaidAndCancelled({
                     reservationId: data.reservationId,
-                    refundableAmount: refundableAmount,
-                    extraAmountToPay: Math.max(0, newExtraAmountToPay),
+                    refundableAmount,
                 }),
                 this.spaPricingRepository.updatePriceBrakeDown({
                     priceBrakeDownId: reservation.pricingBrakedownId,

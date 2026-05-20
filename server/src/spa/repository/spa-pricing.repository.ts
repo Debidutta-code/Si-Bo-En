@@ -80,18 +80,15 @@ export class SpaPricingRepository {
     public async updatePricingForPaidAndCancelled({
         reservationId,
         refundableAmount,
-        extraAmountToPay,
     }: {
         reservationId: string;
         refundableAmount: number;
-        extraAmountToPay: number;
     }): Promise<ISpaReservation> {
         try {
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: {
                     refundAmount: refundableAmount,
-                    extraAmountToPay: extraAmountToPay,
                 },
             });
         } catch (error) {

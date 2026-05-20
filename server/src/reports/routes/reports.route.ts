@@ -10,7 +10,7 @@ export const reportsRouter = Router();
 // Generate voucher
 reportsRouter.get(
     '/booking-voucher/:bookingCode',
-    protect,
+    // protect,
     reportsController.getBookingVoucher
 );
 

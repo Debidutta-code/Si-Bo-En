@@ -1,6 +1,6 @@
 import { RestrictionType } from "../../ari/types";
 import { DiscountType } from "../../promocode/types";
-import { AddonBreakDownType, BookingSource, BookingStatus, PaymentMethod, ReservationPromotionType } from "../../reservation/types";
+import { AddonBreakDownType, BookingSource, BookingStatus, ISpaPricing, PaymentMethod, ReservationPromotionType } from "../../reservation/types";
 import { CurrencyCode } from "../../tax-system/interfaces";
 
 export interface IRawDailyPriceBrakeDown {
@@ -76,6 +76,7 @@ export interface IRawPricingBreakdown {
     taxBrakeDown: IRawTaxBrakeDown[];
     AddonBrakeDowns: IRawAddonBrakeDown[];
     promotionBrakeDown: IRawPromotionBrakeDown[];
+    SpaPricingBrakeDowns:ISpaPricing[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -137,6 +138,7 @@ export interface IPriceData {
     promoCodeDiscount: number;
     loyalityDiscount: number;
     currencyCode: string;
+    totalSpa:number;
 
     // ── Computed ─────────────────────────────────────────────────────────────
     numberOfNights: number;
@@ -148,6 +150,7 @@ export interface IPriceData {
     taxBrakeDown: ITaxEntry[];
     addonBrakeDown: IAddonEntry[];
     promotionBrakeDown: IPromotionEntry[];
+    SpaPricingBrakeDowns:ISpaPricing[]
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
