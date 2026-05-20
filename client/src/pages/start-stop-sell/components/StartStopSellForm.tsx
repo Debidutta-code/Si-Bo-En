@@ -21,6 +21,11 @@ interface RoomType {
     id: string;
     roomName: string;
     roomType: string;
+    _translations: {
+                roomName: string;
+                roomType: string;
+                description: string;
+            }
 }
 
 interface FormData {
@@ -223,11 +228,11 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                             <SelectValue placeholder="Select room type (optional)" />
                         </SelectTrigger>
                         <SelectContent>
-                            {roomTypes.map((room) => (
-                                <SelectItem key={room.id} value={room.roomType}>
-                                    {room.roomName}
-                                </SelectItem>
-                            ))}
+                           {roomTypes.map((room) => (
+    <SelectItem key={room.id} value={room.roomType}>
+        {room._translations?.roomName ?? room.roomName}
+    </SelectItem>
+))}
                         </SelectContent>
                     </Select>
                 </div>

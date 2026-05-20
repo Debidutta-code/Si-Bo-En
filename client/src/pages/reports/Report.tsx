@@ -223,7 +223,7 @@ const Report = () => {
                                                             <SelectItem value="all">All Groups</SelectItem>
                                                             {filterOptions!.groups.map((group) => (
                                                                 <SelectItem key={group.id} value={group.id}>
-                                                                    {group.name}
+                                                                    {group._translations?.name ?? group.name}
                                                                 </SelectItem>
                                                             ))}
                                                         </SelectContent>

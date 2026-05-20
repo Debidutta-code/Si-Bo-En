@@ -35,6 +35,11 @@ export interface RoomType {
   roomName: string;
   roomType: string;
   totalRoom: number;
+  _translations: {
+                roomName: string;
+                roomType: string;
+                description: string;
+            }
 }
 
 export interface RatePlan {
@@ -44,6 +49,9 @@ export interface RatePlan {
   propertyId: string;
   b2bAvailable: boolean;
   b2cAvailable: boolean;
+  _translations?: {
+    ratePlanName: string;
+  };
 }
 
 export interface RestrictionFilters {
