@@ -349,6 +349,7 @@ export class RoomBookingService {
         );
 
         const sharedFields = {
+            ratePlanId: ratePlan.id,
             ratePlanName: ratePlan.ratePlanName,
             ratePlanCode: ratePlan.ratePlanCode,
             currencyCode: charges[0].currencyCode,

@@ -3,6 +3,7 @@ import { RoomBookingService } from '../service';
 import { PropertyRequest } from '../../utils';
 import { getGeoLocationDetails } from '../../utils/get-location.utils';
 import { getDeviceInfo } from '../../utils/device-type.util';
+import { BookingEngineRoomsInterceptor } from '../../multi-language/interceptors/booking-engine/booking-engine-rooms.interceptor';
 
 export class RoomBookingController {
   public static async getCalendarPrices(req: PropertyRequest, res: Response) {
@@ -53,7 +54,12 @@ export class RoomBookingController {
                 | 'tablet'
                 | 'desktop';
 
-            const response = await RoomBookingService.fetchRooms({
+            const locale =
+                (req.headers['accept-language'] as string | undefined)
+                    ?.slice(0, 2)
+                    .toLowerCase() || 'en';
+
+            let response = await RoomBookingService.fetchRooms({
                 propertyCode,
                 startDate,
                 endDate,
@@ -62,6 +68,9 @@ export class RoomBookingController {
                 deviceType,
                 promocode,
             });
+
+            response = await BookingEngineRoomsInterceptor.intercept(response, locale);
+
             const status = response.success ? 200 : 400;
             return res.status(status).json(response);
         } catch (error: any) {
