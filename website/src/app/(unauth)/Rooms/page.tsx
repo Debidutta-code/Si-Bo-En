@@ -144,7 +144,7 @@ function normalizePriceBrakeDown(
 
 const Rooms = () => {
   const [isMuted, setIsMuted] = useState<boolean>(true);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
   const [selectedBoardType, setSelectedBoardType] = useState("all");
   const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
@@ -343,7 +343,7 @@ const Rooms = () => {
     setPriceSummaryData(null);
     setLoyaltyProgram(null);
     try {
-      const currentLanguage = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
+      const currentLanguage = i18n.language || (typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en');
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
@@ -638,6 +638,18 @@ const Rooms = () => {
       handleSearchStart(updatedContext);
     }
   }, [searchParams.get("code")]);
+
+  useEffect(() => {
+    if (!initialLoading && initializedRef.current && !isLoadingFromExternal.current) {
+      const hasValidReduxState =
+        bookingContext?.PropertyCode &&
+        bookingContext?.startDate &&
+        bookingContext?.endDate;
+      if (hasValidReduxState) {
+        handleSearchStart(bookingContext);
+      }
+    }
+  }, [i18n.language]);
 
   const bgImage =
     bookingContext?.bookingEngineColor?.bgImage ||

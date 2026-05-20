@@ -322,7 +322,7 @@ export const LoyaltyProgramBanner = ({
                       style={{ color: primaryColor }}
                     />
                     <h2 className="text-sm sm:text-base font-bold text-gray-900 truncate">
-                      {loyaltyProgram.propertyName}
+                      {loyaltyProgram._translations?.propertyName || loyaltyProgram.propertyName}
                     </h2>
                     <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
                       {t("LoyaltyBanner.loyaltyProgram")}
@@ -371,7 +371,7 @@ export const LoyaltyProgramBanner = ({
                               style={{ color: primaryColor }}
                             />
                             <span className="text-[10px] sm:text-xs text-gray-700 leading-snug">
-                              {condition.text}
+                              {condition._translations?.text || condition.text}
                             </span>
                           </div>
                         ))}
@@ -405,7 +405,7 @@ export const LoyaltyProgramBanner = ({
                               style={{ color: primaryColor }}
                             />
                             <span className="text-[10px] sm:text-xs text-gray-900 font-semibold leading-snug">
-                              {condition.subTitle}
+                              {condition._translations?.subTitle || condition.subTitle}
                             </span>
                           </div>
                         ))}
@@ -479,7 +479,7 @@ export const LoyaltyProgramBanner = ({
                   className="w-5 h-5 flex-shrink-0"
                   style={{ color: primaryColor }}
                 />
-                {t("LoyaltyBanner.modal.join")} {loyaltyProgram.propertyName}
+                {t("LoyaltyBanner.modal.join")} {loyaltyProgram._translations?.propertyName || loyaltyProgram.propertyName}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm">
                 {t("LoyaltyBanner.modal.registerTo")} {getDiscountDisplay()} {t("LoyaltyBanner.modal.onAllBookings")}
@@ -550,8 +550,8 @@ export const LoyaltyProgramBanner = ({
                             htmlFor={field.fieldName}
                             className="text-xs sm:text-sm font-medium"
                           >
-                            {field.fieldName.charAt(0).toUpperCase() +
-                              field.fieldName.slice(1).replaceAll("_", " ")}
+                            {field._translations?.fieldName || (field.fieldName.charAt(0).toUpperCase() +
+                              field.fieldName.slice(1).replaceAll("_", " "))}
                             {field.required && (
                               <span className="text-red-500">*</span>
                             )}
@@ -559,7 +559,7 @@ export const LoyaltyProgramBanner = ({
                           <Input
                             id={field.fieldName}
                             type="text"
-                            placeholder={`Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
+                            placeholder={field._translations?.fieldName ? `Enter ${field._translations.fieldName}` : `Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
                             required={field.required}
                             value={formData[field.fieldName] || ""}
                             onChange={(e) =>

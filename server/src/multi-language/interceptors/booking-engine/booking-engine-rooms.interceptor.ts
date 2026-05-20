@@ -33,6 +33,12 @@ export class BookingEngineRoomsInterceptor {
                         ...data.propertyDetails,
                         _translations: propertyTranslation,
                     };
+                    if (data.propertyDetails.loyaltyProgramConfig) {
+                        data.propertyDetails.loyaltyProgramConfig = {
+                            ...data.propertyDetails.loyaltyProgramConfig,
+                            _translations: { propertyName: propertyTranslation.propertyName }
+                        };
+                    }
                 }
 
                 // ── 1a. Loyalty conditions ────────────────────────────────────
