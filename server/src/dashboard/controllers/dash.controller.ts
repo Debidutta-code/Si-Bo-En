@@ -29,10 +29,22 @@ export class DashBoardController {
                         )
                     );
             }
-            const serRes = await this.dashboardServices.getPropertyNames(
+
+            const locale =
+                (req.headers['accept-language'] as string | undefined)
+                    ?.slice(0, 2)
+                    .toLowerCase() || 'en';
+
+            let serRes = await this.dashboardServices.getPropertyNames(
                 req.user.creationId,
                 req.user.level
             );
+
+            serRes = await DashboardPropertiesInterceptor.intercept(
+                serRes,
+                locale
+            );
+
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {
