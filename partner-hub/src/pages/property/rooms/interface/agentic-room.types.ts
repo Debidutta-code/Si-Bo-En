@@ -202,6 +202,7 @@ export interface IAgenticRoomFull {
     amenities: IAgenticAmenity[];
     hasValidRate: boolean;
     roomPrice: IAgenticRoomPrice[];
+    
 }
 
 // ─── Rooms response ────────────────────────────────────────────────────────────
