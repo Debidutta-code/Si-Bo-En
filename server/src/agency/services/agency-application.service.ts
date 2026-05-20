@@ -56,11 +56,11 @@ export class AgencyApplicationService {
                 this.agencyApplicationRepository.getAgentApplicationsByName(data.agencyName),
             ]);
 
-            // console.log('exist', existingApplication);
-            // console.log('lastAppliedForm', lastAppliedForm);
-            // console.log('agent', agent);
-            // console.log('existingApplicationByTaxNo', existingApplicationByTaxNo);
-            // console.log('existingApplicationByName', existingApplicationByName);
+            console.log('exist', existingApplication);
+            console.log('lastAppliedForm', lastAppliedForm);
+            console.log('agent', agent);
+            console.log('existingApplicationByTaxNo', existingApplicationByTaxNo);
+            console.log('existingApplicationByName', existingApplicationByName);
 
             if (existingApplication && existingApplication.status === 'approved') {
                 return successResponse(
@@ -84,8 +84,6 @@ export class AgencyApplicationService {
                 );
             }
 
-            // ── RESUBMISSION: lastAppliedForm is a count (number), not a record.
-            // The actual application record is existingApplication (fetched by email above).
             if (lastAppliedForm) {
                 // console.log('lastAppliedForm', lastAppliedForm);
                 const [updateCount, updateStatus] = await Promise.all([
@@ -106,7 +104,6 @@ export class AgencyApplicationService {
                 });
             }
 
-            // ── FRESH APPLICATION: email uses the newly created id ────────────
             const application =
                 await this.agencyApplicationRepository.createApplication(data);
 

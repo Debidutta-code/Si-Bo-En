@@ -296,7 +296,7 @@ export default function ReservationCard({
                                 {new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                                 {day.guestDistribution && ` (${formatGuests(day.guestDistribution)})`}
                               </span>
-                              <span className="text-gray-900">{currency} {day.baseChargesAmount?.toFixed(2)}</span>
+                              <span className="text-gray-900">{currency} {day.totalAmount?.toFixed(2)}</span>
                             </div>
                           ))}
                         </div>

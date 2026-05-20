@@ -111,23 +111,17 @@ export class SpaPricingRepository {
     }
     public async updatePriceBrakeDown({
         priceBrakeDownId,
-        amountBeforeTax,
         newTotalAmount,
         totalSpaAmount,
-        taxedAmount,
     }: {
         priceBrakeDownId: string;
-        amountBeforeTax: number;
         newTotalAmount: number;
         totalSpaAmount: number;
-        taxedAmount: number;
     }): Promise<IPricingBreakDown> {
         try {
             return await prisma.pricingBreakdown.update({
                 where: { id: priceBrakeDownId },
                 data: {
-                    amountBeforeTax,
-                    taxedAmount,
                     totalAmount: newTotalAmount,
                     totalSpa: totalSpaAmount,
                 },

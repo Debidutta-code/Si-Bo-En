@@ -557,7 +557,7 @@ export default function MyTripPage() {
             <div>
               <p className="text-gray-500 font-medium">{t("MyTrip.rate")}</p>
               <p className="text-blue-700 font-semibold">
-                {bookingData.currencyCode} {bookingData.amount.toLocaleString()}
+                {bookingData.currencyCode} {bookingData.amount.toFixed(2)}
               </p>
             </div>
           </div>
@@ -853,250 +853,169 @@ export default function MyTripPage() {
                 </div>
 
                 {/* Price Breakdown */}
+                {/* Price Breakdown */}
                 <div className="mt-4 space-y-2 text-sm">
 
-                  {/* Base Amount */}
+                  {/* 1. Base Amount (room only, no addons) */}
                   <div className="flex justify-between items-center">
                     <p className="text-gray-600">{t("MyTrip.baseAmount")}</p>
-
                     <p className="font-medium">
                       {bookingData.currencyCode}{" "}
-                      {(
-                        (bookingData.PricingBrakeDown?.amountBeforeTax || 0) -
-                        (bookingData.PricingBrakeDown?.totalAddonAmount || 0)
+                      {((bookingData.PricingBrakeDown?.amountBeforeTax || 0) -
+                        (bookingData.PricingBrakeDown?.totalAddonAmount || 0) +
+                        (bookingData.PricingBrakeDown?.totalPromotionAmount || 0)
                       ).toFixed(2)}
                     </p>
                   </div>
 
-                  {/* Promotions */}
-                  {bookingData.PricingBrakeDown?.promotionBrakeDown?.length > 0 && (
-                    <div className="space-y-1">
-                      {bookingData.PricingBrakeDown.promotionBrakeDown.map(
-                        (promo: any, i: number) => {
-                          const isPayLater =
-                            promo.restrictionType === "payLater";
-
-                          return (
-                            <div
-                              key={i}
-                              className="flex justify-between items-center"
-                            >
-                              <p
-                                className={`flex items-center gap-1 ${isPayLater
-                                  ? "text-orange-600"
-                                  : "text-green-600"
-                                  }`}
-                              >
-                                {isPayLater ? "⏳" : "🏷"} {promo.name}
-
-                                <span className="text-xs text-gray-400">
-                                  (
-                                  {promo.discountType === "percentage"
-                                    ? `${isPayLater ? "+" : "-"}${promo.discountValue
-                                    }%`
-                                    : `${isPayLater ? "+" : "-"}${promo.currencyCode ||
-                                    bookingData.currencyCode
-                                    } ${promo.discountValue}`}
-                                  )
+                  {/* 2. Addons */}
+                  {(bookingData.PricingBrakeDown?.AddonBrakeDowns?.length > 0) && (() => {
+                    const grouped = bookingData.PricingBrakeDown.AddonBrakeDowns.reduce((acc: any, addon: any) => {
+                      if (!acc[addon.name]) acc[addon.name] = { ...addon, totalAmount: 0 };
+                      acc[addon.name].totalAmount += addon.totalAmount;
+                      return acc;
+                    }, {});
+                    return (
+                      <div className="space-y-1">
+                        {Object.values(grouped).map((addon: any, i: number) =>
+                          addon.totalAmount > 0 && (
+                            <div key={i} className="flex justify-between items-center">
+                              <p className="text-gray-600">
+                                🍽 {addon.name}
+                                <span className="text-xs text-gray-400 ml-1">
+                                  ({addon.type === "included" ? "Included" : "Selected"})
                                 </span>
                               </p>
-
-                              <p
-                                className={`font-medium ${isPayLater
-                                  ? "text-orange-600"
-                                  : "text-green-600"
-                                  }`}
-                              >
-                                {isPayLater ? "+" : "-"}
-                                {bookingData.currencyCode}{" "}
-                                {promo.discountAmount?.toFixed(2)}
-                              </p>
+                              <p className="font-medium">+{bookingData.currencyCode} {addon.totalAmount?.toFixed(2)}</p>
                             </div>
-                          );
-                        }
-                      )}
+                          )
+                        )}
+                      </div>
+                    );
+                  })()}
+
+                  {/* 3. Discounts */}
+                  {bookingData.PricingBrakeDown?.promotionBrakeDown?.filter((p: any) => p.restrictionType !== "payLater").length > 0 && (
+                    <div className="space-y-1">
+                      {bookingData.PricingBrakeDown.promotionBrakeDown
+                        .filter((p: any) => p.restrictionType !== "payLater")
+                        .map((promo: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center">
+                            <p className="text-green-600 flex items-center gap-1">
+                              🏷 {promo.name}
+                              <span className="text-xs text-gray-400">
+                                ({promo.discountType === "percentage" ? `-${promo.discountValue}%` : `-${promo.currencyCode || bookingData.currencyCode} ${promo.discountValue}`})
+                              </span>
+                            </p>
+                            <p className="font-medium text-green-600">-{bookingData.currencyCode} {promo.discountAmount?.toFixed(2)}</p>
+                          </div>
+                        ))}
                     </div>
                   )}
 
-                  {/* Tax Breakdown */}
+                  {/* 4. Amount Before Tax */}
+                  <div className="flex justify-between items-center border-t pt-2">
+                    <p className="text-gray-700 font-medium">Amount Before Tax</p>
+                    <p className="font-medium">
+                      {bookingData.currencyCode}{" "}
+                      {bookingData.PricingBrakeDown?.amountBeforeTax?.toFixed(2) || "0.00"}
+                    </p>
+                  </div>
+
+                  {/* 5. Tax Breakdown */}
                   {bookingData.PricingBrakeDown?.taxBrakeDown?.length > 0 && (
                     <div className="space-y-1">
-                      {bookingData.PricingBrakeDown.taxBrakeDown.map(
-                        (tax: any, i: number) => (
-                          <div
-                            key={i}
-                            className="flex justify-between items-center"
-                          >
-                            <p className="text-gray-600">🧾 {tax.name}</p>
-
-                            <p className="font-medium">
-                              +{tax.currencyCode}{" "}
-                              {tax.taxedAmount?.toFixed(2)}
-                            </p>
-                          </div>
-                        )
-                      )}
+                      {bookingData.PricingBrakeDown.taxBrakeDown.map((tax: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center">
+                          <p className="text-gray-600">🧾 {tax.name}</p>
+                          <p className="font-medium">+{tax.currencyCode} {tax.taxedAmount?.toFixed(2)}</p>
+                        </div>
+                      ))}
                     </div>
                   )}
 
-                  {/* Addon Breakdown */}
-                  {bookingData.PricingBrakeDown?.AddonBrakeDowns?.length >
-                    0 &&
-                    (() => {
-                      const grouped =
-                        bookingData.PricingBrakeDown.AddonBrakeDowns.reduce(
-                          (acc: any, addon: any) => {
-                            if (!acc[addon.name]) {
-                              acc[addon.name] = {
-                                ...addon,
-                                totalAmount: 0,
-                              };
-                            }
+                  {/* 6. Amount After Tax */}
+                  <div className="flex justify-between items-center border-t pt-2">
+                    <p className="text-gray-700 font-medium">Amount After Tax</p>
+                    <p className="font-medium">
+                      {bookingData.currencyCode}{" "}
+                      {((bookingData.PricingBrakeDown?.amountBeforeTax || 0) +
+                        (bookingData.PricingBrakeDown?.taxedAmount || 0)
+                      ).toFixed(2)}
+                    </p>
+                  </div>
 
-                            acc[addon.name].totalAmount +=
-                              addon.totalAmount;
-
-                            return acc;
-                          },
-                          {}
-                        );
-
-                      return (
-                        <div className="space-y-1">
-                          {Object.values(grouped).map(
-                            (addon: any, i: number) =>
-                              addon.totalAmount > 0 && (
-                                <div
-                                  key={i}
-                                  className="flex justify-between items-center"
-                                >
-                                  <p className="text-gray-600">
-                                    🍽 {addon.name}
-
-                                    <span className="text-xs text-gray-400 ml-1">
-                                      (
-                                      {addon.type === "included"
-                                        ? "Included"
-                                        : "Selected"}
-                                      )
-                                    </span>
-                                  </p>
-
-                                  <p className="font-medium">
-                                    +{bookingData.currencyCode}{" "}
-                                    {addon.totalAmount?.toFixed(2)}
-                                  </p>
-                                </div>
-                              )
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                  {/* Divider */}
+                  {/* 7. Chargeable Amount + Pay Later + Grand Total */}
                   <div className="border-t pt-2 space-y-2">
 
-                    {/* Total Amount */}
-                    <div className="flex justify-between items-center">
-                      <p className="text-gray-800 font-semibold">
-                        {t("MyTrip.totalAmount")}
-                      </p>
+                    {/* Chargeable Amount */}
+                    {bookingData.paymentMethod === "pay_at_hotel" ? (
+                      <div className="flex justify-between items-center">
+                        <p className="text-orange-700 font-semibold">{t("MyTrip.amountPayAtHotel")}</p>
+                        <p className="text-orange-700 font-bold text-lg">
+                          {bookingData.currencyCode}{" "}
+                          {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(2) || "0.00"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
+                        <p className="text-green-700 font-semibold">{t("MyTrip.paidOnline")}</p>
+                        <p className="text-green-700 font-bold text-lg">
+                          {bookingData.currencyCode}{" "}
+                          {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(2) || "0.00"}
+                        </p>
+                      </div>
+                    )}
 
+                    {/* Pay Later (Tourist Tax) */}
+                    {bookingData.PricingBrakeDown?.latterpayableAmount > 0 && (
+                      <>
+                        {bookingData.PricingBrakeDown.promotionBrakeDown
+                          ?.filter((p: any) => p.restrictionType === "payLater")
+                          .map((promo: any, i: number) => (
+                            <div key={i} className="flex justify-between items-center">
+                              <p className="text-orange-600 flex items-center gap-1">
+                                ⏳ {promo.name}
+                                
+                              </p>
+                              <p className="font-medium text-orange-600">+{bookingData.currencyCode} {promo.discountAmount?.toFixed(2)}</p>
+                            </div>
+                          ))}
+                        <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                          <p className="text-orange-700 font-semibold">{t("MyTrip.amountPaidLater")}</p>
+                          <p className="text-orange-700 font-bold text-lg">
+                            {bookingData.currencyCode}{" "}
+                            {bookingData.PricingBrakeDown?.latterpayableAmount?.toFixed(2)}
+                          </p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Grand Total */}
+                    <div className="flex justify-between items-center border-t pt-2">
+                      <p className="text-gray-800 font-semibold">{t("MyTrip.totalAmount")}</p>
                       <p className="text-blue-700 font-bold text-lg">
                         {bookingData.currencyCode}{" "}
-                        {bookingData.PricingBrakeDown?.totalAmount?.toFixed(
-                          2
-                        ) || bookingData.amount.toFixed(2)}
+                        {bookingData.PricingBrakeDown?.totalAmount?.toFixed(2) || bookingData.amount.toFixed(2)}
                       </p>
                     </div>
 
-                    {bookingData.paymentMethod === "pay_at_hotel" ? (
-                      <>
-                        <div className="flex justify-between items-center rounded-lg">
-                          <p className="text-orange-700 font-semibold">
-                            {t("MyTrip.amountPayAtHotel")}
-                          </p>
-
-                          <p className="text-orange-700 font-bold text-lg">
-                            {bookingData.currencyCode}{" "}
-                            {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(
-                              2
-                            ) || "0.00"}
-                          </p>
-                        </div>
-
-                        {bookingData.PricingBrakeDown
-                          ?.latterpayableAmount > 0 && (
-                            <div className="flex justify-between items-center rounded-lg">
-                              <p className="text-orange-700 font-semibold">
-                                {t("MyTrip.amountPaidLater")}
-                              </p>
-
-                              <p className="text-orange-700 font-bold text-lg">
-                                {bookingData.currencyCode}{" "}
-                                {bookingData.PricingBrakeDown?.latterpayableAmount?.toFixed(
-                                  2
-                                )}
-                              </p>
-                            </div>
-                          )}
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
-                          <p className="text-green-700 font-semibold">
-                            {t("MyTrip.paidOnline")}
-                          </p>
-
-                          <p className="text-green-700 font-bold text-lg">
-                            {bookingData.currencyCode}{" "}
-                            {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(
-                              2
-                            ) || "0.00"}
-                          </p>
-                        </div>
-
-                        {bookingData.PricingBrakeDown
-                          ?.latterpayableAmount > 0 && (
-                            <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
-                              <p className="text-orange-700 font-semibold">
-                                {t("MyTrip.amountPaidLater")}
-                              </p>
-
-                              <p className="text-orange-700 font-bold text-lg">
-                                {bookingData.currencyCode}{" "}
-                                {bookingData.PricingBrakeDown?.latterpayableAmount?.toFixed(
-                                  2
-                                )}
-                              </p>
-                            </div>
-                          )}
-
-                        {bookingData.paidAmount > 0 && (
-                          <div className="flex justify-between items-center">
-                            <p className="text-gray-600">
-                              {t("MyTrip.paidAmount")}
-                            </p>
-
-                            <p className="font-medium text-green-600">
-                              {bookingData.currencyCode}{" "}
-                              {bookingData.paidAmount?.toFixed(2)}
-                            </p>
-                          </div>
-                        )}
-                      </>
+                    {/* Paid Amount */}
+                    {bookingData.paidAmount > 0 && (
+                      <div className="flex justify-between items-center">
+                        <p className="text-gray-600">{t("MyTrip.paidAmount")}</p>
+                        <p className="font-medium text-green-600">
+                          {bookingData.currencyCode} {bookingData.paidAmount?.toFixed(2)}
+                        </p>
+                      </div>
                     )}
 
                     {/* Refund */}
                     {bookingData.refundAmount > 0 && (
                       <div className="flex justify-between items-center">
-                        <p className="text-gray-600">
-                          {t("MyTrip.refundableAmount")}
-                        </p>
-
+                        <p className="text-gray-600">{t("MyTrip.refundableAmount")}</p>
                         <p className="font-medium text-green-600">
-                          {bookingData.currencyCode}{" "}
-                          {bookingData.refundAmount?.toFixed(2)}
+                          {bookingData.currencyCode} {bookingData.refundAmount?.toFixed(2)}
                         </p>
                       </div>
                     )}

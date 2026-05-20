@@ -1,4 +1,4 @@
-import  { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MoreVertical, Plus, Edit, Trash, CalendarPlus, X, Eye, UserPlus } from 'lucide-react';
 import type { ILoader } from '../dashboard/interface';
@@ -7,7 +7,7 @@ import { getSpaService, createSpaService, updateSpaService, deleteSpaService } f
 import { getAllSpaCategoryService, getAllSpaSubCategoriesService } from '../management/services/spa.services';
 import type { ISpaCategory, ISpaSubCategory } from '../management/types';
 import { getSpaUsersForPropertyService, assignSpaToUserService } from './services';
-import type { ISpaUser } from './interfaces'; 
+import type { ISpaUser } from './interfaces';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import { format } from 'date-fns';
 import SpaCalendar from './components/SpaCalendar';
 import SpaViewDialog from './components/SpaViewDialog';
 import SpaAssignUserDialog from './components/SpaAssignUserDialog';
+import toast from 'react-hot-toast';
 
 export default function Spa() {
   const { propertyId, spaId } = useParams();
@@ -40,13 +41,12 @@ export default function Spa() {
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
   const [selectedUserForAssign, setSelectedUserForAssign] = useState<string>("");
-  
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isImageUploadOpen, setIsImageUploadOpen] = useState(false);
   const [selectedSpa, setSelectedSpa] = useState<ISpa | null>(null);
-  const [editIsActive, setEditIsActive] = useState(false);
 
   // Form State
   const initialFormState: ICSpaC = {
@@ -64,7 +64,7 @@ export default function Spa() {
     categoryId: '',
     subCategoryId: '',
     propertyId: propertyId || '',
-    isActive: false,
+    isActive: true,
   };
   const [formData, setFormData] = useState<ICSpaC>(initialFormState);
 
@@ -95,13 +95,22 @@ export default function Spa() {
 
   const handleCreate = async () => {
     setLoader({ isLoading: true, message: 'Creating...' });
-    const res = await createSpaService(formData);
-    if (res.success) {
-      setIsCreateOpen(false);
-      fetchData();
-      setFormData(initialFormState);
+    try {
+      const res = await createSpaService(formData);
+      if (res.success) {
+        setIsCreateOpen(false);
+        fetchData();
+        setFormData(initialFormState);
+        toast.success('Spa/Activity created successfully');
+      } else {
+        // This handles your "already exists" case
+        toast.error(res.message || 'Failed to create Spa/Activity');
+      }
+    } catch (e) {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setLoader({ isLoading: false, message: '' });
     }
-    setLoader({ isLoading: false, message: '' });
   };
 
   const handleUpdate = async () => {
@@ -121,25 +130,41 @@ export default function Spa() {
       currencyCode: formData.currencyCode,
       categoryId: formData.categoryId,
       subCategoryId: formData.subCategoryId,
-      isActive: editIsActive
+      isActive: formData.isActive
     };
-    const res = await updateSpaService((selectedSpa as any).id, updateData);
-    if (res.success) {
-      setIsEditOpen(false);
-      fetchData();
+    try {
+      const res = await updateSpaService((selectedSpa as any).id, updateData);
+      if (res.success) {
+        setIsEditOpen(false);
+        fetchData();
+        toast.success('Spa/Activity updated successfully');
+      } else {
+        toast.error(res.message || 'Failed to update Spa/Activity');
+      }
+    } catch (e) {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setLoader({ isLoading: false, message: '' });
     }
-    setLoader({ isLoading: false, message: '' });
   };
 
   const handleDelete = async () => {
     if (!selectedSpa) return;
     setLoader({ isLoading: true, message: 'Deleting...' });
-    const res = await deleteSpaService((selectedSpa as any).id);
-    if (res.success) {
-      setIsDeleteOpen(false);
-      fetchData();
+    try {
+      const res = await deleteSpaService((selectedSpa as any).id);
+      if (res.success) {
+        setIsDeleteOpen(false);
+        fetchData();
+        toast.success('Spa/Activity deleted successfully');
+      } else {
+        toast.error(res.message || 'Failed to delete Spa/Activity');
+      }
+    } catch (e) {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setLoader({ isLoading: false, message: '' });
     }
-    setLoader({ isLoading: false, message: '' });
   };
 
   const handleImageUploadSuccess = (uploadedUrls: string[]) => {
@@ -155,7 +180,6 @@ export default function Spa() {
 
   const openEdit = (spa: ISpa) => {
     setSelectedSpa(spa);
-    setEditIsActive(spa.isActive);
     setFormData({
       name: spa.name,
       itemCode: spa.itemCode,
@@ -208,15 +232,15 @@ export default function Spa() {
   // Detailed Spa Slot View
   if (spaId) {
     const spaDetails = spas.find(s => s.id === spaId);
-    
+
     return (
-     <div className="p-4 h-[calc(100vh-4rem)] bg-gray-50/50">
+      <div className="p-4 h-[calc(100vh-4rem)] bg-gray-50/50">
         {spaDetails ? (
-           <SpaCalendar spaId={spaId} propertyId={propertyId || ''} spaDetails={spaDetails} />
+          <SpaCalendar spaId={spaId} propertyId={propertyId || ''} spaDetails={spaDetails} />
         ) : (
-           <Loader text="Loading Spa details..." />
+          <Loader text="Loading Spa details..." />
         )}
-     </div>
+      </div>
     );
   }
 
@@ -225,8 +249,10 @@ export default function Spa() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Spas & Activities</h1>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
+        <Dialog open={isCreateOpen} onOpenChange={(open) => {
+          if (open) setFormData(initialFormState);
+          setIsCreateOpen(open);
+        }}>          <DialogTrigger asChild>
             <Button><Plus className="w-4 h-4 mr-2" /> Create Spa/Activity</Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -236,47 +262,47 @@ export default function Spa() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+                <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Item Code</Label>
-                <Input value={formData.itemCode} onChange={(e) => setFormData({...formData, itemCode: e.target.value})} />
+                <Input value={formData.itemCode} onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })} />
               </div>
               <div className="space-y-2 col-span-2">
                 <Label>Description</Label>
-                <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+                <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label>Category</Label>
-                <select className="w-full border rounded-md p-2" value={formData.categoryId} onChange={(e) => setFormData({...formData, categoryId: e.target.value})}>
+                <select className="w-full border rounded-md p-2" value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}>
                   <option value="">Select Category</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <Label>Sub-Category</Label>
-                <select className="w-full border rounded-md p-2" value={formData.subCategoryId} onChange={(e) => setFormData({...formData, subCategoryId: e.target.value})}>
+                <select className="w-full border rounded-md p-2" value={formData.subCategoryId} onChange={(e) => setFormData({ ...formData, subCategoryId: e.target.value })}>
                   <option value="">Select Sub-Category</option>
                   {subCategories.filter(sc => sc.categoryId === formData.categoryId).map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
                 <Label>Service Time (mins)</Label>
-                <Input type="number" value={formData.serviceTime} onChange={(e) => setFormData({...formData, serviceTime: Number(e.target.value)})} />
+                <Input type="number" value={formData.serviceTime} onChange={(e) => setFormData({ ...formData, serviceTime: Number(e.target.value) })} />
               </div>
               <div className="space-y-2">
                 <Label>Location</Label>
-                <Input value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
+                <Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
               </div>
               {!formData.isInclusive && (
                 <>
                   <div className="space-y-2">
                     <Label>Price</Label>
-                    <Input type="number" value={formData.discountValue || ''} onChange={(e) => setFormData({...formData, discountValue: e.target.value ? Number(e.target.value) : null})} />
+                    <Input type="number" value={formData.discountValue || ''} onChange={(e) => setFormData({ ...formData, discountValue: e.target.value ? Number(e.target.value) : null })} />
                   </div>
                   <div className="space-y-2">
                     <Label>Currency Code</Label>
-                    <select className="w-full border rounded-md p-2" value={formData.currencyCode || ''} onChange={(e) => setFormData({...formData, currencyCode: e.target.value as CurrencyCode || null})}>
+                    <select className="w-full border rounded-md p-2" value={formData.currencyCode || ''} onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value as CurrencyCode || null })}>
                       <option value="">Select Currency</option>
                       {currencies.map(c => <option key={c.code} value={c.code}>{c.code} - {c.name} ({c.symbol})</option>)}
                     </select>
@@ -285,11 +311,11 @@ export default function Spa() {
               )}
               <div className="col-span-2 flex items-center space-x-6">
                 <div className="flex items-center space-x-2">
-                  <Switch checked={formData.isInclusive} onCheckedChange={(checked) => setFormData({...formData, isInclusive: checked})} />
+                  <Switch checked={formData.isInclusive} onCheckedChange={(checked) => setFormData({ ...formData, isInclusive: checked })} />
                   <Label>Is Inclusive</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Switch checked={editIsActive} onCheckedChange={setEditIsActive} />
+                  <Switch checked={formData.isActive} onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })} />
                   <Label>Is Active</Label>
                 </div>
               </div>
@@ -299,7 +325,7 @@ export default function Spa() {
                   {formData.images.map((img, i) => (
                     <div key={i} className="relative w-20 h-20 border rounded-md overflow-hidden">
                       <img src={img} alt="spa" className="w-full h-full object-cover" />
-                      <button 
+                      <button
                         type="button"
                         onClick={() => handleRemoveImage(i)}
                         className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-bl-md p-1"
@@ -341,7 +367,7 @@ export default function Spa() {
           <TableBody>
             {spas.map((spa) => (
               <TableRow key={(spa as any).id}>
-               
+
                 <TableCell className="font-medium">{spa.name}</TableCell>
                 <TableCell>{spa.itemCode}</TableCell>
                 <TableCell>{spa.Category?.name || 'N/A'}</TableCell>
@@ -349,8 +375,8 @@ export default function Spa() {
                 <TableCell>{spa.serviceTime}</TableCell>
                 <TableCell>{spa.location}</TableCell>
                 <TableCell>
-                    <span className="text-xs text-gray-500">{format(new Date((spa as any).createdAt), 'dd MMM yyyy, p')}</span>
-                
+                  <span className="text-xs text-gray-500">{format(new Date((spa as any).createdAt), 'dd MMM yyyy, p')}</span>
+
                 </TableCell>
                 <TableCell>
                   {spa.User ? (
@@ -412,74 +438,74 @@ export default function Spa() {
           </DialogHeader>
           {/* Reusing fields for brevity in this block */}
           <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Item Code</Label>
+              <Input value={formData.itemCode} onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })} />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label>Description</Label>
+              <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Service Time (mins)</Label>
+              <Input type="number" value={formData.serviceTime} onChange={(e) => setFormData({ ...formData, serviceTime: Number(e.target.value) })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Location</Label>
+              <Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+            </div>
+            {!formData.isInclusive && (
+              <>
+                <div className="space-y-2">
+                  <Label>Discount Value</Label>
+                  <Input type="number" value={formData.discountValue || ''} onChange={(e) => setFormData({ ...formData, discountValue: e.target.value ? Number(e.target.value) : null })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Currency Code</Label>
+                  <select className="w-full border rounded-md p-2" value={formData.currencyCode || ''} onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value as CurrencyCode || null })}>
+                    <option value="">Select Currency</option>
+                    {currencies.map(c => <option key={c.code} value={c.code}>{c.code} - {c.name} ({c.symbol})</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+            <div className="col-span-2 flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <Switch checked={formData.isInclusive} onCheckedChange={(checked) => setFormData({ ...formData, isInclusive: checked })} />
+                <Label>Is Inclusive</Label>
               </div>
-              <div className="space-y-2">
-                <Label>Item Code</Label>
-                <Input value={formData.itemCode} onChange={(e) => setFormData({...formData, itemCode: e.target.value})} />
+              <div className="flex items-center space-x-2">
+                <Switch checked={formData.isActive} onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })} />
+                <Label>Is Active</Label>
               </div>
-              <div className="space-y-2 col-span-2">
-                <Label>Description</Label>
-                <Textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
-              </div>
-              <div className="space-y-2">
-                <Label>Service Time (mins)</Label>
-                <Input type="number" value={formData.serviceTime} onChange={(e) => setFormData({...formData, serviceTime: Number(e.target.value)})} />
-              </div>
-              <div className="space-y-2">
-                <Label>Location</Label>
-                <Input value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} />
-              </div>
-              {!formData.isInclusive && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Discount Value</Label>
-                    <Input type="number" value={formData.discountValue || ''} onChange={(e) => setFormData({...formData, discountValue: e.target.value ? Number(e.target.value) : null})} />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label>Images</Label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {formData.images.map((img, i) => (
+                  <div key={i} className="relative w-20 h-20 border rounded-md overflow-hidden">
+                    <img src={img} alt="spa" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(i)}
+                      className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-bl-md p-1"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Currency Code</Label>
-                    <select className="w-full border rounded-md p-2" value={formData.currencyCode || ''} onChange={(e) => setFormData({...formData, currencyCode: e.target.value as CurrencyCode || null})}>
-                      <option value="">Select Currency</option>
-                      {currencies.map(c => <option key={c.code} value={c.code}>{c.code} - {c.name} ({c.symbol})</option>)}
-                    </select>
-                  </div>
-                </>
-              )}
-              <div className="col-span-2 flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                  <Switch checked={formData.isInclusive} onCheckedChange={(checked) => setFormData({...formData, isInclusive: checked})} />
-                  <Label>Is Inclusive</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch checked={editIsActive} onCheckedChange={setEditIsActive} />
-                  <Label>Is Active</Label>
-                </div>
+                ))}
               </div>
-              <div className="space-y-2 col-span-2">
-                <Label>Images</Label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.images.map((img, i) => (
-                    <div key={i} className="relative w-20 h-20 border rounded-md overflow-hidden">
-                      <img src={img} alt="spa" className="w-full h-full object-cover" />
-                      <button 
-                        type="button"
-                        onClick={() => handleRemoveImage(i)}
-                        className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-bl-md p-1"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <Button variant="outline" onClick={() => setIsImageUploadOpen(true)} type="button">
-                  Upload Images
-                </Button>
-              </div>
+              <Button variant="outline" onClick={() => setIsImageUploadOpen(true)} type="button">
+                Upload Images
+              </Button>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setIsEditOpen(false); setFormData(initialFormState); }}>Cancel</Button>
             <Button onClick={handleUpdate}>Update</Button>
           </DialogFooter>
         </DialogContent>
@@ -503,21 +529,21 @@ export default function Spa() {
       </Dialog>
 
       {/* View Details Dialog */}
-      <SpaViewDialog 
-        isOpen={isViewOpen} 
-        onClose={() => setIsViewOpen(false)} 
-        selectedSpa={selectedSpa} 
+      <SpaViewDialog
+        isOpen={isViewOpen}
+        onClose={() => setIsViewOpen(false)}
+        selectedSpa={selectedSpa}
         onUpdate={() => {
           fetchData();
           setIsViewOpen(false);
         }}
       />
-      
+
       {/* Assign User Dialog */}
-      <SpaAssignUserDialog 
-        isOpen={isAssignOpen} 
-        onClose={() => setIsAssignOpen(false)} 
-        selectedSpa={selectedSpa} 
+      <SpaAssignUserDialog
+        isOpen={isAssignOpen}
+        onClose={() => setIsAssignOpen(false)}
+        selectedSpa={selectedSpa}
         spaUsers={spaUsers}
         selectedUserForAssign={selectedUserForAssign}
         setSelectedUserForAssign={setSelectedUserForAssign}
