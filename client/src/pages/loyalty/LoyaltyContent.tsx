@@ -383,7 +383,7 @@ if (isLoading.isLoading) {
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
-                    <p className="text-sm px-4">{condition.text}</p>
+                    <p className="text-sm px-4">{condition._translations?condition._translations.text:condition.text}</p>
                   </CardHeader>
                 </Card>
               ))
@@ -414,9 +414,9 @@ if (isLoading.isLoading) {
                   </CardHeader>
                   <CardContent className="flex justify-between">
                     <div>
-                      <h3 className="font-semibold mb-2">{condition.title}</h3>
+                      <h3 className="font-semibold mb-2">{condition._translations?condition._translations.title:condition.title}</h3>
                       {condition.subTitle && (
-                        <p className="text-sm text-muted-foreground">{condition.subTitle}</p>
+                        <p className="text-sm text-muted-foreground">{condition._translations?condition._translations.subTitle:condition.subTitle}</p>
                       )}
                     </div>
                     

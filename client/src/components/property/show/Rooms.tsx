@@ -524,7 +524,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           className="p-0 focus:bg-transparent"
                           onSelect={(e) => {
                             e.preventDefault();
-                            setTranslationRoomId(room.id);
+                            setTranslationRoomId(room.roomType);
                             setAddTranslationOpen(true);
                           }}
                         >
@@ -537,7 +537,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           className="p-0 focus:bg-transparent"
                           onSelect={(e) => {
                             e.preventDefault();
-                            setTranslationRoomId(room.id);
+                            setTranslationRoomId(room.roomType);
                             setCheckTranslationsOpen(true);
                           }}
                         >
