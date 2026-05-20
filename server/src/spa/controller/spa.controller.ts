@@ -247,9 +247,12 @@ export class SpaController {
     ): Promise<Response> {
         try {
             const bookingData = req.body;
-            // Optionally, assign userId if the user is authenticated and we want to link it
+            // Optionally, assign userId/userEmail if the user or customer is authenticated and we want to link it
             if (req.user) {
                 bookingData.userId = req.user.id;
+            } else if (req.customer) {
+                bookingData.userId = req.customer.id;
+                bookingData.userEmail = req.customer.email;
             }
 
             if (!bookingData.userEmail || !bookingData.userContactNumber || !bookingData.slots || bookingData.slots.length === 0) {
@@ -298,7 +301,8 @@ export class SpaController {
                     );
             }
 
-            const response = await this.spaService.cancelSpaReservation(bookingId);
+            const customerId = req.customer?.id || req.user?.id;
+            const response = await this.spaService.cancelSpaReservation(bookingId, customerId);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

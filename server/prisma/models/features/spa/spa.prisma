@@ -48,6 +48,7 @@ model SpaBooking {
     updatedAt         DateTime      @updatedAt @map("updated_at")
 
     SlotBookings      SlotBooking[]
+    Customer          Customers?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
     @@map("spa_bookings")
 }
