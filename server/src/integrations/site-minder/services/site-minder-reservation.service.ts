@@ -236,6 +236,12 @@ export class SiteMinderReservationService {
         smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
+            console.log("payload pushCommit",JSON.stringify(payload))
+            console.log("bookingCode pushCommit",bookingCode)
+            console.log("siteMinderHotelCode",siteMinderHotelCode)
+            console.log("channelCode",channelCode)
+            console.log("channelName",channelName)
+            console.log("smEndpoint",smEndpoint)
             const guestDetails = payload.guestDetails?.[0];
             const paymentMethod: SMPaymentMethod =
                 payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
@@ -261,7 +267,7 @@ export class SiteMinderReservationService {
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
                 // ✅ addons + tourist fee (payLater) both go to Services
-                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
                 payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
                 guestDetails: payload.guestDetails,
             };
@@ -333,7 +339,7 @@ export class SiteMinderReservationService {
                 paymentMethod,
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
-                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
                 payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
             };
 
@@ -404,7 +410,7 @@ export class SiteMinderReservationService {
                 paymentMethod,
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
-                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
                 payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
             };
 

@@ -1643,7 +1643,47 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
             ),
             shouldLog: logOnlySuccess,
         },
-    },
+    }, // In your ACTIVITY_LOGGER_ROUTES, replace the SiteMinder config with this:
+
+{
+    pattern: /\/api\/v1\/integrations\/site-minder\/ari$/,
+    method: 'POST',
+    config: {
+        action: ActivityAction.UPDATE,
+        entity: ActivityEntity.INVENTORY,
+        getEntityId: (req, resBody) => {
+            // Extract HotelCode from XML
+            if (typeof req.body === 'string') {
+                const match = req.body.match(/HotelCode="([^"]+)"/);
+                return match ? match[1] : 'unknown';
+            }
+            return resBody?.data?.propertyId || 'unknown';
+        },
+        getEntityName: (req, resBody) => {
+            // Extract room type from XML
+            if (typeof req.body === 'string') {
+                const match = req.body.match(/InvTypeCode="([^"]+)"/);
+                return match ? match[1] : 'unknown';
+            }
+            return 'unknown';
+        },
+        getDescription: (req, resBody, statusCode) => {
+            const isSuccess = statusCode! >= 200 && statusCode! < 300;
+            if (!isSuccess) return 'SiteMinder ARI update failed';
+            
+            if (typeof req.body === 'string') {
+                const hotelCode = req.body.match(/HotelCode="([^"]+)"/)?.[1];
+                const roomType = req.body.match(/InvTypeCode="([^"]+)"/)?.[1];
+                const action = req.body.includes('Status="Close"') ? 'closed' : 'updated';
+                
+                return `SiteMinder ${action} inventory for ${hotelCode || 'hotel'}${roomType ? ` - ${roomType}` : ''}`;
+            }
+            return 'SiteMinder ARI update processed';
+        },
+        tags: ['integration', 'site-minder', 'ari', 'xml'],
+        shouldLog: logOnlySuccess,
+    }
+}
 ];
 
 export const ALL_ACTIVITY_LOGGER_ROUTES = ACTIVITY_LOGGER_ROUTES;

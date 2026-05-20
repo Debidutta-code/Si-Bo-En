@@ -2,9 +2,8 @@
 import { useTranslation } from "react-i18next";
 import CancelModal from "../../../components/BookingModals/CancelModal";
 import ModifyBookingModal from "@/src/components/BookingModals/ModifyBookingmodal";
-import ImageUploadModal from "@/src/components/ImageUploadModal";
 import { useEffect, useRef, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { setBookingData as setBookingViewData } from "../../../store/bookingviewSlice";
 import { useSearchParams } from "next/navigation";
@@ -21,8 +20,10 @@ import {
 import { GiCancel } from "react-icons/gi";
 import { HiOutlineViewGridAdd } from "react-icons/hi";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
+import { getAvailableSpasApi } from "@/src/app/(loyality)/(loyality-guest)/profile/api/profile.api";
+import SpaBookingDialog from "@/src/components/loyalty/SpaBookingDialog";
 
-type userIdentityCardType = "PASSPORT" | "DRIVERS_LICENSE" | "NATIONAL_ID" | "OTHER";
+type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 
 export default function MyTripPage() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,16 +37,17 @@ export default function MyTripPage() {
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
+  const [isSpaDialogOpen, setIsSpaDialogOpen] = useState(false);
+  const [availableSpas, setAvailableSpas] = useState<any[]>([]);
+  const [spasLoading, setSpasLoading] = useState(false);
   const [checkinForm, setCheckinForm] = useState({
-    userIdentityCardType: "NATIONAL_ID",
+    userIdentityCardType: "national_id",
     identityCardNumber: "",
     address: "",
     city: "",
     state: "",
     country: "",
     zipCode: "",
-    identityCardImage:"",
   });
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -70,14 +72,17 @@ export default function MyTripPage() {
     }
     setLoading(true);
     setBookingData(null);
+    setAvailableSpas([]);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode}?propertyCode=${propertyCode}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode.trim().toUpperCase()}?propertyCode=${propertyCode}`
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Booking not found");
       setBookingData(data.data); // ✅ local state
       dispatch(setBookingViewData(data.data)); // ✅ global redux state
+      // Fetch available spas for this booking
+      await fetchAvailableSpas(bookingCode.trim());
       // toast.success("Booking found!");
     } catch (err: any) {
       toast.error(err.message || t("MyTrip.errorFetching"));
@@ -110,6 +115,7 @@ export default function MyTripPage() {
     const fetchFromUrl = async () => {
       setLoading(true);
       setBookingData(null);
+      setAvailableSpas([]);
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${codeFromUrl}?propertyCode=${propertyCode}`
@@ -119,6 +125,8 @@ export default function MyTripPage() {
         if (!res.ok) throw new Error(data.message || "Booking not found");
         setBookingData(data.data);
         dispatch(setBookingViewData(data.data));
+        // Fetch available spas for this booking
+        await fetchAvailableSpas(codeFromUrl.trim());
         // toast.success("Booking found!");
       } catch (err: any) {
         toast.error(err.message || "Error fetching booking");
@@ -223,7 +231,6 @@ export default function MyTripPage() {
     yLeft += 10;
     doc.setTextColor(50);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
     if (bookingData.guests && bookingData.guests.length > 0) {
       const primary = bookingData.guests.find((g: any) => g.type === "adult");
       if (primary) {
@@ -375,10 +382,7 @@ export default function MyTripPage() {
   const handleCheckInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!bookingData?.bookingCode) return;
-if(!checkinForm.identityCardImage){
-      toast.error("Add Identity Image")
-      return
-    }
+
     setIsCheckingIn(true);
     try {
       const res = await fetch(
@@ -433,6 +437,24 @@ if(!checkinForm.identityCardImage){
     }
   };
 
+  const fetchAvailableSpas = async (code: string) => {
+    setSpasLoading(true);
+    try {
+      const res = await getAvailableSpasApi(`BOOK-${code.trim().toUpperCase()}`);
+      if (res?.success) {
+        setAvailableSpas(res.data || []);
+      } else {
+        setAvailableSpas([]);
+      }
+    } catch (err) {
+      setAvailableSpas([]);
+    } finally {
+      setSpasLoading(false);
+    }
+  };
+
+  // //console.log("bookingdata", bookingData)
+
   return (
     <div className="min-h-screen bg-gray-100 px-4  py-12 flex flex-col items-center">
       {/* Search Bar Section - Always at the top */}
@@ -447,8 +469,7 @@ if(!checkinForm.identityCardImage){
             ref={inputRef}
             type="text"
             value={bookingCode}
-            onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
-            onKeyDown={handleKeyPress}
+            onChange={(e) => setBookingCode(e.target.value.trim().toUpperCase())} onKeyDown={handleKeyPress}
             placeholder={t("MyTrip.placeholder")}
 
             className="w-full sm:w-96 px-5 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 transition-colors uppercase"
@@ -540,6 +561,21 @@ if(!checkinForm.identityCardImage){
               </p>
             </div>
           </div>
+
+          {/* Available Spas Section */}
+          {availableSpas.length > 0 && (
+            <div className="px-6 pb-2">
+              <button
+                onClick={() => setIsSpaDialogOpen(true)}
+                className="w-full px-4 py-2.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                style={{ background: "#0d7a87" }}
+              >
+                <span>🧖</span>
+                View & Book Spa Services ({availableSpas.length} available)
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col gap-4 p-6">
             <div className="flex flex-col sm:flex-row gap-4">
               {/* View Booking Details Button */}
@@ -553,15 +589,11 @@ if(!checkinForm.identityCardImage){
               >
                 <HiOutlineViewGridAdd className="inline mr-2" /> {t("MyTrip.viewBooking")}
               </button>
-              {(bookingData.bookingStatus === "confirmed"||bookingData.bookingStatus=="modified") && (
+              {bookingData.bookingStatus === "confirmed" && (
                 <button
                   onClick={() => setIsCheckinDialogOpen(true)}
-                  disabled={new Date(bookingData.reservationStartDate).toDateString() !== new Date().toDateString()}
-                  className="px-4 py-2 rounded-md font-medium hover:opacity-90 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: new Date(bookingData.reservationStartDate).toDateString() === new Date().toDateString() ? colors.primaryColor : "#e5e7eb",
-                    color: new Date(bookingData.reservationStartDate).toDateString() === new Date().toDateString() ? "white" : "#9ca3af"
-                  }}
+                  className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
+                  style={{ background: colors.primaryColor }}
                 >
                   Check In Now
                 </button>
@@ -569,12 +601,8 @@ if(!checkinForm.identityCardImage){
               {bookingData.bookingStatus === "checked_in" && (
                 <button
                   onClick={() => setIsCheckoutDialogOpen(true)}
-                  disabled={new Date(bookingData.reservationEndDate).toDateString() !== new Date().toDateString()}
-                  className="px-4 py-2 rounded-md font-medium hover:opacity-90 flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    background: new Date(bookingData.reservationEndDate).toDateString() === new Date().toDateString() ? "#e53e3e" : "#e5e7eb",
-                    color: new Date(bookingData.reservationEndDate).toDateString() === new Date().toDateString() ? "white" : "#9ca3af"
-                  }}
+                  className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
+                  style={{ background: "#e53e3e" }}
                 >
                   Check Out Now
                 </button>
@@ -774,18 +802,29 @@ if(!checkinForm.identityCardImage){
               </div>
               {/* Payment Details */}
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="text-lg font-semibold flex items-center gap-2 mb-3" style={{ color: colors.primaryColor }}>
-                  <FaCreditCard style={{ color: colors.primaryColor }} /> {t("MyTrip.paymentDetails")}
+                <h4
+                  className="text-lg font-semibold flex items-center gap-2 mb-3"
+                  style={{ color: colors.primaryColor }}
+                >
+                  <FaCreditCard style={{ color: colors.primaryColor }} />{" "}
+                  {t("MyTrip.paymentDetails")}
                 </h4>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.paymentMethod")}</p>
+                    <p className="text-gray-500 text-sm font-medium">
+                      {t("MyTrip.paymentMethod")}
+                    </p>
                     <p className="capitalize text-gray-800">
-                      {bookingData.paymentMethod?.replace(/_/g, ' ') || t("MyTrip.payAtHotel")}
+                      {bookingData.paymentMethod?.replace(/_/g, " ") ||
+                        t("MyTrip.payAtHotel")}
                     </p>
                   </div>
+
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.bookingDate")}</p>
+                    <p className="text-gray-500 text-sm font-medium">
+                      {t("MyTrip.bookingDate")}
+                    </p>
                     <p className="text-gray-800">
                       {new Date(bookingData.bookedAt).toLocaleDateString("en-US", {
                         weekday: "short",
@@ -795,174 +834,272 @@ if(!checkinForm.identityCardImage){
                       })}
                     </p>
                   </div>
+
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.currency")}</p>
+                    <p className="text-gray-500 text-sm font-medium">
+                      {t("MyTrip.currency")}
+                    </p>
                     <p className="text-gray-800">{bookingData.currencyCode}</p>
                   </div>
+
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.bookingSource")}</p>
-                    <p className="text-gray-800 uppercase">{bookingData.bookingSource}</p>
+                    <p className="text-gray-500 text-sm font-medium">
+                      {t("MyTrip.bookingSource")}
+                    </p>
+                    <p className="text-gray-800 uppercase">
+                      {bookingData.bookingSource}
+                    </p>
                   </div>
                 </div>
-                {/* Price Breakdown */}
+
                 {/* Price Breakdown */}
                 <div className="mt-4 space-y-2 text-sm">
 
                   {/* Base Amount */}
                   <div className="flex justify-between items-center">
                     <p className="text-gray-600">{t("MyTrip.baseAmount")}</p>
+
                     <p className="font-medium">
-                      {bookingData.currencyCode} {bookingData.finalPrice?.amountBeforeTax?.toFixed(2) || "0.00"}
+                      {bookingData.currencyCode}{" "}
+                      {(
+                        (bookingData.PricingBrakeDown?.amountBeforeTax || 0) -
+                        (bookingData.PricingBrakeDown?.totalAddonAmount || 0)
+                      ).toFixed(2)}
                     </p>
                   </div>
 
                   {/* Promotions */}
-                  {bookingData.finalPrice?.promotionBrakeDown?.length > 0 && (
+                  {bookingData.PricingBrakeDown?.promotionBrakeDown?.length > 0 && (
                     <div className="space-y-1">
-                      {bookingData.finalPrice.promotionBrakeDown.map((promo: any, i: number) => {
-                        const isPayLater = promo.restrictionType === 'payLater';
-                        return (
-                          <div key={i} className="flex justify-between items-center">
-                            <p className={`flex items-center gap-1 ${isPayLater ? 'text-orange-600' : 'text-green-600'}`}>
-                              {isPayLater ? '⏳' : '🏷'} {promo.name}
-                              <span className="text-xs text-gray-400">
-                                ({promo.discountType === 'percentage'
-                                  ? `${isPayLater ? '+' : '-'}${promo.discountValue}%`
-                                  : `${isPayLater ? '+' : '-'}${promo.currencyCode || bookingData.currencyCode} ${promo.discountValue}`})
-                              </span>
-                            </p>
-                            <p className={`font-medium ${isPayLater ? 'text-orange-600' : 'text-green-600'}`}>
-                              {isPayLater ? '+' : '-'}{bookingData.currencyCode} {promo.discountAmount?.toFixed(2)}
-                            </p>
-                          </div>
-                        );
-                      })}
+                      {bookingData.PricingBrakeDown.promotionBrakeDown.map(
+                        (promo: any, i: number) => {
+                          const isPayLater =
+                            promo.restrictionType === "payLater";
+
+                          return (
+                            <div
+                              key={i}
+                              className="flex justify-between items-center"
+                            >
+                              <p
+                                className={`flex items-center gap-1 ${isPayLater
+                                  ? "text-orange-600"
+                                  : "text-green-600"
+                                  }`}
+                              >
+                                {isPayLater ? "⏳" : "🏷"} {promo.name}
+
+                                <span className="text-xs text-gray-400">
+                                  (
+                                  {promo.discountType === "percentage"
+                                    ? `${isPayLater ? "+" : "-"}${promo.discountValue
+                                    }%`
+                                    : `${isPayLater ? "+" : "-"}${promo.currencyCode ||
+                                    bookingData.currencyCode
+                                    } ${promo.discountValue}`}
+                                  )
+                                </span>
+                              </p>
+
+                              <p
+                                className={`font-medium ${isPayLater
+                                  ? "text-orange-600"
+                                  : "text-green-600"
+                                  }`}
+                              >
+                                {isPayLater ? "+" : "-"}
+                                {bookingData.currencyCode}{" "}
+                                {promo.discountAmount?.toFixed(2)}
+                              </p>
+                            </div>
+                          );
+                        }
+                      )}
                     </div>
                   )}
 
                   {/* Tax Breakdown */}
-                  {bookingData.finalPrice?.taxBrakeDown?.length > 0 && (
+                  {bookingData.PricingBrakeDown?.taxBrakeDown?.length > 0 && (
                     <div className="space-y-1">
-                      {bookingData.finalPrice.taxBrakeDown.map((tax: any, i: number) => (
-                        <div key={i} className="flex justify-between items-center">
-                          <p className="text-gray-600">🧾 {tax.name}</p>
-                          <p className="font-medium">
-                            +{tax.currencyCode} {tax.taxedAmount?.toFixed(2)}
-                          </p>
-                        </div>
-                      ))}
+                      {bookingData.PricingBrakeDown.taxBrakeDown.map(
+                        (tax: any, i: number) => (
+                          <div
+                            key={i}
+                            className="flex justify-between items-center"
+                          >
+                            <p className="text-gray-600">🧾 {tax.name}</p>
+
+                            <p className="font-medium">
+                              +{tax.currencyCode}{" "}
+                              {tax.taxedAmount?.toFixed(2)}
+                            </p>
+                          </div>
+                        )
+                      )}
                     </div>
                   )}
 
-                  {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (() => {
-                    // Group by name and sum totalAmount
-                    const grouped = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
-                      if (!acc[addon.name]) {
-                        acc[addon.name] = { ...addon, totalAmount: 0 };
-                      }
-                      acc[addon.name].totalAmount += addon.totalAmount;
-                      return acc;
-                    }, {});
+                  {/* Addon Breakdown */}
+                  {bookingData.PricingBrakeDown?.AddonBrakeDowns?.length >
+                    0 &&
+                    (() => {
+                      const grouped =
+                        bookingData.PricingBrakeDown.AddonBrakeDowns.reduce(
+                          (acc: any, addon: any) => {
+                            if (!acc[addon.name]) {
+                              acc[addon.name] = {
+                                ...addon,
+                                totalAmount: 0,
+                              };
+                            }
 
-                    return (
-                      <div className="space-y-1">
-                        {Object.values(grouped).map((addon: any, i: number) => (
-                          addon.totalAmount > 0 && (
-                            <div key={i} className="flex justify-between items-center">
-                              <p className="text-gray-600">🍽 {addon.name}
-                                <span className="text-xs text-gray-400 ml-1">
-                                  ({addon.type === 'included' ? 'Included' : 'Selected'})
-                                </span>
-                              </p>
-                              <p className="font-medium">
-                                +{bookingData.currencyCode} {addon.totalAmount?.toFixed(2)}
-                              </p>
-                            </div>
-                          )
-                        ))}
-                      </div>
-                    );
-                  })()}
+                            acc[addon.name].totalAmount +=
+                              addon.totalAmount;
+
+                            return acc;
+                          },
+                          {}
+                        );
+
+                      return (
+                        <div className="space-y-1">
+                          {Object.values(grouped).map(
+                            (addon: any, i: number) =>
+                              addon.totalAmount > 0 && (
+                                <div
+                                  key={i}
+                                  className="flex justify-between items-center"
+                                >
+                                  <p className="text-gray-600">
+                                    🍽 {addon.name}
+
+                                    <span className="text-xs text-gray-400 ml-1">
+                                      (
+                                      {addon.type === "included"
+                                        ? "Included"
+                                        : "Selected"}
+                                      )
+                                    </span>
+                                  </p>
+
+                                  <p className="font-medium">
+                                    +{bookingData.currencyCode}{" "}
+                                    {addon.totalAmount?.toFixed(2)}
+                                  </p>
+                                </div>
+                              )
+                          )}
+                        </div>
+                      );
+                    })()}
 
                   {/* Divider */}
                   <div className="border-t pt-2 space-y-2">
 
                     {/* Total Amount */}
                     <div className="flex justify-between items-center">
-                      <p className="text-gray-800 font-semibold">{t("MyTrip.totalAmount")}</p>
+                      <p className="text-gray-800 font-semibold">
+                        {t("MyTrip.totalAmount")}
+                      </p>
+
                       <p className="text-blue-700 font-bold text-lg">
-                        {bookingData.currencyCode} {bookingData.finalPrice?.totalAmount?.toFixed(2) || bookingData.amount.toFixed(2)}
+                        {bookingData.currencyCode}{" "}
+                        {bookingData.PricingBrakeDown?.totalAmount?.toFixed(
+                          2
+                        ) || bookingData.amount.toFixed(2)}
                       </p>
                     </div>
 
-                    {bookingData.paymentMethod === 'pay_at_hotel' ? (
+                    {bookingData.paymentMethod === "pay_at_hotel" ? (
                       <>
                         <div className="flex justify-between items-center rounded-lg">
-                          <p className="text-orange-700 font-semibold">{t("MyTrip.amountPayAtHotel")}</p>
+                          <p className="text-orange-700 font-semibold">
+                            {t("MyTrip.amountPayAtHotel")}
+                          </p>
+
                           <p className="text-orange-700 font-bold text-lg">
-                            {bookingData.currencyCode} {bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || "0.00"}
+                            {bookingData.currencyCode}{" "}
+                            {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(
+                              2
+                            ) || "0.00"}
                           </p>
                         </div>
-                        {bookingData.finalPrice?.latterpayableAmount > 0 && (
-                          <div className="flex justify-between items-center rounded-lg">
-                            <p className="text-orange-700 font-semibold">{t("MyTrip.amountPaidLater")}</p>
-                            <p className="text-orange-700 font-bold text-lg">
-                              {bookingData.currencyCode} {bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}
-                            </p>
-                          </div>
-                        )}
+
+                        {bookingData.PricingBrakeDown
+                          ?.latterpayableAmount > 0 && (
+                            <div className="flex justify-between items-center rounded-lg">
+                              <p className="text-orange-700 font-semibold">
+                                {t("MyTrip.amountPaidLater")}
+                              </p>
+
+                              <p className="text-orange-700 font-bold text-lg">
+                                {bookingData.currencyCode}{" "}
+                                {bookingData.PricingBrakeDown?.latterpayableAmount?.toFixed(
+                                  2
+                                )}
+                              </p>
+                            </div>
+                          )}
                       </>
                     ) : (
                       <>
                         <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
-                          <p className="text-green-700 font-semibold">{t("MyTrip.paidOnline")}</p>
+                          <p className="text-green-700 font-semibold">
+                            {t("MyTrip.paidOnline")}
+                          </p>
+
                           <p className="text-green-700 font-bold text-lg">
-                            {bookingData.currencyCode} {bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || "0.00"}
+                            {bookingData.currencyCode}{" "}
+                            {bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(
+                              2
+                            ) || "0.00"}
                           </p>
                         </div>
-                        {bookingData.finalPrice?.latterpayableAmount > 0 && (
-                          <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
-                            <p className="text-orange-700 font-semibold">{t("MyTrip.amountPaidLater")}</p>
-                            <p className="text-orange-700 font-bold text-lg">
-                              {bookingData.currencyCode} {bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}
-                            </p>
-                          </div>
-                        )}
+
+                        {bookingData.PricingBrakeDown
+                          ?.latterpayableAmount > 0 && (
+                            <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                              <p className="text-orange-700 font-semibold">
+                                {t("MyTrip.amountPaidLater")}
+                              </p>
+
+                              <p className="text-orange-700 font-bold text-lg">
+                                {bookingData.currencyCode}{" "}
+                                {bookingData.PricingBrakeDown?.latterpayableAmount?.toFixed(
+                                  2
+                                )}
+                              </p>
+                            </div>
+                          )}
+
                         {bookingData.paidAmount > 0 && (
                           <div className="flex justify-between items-center">
-                            <p className="text-gray-600">{t("MyTrip.paidAmount")}</p>
+                            <p className="text-gray-600">
+                              {t("MyTrip.paidAmount")}
+                            </p>
+
                             <p className="font-medium text-green-600">
-                              {bookingData.currencyCode} {bookingData.paidAmount?.toFixed(2)}
+                              {bookingData.currencyCode}{" "}
+                              {bookingData.paidAmount?.toFixed(2)}
                             </p>
                           </div>
                         )}
                       </>
                     )}
 
-                    {/* Refund — always show if applicable */}
+                    {/* Refund */}
                     {bookingData.refundAmount > 0 && (
                       <div className="flex justify-between items-center">
-                        <p className="text-gray-600">{t("MyTrip.refundableAmount")}</p>
+                        <p className="text-gray-600">
+                          {t("MyTrip.refundableAmount")}
+                        </p>
+
                         <p className="font-medium text-green-600">
-                          {bookingData.currencyCode} {bookingData.refundAmount?.toFixed(2)}
+                          {bookingData.currencyCode}{" "}
+                          {bookingData.refundAmount?.toFixed(2)}
                         </p>
                       </div>
                     )}
-                  </div>
-                </div>
-               
-              </div>
-              {/* Additional Information */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="text-lg font-semibold mb-3" style={{ color: colors.primaryColor }}>{t("MyTrip.additionalInfo")}</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.propertyCode")}</p>
-                    <p className="text-gray-800 font-medium">{bookingData.propertyCode}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.promoUsed")}</p>
-                    <p className="text-gray-800">{bookingData.isPromoUsed ? t("MyTrip.yes") : t("MyTrip.no")}</p>
                   </div>
                 </div>
               </div>
@@ -1048,9 +1185,9 @@ if(!checkinForm.identityCardImage){
 
       {showUpdateModal && bookingData && (
         <ModifyBookingModal
-          bookingData={bookingData} // ✅ pass full data
+          bookingData={bookingData}
           onClose={() => setShowUpdateModal(false)}
-          onUpdate={handleSearch} // or refreshBooking if needed
+          onUpdate={handleSearch}
         />
       )}
 
@@ -1150,40 +1287,6 @@ if(!checkinForm.identityCardImage){
                 </div>
               </div>
 
-              {/* Identity Image Upload */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-600">Identity Document Image <span className="text-red-500">*</span></label>
-                <div className="flex items-center gap-2">
-                  {checkinForm.identityCardImage ? (
-                    <div className="flex items-center gap-2 w-full">
-                      <img 
-                        src={checkinForm.identityCardImage} 
-                        alt="Identity" 
-                        className="h-16 w-16 object-cover rounded border border-gray-300"
-                      />
-                      <div className="flex-1 text-sm text-gray-600">
-                        <p>Image uploaded successfully</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setCheckinForm({ ...checkinForm, identityCardImage: "" })}
-                        className="text-red-500 hover:text-red-700 text-sm font-medium"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setIsImageUploadModalOpen(true)}
-                      className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
-                    >
-                      Upload Image
-                    </button>
-                  )}
-                </div>
-              </div>
-
               <div className="pt-4 flex gap-3 justify-end">
                 <button
                   type="button"
@@ -1205,19 +1308,6 @@ if(!checkinForm.identityCardImage){
           </div>
         </div>
       )}
-
-      {/* Image Upload Modal */}
-      <ImageUploadModal
-        isOpen={isImageUploadModalOpen}
-        onClose={() => setIsImageUploadModalOpen(false)}
-        onUploadSuccess={(urls) => {
-          // Accept only the first image
-          if (urls.length > 0) {
-            setCheckinForm({ ...checkinForm, identityCardImage: urls[0] });
-            toast.success("Identity image uploaded successfully");
-          }
-        }}
-      />
 
       {isCheckoutDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -1258,6 +1348,15 @@ if(!checkinForm.identityCardImage){
             </div>
           </div>
         </div>
+      )}
+
+      {isSpaDialogOpen && bookingData && (
+        <SpaBookingDialog
+          bookingCode={bookingData.bookingCode}
+          reservationId={bookingData.id}
+          guestName={bookingData.guests?.[0] ? `${bookingData.guests[0].firstName} ${bookingData.guests[0].lastName}` : ""}
+          onClose={() => setIsSpaDialogOpen(false)}
+        />
       )}
     </div>
   );

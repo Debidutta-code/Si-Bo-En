@@ -73,7 +73,7 @@ export class PricingRepository {
                             roomTypeCode: roomTypeCode,
                             date: {
                                 gte: startDate,
-                                lte: endDate,
+                                lt: endDate,
                             },
                         },
                         include: {

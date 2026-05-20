@@ -18,6 +18,7 @@ export interface ICSpaR {
     categoryId: string;
     subCategoryId: string;
     propertyId: string;
+    isActive: boolean;
 }
 export interface ICSpaC {
     name: string;
@@ -34,6 +35,7 @@ export interface ICSpaC {
     categoryId: string;
     subCategoryId: string;
     propertyId: string;
+    isActive: boolean;
 }
 export interface IUSpaR {
     name: string;

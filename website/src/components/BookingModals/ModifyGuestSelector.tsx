@@ -16,9 +16,9 @@ interface ModifyGuestSelectorProps {
   initialAdults: number;
   initialChildren: number;
   initialChildAges?: number[];
-  /** ✅ NEW: per-room distribution from priceBreakdowns */
   initialRoomDistribution?: RoomDistribution[];
   onClose: () => void;
+  isModificationDisabled?: boolean;
   onApply: (
     summary: string,
     data: {
@@ -42,6 +42,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
   initialChildren,
   initialChildAges,
   initialRoomDistribution,
+  isModificationDisabled = false,
   onClose,
   onApply,
 }) => {
@@ -69,7 +70,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
     let remainingChildren = totalChildren;
     let ageIndex = 0;
     for (let i = 0; i < roomCount; i++) {
-const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
+      const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
       const roomChildren = Math.ceil(remainingChildren / (roomCount - i));
       const roomAges = ages.slice(ageIndex, ageIndex + roomChildren);
       dist.push({ adults: roomAdults, children: roomChildren, childAges: roomAges });
@@ -189,7 +190,7 @@ const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
   const updateRoomAdults = (roomIndex: number, delta: number) => {
     const updated = roomDistribution.map((r, i) => {
       if (i !== roomIndex) return r;
-        const newAdults = Math.max(1, Math.min(r.adults + delta, MAX_GUESTS_PER_ROOM - r.children));
+      const newAdults = Math.max(1, Math.min(r.adults + delta, MAX_GUESTS_PER_ROOM - r.children));
       return { ...r, adults: newAdults };
     });
     const newTotal = updated.reduce((s, r) => s + r.adults, 0);
@@ -265,7 +266,7 @@ const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
           <div className="mb-4 bg-gray-50 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
               <span className="text-base sm:text-lg font-semibold text-gray-900">{t("ModifyGuestSelector.numberOfRooms")}</span>
-              <Counter value={rooms} onDecrement={decrementRooms} onIncrement={incrementRooms} min={1} />
+              <Counter disabled={isModificationDisabled} value={rooms} onDecrement={decrementRooms} onIncrement={incrementRooms} min={1} />
             </div>
           </div>
 
@@ -280,6 +281,7 @@ const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
                   <span className="text-sm text-gray-700">{t("ModifyGuestSelector.adults")}</span>
                   <Counter
                     value={room.adults}
+                    disabled={isModificationDisabled}
                     onDecrement={() => updateRoomAdults(roomIdx, -1)}
                     onIncrement={() => updateRoomAdults(roomIdx, 1)}
                     min={1}
@@ -296,6 +298,7 @@ const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
                   </div>
                   <Counter
                     value={room.children}
+                    disabled={isModificationDisabled}
                     onDecrement={() => updateRoomChildren(roomIdx, -1)}
                     onIncrement={() => updateRoomChildren(roomIdx, 1)}
                     min={0}
@@ -311,6 +314,7 @@ const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
                       <div key={childIdx} className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">{t("ModifyGuestSelector.childAge", { number: childIdx + 1 })}</span>
                         <select
+                        disabled={isModificationDisabled}
                           value={room.childAges[childIdx] ?? 0}
                           onChange={(e) => updateChildAge(roomIdx, childIdx, Number(e.target.value))}
                           className="border rounded px-2 py-1 text-xs w-24"
@@ -343,7 +347,12 @@ const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
             {t("ModifyGuestSelector.across")} {rooms} {t("ModifyGuestSelector.rooms")}
           </div>
 
-          <button onClick={handleApply} className="w-full bg-indigo-600 text-white py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg hover:bg-indigo-700 transition-colors duration-200">
+          <button onClick={handleApply}
+            disabled={isModificationDisabled}
+            className={`w-full py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-colors duration-200 ${isModificationDisabled
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-indigo-600 text-white hover:bg-indigo-700"
+              }`}>
             {t("ModifyGuestSelector.apply")}
           </button>
         </div>
@@ -356,40 +365,45 @@ const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
 const Counter: React.FC<{
   value: number;
   onDecrement: () => void;
+  disabled?: boolean;
   onIncrement: () => void;
   min?: number;
   max?: number;
   size?: "sm" | "md";
-}> = ({ value, onDecrement, onIncrement, min = 0, max, size = "md" }) => {
-  const btnSize = size === "sm" ? "w-8 h-8" : "w-10 h-10";
-  const iconSize = size === "sm" ? "w-4 h-4" : "w-5 h-5";
-  return (
-    <div className="flex items-center space-x-2">
-      <button
-        onClick={onDecrement}
-        disabled={value <= min}
-        className={`${btnSize} rounded-full border flex items-center justify-center transition-colors ${
-          value <= min ? "bg-gray-200 cursor-not-allowed border-gray-300 text-gray-400" : "bg-white hover:bg-gray-100 border-gray-300"
-        }`}
-      >
-        <Minus className={iconSize} />
-      </button>
-      <span className={`font-bold text-gray-900 w-6 text-center ${size === "sm" ? "text-base" : "text-xl"}`}>
-        {value}
-      </span>
-      <button
-        onClick={onIncrement}
-        disabled={max !== undefined && value >= max}
-        className={`${btnSize} rounded-full border flex items-center justify-center transition-colors ${
-          max !== undefined && value >= max
+}> = ({
+  value,
+  onDecrement,
+  onIncrement,
+  min = 0,
+  max,
+  size = "md",
+  disabled = false,
+}) => {
+    const btnSize = size === "sm" ? "w-8 h-8" : "w-10 h-10";
+    const iconSize = size === "sm" ? "w-4 h-4" : "w-5 h-5";
+    return (
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={onDecrement}
+          disabled={disabled || value <= min} className={`${btnSize} rounded-full border flex items-center justify-center transition-colors ${value <= min ? "bg-gray-200 cursor-not-allowed border-gray-300 text-gray-400" : "bg-white hover:bg-gray-100 border-gray-300"
+            }`}
+        >
+          <Minus className={iconSize} />
+        </button>
+        <span className={`font-bold text-gray-900 w-6 text-center ${size === "sm" ? "text-base" : "text-xl"}`}>
+          {value}
+        </span>
+        <button
+          onClick={onIncrement}
+          disabled={disabled || (max !== undefined && value >= max)} className={`${btnSize} rounded-full border flex items-center justify-center transition-colors ${max !== undefined && value >= max
             ? "bg-gray-200 cursor-not-allowed border-gray-300 text-gray-400"
             : "bg-white hover:bg-gray-100 border-gray-300"
-        }`}
-      >
-        <Plus className={iconSize} />
-      </button>
-    </div>
-  );
-};
+            }`}
+        >
+          <Plus className={iconSize} />
+        </button>
+      </div>
+    );
+  };
 
 export default ModifyGuestSelector;

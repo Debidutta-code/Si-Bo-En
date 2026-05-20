@@ -33,24 +33,27 @@ export default function PaymentMethodsUi({
   useEffect(() => {
     fetchPaymentIntegrations();
   }, []);
-
+  // useEffect(() => {
+  //   setSelectedIntegration(paymentMethodId || null);
+  // }, [paymentMethodId]);
   const fetchPaymentIntegrations = async () => {
     setLoading(true);
     try {
       const response = await getPaymentIntegrationsService(propertyId);
       if (response.success) {
         setPaymentIntegrations(response.data);
-        
-        // Initialize outlet IDs from existing data
+
         const initialOutletIds: Record<string, string> = {};
         response.data.forEach((integration: IPaymentIntegration) => {
           if (integration.propertyPaymentIntegrations?.[0]?.outletId) {
             initialOutletIds[integration.id] = integration.propertyPaymentIntegrations[0].outletId;
           }
+          // ← Sync selectedIntegration by matching paymentMethodId to propertyIntegration.id
+          if (integration.propertyPaymentIntegrations?.[0]?.id === paymentMethodId) {
+            setSelectedIntegration(integration.id);
+          }
         });
         setOutletIds(initialOutletIds);
-      } else {
-        toast.error("Failed to fetch payment integrations");
       }
     } catch (error) {
       toast.error("Error loading payment integrations");
@@ -58,7 +61,6 @@ export default function PaymentMethodsUi({
       setLoading(false);
     }
   };
-
   const handleIntegrationToggle = (integrationId: string) => {
     const integration = paymentIntegrations.find(pi => pi.id === integrationId);
     if (!integration) return;
@@ -98,7 +100,7 @@ export default function PaymentMethodsUi({
       [integrationId]: value
     }));
   };
-  
+
   const formatPaymentIntegrationName = (name: string): string => {
     return name
       .split('_')
@@ -134,9 +136,9 @@ export default function PaymentMethodsUi({
                     {paymentIntegrations.map((integration) => {
                       const propertyIntegration = integration.propertyPaymentIntegrations?.[0];
                       const hasExistingIntegration = !!propertyIntegration;
-                      const isChecked = propertyIntegration?.id === paymentMethodId;
+                      const isChecked = selectedIntegration === integration.id;
                       const currentOutletId = outletIds[integration.id] || propertyIntegration?.outletId || '';
-                      
+
                       return (
                         <div
                           key={integration.id}
@@ -210,7 +212,7 @@ export default function PaymentMethodsUi({
                                 </div>
                               </div>
                             </div>
-                            
+
                             {isChecked && (
                               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100">
                                 <CheckCircle className="w-5 h-5 text-blue-600" />

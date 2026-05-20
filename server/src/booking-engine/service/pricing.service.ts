@@ -342,10 +342,15 @@ class BasePriceClass {
     }
     public calculateTotalPrice(): PriceBrakeDown {
         const diffInDays = this.differenceReservationDays(
-            this.startDate,
-            this.endDate
+            toUTC(this.startDate),
+            toUTC(this.endDate)
         );
-        if (diffInDays + 1 != this.charges.length) {
+        console.log("differnt",{
+            diffInDays,
+            charges:this.charges,
+            len:this.charges.length
+        })
+        if (diffInDays != this.charges.length) {
             throw new Error('Charges not found for the given date range');
         }
 
@@ -389,9 +394,7 @@ class BasePriceClass {
         const checkOutDateCharge = this.charges.find(
             charge => charge.date.getTime() === this.endDate.getTime()
         );
-        if (!checkOutDateCharge) {
-            throw new Error('Check-out date charge not found');
-        }
+        if (!checkOutDateCharge) return;
         if (checkOutDateCharge.isClosedToDeparture) {
             throw new Error('Check-out date is closed for booking');
         }
@@ -412,7 +415,7 @@ class BasePriceClass {
         const dailyPriceBrakeDown: DailyPriceBrakeDown[] = [];
 
         this.charges.sort((a, b) => a.date.getTime() - b.date.getTime());
-        this.charges.pop();
+        // this.charges.pop();
 
         this.guestDistributions.forEach((guestDistribution, index) => {
             const { adults, children } = guestDistribution;

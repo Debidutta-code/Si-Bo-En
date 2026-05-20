@@ -44,7 +44,7 @@ export const getGeoLocationDetails = async (
             success: true,
             ip,
             city: res.data?.city ?? 'Unknown',
-            country: res.data?.country_code ?? 'IN',
+            country: res.data?.country_code ?? 'Unknown',
             coordinates: [res.data?.latitude ?? 0, res.data?.longitude ?? 0],
         };
     } catch (err) {
@@ -66,7 +66,7 @@ export const getGeoLocationDetails = async (
             success: true,
             ip,
             city: res.data?.city ?? 'Unknown',
-            country: res.data?.countryCode ?? 'IN',
+            country: res.data?.countryCode ?? 'Unknown',
             coordinates: [res.data?.lat ?? 0, res.data?.lon ?? 0],
         };
     } catch (err) {
@@ -78,7 +78,7 @@ export const getGeoLocationDetails = async (
         success: false,
         ip,
         city: 'Unknown',
-        country: 'IN',
+        country: 'Unknown',
         coordinates: [0, 0],
     };
 };

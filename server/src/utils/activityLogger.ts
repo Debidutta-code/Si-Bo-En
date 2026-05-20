@@ -1,4 +1,4 @@
-// utils/activityLogger.ts
+// utils/activityLogger.ts - Updated version
 
 import { Request, Response, NextFunction } from 'express';
 import { CustomRequest } from './customRequest';
@@ -12,15 +12,12 @@ import {
 import { ICreateActivityInput } from '../logs/types/types';
 import { AgentRequest } from '../agent-paltform/utils';
 
-// Union type for all possible request types
 type AnyCustomRequest = CustomRequest | AgentRequest;
 
-// Type guard to check if request is CustomRequest
 function isCustomRequest(req: AnyCustomRequest): req is CustomRequest {
     return 'user' in req && req.user !== undefined;
 }
 
-// Type guard to check if request is AgentRequest
 function isAgentRequest(req: AnyCustomRequest): req is AgentRequest {
     return 'agent' in req && req.agent !== undefined;
 }
@@ -57,9 +54,11 @@ interface IActivityConfig {
         resBody?: any,
         statusCode?: number
     ) => boolean;
+    
+    // New: Custom body processor for special formats like XML
+    processBody?: (body: any, contentType?: string) => any;
 }
 
-// Export type guards for use in configurations
 export { isCustomRequest, isAgentRequest, AnyCustomRequest };
 
 interface ICapturedRequest {
@@ -82,12 +81,16 @@ interface ICapturedResponse {
 }
 
 export class ActivityLogger {
+    private static readonly MAX_BODY_SIZE = 10000; // 10KB limit for storage
+    private static readonly XML_CONTENT_TYPES = ['text/xml', 'application/xml', 'application/soap+xml'];
+    private static readonly JSON_CONTENT_TYPES = ['application/json', 'application/json; charset=utf-8'];
+
     static logActivity(config: IActivityConfig) {
         return (req: Request, res: Response, next: NextFunction) => {
             const customReq = req as CustomRequest;
             const startTime = Date.now();
 
-            const capturedRequest = ActivityLogger.captureRequest(customReq);
+            const capturedRequest = ActivityLogger.captureRequest(customReq, config);
 
             const originalJson = res.json.bind(res);
             const originalSend = res.send.bind(res);
@@ -110,17 +113,13 @@ export class ActivityLogger {
                                 statusCode: res.statusCode,
                                 statusMessage: res.statusMessage,
                                 body: responseBody,
-                                headers: res.getHeaders() as Record<
-                                    string,
-                                    any
-                                >,
+                                headers: res.getHeaders() as Record<string, any>,
                                 executionTimeMs: executionTime,
                             },
                             customReq
                         );
                     });
                 }
-
                 return originalJson(body);
             };
 
@@ -139,17 +138,13 @@ export class ActivityLogger {
                                 statusCode: res.statusCode,
                                 statusMessage: res.statusMessage,
                                 body: responseBody,
-                                headers: res.getHeaders() as Record<
-                                    string,
-                                    any
-                                >,
+                                headers: res.getHeaders() as Record<string, any>,
                                 executionTimeMs: executionTime,
                             },
                             customReq
                         );
                     });
                 }
-
                 return originalSend(body);
             };
 
@@ -165,10 +160,7 @@ export class ActivityLogger {
                                 statusCode: res.statusCode,
                                 statusMessage: res.statusMessage,
                                 body: responseBody,
-                                headers: res.getHeaders() as Record<
-                                    string,
-                                    any
-                                >,
+                                headers: res.getHeaders() as Record<string, any>,
                                 executionTimeMs: executionTime,
                             },
                             customReq
@@ -181,48 +173,209 @@ export class ActivityLogger {
         };
     }
 
-    private static captureRequest(req: CustomRequest): ICapturedRequest {
+    private static captureRequest(req: CustomRequest, config: IActivityConfig): ICapturedRequest {
+        let body = req.body;
+        const contentType = req.headers['content-type'] as string;
+        
+        // Use custom processor if provided
+        if (config.processBody) {
+            body = config.processBody(body, contentType);
+        } 
+        // Auto-detect and process based on content type
+        else {
+            body = ActivityLogger.processRequestBody(body, contentType);
+        }
+        
         return {
             method: req.method,
             url: req.originalUrl || req.url,
             path: req.path,
             query: req.query,
             params: req.params,
-            body: req.body,
+            body: body,
             headers: req.headers,
             cookies: req.cookies,
         };
     }
 
-    // private static sanitizeBody(body: any): any {
-    //   if (!body || typeof body !== 'object') return body;
+    private static processRequestBody(body: any, contentType?: string): any {
+        // Handle null/undefined
+        if (body === null || body === undefined) {
+            return body;
+        }
+        
+        // Handle Buffer (raw data)
+        if (Buffer.isBuffer(body)) {
+            const bufferString = body.toString('utf-8');
+            return ActivityLogger.processXmlString(bufferString, body.length);
+        }
+        
+        // Handle XML string
+        if (typeof body === 'string') {
+            const trimmed = body.trim();
+            const isXml = trimmed.startsWith('<') || 
+                         trimmed.startsWith('<?xml') || 
+                         trimmed.includes('SOAP-ENV');
+            
+            if (isXml) {
+                return ActivityLogger.processXmlString(body, body.length);
+            }
+            
+            // Try to parse as JSON if it looks like JSON
+            if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+                try {
+                    return JSON.parse(body);
+                } catch (e) {
+                    // Not valid JSON, return as is
+                    return ActivityLogger.truncateIfNeeded(body);
+                }
+            }
+            
+            // Regular string
+            return ActivityLogger.truncateIfNeeded(body);
+        }
+        
+        // Handle JSON object/array
+        if (typeof body === 'object') {
+            return ActivityLogger.processJsonObject(body);
+        }
+        
+        return body;
+    }
 
-    // const sanitized = { ...body };
-    // const sensitiveFields = ['password', 'newPassword', 'oldPassword', 'confirmPassword', 'token', 'accessToken', 'refreshToken', 'apiKey', 'secret', 'cardNumber', 'cvv', 'pin'];
+    private static processXmlString(xmlString: string, originalSize: number): any {
+        const isTruncated = originalSize > ActivityLogger.MAX_BODY_SIZE;
+        
+        // Extract key information from XML
+        const extractedInfo = ActivityLogger.extractXmlInfo(xmlString);
+        
+        const result: any = {
+            _type: 'xml',
+            _metadata: {
+                originalSize: originalSize,
+                isTruncated: isTruncated,
+                extractedAt: new Date().toISOString()
+            }
+        };
+        
+        // Store full XML only if it's small enough
+        if (!isTruncated) {
+            result._content = xmlString;
+        } else {
+            result._preview = xmlString.substring(0, ActivityLogger.MAX_BODY_SIZE);
+            result._metadata.truncatedMessage = `XML truncated from ${originalSize} to ${ActivityLogger.MAX_BODY_SIZE} characters`;
+        }
+        
+        // Add extracted information for searchability
+        if (Object.keys(extractedInfo).length > 0) {
+            result.extracted = extractedInfo;
+        }
+        
+        return result;
+    }
 
-    // for (const field of sensitiveFields) {
-    //   if (sanitized[field]) {
-    //     sanitized[field] = '***REDACTED***';
-    //   }
-    // }
+    private static processJsonObject(obj: any): any {
+        // Deep clone to avoid modifying original
+        const processed = JSON.parse(JSON.stringify(obj));
+        
+        // Recursively process nested objects
+        const processRecursive = (item: any): any => {
+            if (item === null || item === undefined) return item;
+            
+            if (typeof item === 'string') {
+                const trimmed = item.trim();
+                // Check if string contains XML
+                if (trimmed.startsWith('<') || trimmed.includes('<?xml')) {
+                    return ActivityLogger.processXmlString(item, item.length);
+                }
+                return ActivityLogger.truncateIfNeeded(item);
+            }
+            
+            if (typeof item === 'object') {
+                if (Array.isArray(item)) {
+                    return item.map(processRecursive);
+                }
+                const result: any = {};
+                for (const key in item) {
+                    result[key] = processRecursive(item[key]);
+                }
+                return result;
+            }
+            
+            return item;
+        };
+        
+        return processRecursive(processed);
+    }
 
-    //   return sanitized;
-    // }
+    private static truncateIfNeeded(value: string): string {
+        if (value && typeof value === 'string' && value.length > ActivityLogger.MAX_BODY_SIZE) {
+            return value.substring(0, ActivityLogger.MAX_BODY_SIZE) + '...[TRUNCATED]';
+        }
+        return value;
+    }
 
-    // private static sanitizeHeaders(headers: any): Record<string, any> {
-    //   if (!headers || typeof headers !== 'object') return {};
-
-    //   const sanitized = { ...headers };
-    //   const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token'];
-
-    //   for (const header of sensitiveHeaders) {
-    //     if (sanitized[header]) {
-    //       sanitized[header] = '***REDACTED***';
-    //     }
-    //   }
-
-    //   return sanitized;
-    // }
+    private static extractXmlInfo(xmlString: string): any {
+        const info: any = {};
+        
+        // Extract Hotel/Property codes
+        const hotelMatch = xmlString.match(/HotelCode="([^"]+)"/);
+        if (hotelMatch) info.hotelCode = hotelMatch[1];
+        
+        const propertyMatch = xmlString.match(/PropertyCode="([^"]+)"/);
+        if (propertyMatch) info.propertyCode = propertyMatch[1];
+        
+        // Extract Room types
+        const roomMatches = [...xmlString.matchAll(/InvTypeCode="([^"]+)"/g)];
+        if (roomMatches.length > 0) {
+            info.roomTypes = [...new Set(roomMatches.map(m => m[1]))];
+        }
+        
+        // Extract Rate plans
+        const rateMatches = [...xmlString.matchAll(/RatePlanCode="([^"]+)"/g)];
+        if (rateMatches.length > 0) {
+            info.ratePlans = [...new Set(rateMatches.map(m => m[1]))];
+        }
+        
+        // Extract dates
+        const startMatch = xmlString.match(/Start="([^"]+)"/);
+        if (startMatch) info.startDate = startMatch[1];
+        
+        const endMatch = xmlString.match(/End="([^"]+)"/);
+        if (endMatch) info.endDate = endMatch[1];
+        
+        // Extract action type
+        if (xmlString.includes('RestrictionStatus Status="Close"')) {
+            info.action = 'close_inventory';
+        } else if (xmlString.includes('RestrictionStatus Status="Open"')) {
+            info.action = 'open_inventory';
+        } else if (xmlString.includes('BookingLimit="0"')) {
+            info.action = 'zero_allotment';
+        } else if (xmlString.includes('<LengthOfStay')) {
+            info.action = 'update_length_of_stay';
+        }
+        
+        // Check if it's OTA message
+        if (xmlString.includes('OTA_HotelAvailNotifRQ')) {
+            info.messageType = 'OTA_HotelAvailNotifRQ';
+        } else if (xmlString.includes('OTA_HotelResNotifRQ')) {
+            info.messageType = 'OTA_HotelResNotifRQ';
+        } else if (xmlString.includes('SOAP-ENV:Envelope')) {
+            info.messageType = 'SOAP_Envelope';
+        }
+        
+        // Extract username if present (SOAP auth)
+        const usernameMatch = xmlString.match(/<wsse:Username>([^<]+)<\/wsse:Username>/);
+        if (usernameMatch) info.username = usernameMatch[1];
+        
+        // Count number of inventory changes
+        const changesCount = [...xmlString.matchAll(/<AvailStatusMessage/g)].length;
+        if (changesCount > 0) {
+            info.numberOfChanges = changesCount;
+        }
+        
+        return info;
+    }
 
     private static isSuccess(statusCode: number): boolean {
         return statusCode >= 200 && statusCode < 300;
@@ -262,13 +415,11 @@ export class ActivityLogger {
 
             const entityId = config.getEntityId
                 ? config.getEntityId(req, response.body)
-                : response.body?.data?.id ||
-                  response.body?.data?._id ||
-                  'unknown';
+                : ActivityLogger.extractEntityIdFromBody(request.body, response.body);
 
             const entityName = config.getEntityName
                 ? config.getEntityName(req, response.body)
-                : response.body?.data?.name || undefined;
+                : ActivityLogger.extractEntityNameFromBody(request.body, response.body);
 
             let description: string;
             if (config.getDescription) {
@@ -301,7 +452,7 @@ export class ActivityLogger {
 
             const relatedEntitiesResult = config.getRelatedEntities
                 ? config.getRelatedEntities(req, response.body)
-                : undefined;
+                : ActivityLogger.extractRelatedEntitiesFromBody(request.body);
 
             const relatedEntities =
                 relatedEntitiesResult && relatedEntitiesResult.length > 0
@@ -312,18 +463,19 @@ export class ActivityLogger {
                           entityCode: undefined,
                       }))
                     : undefined;
-            let ip =
-                req.ip ||
+                    
+            let ip = req.ip ||
                 req.socket.remoteAddress ||
                 (request.headers['x-forwarded-for'] as string);
-            // console.log('User IP:', ip);
-            if (
-                ip &&
-                typeof ip === 'string' &&
-                (ip === '::ffff:127.0.0.1' || ip === '::1')
-            ) {
+                
+            if (ip && typeof ip === 'string' && (ip === '::ffff:127.0.0.1' || ip === '::1')) {
                 ip = '127.0.0.1';
             }
+
+            // Detect if body contains XML
+            const isXmlBody = request.body && typeof request.body === 'object' && request.body._type === 'xml';
+            const bodyType = isXmlBody ? 'xml' : 'json';
+
             const activityData: ICreateActivityInput = {
                 action,
                 entity,
@@ -349,6 +501,10 @@ export class ActivityLogger {
                     params: request.params,
                     body: request.body,
                     headers: request.headers,
+                    bodyType: bodyType,
+                    ...(isXmlBody && request.body._metadata && {
+                        xmlMetadata: request.body._metadata
+                    })
                 },
 
                 apiStatus: isSuccess ? 'success' : 'error',
@@ -360,37 +516,30 @@ export class ActivityLogger {
                 metadata: {
                     ipAddress: ip,
                     userAgent: req.get('user-agent'),
-
                     requestId: request.headers['x-request-id'] as string,
-
                     statusCode: response.statusCode,
                     statusMessage: response.statusMessage,
                     responseBody: response.body,
                     responseHeaders: response.headers,
-
                     executionTimeMs: response.executionTimeMs,
-
-                    deviceType: ActivityLogger.getDeviceType(
-                        req.get('user-agent')
-                    ),
+                    deviceType: ActivityLogger.getDeviceType(req.get('user-agent')),
                     browser: ActivityLogger.getBrowser(req.get('user-agent')),
                     os: ActivityLogger.getOS(req.get('user-agent')),
-
                     referer: req.get('referer'),
                     origin: req.get('origin'),
                     acceptLanguage: req.get('accept-language'),
+                    // Add body type info
+                    payloadType: bodyType,
+                    ...(isXmlBody && request.body.extracted && {
+                        extractedXmlInfo: request.body.extracted
+                    })
                 },
 
                 isError: !isSuccess,
                 errorDetails: !isSuccess
                     ? {
-                          errorCode:
-                              response.body?.errorCode ||
-                              `HTTP_${response.statusCode}`,
-                          errorMessage:
-                              response.body?.message ||
-                              response.body?.error ||
-                              response.statusMessage,
+                          errorCode: response.body?.errorCode || `HTTP_${response.statusCode}`,
+                          errorMessage: response.body?.message || response.body?.error || response.statusMessage,
                           recoverable: response.statusCode < 500,
                       }
                     : undefined,
@@ -403,6 +552,8 @@ export class ActivityLogger {
                     `method:${request.method.toLowerCase()}`,
                     `status:${response.statusCode}`,
                     isSuccess ? 'success' : 'failure',
+                    bodyType, // Add 'xml' or 'json' tag
+                    ...(isXmlBody && request.body.extracted?.messageType ? [request.body.extracted.messageType.toLowerCase()] : [])
                 ],
 
                 timestamp: new Date(),
@@ -414,53 +565,85 @@ export class ActivityLogger {
         }
     }
 
-    private static getDeviceType(
-        userAgent?: string
-    ): 'mobile' | 'tablet' | 'desktop' | undefined {
-        if (!userAgent) return undefined;
+    private static extractEntityIdFromBody(requestBody: any, responseBody: any): string {
+        // Try response body first
+        if (responseBody?.data?.id) return responseBody.data.id;
+        if (responseBody?.data?._id) return responseBody.data._id;
+        if (responseBody?.data?.propertyId) return responseBody.data.propertyId;
+        if (responseBody?.data?.hotelCode) return responseBody.data.hotelCode;
+        
+        // Try request body
+        if (requestBody?.id) return requestBody.id;
+        if (requestBody?._id) return requestBody._id;
+        if (requestBody?.propertyId) return requestBody.propertyId;
+        
+        // Try XML extracted info
+        if (requestBody?.extracted?.hotelCode) return requestBody.extracted.hotelCode;
+        if (requestBody?.extracted?.propertyCode) return requestBody.extracted.propertyCode;
+        
+        return 'unknown';
+    }
 
-        if (
-            /(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(userAgent)
-        ) {
-            return 'tablet';
+    private static extractEntityNameFromBody(requestBody: any, responseBody: any): string | undefined {
+        if (responseBody?.data?.name) return responseBody.data.name;
+        if (responseBody?.data?.propertyName) return responseBody.data.propertyName;
+        if (requestBody?.name) return requestBody.name;
+        
+        if (requestBody?.extracted?.roomTypes) {
+            return requestBody.extracted.roomTypes.join(', ');
         }
-        if (
-            /Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(
-                userAgent
-            )
-        ) {
-            return 'mobile';
+        
+        return undefined;
+    }
+
+    private static extractRelatedEntitiesFromBody(requestBody: any): Array<{ entityType: string; entityId: string; entityName?: string }> {
+        const entities = [];
+        
+        if (requestBody?.extracted?.hotelCode) {
+            entities.push({
+                entityType: ActivityEntity.PROPERTY,
+                entityId: requestBody.extracted.hotelCode,
+                entityName: requestBody.extracted.hotelCode
+            });
         }
+        
+        if (requestBody?.extracted?.roomTypes) {
+            for (const roomType of requestBody.extracted.roomTypes) {
+                entities.push({
+                    entityType: ActivityEntity.ROOM,
+                    entityId: roomType,
+                    entityName: roomType
+                });
+            }
+        }
+        
+        return entities;
+    }
+
+    private static getDeviceType(userAgent?: string): 'mobile' | 'tablet' | 'desktop' | undefined {
+        if (!userAgent) return undefined;
+        if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(userAgent)) return 'tablet';
+        if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(userAgent)) return 'mobile';
         return 'desktop';
     }
 
     private static getBrowser(userAgent?: string): string | undefined {
-        // console.log('User-Agent:', userAgent);
         if (!userAgent) return undefined;
-
         if (userAgent.includes('Chrome')) return 'Chrome';
         if (userAgent.includes('Safari')) return 'Safari';
         if (userAgent.includes('Firefox')) return 'Firefox';
         if (userAgent.includes('Edge')) return 'Edge';
         if (userAgent.includes('Opera')) return 'Opera';
-
         return 'Unknown';
     }
 
     private static getOS(userAgent?: string): string | undefined {
         if (!userAgent) return undefined;
-
         if (userAgent.includes('Windows')) return 'Windows';
         if (userAgent.includes('Mac')) return 'macOS';
         if (userAgent.includes('Linux')) return 'Linux';
         if (userAgent.includes('Android')) return 'Android';
-        if (
-            userAgent.includes('iOS') ||
-            userAgent.includes('iPhone') ||
-            userAgent.includes('iPad')
-        )
-            return 'iOS';
-
+        if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS';
         return 'Unknown';
     }
 }
