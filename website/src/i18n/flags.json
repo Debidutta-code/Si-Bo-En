@@ -8,5 +8,10 @@
         "name": "العربية",
         "code": "ar",
         "flag": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Flag_of_Saudi_Arabia.svg"
-    }
+    },
+   "hi": {
+    "name": "हिन्दी",
+    "code": "hi",
+    "flag": "https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg"
+}
 }

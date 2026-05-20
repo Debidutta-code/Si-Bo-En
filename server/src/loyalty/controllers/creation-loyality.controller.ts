@@ -5,6 +5,7 @@ import {
     ICCreationLoyality,
     IUCreationLoyalty,
 } from '../types/creation-loyality.types';
+import { LoyaltyCreationInterceptor } from '../../multi-language/interceptors/loyalty/loyalty-creation.interceptor';
 
 export class CreationLoyalityController {
     private creationLoyalityService: CreationLoyalityService;
@@ -174,6 +175,7 @@ export class CreationLoyalityController {
     ): Promise<Response> {
         try {
             const { creationLoyalityId } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
 
             if (!creationLoyalityId) {
                 return res
@@ -186,10 +188,12 @@ export class CreationLoyalityController {
                     );
             }
 
-            const result =
+            let result =
                 await this.creationLoyalityService.getCreationLoyalityById(
                     creationLoyalityId
                 );
+            result = await LoyaltyCreationInterceptor.intercept(result, locale);
+
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {
@@ -219,6 +223,7 @@ export class CreationLoyalityController {
     ): Promise<Response> {
         try {
             const { creationId } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
 
             if (!creationId) {
                 return res
@@ -231,10 +236,13 @@ export class CreationLoyalityController {
                     );
             }
 
-            const result =
+            let result =
                 await this.creationLoyalityService.getLoyalityByCreation(
                     creationId
                 );
+            
+            result = await LoyaltyCreationInterceptor.intercept(result, locale);
+
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {
@@ -264,6 +272,7 @@ export class CreationLoyalityController {
     ): Promise<Response> {
         try {
             const { creationId } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
 
             if (!creationId) {
                 return res
@@ -276,10 +285,13 @@ export class CreationLoyalityController {
                     );
             }
 
-            const result =
+            let result =
                 await this.creationLoyalityService.getAllCreationLoyalityWithProperty(
                     creationId
                 );
+            
+            result = await LoyaltyCreationInterceptor.intercept(result, locale);
+
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {

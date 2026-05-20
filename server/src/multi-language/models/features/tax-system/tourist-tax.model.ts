@@ -69,7 +69,6 @@ touristTaxTranslationSchema.statics.getTranslated = async function (id, locale =
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };

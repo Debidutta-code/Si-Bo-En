@@ -3,6 +3,8 @@ import { CustomRequest } from '../../utils';
 import { errorResponse } from '../../utils';
 import { LoyalityFieldService } from '../services';
 import { ICLoyaltyField } from '../types';
+import { LoyaltyFieldInterceptor } from '../../multi-language/interceptors/loyalty/loyalty-field.interceptor';
+
 export class LoyalityFieldController {
     private loyalityFieldService: LoyalityFieldService;
 
@@ -189,6 +191,7 @@ export class LoyalityFieldController {
     ): Promise<Response> {
         try {
             const { loyaltyProgramId } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
 
             if (!loyaltyProgramId) {
                 return res
@@ -201,8 +204,11 @@ export class LoyalityFieldController {
                     );
             }
 
-            const result =
+            let result =
                 await this.loyalityFieldService.getFields(loyaltyProgramId);
+            
+            result = await LoyaltyFieldInterceptor.intercept(result, locale);
+
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {

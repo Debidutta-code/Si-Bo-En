@@ -73,7 +73,6 @@ taxRuleTranslationSchema.statics.getTranslated = async function (id, locale = 'e
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };
@@ -154,7 +153,6 @@ taxGroupTranslationSchema.statics.getTranslated = async function (id, locale = '
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };

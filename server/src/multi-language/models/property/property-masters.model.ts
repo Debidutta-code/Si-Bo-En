@@ -68,7 +68,6 @@ const map = doc.translations as unknown as Record<string, IMasterPropertyCategor
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };

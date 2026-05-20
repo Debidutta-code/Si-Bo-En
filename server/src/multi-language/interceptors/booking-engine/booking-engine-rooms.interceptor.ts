@@ -1,13 +1,17 @@
 import { PropertyTranslation } from '../../models/property/property.model';
+import { PropertyAddressTranslation } from '../../models/property/property-address.model';
 import { RoomTranslation } from '../../models/room/rooms.model';
 import { RatePlanTranslation } from '../../models/ari/rate-plan.model';
 import { PolicyTranslation } from '../../models/ari/policy.model';
 import { PromotionTranslation } from '../../models/features/promotions/promotion.model';
+import { TouristTaxTranslation } from '../../models/features/tax-system/tourist-tax.model';
 import { MasterAmenityTranslation } from '../../models/property/property-masters.model';
 import {
     LoyaltyConditionsTranslation,
     LoyaltySpecialConditionTranslation,
 } from '../../models/features/loyalty/loyalty-configs.model';
+import { LoyalityFieldController } from '../../../loyalty/controllers';
+import { MasterLoyaltyRegistrationFieldTranslation } from '../../models/masters/loyalty.master.model';
 
 export class BookingEngineRoomsInterceptor {
     public static async intercept(response: any, locale: string): Promise<any> {
@@ -29,6 +33,12 @@ export class BookingEngineRoomsInterceptor {
                         ...data.propertyDetails,
                         _translations: propertyTranslation,
                     };
+                    if (data.propertyDetails.loyaltyProgramConfig) {
+                        data.propertyDetails.loyaltyProgramConfig = {
+                            ...data.propertyDetails.loyaltyProgramConfig,
+                            _translations: { propertyName: propertyTranslation.propertyName }
+                        };
+                    }
                 }
 
                 // ── 1a. Loyalty conditions ────────────────────────────────────
@@ -61,6 +71,33 @@ export class BookingEngineRoomsInterceptor {
                                 return t ? { ...sc, _translations: t } : sc;
                             })
                         );
+                    }
+                    if (Array.isArray(loyaltyConfig.LoyaltyProgramFieldConfig)) {
+                        loyaltyConfig.LoyaltyProgramFieldConfig = await Promise.all(
+                            loyaltyConfig.LoyaltyProgramFieldConfig.map(async (sc: any) => {
+                                if (!sc?.id) return sc;
+                                const t = await MasterLoyaltyRegistrationFieldTranslation.getTranslated(
+                                    sc.masterRegistrationFieldId,
+                                    locale
+                                );
+                                return t ? { ...sc, _translations: t } : sc;
+                            })
+                        );
+                    }
+                }
+
+                // ── 1c. Property address ──────────────────────────────────────
+                const address = data.propertyDetails.address;
+                if (address?.id) {
+                    const addressTranslation = await PropertyAddressTranslation.getTranslated(
+                        address.id,
+                        locale
+                    );
+                    if (addressTranslation) {
+                        data.propertyDetails.address = {
+                            ...address,
+                            _translations: addressTranslation,
+                        };
                     }
                 }
             }
@@ -139,6 +176,17 @@ export class BookingEngineRoomsInterceptor {
                         result.policy[key] = { ...policy, _translations: t };
                     }
                 }
+            }
+        }
+
+        // Tourist tax
+        if (rp.touristTax?.id) {
+            const taxTranslation = await TouristTaxTranslation.getTranslated(
+                rp.touristTax.id,
+                locale
+            );
+            if (taxTranslation) {
+                result.touristTax = { ...rp.touristTax, _translations: taxTranslation };
             }
         }
 

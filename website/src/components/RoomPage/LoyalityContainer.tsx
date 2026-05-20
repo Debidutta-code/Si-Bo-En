@@ -243,11 +243,13 @@ export const LoyaltyContainer = ({
 
   const benefitItems: { bold: string; normal: string }[] = [
     { bold: `${getDiscountDisplay()}`, normal: ` ${t("LoyaltyContainer.membersDiscount")}` },
-    ...activeConditions.map((c) => ({ bold: "", normal: c.text })),
+    ...activeConditions.map((c) => ({ bold: "", normal: c._translations?.text || c.text })),
     ...activeSpecialConditions.flatMap((c) => {
       const items: { bold: string; normal: string }[] = [];
-      if ((c as any).title) items.push({ bold: (c as any).title, normal: "" });
-      if (c.subTitle) items.push({ bold: "", normal: c.subTitle });
+      const title = (c as any)._translations?.title || (c as any).title;
+      const subTitle = c._translations?.subTitle || c.subTitle;
+      if (title) items.push({ bold: title, normal: "" });
+      if (subTitle) items.push({ bold: "", normal: subTitle });
       return items;
     }),
   ];
@@ -415,7 +417,7 @@ export const LoyaltyContainer = ({
                   className="w-5 h-5 flex-shrink-0"
                   style={{ color: primaryColor }}
                 />
-                {t("LoyaltyContainer.modal.join")} {loyaltyProgram.propertyName}
+                {t("LoyaltyContainer.modal.join")} {loyaltyProgram._translations?.propertyName || loyaltyProgram.propertyName}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm">
                 {t("LoyaltyContainer.modal.registerTo")} {getDiscountDisplay()} {t("LoyaltyContainer.modal.offOnAllBookings")}
@@ -499,8 +501,8 @@ export const LoyaltyContainer = ({
                             htmlFor={field.fieldName}
                             className="text-xs sm:text-sm font-medium"
                           >
-                            {field.fieldName.charAt(0).toUpperCase() +
-                              field.fieldName.slice(1).replaceAll("_", " ")}
+                            {field._translations?.fieldName || (field.fieldName.charAt(0).toUpperCase() +
+                              field.fieldName.slice(1).replaceAll("_", " "))}
                             {field.required && (
                               <span className="text-red-500">*</span>
                             )}
@@ -508,7 +510,7 @@ export const LoyaltyContainer = ({
                           <Input
                             id={field.fieldName}
                             type="text"
-                            placeholder={`Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
+                            placeholder={field._translations?.fieldName ? `Enter ${field._translations.fieldName}` : `Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
                             required={field.required}
                             value={formData[field.fieldName] || ""}
                             onChange={(e) =>

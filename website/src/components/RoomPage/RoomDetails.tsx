@@ -13,6 +13,10 @@ interface Policy {
   propertyCode: string;
   createdAt: string;
   updatedAt: string;
+  _translations?:{
+    policyName:string;
+    description:string;
+  }
 }
 
 interface room_price {
@@ -20,6 +24,10 @@ interface room_price {
   currencyCode?: string;
   ratePlanCode?: string;
   ratePlanName?: string;
+  _translations?:{
+    ratePlanName:string;
+    
+  }
   policy?: {
     depositPolicy?: Policy;
     cancellationPolicy?: Policy;
@@ -92,7 +100,7 @@ const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
             &times;
           </button>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            {room.roomName}
+            {room._translations?.roomName || room.roomName}
           </h2>
         </div>
 
@@ -129,7 +137,7 @@ const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
         {/* Room Info */}
         <div className="space-y-2 text-sm text-gray-700">
           <p>
-            <strong>Description:</strong> {room.description}
+            <strong>Description:</strong> {room._translations?.description || room.description}
           </p>
           <p>
             <strong>Size:</strong> {room.roomSize} {room.roomUnit}
@@ -139,7 +147,7 @@ const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
           </p>
           {selectedRatePlan?.ratePlanName && (
             <p>
-              <strong>Rate Plan:</strong> {selectedRatePlan.ratePlanName}
+              <strong>Rate Plan:</strong> {selectedRatePlan._translations?.ratePlanName || selectedRatePlan.ratePlanName}
             </p>
           )}
         </div>
@@ -148,15 +156,15 @@ const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
         <div className="mt-4 space-y-4">
           <PolicySection
             title="Cancellation Policy"
-            content={policy?.cancellationPolicy?.description || "Not available" }
+            content={policy?.cancellationPolicy?._translations?.description || policy?.cancellationPolicy?.description || "Not available" }
           />
           <PolicySection
             title="Guarantee Policy"
-            content={policy?.guaranteePolicy?.description || "Not available"}
+            content={policy?.guaranteePolicy?._translations?.description || policy?.guaranteePolicy?.description || "Not available"}
           />
           <PolicySection
             title="Deposit Policy"
-            content={policy?.depositPolicy?.description || "Not available"}
+            content={policy?.depositPolicy?._translations?.description || policy?.depositPolicy?.description || "Not available"}
           />
         </div>
       </div>

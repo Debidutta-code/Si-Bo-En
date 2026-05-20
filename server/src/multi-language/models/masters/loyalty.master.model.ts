@@ -78,7 +78,6 @@ masterLoyaltyRegistrationFieldTranslationSchema.statics.getTranslated = async fu
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };

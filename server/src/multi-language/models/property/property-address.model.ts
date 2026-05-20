@@ -119,7 +119,6 @@ const map = doc.translations as unknown as Record<string, ILocaleBlock>;
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };

@@ -69,7 +69,6 @@ spaCategoryTranslationSchema.statics.getTranslated = async function (id, locale 
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };
@@ -150,7 +149,6 @@ const map = doc.translations as unknown as Record<string, ISpaSubCategoryLocaleB
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );};
 spaSubCategoryTranslationSchema.statics.getAllTranslations = async function (id) {
