@@ -1,20 +1,20 @@
 model SpaCategory {
-    id   String @id @default(uuid())
-    name String @unique @map("name")
+  id               String           @id @default(uuid())
+  name             String           @unique @map("name")
+  SpaServices      Spa[]
+  SpaSubCategories SpaSubCategory[]
 
-    SpaSubCategories SpaSubCategory[]
-    SpaServices      Spa[]
-
-    @@map("spa_category")
+  @@map("spa_category")
 }
 
 model SpaSubCategory {
-    id          String      @id @default(uuid())
-    name        String      @map("name")
-    categoryId  String      @map("category_id")
-    isActive    Boolean     @map("is_active")
-    Category    SpaCategory @relation(fields: [categoryId], references: [id],onDelete: Cascade)
-    SpaServices Spa[]
-    @@unique([categoryId,name])
-    @@map("spa_sub_category")
+  id          String      @id @default(uuid())
+  name        String      @map("name")
+  categoryId  String      @map("category_id")
+  isActive    Boolean     @map("is_active")
+  SpaServices Spa[]
+  Category    SpaCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, name])
+  @@map("spa_sub_category")
 }

@@ -1,79 +1,58 @@
 model Reservation {
-  id String @id @default(uuid()) @map("id") @db.VarChar(36)
-
-  propertyId   String @map("property_id") 
-  propertyCode String @map("property_code")
-  hotelName    String @map("hotel_name")
-
-  roomName     String? @default("-") @map("room_name")
-  roomTypeCode String @default("-")  @map("room_type_code")
-
-  ratePlanCode String  @map("rate_plan_code")
-  ratePlanName String? @default("-") @map("rate_plan_name")
-
-  bookingCode String @unique @map("booking_code") 
-
-  bookedAt DateTime @default(now()) @map("booked_at")
-
-  checkInDate  DateTime? @map("check_in_date") @db.Date
-  checkOutDate DateTime? @map("check_out_date") @db.Date
-
-  reservationStartDate DateTime @default(now()) @map("reservation_start_date") @db.Date
-  reservationEndDate   DateTime @default(now()) @map("reservation_end_date") @db.Date
-
-  countryCode String     @map("country_code") 
-  timezone    String     @map("timezone") 
-  deviceTypes DeviceType @map("device_types")
-  platforms   Platforms  @default(web) @map("platforms")
-
-  primaryGuestId String @map("primary_guest_id") 
-  primaryGuest   Guests @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id], onDelete: Cascade)
-
-  guests           Json    @map("guests")
-  bookingUserEmail String  @map("booking_user_email")
-  bookingUserPhone String? @map("booking_user_phone")
-
-  amount       Float        @map("amount")
-  currencyCode CurrencyCode @default(AED) @map("currency_code")
-  finalPrice   Json?        @map("final_price")
-
-  paidAmount       Float @default(0) @map("paid_amount")
-  extraAmountToPay Float @default(0) @map("extra_amount_to_pay")
-  refundAmount     Float @default(0) @map("refund_amount")
-
-  paymentMethod PaymentMethod @default(pay_at_hotel) @map("payment_method")
-  paymentImages Json?         @map("payment_images")
-
-  bookingStatus      BookingStatus @default(confirmed) @map("booking_status")
-  cancellationReason String?       @map("cancellation_reason")
-
-  bookingSource BookingSource @default(direct) @map("source")
-
-  isPromoUsed Boolean @default(false) @map("is_promo_used")
-  promoId     String? @map("promo_id") 
-
-  cancelledAt DateTime? @map("cancelled_at")
-  agencyId    String?   @map("agency_id") 
-
-  //ota-guest
-  otaGuestId String?   @map("ota_guest_id") 
-  OtaGuest   OtaGuest? @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
-
+  id                    String                 @id @default(uuid()) @map("id") @db.VarChar(36)
+  propertyId            String                 @map("property_id")
+  propertyCode          String                 @map("property_code")
+  hotelName             String                 @map("hotel_name")
+  roomName              String?                @default("-") @map("room_name")
+  roomTypeCode          String                 @default("-") @map("room_type_code")
+  ratePlanCode          String                 @map("rate_plan_code")
+  ratePlanName          String?                @default("-") @map("rate_plan_name")
+  bookingCode           String                 @unique @map("booking_code")
+  bookedAt              DateTime               @default(now()) @map("booked_at")
+  checkInDate           DateTime?              @map("check_in_date") @db.Date
+  checkOutDate          DateTime?              @map("check_out_date") @db.Date
+  reservationStartDate  DateTime               @default(now()) @map("reservation_start_date") @db.Date
+  reservationEndDate    DateTime               @default(now()) @map("reservation_end_date") @db.Date
+  countryCode           String                 @map("country_code")
+  timezone              String                 @map("timezone")
+  deviceTypes           DeviceType             @map("device_types")
+  platforms             Platforms              @default(web) @map("platforms")
+  primaryGuestId        String                 @map("primary_guest_id")
+  guests                Json                   @map("guests")
+  bookingUserEmail      String                 @map("booking_user_email")
+  bookingUserPhone      String?                @map("booking_user_phone")
+  amount                Float                  @map("amount")
+  currencyCode          CurrencyCode           @default(AED) @map("currency_code")
+  finalPrice            Json?                  @map("final_price")
+  paidAmount            Float                  @default(0) @map("paid_amount")
+  extraAmountToPay      Float                  @default(0) @map("extra_amount_to_pay")
+  refundAmount          Float                  @default(0) @map("refund_amount")
+  paymentMethod         PaymentMethod          @default(pay_at_hotel) @map("payment_method")
+  paymentImages         Json?                  @map("payment_images")
+  bookingStatus         BookingStatus          @default(confirmed) @map("booking_status")
+  cancellationReason    String?                @map("cancellation_reason")
+  bookingSource         BookingSource          @default(direct) @map("source")
+  isPromoUsed           Boolean                @default(false) @map("is_promo_used")
+  promoId               String?                @map("promo_id")
+  cancelledAt           DateTime?              @map("cancelled_at")
+  agencyId              String?                @map("agency_id")
+  otaGuestId            String?                @map("ota_guest_id")
   pricingBrakedownId    String?                @unique @map("pricing_breakdown_id")
-  PricingBrakeDown      PricingBreakdown?      @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
-  property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  promo                 PromoCode?             @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
   addOns                BookingAddon[]
-  AgencyCommission AgencyCommission?
-  agency                Agency?                @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  AgencyCommission      AgencyCommission?
+  Review                Review?
   payments              Payment[]
   reservationGuests     ReservationGuest[]
   reservationPromoCodes ReservationPromoCode[]
+  agency                Agency?                @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  OtaGuest              OtaGuest?              @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
+  PricingBrakeDown      PricingBreakdown?      @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
+  primaryGuest          Guests                 @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id], onDelete: Cascade)
+  promo                 PromoCode?             @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   SpaSlot               SpaSlots[]
-  
-  Review Review?
-  createdAt             DateTime               @default(now()) @map("created_at")
-  updatedAt             DateTime               @updatedAt @map("updated_at")
 
   @@index([propertyCode])
   @@index([propertyId])

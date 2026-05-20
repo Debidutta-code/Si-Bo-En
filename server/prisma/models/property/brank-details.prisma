@@ -1,13 +1,11 @@
 model BankDetails {
-  id             String  @id @default(uuid())
-  payAtHotel     Boolean @default(true) @map("pay_at_hotel")
-  paymentGateway Boolean @default(false) @map("payment_gateway")
-
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId String   @unique @map("property_id")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid())
+  payAtHotel     Boolean  @default(true) @map("pay_at_hotel")
+  paymentGateway Boolean  @default(false) @map("payment_gateway")
+  propertyId     String   @unique @map("property_id")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("bank_details")
 }

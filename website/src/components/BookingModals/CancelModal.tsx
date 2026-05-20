@@ -37,12 +37,15 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     setLoading(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/cancel/${bookingData.id}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/cancel`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "reservation-id": bookingData.id,
+          },
           body: JSON.stringify({
-            cancellationReason:reason,
+            cancellationReason: reason,
             bookingCode,
           }),
         }

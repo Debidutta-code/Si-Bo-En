@@ -10,41 +10,32 @@ model Agency {
   commissionCurrency CurrencyCode?       @default(INR) @map("commission_currency")
   iataCode           String              @map("iata_code")
   address            String              @map("address")
-
-  Agents            Agents[]
-  AgenticProperties AgenticProperty[]
-  Reservations      Reservation[]
-  AgencyCommissions AgencyCommission[]
-  isDeleted         Boolean           @default(false) @map("is_deleted")
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @updatedAt @map("updated_at")
+  isDeleted          Boolean             @default(false) @map("is_deleted")
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  AgencyCommissions  AgencyCommission[]
+  AgenticProperties  AgenticProperty[]
+  Agents             Agents[]
+  Reservations       Reservation[]
 
   @@map("agency")
 }
 
-
 model AgencyCommission {
-   id String @id @default(uuid())
-
-  reservationId String @unique @map("reservation_id")
-  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-
-  agencyId String @map("agency_id")
-  agency   Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-
-  agentId String? @map("agent_id")
-  agent   Agents? @relation(fields: [agentId], references: [id], onDelete: SetNull)
-
+  id               String              @id @default(uuid())
+  reservationId    String              @unique @map("reservation_id")
+  agencyId         String              @map("agency_id")
+  agentId          String?             @map("agent_id")
   commissionType   AgentCommissionType @map("commission_type")
   commissionValue  Float               @map("commission_value")
   commissionAmount Float               @map("commission_amount")
-
-  currencyCode CurrencyCode @map("currency_code")
-
-  createdAt DateTime @default(now()) @map("created_at")
+  currencyCode     CurrencyCode        @map("currency_code")
+  createdAt        DateTime            @default(now()) @map("created_at")
+  agency           Agency              @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  agent            Agents?             @relation(fields: [agentId], references: [id])
+  reservation      Reservation         @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 
   @@index([agencyId])
   @@index([agentId])
   @@map("agency_commissions")
-
 }

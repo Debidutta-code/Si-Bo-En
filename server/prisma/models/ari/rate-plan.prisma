@@ -1,37 +1,30 @@
 model RatePlan {
-  id              String       @id @default(uuid())
-  ratePlanName    String       @map("rate_plan_name")
-  ratePlanCode    String       @unique @map("rate_plan_code")
-  deviceType      DeviceType[] @map("device_type")
-  // Back relation to Property
-  property        Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId      String       @map("property_id")
-  // Policies
-  depositPolicy   Policy?      @relation("RateAmountToDepositPolicy", fields: [depositPolicyId], references: [id])
-  depositPolicyId String?      @map("deposit_policy_id")
-
-  cancellationPolicy   Policy? @relation("RateAmountToCancellationPolicy", fields: [cancellationPolicyId], references: [id])
-  cancellationPolicyId String? @map("cancellation_policy_id")
-
-  guaranteePolicy   Policy? @relation("RateAmountToGuaranteePolicy", fields: [guaranteePolicyId], references: [id])
-  guaranteePolicyId String? @map("guarantee_policy_id")
-
-  taxGroup   TaxGroup? @relation(fields: [taxGroupId], references: [id])
-  taxGroupId String?   @map("tax_group_id")
-
-  roomOnlyVisible Boolean @default(true) @map("room_only_visible")
-  b2bAvailable    Boolean @default(false) @map("b2b_available")
-  b2cAvailable    Boolean @default(true) @map("b2c_available")
-
-  charges           Charge[]
-  ratePlanRules     RatePlanRule?
-  Addons            RatePlanWithAddon[]
-  geoRatePlans      GeoRatePlan[]
-  promotions        Promotion[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  customizableDeals CustomizableDeal[]
-  bookingOffsets    BookingOffset[]
+  id                   String              @id @default(uuid())
+  ratePlanName         String              @map("rate_plan_name")
+  ratePlanCode         String              @unique @map("rate_plan_code")
+  deviceType           DeviceType[]        @map("device_type")
+  propertyId           String              @map("property_id")
+  depositPolicyId      String?             @map("deposit_policy_id")
+  cancellationPolicyId String?             @map("cancellation_policy_id")
+  guaranteePolicyId    String?             @map("guarantee_policy_id")
+  taxGroupId           String?             @map("tax_group_id")
+  roomOnlyVisible      Boolean             @default(true) @map("room_only_visible")
+  b2bAvailable         Boolean             @default(false) @map("b2b_available")
+  b2cAvailable         Boolean             @default(true) @map("b2c_available")
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  bookingOffsets       BookingOffset[]
+  charges              Charge[]
+  customizableDeals    CustomizableDeal[]
+  geoRatePlans         GeoRatePlan[]
+  promotions           Promotion[]
+  ratePlanRules        RatePlanRule?
+  Addons               RatePlanWithAddon[]
+  cancellationPolicy   Policy?             @relation("RateAmountToCancellationPolicy", fields: [cancellationPolicyId], references: [id])
+  depositPolicy        Policy?             @relation("RateAmountToDepositPolicy", fields: [depositPolicyId], references: [id])
+  guaranteePolicy      Policy?             @relation("RateAmountToGuaranteePolicy", fields: [guaranteePolicyId], references: [id])
+  property             Property            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  taxGroup             TaxGroup?           @relation(fields: [taxGroupId], references: [id])
 
   @@index([propertyId])
   @@map("rate_plans")

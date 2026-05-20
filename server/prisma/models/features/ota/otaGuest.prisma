@@ -6,11 +6,12 @@ model OtaGuest {
   password       String           @map("password")
   phoneNumber    String?          @map("phone_number")
   metaData       Json             @map("meta_data")
-  ProblemTickets  ProblemTickets[]
-  WishList WishList[]
+  createdAt      DateTime         @default(now()) @map("created_at")
   Reviews        Review[]
-  Reservations   Reservation[]
+  WishList       WishList[]
   LoyalityGuest  LoyalityGuest?
-  createdAt      DateTime        @default(now()) @map("created_at")
+  ProblemTickets ProblemTickets[]
+  Reservations   Reservation[]
+
   @@map("ota_guest")
 }

@@ -1,33 +1,29 @@
 model Spa {
-  id          String   @id @default(uuid())
-  name        String
-  itemCode    String   @map("item_code")
-  description String   @map("description")
-  benefits    String[] @map("benefits")
-  conditions  Json     @map("conditions")
-  isInclusive Boolean  @map("is_inclusive")
-  images      String[] @map("images")
-  serviceTime Int      @map("service_time") //in minutes
-  location    String   @map("location")
-
-  createdBy     String  @map("created_by")
-  categoryId    String  @map("category_id")
-  subCategoryId String  @map("sub_category_id")
-  isActive      Boolean @map("is_active")
-  discountValue Float?  @map("discount_value")
-
-  currencyCode CurrencyCode? @default(AED) @map("currency_code")
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  SpaDates     SpaDates[]
-  User         User              @relation("SpaCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  Category     SpaCategory       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  SubCategory  SpaSubCategory    @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
-  AssignedSpas UserAssignedSpa[] @relation("SpaToUserAssignedSpa")
-  propertyId   String            @map("property_id")
-  Property     Property          @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-  SlotBookings SlotBooking[]
+  id            String            @id @default(uuid())
+  name          String
+  itemCode      String            @map("item_code")
+  description   String            @map("description")
+  benefits      String[]          @map("benefits")
+  conditions    Json              @map("conditions")
+  isInclusive   Boolean           @map("is_inclusive")
+  images        String[]          @map("images")
+  serviceTime   Int               @map("service_time")
+  location      String            @map("location")
+  createdBy     String            @map("created_by")
+  categoryId    String            @map("category_id")
+  subCategoryId String            @map("sub_category_id")
+  isActive      Boolean           @map("is_active")
+  discountValue Float?            @map("discount_value")
+  currencyCode  CurrencyCode?     @default(AED) @map("currency_code")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  propertyId    String            @map("property_id")
+  SlotBookings  SlotBooking[]
+  SpaDates      SpaDates[]
+  Category      SpaCategory       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  User          User              @relation("SpaCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+  Property      Property          @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  SubCategory   SpaSubCategory    @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
+  AssignedSpas  UserAssignedSpa[] @relation("SpaToUserAssignedSpa")
 
   @@unique([name, propertyId])
   @@unique([itemCode, propertyId])
@@ -35,19 +31,16 @@ model Spa {
 }
 
 model SpaBooking {
-    id                String        @id @default(uuid())
-    userId            String?       @map("user_id")
-    userEmail         String        @map("user_email")
-    userContactNumber String        @map("user_contact_number")
-    
-    totalAmount       Float         @map("total_amount")
-    currencyCode      String?       @default("AED") @map("currency_code")
-    status            String        @default("confirmed") @map("status")
-    
-    createdAt         DateTime      @default(now()) @map("created_at")
-    updatedAt         DateTime      @updatedAt @map("updated_at")
+  id                String        @id @default(uuid())
+  userId            String?       @map("user_id")
+  userEmail         String        @map("user_email")
+  userContactNumber String        @map("user_contact_number")
+  totalAmount       Float         @map("total_amount")
+  currencyCode      String?       @default("AED") @map("currency_code")
+  status            String        @default("confirmed") @map("status")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+  SlotBookings      SlotBooking[]
 
-    SlotBookings      SlotBooking[]
-
-    @@map("spa_bookings")
+  @@map("spa_bookings")
 }
