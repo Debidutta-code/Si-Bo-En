@@ -71,13 +71,19 @@ export default function MyTripPage() {
     setLoading(true);
     setBookingData(null);
     try {
+      const language = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode}?propertyCode=${propertyCode}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode}?propertyCode=${propertyCode}`,
+        {
+          headers: {
+            "Accept-Language": language
+          }
+        }
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Booking not found");
       setBookingData(data.data); // ✅ local state
-      dispatch(setBookingViewData(data.data)); // ✅ global redux state
+      dispatch(setBookingViewData(data.data)); // 
       // toast.success("Booking found!");
     } catch (err: any) {
       toast.error(err.message || t("MyTrip.errorFetching"));
@@ -111,8 +117,14 @@ export default function MyTripPage() {
       setLoading(true);
       setBookingData(null);
       try {
+        const language = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${codeFromUrl}?propertyCode=${propertyCode}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${codeFromUrl}?propertyCode=${propertyCode}`,
+          {
+            headers: {
+              "Accept-Language": language
+            }
+          }
         );
         const data = await res.json();
         // //console.log(data)
@@ -180,7 +192,8 @@ export default function MyTripPage() {
     doc.setTextColor(50);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(`Hotel: ${bookingData.hotelName || "N/A"}`, colLeftX, yLeft);
+    const hotelName = bookingData.property?._translations?.name || bookingData.property?.name || bookingData.hotelName || "N/A";
+    doc.text(`Hotel: ${hotelName}`, colLeftX, yLeft);
     yLeft += 6;
     doc.text(`Property Code: ${bookingData.propertyCode || "N/A"}`, colLeftX, yLeft);
     yLeft += 6;
@@ -304,15 +317,61 @@ export default function MyTripPage() {
       // ✅ WITH THIS
       if (bookingData.finalPrice?.promotionBrakeDown?.length > 0) {
         bookingData.finalPrice.promotionBrakeDown.forEach((promo: any) => {
+          const promoName = promo._translations?.name || promo._translations?.promotionName || promo.name;
           const isPayLater = promo.restrictionType === 'payLater';
           const sign = isPayLater ? '+' : '-';
           addPaymentRow(
-            `${isPayLater ? '(Pay Later)' : '(Discount)'} ${promo.name}:`,
+            `${isPayLater ? '(Pay Later)' : '(Discount)'} ${promoName}:`,
             `${sign}${bookingData.currencyCode} ${promo.discountAmount?.toFixed(2) || 0}`
           );
         });
       }
-      addPaymentRow("Net Discount:", `-${bookingData.currencyCode} ${bookingData.finalPrice?.totalPromotionAmount?.toFixed(2) || 0}`); addPaymentRow("Taxes:", `${bookingData.currencyCode} ${bookingData.finalPrice?.taxedAmount?.toFixed(2) || 0}`);
+      addPaymentRow("Net Discount:", `-${bookingData.currencyCode} ${bookingData.finalPrice?.totalPromotionAmount?.toFixed(2) || 0}`); 
+      // Handle Translated Taxes
+      if (bookingData.finalPrice?.taxBrakeDown?.length > 0) {
+        bookingData.finalPrice.taxBrakeDown.forEach((tax: any) => {
+          const taxName = tax._translations?.name || tax.name;
+          addPaymentRow(
+            `${taxName}:`,
+            `${bookingData.currencyCode} ${tax.taxedAmount?.toFixed(2) || 0}`
+          );
+        });
+      } else {
+        addPaymentRow("Taxes:", `${bookingData.currencyCode} ${bookingData.finalPrice?.taxedAmount?.toFixed(2) || 0}`);
+      }
+
+      if (bookingData.finalPrice?.addonBrakeDown?.length > 0) {
+        const groupedAddons = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
+          const addonName = addon._translations?.name || addon.name;
+          if (!acc[addonName]) {
+            acc[addonName] = { ...addon, name: addonName, totalAmount: 0 };
+          }
+          acc[addonName].totalAmount += addon.totalAmount;
+          return acc;
+        }, {});
+        Object.values(groupedAddons).forEach((addon: any) => {
+          if (addon.totalAmount > 0) {
+            addPaymentRow(`Addon - ${addon.name}:`, `${bookingData.currencyCode} ${addon.totalAmount?.toFixed(2) || 0}`);
+          }
+        });
+      }
+
+      if (bookingData.finalPrice?.SpaPricingBrakeDowns?.length > 0) {
+        const groupedSpas = bookingData.finalPrice.SpaPricingBrakeDowns.reduce((acc: any, spa: any) => {
+          const spaName = spa._translations?.name || spa.name;
+          if (!acc[spaName]) {
+            acc[spaName] = { ...spa, name: spaName, totalAmount: 0 };
+          }
+          acc[spaName].totalAmount += spa.totalAmount;
+          return acc;
+        }, {});
+        Object.values(groupedSpas).forEach((spa: any) => {
+          if (spa.totalAmount > 0) {
+            addPaymentRow(`Spa - ${spa.name}:`, `${bookingData.currencyCode} ${spa.totalAmount?.toFixed(2) || 0}`);
+          }
+        });
+      }
+
       addPaymentRow("Total Amount:", `${bookingData.currencyCode} ${bookingData.finalPrice?.totalAmount?.toFixed(2) || amount}`, true);
 
       if (bookingData.paymentMethod === 'pay_at_hotel') {
@@ -627,7 +686,7 @@ if(!checkinForm.identityCardImage){
                 }}
               >
                 <h3 className="text-2xl font-bold text-white">
-                  🏨 {bookingData?.hotelName || "Hotel"}
+                  🏨 {bookingData.property?._translations?.name || bookingData.property?.name || bookingData?.hotelName || "Hotel"}
                 </h3>
                 <p className="text-sm text-blue-100 mt-1">
                   {t("MyTrip.bookingCode")} {bookingData.bookingCode.split("-")[1]}
@@ -857,10 +916,11 @@ if(!checkinForm.identityCardImage){
                   {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (() => {
                     // Group by name and sum totalAmount
                     const grouped = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
-                      if (!acc[addon.name]) {
-                        acc[addon.name] = { ...addon, totalAmount: 0 };
+                      const addonName = addon._translations?.name || addon.name;
+                      if (!acc[addonName]) {
+                        acc[addonName] = { ...addon, name: addonName, totalAmount: 0 };
                       }
-                      acc[addon.name].totalAmount += addon.totalAmount;
+                      acc[addonName].totalAmount += addon.totalAmount;
                       return acc;
                     }, {});
 
@@ -876,6 +936,32 @@ if(!checkinForm.identityCardImage){
                               </p>
                               <p className="font-medium">
                                 +{bookingData.currencyCode} {addon.totalAmount?.toFixed(2)}
+                              </p>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    );
+                  })()}
+
+                  {bookingData.finalPrice?.SpaPricingBrakeDowns?.length > 0 && (() => {
+                    const grouped = bookingData.finalPrice.SpaPricingBrakeDowns.reduce((acc: any, spa: any) => {
+                      const spaName = spa._translations?.name || spa.name;
+                      if (!acc[spaName]) {
+                        acc[spaName] = { ...spa, name: spaName, totalAmount: 0 };
+                      }
+                      acc[spaName].totalAmount += spa.totalAmount;
+                      return acc;
+                    }, {});
+
+                    return (
+                      <div className="space-y-1">
+                        {Object.values(grouped).map((spa: any, i: number) => (
+                          spa.totalAmount > 0 && (
+                            <div key={i} className="flex justify-between items-center">
+                              <p className="text-gray-600">💆 {spa.name}</p>
+                              <p className="font-medium">
+                                +{bookingData.currencyCode} {spa.totalAmount?.toFixed(2)}
                               </p>
                             </div>
                           )

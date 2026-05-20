@@ -6,6 +6,7 @@ import { ICReservationS, IGuestCheckInDetails } from '../types';
 import { getDeviceInfo, getGeoLocationDetails } from '../../utils';
 import { decodeToken } from '../../utils/jwtHelper';
 import { config } from '../../config';
+import { ReservationInterceptor } from '../../multi-language/interceptors/reservation/reservation.interceptor';
 
 export class ReservationController {
     private reservationService: NewReservationService;
@@ -238,6 +239,8 @@ export class ReservationController {
         try {
             const reservationCode = req.params.reservationCode;
             const propertyCode = req.query.propertyCode as string;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
             if (!propertyCode) {
                 return res
                     .status(400)
@@ -253,10 +256,13 @@ export class ReservationController {
                     .json(errorResponse('Reservation code is required'));
             }
 
-            const serRes = await this.reservationService.getReservaltionByCode(
+            let serRes = await this.reservationService.getReservaltionByCode(
                 reservationCode,
                 propertyCode
             );
+            
+            serRes = await ReservationInterceptor.intercept(serRes, locale);
+
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {
