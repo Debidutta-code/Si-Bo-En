@@ -317,7 +317,14 @@ export interface IFilterProperty {
     name: string;
     groupId?: string | null;
     brandId?: string | null;
-    property: { id: string; propertyName: string } | null;
+    property: { 
+        id: string; 
+        propertyName: string;
+        _translations?: {
+            propertyName: string;
+            description?: string;
+        };
+    } | null;
 }
 
 export interface IFilterOptionsResponse {

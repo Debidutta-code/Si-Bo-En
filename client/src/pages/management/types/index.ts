@@ -43,6 +43,9 @@ export interface ILoyaltyGuestField {
   fieldName: string;
   createdAt?: string;
   updatedAt?: string;
+   _translations: {
+                fieldName: string;
+            }
 }
 export interface IPaymentIntegration {
   id: string;

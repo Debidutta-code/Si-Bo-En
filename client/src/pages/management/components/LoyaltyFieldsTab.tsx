@@ -118,7 +118,7 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
         <div className="flex flex-wrap gap-2">
           {loyaltyGuestFields.map((field) => (
             <Badge key={field.id} variant="outline" className="text-sm py-2 px-3 flex items-center gap-2">
-              {field.fieldName}
+             {field._translations?.fieldName ?? field.fieldName}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="hover:text-blue-600 ml-1">

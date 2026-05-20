@@ -62,7 +62,7 @@ const formatCurrency = (amount: number) => {
                             </span>
                           )}
                           <div>
-                            <div className="font-bold">{property.propertyName}</div>
+                            <div className="font-bold">{property._translations?.propertyName ?? property.propertyName}</div>
                             <div className="text-xs text-muted-foreground font-medium">{property.propertyCode}</div>
                           </div>
                         </div>
@@ -117,7 +117,7 @@ const formatCurrency = (amount: number) => {
                             </span>
                           )}
                           <div>
-                            <div className="font-semibold">{property.propertyName}</div>
+                            <div className="font-semibold">{property._translations?.propertyName ?? property.propertyName}</div>
                             <div className="text-xs text-muted-foreground">{property.propertyCode}</div>
                           </div>
                         </div>
@@ -173,7 +173,7 @@ const formatCurrency = (amount: number) => {
                             </span>
                           )}
                           <div>
-                            <div className="font-semibold">{property.propertyName}</div>
+                            <div className="font-semibold">{property._translations?.propertyName ?? property.propertyName}</div>
                             <div className="text-xs text-muted-foreground">{property.propertyCode}</div>
                           </div>
                         </div>

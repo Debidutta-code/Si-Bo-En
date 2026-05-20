@@ -157,6 +157,10 @@ export interface ITopPropertyByRevenue {
     propertyCode: string;
     propertyName: string;
     totalRevenue: number;
+    _translations?: {
+        propertyName: string;
+        description?: string;
+    };
 }
 
 export interface ITopPropertyByBookings {
@@ -164,6 +168,10 @@ export interface ITopPropertyByBookings {
     propertyCode: string;
     propertyName: string;
     totalBookings: number;
+    _translations?: {
+        propertyName: string;
+        description?: string;
+    };
 }
 
 export interface ITopPropertyByOccupancy {
@@ -173,6 +181,10 @@ export interface ITopPropertyByOccupancy {
     occupancyRate: number;
     totalRooms: number;
     occupiedRooms: number;
+    _translations?: {
+        propertyName: string;
+        description?: string;
+    };
 }
 
 export interface ITopPerformingProperties {

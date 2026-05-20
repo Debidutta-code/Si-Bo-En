@@ -363,7 +363,7 @@ export default function MasterIntegrationsTab({
               ) : (
                 masterIntegrations.map((integration) => (
                   <TableRow key={integration.id}>
-                    <TableCell className="font-medium">{integration.name}</TableCell>
+                    <TableCell className="font-medium">{integration._translations?.name ?? integration.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{formatType(integration.type)}</Badge>
                     </TableCell>

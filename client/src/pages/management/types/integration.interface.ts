@@ -7,9 +7,12 @@ export interface ICMasterIntegrations {
 export interface IMasterIntegrations extends ICMasterIntegrations {
     id: string;
     createdAt: Date;
-        isActive: boolean;
-    requiredFieldsForMasterIntegration:IMasterIntegrationFields[];
-    masterIntegrationURLFields:IMasterIntegrationUrlFields[];
+    isActive: boolean;
+    requiredFieldsForMasterIntegration: IMasterIntegrationFields[];
+    masterIntegrationURLFields: IMasterIntegrationUrlFields[];
+    _translations?: {
+        name: string;
+    };
 }
 export interface ICMasterIntegrationIntegrationFields {
     name: string;
@@ -20,6 +23,7 @@ export interface IMasterIntegrationFields extends ICMasterIntegrationIntegration
 export interface ICMasterIntegrationUrlFields {
     name: string
     url: string
+    
 }
 export interface IMasterIntegrationUrlFields extends ICMasterIntegrationUrlFields{
     id:string

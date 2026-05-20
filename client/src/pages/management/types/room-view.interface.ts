@@ -6,4 +6,7 @@ export interface IMasterRoomView extends ICMasterRoomView{
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
+     _translations: {
+                viewName: string;
+            }
 }

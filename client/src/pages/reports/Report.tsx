@@ -261,7 +261,7 @@ const Report = () => {
                                                             <SelectItem value="all">All Properties</SelectItem>
                                                             {filteredProperties.map((prop) => (
                                                                 <SelectItem key={prop.id} value={prop.id}>
-                                                                    {prop.property?.propertyName || prop.name}
+                                                                   {prop.property?._translations?.propertyName ?? prop.property?.propertyName ?? prop.name}
                                                                 </SelectItem>
                                                             ))}
                                                         </SelectContent>

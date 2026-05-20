@@ -246,7 +246,7 @@ export default function Spa() {
         <CardContent className="pt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {categories.map((cat) => (
             <div key={cat.id} className="p-4 border rounded-lg flex items-center justify-between shadow-sm bg-white">
-              <span className="font-medium capitalize">{cat.name}</span>
+              <span className="font-medium capitalize">{cat._translations?.name ?? cat.name}</span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -314,7 +314,7 @@ export default function Spa() {
               <div key={sub.id} className="p-4 border rounded-lg flex flex-col justify-between shadow-sm bg-white">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className="font-medium block capitalize text-lg">{sub.name}</span>
+                    <span className="font-medium block capitalize text-lg">{sub._translations?.name ?? sub.name}</span>
                     <span className="text-xs text-gray-500 capitalize px-2 py-1 bg-gray-100 rounded-full mt-2 inline-block">
                       {parentCat?.name || 'Unknown Category'}
                     </span>

@@ -150,7 +150,9 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                             variant="outline"
                             className="text-sm py-2 px-3 flex items-center gap-2"
                         >
-                            <span className={rv.isActive ? "" : "text-gray-400 line-through"}>{rv.viewName}</span>
+                            <span className={rv.isActive ? "" : "text-gray-400 line-through"}>
+  {rv._translations?.viewName ?? rv.viewName}
+</span>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <button type="button" className="hover:text-blue-600" aria-label={`Actions for ${rv.viewName}`}>
