@@ -21,7 +21,7 @@ model SpaSlots {
     Reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
     spaDate SpaDates @relation(fields: [spaDateId], references: [id],onDelete: Cascade)
     spaPricing SpaPricing?
-    SlotBooking SlotBooking?
+    SlotBookings SlotBooking[]
     @@map("spa_slots")
 }
 
@@ -29,7 +29,7 @@ model SlotBooking {
     id              String    @id @default(uuid())
     spaBookingId    String    @map("spa_booking_id")
     spaId           String    @map("spa_id")
-    spaSlotId       String    @unique @map("spa_slot_id") 
+    spaSlotId       String    @map("spa_slot_id") 
     
     amount          Float     @map("amount")
     

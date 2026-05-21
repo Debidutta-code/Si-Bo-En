@@ -313,7 +313,7 @@ export class SpaRepository {
             throw new Error('Error occur while creating spa booking');
         }
     }
-    public async cancelSpaBooking(bookingId: string, customerId?: string) {
+    public async cancelSpaBooking(bookingId: string, customerId?: string, spaSlotId?: string) {
         try {
             return await prisma.$transaction(async (tx) => {
                 const booking = await tx.spaBooking.findUnique({
@@ -333,21 +333,69 @@ export class SpaRepository {
                     throw new Error('Booking is already cancelled');
                 }
 
-                // Update booking status
-                const updatedBooking = await tx.spaBooking.update({
-                    where: { id: bookingId },
-                    data: { status: 'cancelled' }
-                });
+                if (spaSlotId) {
+                    const slotBookingToCancel = booking.SlotBookings.find(
+                        (sb) => sb.spaSlotId === spaSlotId
+                    );
 
-                // Free up all associated slots
-                for (const slotBooking of booking.SlotBookings) {
+                    if (!slotBookingToCancel) {
+                        throw new Error('Slot booking not found in this reservation');
+                    }
+
+                    // Free up the specific slot
                     await tx.spaSlots.update({
-                        where: { id: slotBooking.spaSlotId },
+                        where: { id: spaSlotId },
                         data: { isBooked: false }
                     });
-                }
 
-                return updatedBooking;
+                    // Delete the slot booking record
+                    await tx.slotBooking.delete({
+                        where: { id: slotBookingToCancel.id }
+                    });
+
+                    const remainingSlotBookings = booking.SlotBookings.filter(
+                        (sb) => sb.spaSlotId !== spaSlotId
+                    );
+
+                    let updatedBooking;
+                    if (remainingSlotBookings.length === 0) {
+                        // If no slots remain, cancel the entire booking
+                        updatedBooking = await tx.spaBooking.update({
+                            where: { id: bookingId },
+                            data: {
+                                status: 'cancelled',
+                                totalAmount: 0
+                            }
+                        });
+                    } else {
+                        // Otherwise, reduce the total amount
+                        const newTotalAmount = Math.max(0, booking.totalAmount - slotBookingToCancel.amount);
+                        updatedBooking = await tx.spaBooking.update({
+                            where: { id: bookingId },
+                            data: {
+                                totalAmount: newTotalAmount
+                            }
+                        });
+                    }
+
+                    return updatedBooking;
+                } else {
+                    // Update booking status
+                    const updatedBooking = await tx.spaBooking.update({
+                        where: { id: bookingId },
+                        data: { status: 'cancelled' }
+                    });
+
+                    // Free up all associated slots
+                    for (const slotBooking of booking.SlotBookings) {
+                        await tx.spaSlots.update({
+                            where: { id: slotBooking.spaSlotId },
+                            data: { isBooked: false }
+                        });
+                    }
+
+                    return updatedBooking;
+                }
             });
         } catch (error) {
             if (error instanceof Error) {
