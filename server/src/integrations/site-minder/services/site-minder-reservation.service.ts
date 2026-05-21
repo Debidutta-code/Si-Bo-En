@@ -267,7 +267,7 @@ export class SiteMinderReservationService {
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
                 // ✅ addons + tourist fee (payLater) both go to Services
-                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
                 payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
                 guestDetails: payload.guestDetails,
             };
@@ -339,7 +339,7 @@ export class SiteMinderReservationService {
                 paymentMethod,
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
-                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
                 payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
             };
 
@@ -410,7 +410,7 @@ export class SiteMinderReservationService {
                 paymentMethod,
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
-                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
                 payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
             };
 

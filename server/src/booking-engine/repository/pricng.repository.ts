@@ -73,7 +73,7 @@ export class PricingRepository {
                             roomTypeCode: roomTypeCode,
                             date: {
                                 gte: startDate,
-                                lte: endDate,
+                                lt: endDate,
                             },
                         },
                         include: {
@@ -221,16 +221,18 @@ export class PricingRepository {
         propertyId: string
     ): Promise<boolean> {
         try {
+            const customer = await prisma.customers.findUnique({
+                where: { email: guestEmail },
+                select: { id: true },
+            });
+            if (!customer) return false;
             const isLoyalityGuest = await prisma.creationGuest.findFirst({
                 where: {
-                    // propertyId,
                     creationLoyaltyConfigId: propertyId,
-                    LoyalityGuest: {
-                        guestEmail,
-                    },
+                    customerId: customer.id,
                 },
             });
-            return isLoyalityGuest ? true : false;
+            return !!isLoyalityGuest;
         } catch (error) {
             throw new Error('Failed to fetch loyality discount');
         }
@@ -267,8 +269,8 @@ export class PricingRepository {
         propertyId: string
     ): Promise<ILoyaltyDiscountData | null> {
         try {
-            const loyalityGuest = await prisma.loyalityGuest.findUnique({
-                where: { guestEmail },
+            const customer = await prisma.customers.findUnique({
+                where: { email: guestEmail },
                 include: {
                     PropertyLoyalityGuests: {
                         where: {
@@ -291,13 +293,13 @@ export class PricingRepository {
             });
 
             if (
-                !loyalityGuest ||
-                loyalityGuest.PropertyLoyalityGuests.length === 0
+                !customer ||
+                customer.PropertyLoyalityGuests.length === 0
             ) {
                 return null; // not enrolled in any program for this property
             }
 
-            const propertyEnrollment = loyalityGuest.PropertyLoyalityGuests[0];
+            const propertyEnrollment = customer.PropertyLoyalityGuests[0];
             const creationConfig =
                 propertyEnrollment.PropertyLoyalityConfig.CreationLoyaltyConfig;
 
@@ -306,7 +308,7 @@ export class PricingRepository {
             }
 
             // Find this guest's level in the specific creation loyalty program
-            const creationGuest = loyalityGuest.CreationGuest.find(
+            const creationGuest = customer.CreationGuest.find(
                 cg => cg.creationLoyaltyConfigId === creationConfig.id
             );
             const guestLevel = creationGuest?.guestLevel ?? null;
@@ -317,11 +319,11 @@ export class PricingRepository {
                 fallback:
                     creationConfig.discountValue != null
                         ? {
-                              value: creationConfig.discountValue,
-                              type: creationConfig.loyaltyDiscountType as
-                                  | 'percentage'
-                                  | 'flat',
-                          }
+                            value: creationConfig.discountValue,
+                            type: creationConfig.loyaltyDiscountType as
+                                | 'percentage'
+                                | 'flat',
+                        }
                         : null,
             };
         } catch (error) {

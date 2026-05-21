@@ -316,7 +316,7 @@ export class SpaRepository {
             throw new Error(String(error) || 'Error occur while creating spa booking');
         }
     }
-    public async cancelSpaBooking(bookingId: string) {
+    public async cancelSpaBooking(bookingId: string, customerId?: string) {
         try {
             return await prisma.$transaction(async (tx) => {
                 const booking = await tx.spaBooking.findUnique({
@@ -326,6 +326,10 @@ export class SpaRepository {
 
                 if (!booking) {
                     throw new Error('Spa booking not found');
+                }
+
+                if (customerId && booking.userId !== customerId) {
+                    throw new Error('Unauthorized to cancel this booking');
                 }
 
                 if (booking.status === 'cancelled') {

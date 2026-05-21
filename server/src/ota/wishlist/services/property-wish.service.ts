@@ -24,7 +24,7 @@ export class PropertyWishService {
             const wishlist = await this.propertyWishList.createPropertyWishList(
                 {
                     propertyId,
-                    otaGuestId: userId,
+                    customerId: userId,
                     propertyCode: propertyDetails.propertyCode,
                     propertyName: propertyDetails.propertyName,
                 }

@@ -79,14 +79,6 @@ export class ReviewRepository {
                     skip,
                     take: limit,
                     orderBy: { createdAt: 'desc' },
-                    include: {
-                        OtaGuest: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                            },
-                        },
-                    },
                 }),
                 prisma.review.count({
                     where: { propertyId, isDeleted: false },
@@ -99,8 +91,8 @@ export class ReviewRepository {
             );
         }
     }
-    public async getReviewsByOtaCustomer(
-        otaCustomerId: string,
+    public async getReviewsByCustomer(
+        customerId: string,
         page: number = 1,
         limit: number = 10
     ): Promise<{
@@ -113,27 +105,19 @@ export class ReviewRepository {
             const skip = (page - 1) * limit;
             const [data, total] = await Promise.all([
                 prisma.review.findMany({
-                    where: { otaCustomerId, isDeleted: false },
+                    where: { customerId, isDeleted: false },
                     skip,
                     take: limit,
                     orderBy: { createdAt: 'desc' },
-                    include: {
-                        OtaGuest: {
-                            select: {
-                                firstName: true,
-                                lastName: true,
-                            },
-                        },
-                    },
                 }),
                 prisma.review.count({
-                    where: { otaCustomerId, isDeleted: false },
+                    where: { customerId, isDeleted: false },
                 }),
             ]);
             return { data, total, page, totalPages: Math.ceil(total / limit) };
         } catch (error) {
             throw new Error(
-                `Failed to fetch reviews for OTA customer: ${otaCustomerId}`
+                `Failed to fetch reviews for OTA customer: ${customerId}`
             );
         }
     }

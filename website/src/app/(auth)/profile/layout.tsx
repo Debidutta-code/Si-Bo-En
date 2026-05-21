@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/src/store/store";
-import { ProfileSidebar } from "../../../../components/loyalty/ProfileSidebar";
+import { ProfileSidebar } from "@/src/components/loyalty/ProfileSidebar";
 
 export default function ProfileLayout({
   children,

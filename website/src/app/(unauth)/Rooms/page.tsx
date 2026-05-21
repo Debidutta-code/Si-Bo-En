@@ -153,6 +153,7 @@ const Rooms = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const bookingContext = useSelector((state: RootState) => state.booking);
+  const customer = useSelector((state: RootState) => (state as any).customer);
   const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<
     any[]
   >([]);
@@ -204,6 +205,11 @@ const Rooms = () => {
     selectedPromotionsList: any[],
     priceData: any,
   ) => {
+    if (!customer.isAuthenticated) {
+      sessionStorage.setItem("customerRedirectUrl", "/Rooms");
+      router.push("/login");
+      return;
+    }
     setBookingSelectedPromotions(selectedPromotionsList);
 
     const rawRooms =
@@ -1077,7 +1083,7 @@ const Rooms = () => {
       </Dialog>
 
       {/* Guest Form Modal */}
-      {bookingRoom && price !== null && (
+      {bookingRoom && price !== null && customer.isAuthenticated && (
         <GuestFormModal
           guestForms={guestForms}
           contactInfo={contactInfo}
@@ -1085,6 +1091,7 @@ const Rooms = () => {
           finalPrice={finalPrice}
           bookingContext={bookingContext}
           loyaltyMemberEmail={loyaltyMemberEmail}
+          loyaltyDiscountInfo={loyaltyDiscountInfo}
           propertyId={propertyDetails?.id || ""}
           onClose={() => {
             setBookingRoom(null);

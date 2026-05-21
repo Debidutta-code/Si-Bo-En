@@ -62,7 +62,7 @@ export class ReviewController {
                 propertyId,
                 propertyCode,
                 propertyName,
-                otaCustomerId: otaUser.id,
+                customerId: otaUser.id,
                 reservationId,
                 rating,
                 review,

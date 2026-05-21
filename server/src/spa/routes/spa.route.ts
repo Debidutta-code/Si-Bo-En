@@ -1,4 +1,5 @@
 import { protect } from '../../middlewares/auth.middleware';
+import { customerProtect } from '../../middlewares/customer-auth.middleware';
 import { SpaController } from '../controller';
 import { Router } from 'express';
 import { spaSlotRouter } from './spa-slots.route';
@@ -23,6 +24,6 @@ spaRouter
     .put(protect, spaController.updateSpa.bind(spaController))
     .delete(protect, spaController.deleteSpa.bind(spaController));
 spaRouter.route("/available/:bookingCode").get(spaController.getAvailableSpaForReservation.bind(spaController));
-spaRouter.route("/reservation").post(spaController.createSpaReservation.bind(spaController));
-spaRouter.route("/reservation/cancel/:bookingId").put(spaController.cancelSpaReservation.bind(spaController));
+spaRouter.route("/reservation").post(customerProtect, spaController.createSpaReservation.bind(spaController));
+spaRouter.route("/reservation/cancel/:bookingId").put(customerProtect, spaController.cancelSpaReservation.bind(spaController));
 export {spaRouter}

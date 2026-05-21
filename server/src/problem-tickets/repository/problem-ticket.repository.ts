@@ -13,8 +13,8 @@ export class ProblemTicketRepository {
     ): Promise<IProblemTickets> {
         try {
             return await prisma.problemTickets.create({
-                data: data,
-            });
+                data: data as any,
+            }) as unknown as IProblemTickets;
         } catch (error) {
             throw new Error('Failed to create ticket');
         }
@@ -26,7 +26,7 @@ export class ProblemTicketRepository {
                 where: {
                     id: id,
                 },
-            });
+            }) as unknown as IProblemTickets | null;
         } catch (error) {
             throw new Error('Failed to get ticket');
         }
@@ -39,7 +39,7 @@ export class ProblemTicketRepository {
                 where: {
                     ticketNo: ticketNumber,
                 },
-            });
+            }) as unknown as IProblemTickets | null;
         } catch (error) {
             throw new Error('Failed to get ticket');
         }
@@ -54,8 +54,8 @@ export class ProblemTicketRepository {
                 where: {
                     id: id,
                 },
-                data: data,
-            });
+                data: data as any,
+            }) as unknown as IProblemTickets;
         } catch (error) {
             throw new Error('Failed to update ticket');
         }
@@ -69,24 +69,24 @@ export class ProblemTicketRepository {
                 data: {
                     isDeleted: true,
                 },
-            });
+            }) as unknown as IProblemTickets;
         } catch (error) {
             throw new Error('Failed to delete ticket');
         }
     }
     public async getTicketsRaisedByCustomer(
-        guestId: string,
+        customerId: string,
         limit: number,
         page: number
     ): Promise<IProblemTicketsWithData[]> {
         try {
             return await prisma.problemTickets.findMany({
                 where: {
-                    guestId: guestId,
+                    customerId: customerId,
                     isDeleted: false,
                 },
                 include: {
-                    Guests: true,
+                    Customer: true,
                     Property: true,
                 },
                 take: limit,
@@ -96,7 +96,7 @@ export class ProblemTicketRepository {
                         createdAt: 'desc',
                     },
                 ],
-            });
+            }) as unknown as IProblemTicketsWithData[];
         } catch (error) {
             throw new Error('Failed to get tickets');
         }
@@ -113,7 +113,7 @@ export class ProblemTicketRepository {
                     isDeleted: false,
                 },
                 include: {
-                    Guests: true,
+                    Customer: true,
                     Property: true,
                 },
                 take: limit,
@@ -123,7 +123,7 @@ export class ProblemTicketRepository {
                         createdAt: 'desc',
                     },
                 ],
-            });
+            }) as unknown as IProblemTicketsWithData[];
         } catch (error) {
             throw new Error('Failed to get tickets');
         }
@@ -140,7 +140,7 @@ export class ProblemTicketRepository {
                 data: {
                     priority: priority,
                 },
-            });
+            }) as unknown as IProblemTickets;
         } catch (error) {
             throw new Error('Failed to update ticket priority');
         }
@@ -157,16 +157,16 @@ export class ProblemTicketRepository {
                 data: {
                     status: status,
                 },
-            });
+            }) as unknown as IProblemTickets;
         } catch (error) {
             throw new Error('Failed to update ticket status');
         }
     }
-    public async getTotalTicketsForCustomer(guestId: string): Promise<number> {
+    public async getTotalTicketsForCustomer(customerId: string): Promise<number> {
         try {
             return await prisma.problemTickets.count({
                 where: {
-                    guestId: guestId,
+                    customerId: customerId,
                     isDeleted: false,
                 },
             });

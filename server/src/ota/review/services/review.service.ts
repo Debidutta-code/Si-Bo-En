@@ -35,7 +35,7 @@ export class ReviewService {
 
     public async updateReview(
         reviewId: string,
-        otaCustomerId: string,
+        customerId: string,
         iuReview: IUReview
     ): Promise<IApiResponse> {
         try {
@@ -43,7 +43,7 @@ export class ReviewService {
             if (!review) {
                 return errorResponse('Review not found', 'Not Found');
             }
-            if (review.otaCustomerId !== otaCustomerId) {
+            if (review.customerId !== customerId) {
                 return errorResponse(
                     'Unauthorized to update this review',
                     'Unauthorized'
@@ -68,14 +68,14 @@ export class ReviewService {
 
     public async deleteReview(
         reviewId: string,
-        otaCustomerId: string
+        customerId: string
     ): Promise<IApiResponse> {
         try {
             const review = await this.reviewRepository.getReviewById(reviewId);
             if (!review) {
                 return errorResponse('Review not found', 'Not Found');
             }
-            if (review.otaCustomerId !== otaCustomerId) {
+            if (review.customerId !== customerId) {
                 return errorResponse(
                     'Unauthorized to delete this review',
                     'Unauthorized'
@@ -121,13 +121,13 @@ export class ReviewService {
         }
     }
     public async getCustomerReview(
-        otaCustomerId: string,
+        customerId: string,
         page: number,
         limit: number
     ): Promise<IApiResponse> {
         try {
-            const result = await this.reviewRepository.getReviewsByOtaCustomer(
-                otaCustomerId,
+            const result = await this.reviewRepository.getReviewsByCustomer(
+                customerId,
                 page,
                 limit
             );

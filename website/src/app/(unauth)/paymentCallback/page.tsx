@@ -19,6 +19,7 @@ const PaymentCallbackPage = () => {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const booking = useSelector((state: RootState) => state.booking);
+  const customer = useSelector((state: RootState) => (state as any).customer);
 
   const [status, setStatus] = useState<"checking" | "success" | "failed" | "error">("checking");
   const [message, setMessage] = useState("Verifying your payment...");
@@ -88,8 +89,8 @@ const PaymentCallbackPage = () => {
           selectedPromotions: currentBooking.selectedPromotions || [],
           selectedAddons: currentBooking.selectedAddons || [],
           platforms: "web",
-          isLoyalityGuest: !!currentBooking.loyalityMemberEmail,  // ADD THIS
-
+          isLoyalityGuest: !!currentBooking.loyalityMemberEmail,
+          customerId: customer.isAuthenticated ? customer.customer?.id : undefined,
         };
       }
 
@@ -144,7 +145,7 @@ const PaymentCallbackPage = () => {
         id: "booking-error",
       });
     }
-  }, [dispatch, router]);
+  }, [dispatch, router, customer]);
 
   // Handle payment status updates from socket
   const handlePaymentUpdate = useCallback((update: any) => {
