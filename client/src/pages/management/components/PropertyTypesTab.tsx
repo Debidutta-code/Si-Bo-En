@@ -9,7 +9,7 @@ import { Plus, Trash2, MoreVertical, Languages } from "lucide-react";
 import toast from "react-hot-toast";
 import type { IPropertyType } from "../types";
 import { createPropertyTypeService, deletePropertyTypeService } from "../services/management.services";
-import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "./multilang/ManagementTranslationDialogs";
 import {
   upsertMasterPropertyTypeTranslationService,
   getAllMasterPropertyTypeTranslationsService,
@@ -28,6 +28,9 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
   const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
 
   const handleCreatePropertyType = async () => {
     const response = await createPropertyTypeService(propertyTypeForm.name, propertyTypeForm.description);
@@ -168,6 +171,20 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
             ]}
             onFetch={getAllMasterPropertyTypeTranslationsService}
             onDelete={deleteMasterPropertyTypeTranslationLocaleService}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={translationEntityId!}
+            locale={editingLocale}
+            initialData={editingData}
+            title="Edit Property Type Translation"
+            fields={[
+              { key: "propertyTypeName", label: "Property Type Name", placeholder: "e.g., Hotel" },
+              { key: "propertyTypeDescription", label: "Description", placeholder: "Describe this type" },
+            ]}
+            onSave={async (id, locale, data) => upsertMasterPropertyTypeTranslationService(id, { [locale]: data })}
           />
         </>
       )}

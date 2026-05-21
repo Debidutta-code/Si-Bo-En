@@ -60,7 +60,7 @@ export class PromotionInterceptor {
 
         // 4. Nested Room
         if (result.room?.id) {
-            const roomTranslation = await RoomTranslation.getTranslated(result.room.roomType, locale);
+            const roomTranslation = await RoomTranslation.getTranslated(result.room.id, locale);
             if (roomTranslation) {
                 result.room = { ...result.room, _translations: roomTranslation };
             }

@@ -79,7 +79,7 @@ import { format } from "date-fns";
 import { TaxRuleDialog, TaxGroupDialog, TouristTaxDialog } from "./components";
 import { fetchRoomTypesService } from "../inventory/services";
 import type { RoomTypes } from "../inventory/types";
-import { AddTranslationDialog, CheckTranslationsDialog } from "../management/components/multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "../management/components/multilang/ManagementTranslationDialogs";
 import {
     upsertTaxRuleTranslation,
     getAllTaxRuleTranslations,
@@ -152,13 +152,19 @@ export default function TaxSystem() {
     const [translationDialog, setTranslationDialog] = useState<{
         openAdd: boolean;
         openCheck: boolean;
+        openEdit: boolean;
         type: "rule" | "group" | "charge" | null;
         entityId: string | null;
+        editingLocale: string;
+        editingData: Record<string, any>;
     }>({
         openAdd: false,
         openCheck: false,
+        openEdit: false,
         type: null,
         entityId: null,
+        editingLocale: "",
+        editingData: {},
     });
   const [allRooms, setAllRooms] = useState<RoomTypes[]>([]);
 
@@ -848,13 +854,13 @@ export default function TaxSystem() {
                                                             Edit
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            onClick={() => setTranslationDialog({ openAdd: true, openCheck: false, type: 'rule', entityId: rule.id })}
+                                                            onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'rule', entityId: rule.id }))}
                                                         >
                                                             <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
                                                             Add Translation
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            onClick={() => setTranslationDialog({ openAdd: false, openCheck: true, type: 'rule', entityId: rule.id })}
+                                                            onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, type: 'rule', entityId: rule.id }))}
                                                         >
                                                             <Languages className="w-4 h-4 mr-2 text-green-600" />
                                                             Check Translations
@@ -1091,13 +1097,13 @@ export default function TaxSystem() {
                                                             Edit
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            onClick={() => setTranslationDialog({ openAdd: true, openCheck: false, type: 'group', entityId: group.id })}
+                                                            onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'group', entityId: group.id }))}
                                                         >
                                                             <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
                                                             Add Translation
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            onClick={() => setTranslationDialog({ openAdd: false, openCheck: true, type: 'group', entityId: group.id })}
+                                                            onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, type: 'group', entityId: group.id }))}
                                                         >
                                                             <Languages className="w-4 h-4 mr-2 text-green-600" />
                                                             Check Translations
@@ -1340,13 +1346,13 @@ export default function TaxSystem() {
                                                             Edit
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            onClick={() => setTranslationDialog({ openAdd: true, openCheck: false, type: 'charge', entityId: charge.id })}
+                                                            onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'charge', entityId: charge.id }))}
                                                         >
                                                             <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
                                                             Add Translation
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            onClick={() => setTranslationDialog({ openAdd: false, openCheck: true, type: 'charge', entityId: charge.id })}
+                                                            onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, type: 'charge', entityId: charge.id }))}
                                                         >
                                                             <Languages className="w-4 h-4 mr-2 text-green-600" />
                                                             Check Translations
@@ -1580,6 +1586,20 @@ export default function TaxSystem() {
                             ]}
                             onFetch={getAllTaxRuleTranslations}
                             onDelete={deleteTaxRuleTranslationLocale}
+                            onEdit={(locale, data) => setTranslationDialog(prev => ({ ...prev, openEdit: true, editingLocale: locale, editingData: data }))}
+                        />
+                        <EditTranslationDialog
+                            open={translationDialog.openEdit && translationDialog.type === "rule"}
+                            onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openEdit: open }))}
+                            entityId={translationDialog.entityId!}
+                            locale={translationDialog.editingLocale}
+                            initialData={translationDialog.editingData}
+                            title="Edit Tax Rule Translation"
+                            fields={[
+                                { key: "name", label: "Rule Name", placeholder: "e.g. Impuesto..." },
+                                { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                            ]}
+                            onSave={async (id, locale, data) => upsertTaxRuleTranslation(id, { [locale]: data })}
                         />
                     </>
                 )}
@@ -1607,6 +1627,19 @@ export default function TaxSystem() {
                             ]}
                             onFetch={getAllTaxGroupTranslations}
                             onDelete={deleteTaxGroupTranslationLocale}
+                            onEdit={(locale, data) => setTranslationDialog(prev => ({ ...prev, openEdit: true, editingLocale: locale, editingData: data }))}
+                        />
+                        <EditTranslationDialog
+                            open={translationDialog.openEdit && translationDialog.type === "group"}
+                            onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openEdit: open }))}
+                            entityId={translationDialog.entityId!}
+                            locale={translationDialog.editingLocale}
+                            initialData={translationDialog.editingData}
+                            title="Edit Tax Group Translation"
+                            fields={[
+                                { key: "name", label: "Group Name", placeholder: "e.g. Grupo de Impuestos..." }
+                            ]}
+                            onSave={async (id, locale, data) => upsertTaxGroupTranslation(id, { [locale]: data })}
                         />
                     </>
                 )}
@@ -1634,6 +1667,19 @@ export default function TaxSystem() {
                             ]}
                             onFetch={getAllTouristTaxTranslations}
                             onDelete={deleteTouristTaxTranslationLocale}
+                            onEdit={(locale, data) => setTranslationDialog(prev => ({ ...prev, openEdit: true, editingLocale: locale, editingData: data }))}
+                        />
+                        <EditTranslationDialog
+                            open={translationDialog.openEdit && translationDialog.type === "charge"}
+                            onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openEdit: open }))}
+                            entityId={translationDialog.entityId!}
+                            locale={translationDialog.editingLocale}
+                            initialData={translationDialog.editingData}
+                            title="Edit Additional Charge Translation"
+                            fields={[
+                                { key: "name", label: "Charge Name", placeholder: "e.g. Cargo Adicional..." }
+                            ]}
+                            onSave={async (id, locale, data) => upsertTouristTaxTranslation(id, { [locale]: data })}
                         />
                     </>
                 )}

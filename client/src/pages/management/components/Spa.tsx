@@ -32,7 +32,7 @@ import {
   updateSpaSubCategoryService,
   deleteSpaSubCategoryService,
 } from '../services/spa.services';
-import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "./multilang/ManagementTranslationDialogs";
 import {
   upsertSpaCategoryTranslationService,
   getAllSpaCategoryTranslationsService,
@@ -64,6 +64,9 @@ export default function Spa() {
   const [translationEntityType, setTranslationEntityType] = useState<'category' | 'subcategory'>('category');
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
 
   // Filter state
   const [selectedCategoryIdFilter, setSelectedCategoryIdFilter] = useState<string>("all");
@@ -477,6 +480,22 @@ export default function Spa() {
             displayFields={[{ key: "name", label: "Name" }]}
             onFetch={translationEntityType === 'category' ? getAllSpaCategoryTranslationsService : getAllSpaSubCategoryTranslationsService}
             onDelete={translationEntityType === 'category' ? deleteSpaCategoryTranslationLocaleService : deleteSpaSubCategoryTranslationLocaleService}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={translationEntityId}
+            locale={editingLocale}
+            initialData={editingData}
+            title={translationEntityType === 'category' ? 'Edit Spa Category Translation' : 'Edit Spa Sub-Category Translation'}
+            fields={[{ key: "name", label: "Name", placeholder: "e.g., Masajes" }]}
+            onSave={async (id, locale, data) => {
+              if (translationEntityType === 'category') {
+                return await upsertSpaCategoryTranslationService(id, { [locale]: data });
+              }
+              return await upsertSpaSubCategoryTranslationService(id, { [locale]: data });
+            }}
           />
         </>
       )}

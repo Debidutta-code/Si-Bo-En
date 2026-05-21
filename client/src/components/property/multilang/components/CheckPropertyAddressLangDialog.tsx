@@ -5,14 +5,17 @@ import { getAllPropertyAddressTranslationsService, deletePropertyAddressTranslat
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/Loader/Loader";
+import { Trash2 } from "lucide-react";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   propertyAddressId: string;
+  /** Optional: when provided, an Edit (pencil) button is shown for each locale row */
+  onEdit?: (locale: string, data: Record<string, any>) => void;
 }
 
-export default function CheckPropertyAddressLangDialog({ open, onOpenChange, propertyAddressId }: Props) {
+export default function CheckPropertyAddressLangDialog({ open, onOpenChange, propertyAddressId, onEdit }: Props) {
   const [translations, setTranslations] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
 
@@ -53,13 +56,31 @@ export default function CheckPropertyAddressLangDialog({ open, onOpenChange, pro
           <div className="space-y-4 py-4">
             {Object.entries(translations).length === 0 ? <p className="text-center text-gray-500">No translations found.</p> : (
               Object.entries(translations).map(([locale, data]) => (
-                <div key={locale} className="flex justify-between items-center border p-4 rounded-md shadow-sm">
-                  <div>
+                <div key={locale} className="flex justify-between items-start border p-4 rounded-md shadow-sm gap-3">
+                  <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-gray-800">{getLangName(locale)}</h4>
                     <p className="text-sm text-gray-600 mt-1"><span className="font-medium">City:</span> {data.city}</p>
                     <p className="text-sm text-gray-600"><span className="font-medium">Address:</span> {data.addressLine1}</p>
                   </div>
-                  <Button variant="destructive" size="sm" onClick={() => handleDelete(locale)}>Delete</Button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {onEdit && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        title="Edit translation"
+                        onClick={() => onEdit(locale, data)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleDelete(locale)}>
+                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                    </Button>
+                  </div>
                 </div>
               ))
             )}

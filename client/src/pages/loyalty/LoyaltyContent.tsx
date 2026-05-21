@@ -30,7 +30,7 @@ import {
   deleteSpecialConditionService,
   getSpecialConditionsByProgramIdService
 } from "./services/loyality-condition.service";
-import { AddTranslationDialog, CheckTranslationsDialog } from "../management/components/multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "../management/components/multilang/ManagementTranslationDialogs";
 import {
   upsertLoyaltyConditionsTranslationService,
   getAllLoyaltyConditionsTranslationsService,
@@ -73,6 +73,9 @@ export default function LoyaltyContent() {
   const [translationEntityType, setTranslationEntityType] = useState<"condition" | "special">("condition");
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (creationId) {
@@ -603,6 +606,29 @@ if (isLoading.isLoading) {
             }
             onFetch={translationEntityType === "condition" ? getAllLoyaltyConditionsTranslationsService : getAllLoyaltySpecialConditionTranslationsService}
             onDelete={translationEntityType === "condition" ? deleteLoyaltyConditionsTranslationLocaleService : deleteLoyaltySpecialConditionTranslationLocaleService}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={translationEntityId!}
+            locale={editingLocale}
+            initialData={editingData}
+            title={translationEntityType === "condition" ? "Edit Condition Translation" : "Edit Special Condition Translation"}
+            fields={
+              translationEntityType === "condition"
+                ? [{ key: "text", label: "Condition Text", placeholder: "Enter translated text..." }]
+                : [
+                    { key: "title", label: "Title", placeholder: "Enter translated title..." },
+                    { key: "subTitle", label: "Subtitle", placeholder: "Enter translated subtitle..." }
+                  ]
+            }
+            onSave={async (id, locale, data) => {
+              if (translationEntityType === "condition") {
+                return await upsertLoyaltyConditionsTranslationService(id, { [locale]: data });
+              }
+              return await upsertLoyaltySpecialConditionTranslationService(id, { [locale]: data });
+            }}
           />
         </>
       )}

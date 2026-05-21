@@ -19,7 +19,7 @@ import {
   addRequiredFieldService,
   deleteRequiredFieldService,
 } from "../services/integration.services.ts";
-import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "./multilang/ManagementTranslationDialogs";
 import {
   upsertMasterIntegrationTranslationService,
   getAllMasterIntegrationTranslationsService,
@@ -47,6 +47,9 @@ export default function MasterIntegrationsTab({
   const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
 
   // Form state for creating integration
   const [formData, setFormData] = useState<ICMasterIntegrationsS>({
@@ -832,6 +835,17 @@ export default function MasterIntegrationsTab({
             displayFields={[{ key: "name", label: "Name" }]}
             onFetch={getAllMasterIntegrationTranslationsService}
             onDelete={deleteMasterIntegrationTranslationLocaleService}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={translationEntityId!}
+            locale={editingLocale}
+            initialData={editingData}
+            title="Edit Integration Translation"
+            fields={[{ key: "name", label: "Integration Name", placeholder: "e.g., Opera PMS" }]}
+            onSave={async (id, locale, data) => upsertMasterIntegrationTranslationService(id, { [locale]: data })}
           />
         </>
       )}

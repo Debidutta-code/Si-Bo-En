@@ -28,6 +28,8 @@ import {
 } from "lucide-react";
 import AddCreationLanguageDialog from "@/components/creation/AddCreationLanguageDialog";
 import CheckCreationLanguagesDialog from "@/components/creation/CheckCreationLanguagesDialog";
+import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
+import { upsertCreationTranslationService } from "../service/creation-lang.service";
 import {
   Dialog,
   DialogContent,
@@ -99,6 +101,9 @@ export default function page() {
 
   const [addLanguageDialogOpen, setAddLanguageDialogOpen] = useState(false);
   const [checkLanguagesDialogOpen, setCheckLanguagesDialogOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
   const getTabDisplayName = (tab: string): string => {
     const pluralMap: { [key: string]: string } = {
       brand: "brands",
@@ -752,6 +757,19 @@ export default function page() {
             open={checkLanguagesDialogOpen}
             onOpenChange={setCheckLanguagesDialogOpen}
             creationId={creations.groupData.id}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={creations.groupData.id}
+            locale={editingLocale}
+            initialData={editingData}
+            title="Edit Group Translation"
+            fields={[
+              { key: "name", label: "Group Name", placeholder: "e.g. Grupo Sol" },
+            ]}
+            onSave={async (id, locale, data) => upsertCreationTranslationService(id, { [locale]: data })}
           />
         </>
       )}

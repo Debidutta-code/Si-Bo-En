@@ -11,6 +11,7 @@ import ExpandableDescription from "@/components/ExplandableDescription";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import AddPropertyDetailsLangDialog from "../multilang/components/AddPropertyDetailsLangDialog";
 import CheckPropertyDetailsLangDialog from "../multilang/components/CheckPropertyDetailsLangDialog";
+import { upsertPropertyTranslationService } from "../multilang/services/property.services";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +42,7 @@ import {
   updatePropertyEmail,
 } from "../api/create/propertyEmails.apis";
 import { useNavigate } from "react-router-dom";
+import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
 
 export default function PropertyDetails({
   propertyId,
@@ -106,6 +108,9 @@ export default function PropertyDetails({
 
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
   useEffect(() => {
     if (!propertyId) {
       toast.error("Property id not found");
@@ -354,7 +359,25 @@ _translations:data._translations
           </DropdownMenu>
 
           <AddPropertyDetailsLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} propertyId={propertyId} />
-          <CheckPropertyDetailsLangDialog open={checkTranslationsOpen} onOpenChange={setCheckTranslationsOpen} propertyId={propertyId} />
+          <CheckPropertyDetailsLangDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            propertyId={propertyId}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={propertyId}
+            locale={editingLocale}
+            initialData={editingData}
+            title="Edit Property Details Translation"
+            fields={[
+              { key: "propertyName", label: "Property Name", placeholder: "e.g. Hotel Sol" },
+              { key: "description", label: "Description", placeholder: "Enter translated description..." },
+            ]}
+            onSave={async (id, locale, data) => upsertPropertyTranslationService(id, { [locale]: data })}
+          />
 
         </div>
       </div>

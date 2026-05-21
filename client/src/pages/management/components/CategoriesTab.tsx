@@ -9,7 +9,7 @@ import { Plus, Trash2, MoreVertical, Languages } from "lucide-react";
 import toast from "react-hot-toast";
 import type { ICategory } from "../types";
 import { createCategoryService, deleteCategoryService } from "../services/management.services";
-import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "./multilang/ManagementTranslationDialogs";
 import {
   upsertMasterPropertyCategoryTranslationService,
   getAllMasterPropertyCategoryTranslationsService,
@@ -28,6 +28,9 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
   const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
 
   const handleCreateCategory = async () => {
     const response = await createCategoryService(categoryForm.name, categoryForm.description);
@@ -168,6 +171,20 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
             ]}
             onFetch={getAllMasterPropertyCategoryTranslationsService}
             onDelete={deleteMasterPropertyCategoryTranslationLocaleService}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={translationEntityId!}
+            locale={editingLocale}
+            initialData={editingData}
+            title="Edit Category Translation"
+            fields={[
+              { key: "categoryName", label: "Category Name", placeholder: "e.g., Lujo" },
+              { key: "categoryDescription", label: "Description", placeholder: "Describe this category" },
+            ]}
+            onSave={async (id, locale, data) => upsertMasterPropertyCategoryTranslationService(id, { [locale]: data })}
           />
         </>
       )}

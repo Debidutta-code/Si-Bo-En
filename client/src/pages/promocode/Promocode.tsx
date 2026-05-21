@@ -22,7 +22,7 @@ import { createPromoCodeService, deletePromoCodeService, fetchPromoCodesService,
 import type { DiscountType, ICreatePromoCode, IRPromoCode, RatePlan, RoomTypes } from "./interfaces";
 import { currencies } from "@/components/currency-code/cuurency";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
-import { AddTranslationDialog, CheckTranslationsDialog } from "../management/components/multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "../management/components/multilang/ManagementTranslationDialogs";
 import {
     upsertPromoCodeTranslationService,
     getAllPromoCodeTranslationsService,
@@ -53,6 +53,9 @@ export default function PromoCodePage() {
     const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
     const [addTranslationOpen, setAddTranslationOpen] = useState(false);
     const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+    const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+    const [editingLocale, setEditingLocale] = useState<string>("");
+    const [editingData, setEditingData] = useState<Record<string, any>>({}); 
 
     const [formData, setFormData] = useState<ICreatePromoCode>({
         name: "",
@@ -782,6 +785,20 @@ export default function PromoCodePage() {
                         ]}
                         onFetch={getAllPromoCodeTranslationsService}
                         onDelete={deletePromoCodeTranslationLocaleService}
+                        onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+                    />
+                    <EditTranslationDialog
+                        open={editTranslationOpen}
+                        onOpenChange={setEditTranslationOpen}
+                        entityId={translationEntityId!}
+                        locale={editingLocale}
+                        initialData={editingData}
+                        title="Edit Promo Code Translation"
+                        fields={[
+                            { key: "name", label: "Promo Name", placeholder: "e.g. Oferta de Verano" },
+                            { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                        ]}
+                        onSave={async (id, locale, data) => upsertPromoCodeTranslationService(id, { [locale]: data })}
                     />
                 </>
             )}

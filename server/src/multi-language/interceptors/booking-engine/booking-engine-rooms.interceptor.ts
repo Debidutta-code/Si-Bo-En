@@ -123,7 +123,7 @@ export class BookingEngineRoomsInterceptor {
         const result = { ...room };
 
         // Room name
-        const roomTranslation = await RoomTranslation.getTranslated(room.roomType, locale);
+        const roomTranslation = await RoomTranslation.getTranslated(room.id, locale);
         if (roomTranslation) {
             result._translations = roomTranslation;
         }
