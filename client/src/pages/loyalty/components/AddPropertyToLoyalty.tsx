@@ -58,8 +58,12 @@ import ImageUploadModal from "@/components/property/ImageUploadModal";
 
 interface Property {
   id: string;
-  propertyCode: string;
-  propertyName: string;
+  code: string;
+  name: string;
+  _translations?: {
+    propertyName: string;
+    description?: string;
+  };
 }
 
 interface AddPropertyToLoyaltyProps {
@@ -70,7 +74,7 @@ interface AddPropertyToLoyaltyProps {
 export default function AddPropertyToLoyalty({
   loyaltyProgramId,
   availableProperties,
-  }: AddPropertyToLoyaltyProps) {
+}: AddPropertyToLoyaltyProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [assignedProperties, setAssignedProperties] = useState<
@@ -126,8 +130,8 @@ export default function AddPropertyToLoyalty({
       const response = await createPropertyLoyalityConfigService({
         creationLoyaltyConfigId: loyaltyProgramId,
         propertyId: selectedProperty.id,
-        propertyCode: property.propertyCode,
-        propertyName: property.propertyName,
+        propertyCode: property.code,
+        propertyName: property.name,
         loyalityConfigLogo: selectedProperty.loyalityConfigLogo,
       });
 
@@ -233,15 +237,15 @@ export default function AddPropertyToLoyalty({
               <Card
                 key={property.id}
                 className={`overflow-hidden flex flex-col transition-opacity ${!property.isActive
-                    ? "opacity-60 grayscale-[50%]"
-                    : "border-border"
+                  ? "opacity-60 grayscale-[50%]"
+                  : "border-border"
                   }`}
               >
                 {/* Top Section: Info & Actions */}
                 <div className="flex items-start justify-between p-4 pb-2">
                   <div className="flex flex-col gap-1 pr-4">
                     <h3 className="text-base font-semibold leading-none tracking-tight">
-                      {property.propertyName}
+                      {property._translations?.propertyName || property.propertyName}
                     </h3>
                     {/* {property.creationLoyaltyConfig.discountPercentage != null && (
                       <span className="text-sm font-medium text-muted-foreground">
@@ -326,7 +330,7 @@ export default function AddPropertyToLoyalty({
                   ) : (
                     unassignedProperties.map((property) => (
                       <SelectItem key={property.id} value={property.id}>
-                        {property.propertyName}
+                        {property._translations?.propertyName || property.name}
                       </SelectItem>
                     ))
                   )}

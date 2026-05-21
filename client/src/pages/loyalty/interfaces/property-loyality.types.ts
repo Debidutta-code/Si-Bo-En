@@ -11,6 +11,10 @@ export interface ICPropertyLoyaltyConfig {
 export interface IPropertyLoyaltyConfig extends ICPropertyLoyaltyConfig {
     id: string;
     isActive: boolean;
+  _translations: {
+                fieldName: string;
+            }
+
 }
 export interface IPropertyLoyalityWithLoyality{
     CreationLoyaltyConfig:ICreationLoyality;

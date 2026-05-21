@@ -19,9 +19,6 @@ interface IFieldConfig {
   required: boolean;
   order: number;
   masterRegistrationFieldId?: string;
-  _translations?: {
-    fieldName: string;
-  };
 }
 
 interface IMasterField {
@@ -66,16 +63,15 @@ export default function LoyaltyForm() {
           const configuredResponse = await getFieldsService(creationId);
           
           if (configuredResponse.success && configuredResponse.data) {
-           const configured = configuredResponse.data.map((field: any, index: number) => ({
-  fieldName: field.fieldName,
-  apiCode: field.masterRegistrationFieldId,
-  visibleInRegistration: field.visibleInRegistration,
-  visibleInCustomerForm: field.visibleInCustomerForm,
-  required: field.required,
-  order: field.order || index,
-  masterRegistrationFieldId: field.masterRegistrationFieldId,
-  _translations: field._translations
-}));
+            const configured = configuredResponse.data.map((field: any, index: number) => ({
+              fieldName: field.fieldName,
+              apiCode: field.masterRegistrationFieldId,
+              visibleInRegistration: field.visibleInRegistration,
+              visibleInCustomerForm: field.visibleInCustomerForm,
+              required: field.required,
+              order: field.order || index,
+              masterRegistrationFieldId: field.masterRegistrationFieldId
+            }));
             setConfiguredFields(configured);
           } else {
             setConfiguredFields([]);
@@ -361,7 +357,7 @@ export default function LoyaltyForm() {
                     <td className="py-4 pr-4">
                       <GripVertical className="h-5 w-5 text-muted-foreground" />
                     </td>
-                    <td className="py-4 pr-4 font-medium">{field._translations?.fieldName ?? field.fieldName}</td>
+                    <td className="py-4 pr-4 font-medium">{field.fieldName}</td>
                     <td className="py-4 pr-4 text-sm text-muted-foreground">{field.apiCode}</td>
                     <td className="py-4 px-4 text-center">
                       <div className="flex justify-center">
