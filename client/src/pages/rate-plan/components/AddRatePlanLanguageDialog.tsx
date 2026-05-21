@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { languages } from "@/components/language/language";
+import { usePropertyContextSafe } from "@/contexts/PropertyContext";
 import { upsertRatePlanTranslationService } from "../services/ratePlan-language.service";
 import {
   Dialog,
@@ -34,6 +35,11 @@ export default function AddRatePlanLanguageDialog({
   const [selectedLang, setSelectedLang] = useState("");
   const [ratePlanName, setRatePlanName] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const propertyCtx = usePropertyContextSafe();
+  const availableLanguages = propertyCtx?.languages && propertyCtx.languages.length > 0
+    ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))
+    : languages;
 
   const handleSave = async () => {
     if (!selectedLang) {
@@ -76,7 +82,7 @@ export default function AddRatePlanLanguageDialog({
                 <SelectValue placeholder="Select Language" />
               </SelectTrigger>
               <SelectContent>
-                {languages.map((lang) => (
+                {availableLanguages.map((lang) => (
                   <SelectItem key={lang.code} value={lang.code}>
                     {lang.name}
                   </SelectItem>

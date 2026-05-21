@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "react-hot-toast";
-// import { usePropertyContext } from "@/contexts/PropertyContext";
+import { usePropertyContext } from "@/contexts/PropertyContext";
 import { createPromoCodeService, deletePromoCodeService, fetchPromoCodesService, updatePromoCodeService, fetchRatePlansService, fetchRoomTypesService } from "./services";
 import type { DiscountType, ICreatePromoCode, IRPromoCode, RatePlan, RoomTypes } from "./interfaces";
 import { currencies } from "@/components/currency-code/cuurency";
@@ -28,10 +28,15 @@ import {
     getAllPromoCodeTranslationsService,
     deletePromoCodeTranslationLocaleService,
 } from "./services/promo-code-multilang.service";
+import { languages } from "@/components/language/language";
 
 export default function PromoCodePage() {
     const { propertyId } = useParams<{ propertyId: string }>();
-    // const { languages } = usePropertyContext();
+        const { languages: propertyLanguages } = usePropertyContext();
+        const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+            ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+            : languages;
+    
     const [loading, setLoading] = useState<{
         isLoading: boolean;
         text: string;
@@ -773,6 +778,7 @@ export default function PromoCodePage() {
                         onSave={async (id, locale, data) => {
                             return await upsertPromoCodeTranslationService(id, { [locale]: data });
                         }}
+                        allowedLanguageCodes={availableLanguages.map((l) => l.code)}
                     />
                     <CheckTranslationsDialog
                         open={checkTranslationsOpen}

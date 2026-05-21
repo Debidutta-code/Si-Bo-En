@@ -25,12 +25,18 @@ interface AddTranslationDialogProps {
   title: string;
   fields: Field[];
   onSave: (id: string, locale: string, data: Record<string, string>) => Promise<{ success: boolean; message?: string }>;
+  /** When provided, only these language codes are shown in the dropdown (property active languages) */
+  allowedLanguageCodes?: string[];
 }
 
-export function AddTranslationDialog({ open, onOpenChange, entityId, title, fields, onSave }: AddTranslationDialogProps) {
+export function AddTranslationDialog({ open, onOpenChange, entityId, title, fields, onSave, allowedLanguageCodes }: AddTranslationDialogProps) {
   const [selectedLang, setSelectedLang] = useState("");
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const availableLanguages = allowedLanguageCodes && allowedLanguageCodes.length > 0
+    ? languages.filter((l) => allowedLanguageCodes.includes(l.code))
+    : languages;
 
   useEffect(() => {
     if (!open) {
@@ -67,7 +73,7 @@ export function AddTranslationDialog({ open, onOpenChange, entityId, title, fiel
             <Select value={selectedLang} onValueChange={setSelectedLang}>
               <SelectTrigger><SelectValue placeholder="Select Language" /></SelectTrigger>
               <SelectContent>
-                {languages.map((lang) => (
+                {availableLanguages.map((lang) => (
                   <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
                 ))}
               </SelectContent>

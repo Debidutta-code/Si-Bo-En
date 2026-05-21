@@ -110,6 +110,7 @@ import {
   deleteAddonTranslationLocale
 } from "./api/addon-langa.api";
 import { EditTranslationDialog } from "../management/components/multilang/ManagementTranslationDialogs";
+import { usePropertyContext } from "@/contexts/PropertyContext";
 
 interface LoaderProps {
   isLoading: boolean;
@@ -121,6 +122,8 @@ export default function AddOns() {
 
   // State management
   const [addOns, setAddOns] = useState<IAddon[]>([]);
+  const { languages: propertyLanguages } = usePropertyContext();
+  const activeLanguageCodes = propertyLanguages.map((l) => l.language);
   const [categories, setCategories] = useState<IAddonCategory[]>([]);
   const [subCategories, setSubCategories] = useState<IAddonSubCategory[]>([]);
   const [variants, setVariants] = useState<IAddonVariant[]>([]);
@@ -1223,6 +1226,7 @@ export default function AddOns() {
                 { key: "name", label: "Add-On Name", placeholder: "e.g. Desayuno Extra" },
                 { key: "description", label: "Description", placeholder: "Enter translated description..." }
               ]}
+              allowedLanguageCodes={activeLanguageCodes}
               onSave={async (id, locale, data) => {
                 return await upsertAddonTranslation(id, { [locale]: data });
               }}

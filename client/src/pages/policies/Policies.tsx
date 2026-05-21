@@ -54,6 +54,7 @@ import type { IPolicy, PolicyTypes, ICPolicy, RatePlan } from "./interfaces";
 import { languages } from "@/components/language/language";
 import { upsertPolicyTranslationService, getAllPolicyTranslationsService, deletePolicyTranslationLocaleService } from "./services/policy-multilang.services";
 import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
+import { usePropertyContext } from "@/contexts/PropertyContext";
 
 interface GroupedPolicy {
     id: string;
@@ -70,6 +71,11 @@ interface GroupedPolicy {
 
 export default function PoliciesPage() {
     const { propertyId } = useParams<{ propertyId: string }>();
+
+    const { languages: propertyLanguages } = usePropertyContext();
+    const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+        ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+        : languages;
     const [policies, setPolicies] = useState<IPolicy[]>([]);
     const [loading, setLoading] = useState<{
         isLoading: boolean;
@@ -763,7 +769,7 @@ export default function PoliciesPage() {
                                         <SelectValue placeholder="Select Language" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {languages.map((lang) => (
+                                        {availableLanguages.map((lang) => (
                                             <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
                                         ))}
                                     </SelectContent>

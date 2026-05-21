@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, MoreVertical, Layers, FolderTree, Package, Languages, PlusCircle } from "lucide-react";
 import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "../../management/components/multilang/ManagementTranslationDialogs";
+import { usePropertyContext } from "@/contexts/PropertyContext";
 import { upsertAddonCategoryTranslation, getAllAddonCategoryTranslations, deleteAddonCategoryTranslationLocale } from "../api/category-lang.api";
 import { upsertAddonSubCategoryTranslation, getAllAddonSubCategoryTranslations, deleteAddonSubCategoryTranslationLocale } from "../api/sub-cate-lang.api";
 import { upsertAddonVariantTranslation, getAllAddonVariantTranslations, deleteAddonVariantTranslationLocale } from "../api/variant-lang.api";
@@ -61,6 +62,9 @@ export default function ManagementTabs({
         id: string | null;
         name: string | null;
     }>({ open: false, type: null, id: null, name: null });
+
+    const { languages: propertyLanguages } = usePropertyContext();
+    const activeLanguageCodes = propertyLanguages.map((l) => l.language);
 
     const [translationDialog, setTranslationDialog] = useState<{
         openAdd: boolean;
@@ -359,6 +363,7 @@ export default function ManagementTabs({
                         fields={[
                             { key: "name", label: "Category Name", placeholder: "e.g. Comida..." }
                         ]}
+                        allowedLanguageCodes={activeLanguageCodes}
                         onSave={async (id, locale, data) => {
                             return await upsertAddonCategoryTranslation(id, { [locale]: data });
                         }}
@@ -395,6 +400,7 @@ export default function ManagementTabs({
                         fields={[
                             { key: "name", label: "Subcategory Name", placeholder: "e.g. Desayuno..." }
                         ]}
+                        allowedLanguageCodes={activeLanguageCodes}
                         onSave={async (id, locale, data) => {
                             return await upsertAddonSubCategoryTranslation(id, { [locale]: data });
                         }}
@@ -431,6 +437,7 @@ export default function ManagementTabs({
                         fields={[
                             { key: "name", label: "Variant Name", placeholder: "e.g. Grande..." }
                         ]}
+                        allowedLanguageCodes={activeLanguageCodes}
                         onSave={async (id, locale, data) => {
                             return await upsertAddonVariantTranslation(id, { [locale]: data });
                         }}

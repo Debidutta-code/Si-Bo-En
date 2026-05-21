@@ -330,20 +330,22 @@ export default function LoginForm() {
                     </SelectTrigger>
 
                     <SelectContent className="rounded-xl">
-                      {languages.map((language) => (
-                        <SelectItem
-                          key={language.code}
-                          value={language.code}
-                          className="cursor-pointer"
-                        >
-                          <div className="flex items-center justify-between w-full gap-3">
-                            <span>{language.name}</span>
-                            <span className="text-xs text-muted-foreground uppercase">
-                              {language.code}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      {languages
+                        .filter((language) => ['en', 'zh', 'hi', 'ar', 'ru', 'tr'].includes(language.code))
+                        .map((language) => (
+                          <SelectItem
+                            key={language.code}
+                            value={language.code}
+                            className="cursor-pointer"
+                          >
+                            <div className="flex items-center justify-between w-full gap-3">
+                              <span>{language.name}</span>
+                              <span className="text-xs text-muted-foreground uppercase">
+                                {language.code}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

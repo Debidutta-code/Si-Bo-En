@@ -41,11 +41,15 @@ import {
   getAllSpaSubCategoryTranslationsService,
   deleteSpaSubCategoryTranslationLocaleService,
 } from '../services/multilanguage.services';
+import { usePropertyContext } from "@/contexts/PropertyContext";
 
 export default function Spa() {
   const [categories, setCategories] = useState<ISpaCategory[]>([]);
   const [subCategories, setSubCategories] = useState<ISpaSubCategory[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const { languages: propertyLanguages } = usePropertyContext();
+  const activeLanguageCodes = propertyLanguages.map((l) => l.language);
 
   // Dialog states
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -465,6 +469,7 @@ export default function Spa() {
             entityId={translationEntityId}
             title={translationEntityType === 'category' ? 'Add Spa Category Translation' : 'Add Spa Sub-Category Translation'}
             fields={[{ key: "name", label: "Name", placeholder: "e.g., Masajes" }]}
+            allowedLanguageCodes={activeLanguageCodes}
             onSave={async (id, locale, data) => {
               if (translationEntityType === 'category') {
                 return await upsertSpaCategoryTranslationService(id, { [locale]: data });

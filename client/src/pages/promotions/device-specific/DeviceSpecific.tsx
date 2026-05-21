@@ -34,6 +34,8 @@ import {
   getAllPromotionTranslationsService,
   deletePromotionTranslationLocaleService,
 } from '../multilanguage/service/promotion.service';
+import { usePropertyContext } from '@/contexts/PropertyContext';
+import { languages } from '@/components/language/language';
 
 export const DeviceSpecificPromotionList: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -54,7 +56,11 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   const [editTranslationOpen, setEditTranslationOpen] = useState(false);
   const [editingLocale, setEditingLocale] = useState<string>("");
   const [editingData, setEditingData] = useState<Record<string, any>>({});
-
+        const { languages: propertyLanguages } = usePropertyContext();
+        const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+            ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+            : languages;
+    
   useEffect(() => {
     loadData();
   }, [propertyId]);
@@ -466,6 +472,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
             onSave={async (id, locale, data) => {
               return await upsertPromotionTranslationService(id, { [locale]: data });
             }}
+                        allowedLanguageCodes={availableLanguages.map((l) => l.code)}
           />
           <CheckTranslationsDialog
             open={checkTranslationsOpen}
