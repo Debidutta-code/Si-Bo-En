@@ -249,11 +249,11 @@ export default function ReservationFilters({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value="all">All Properties</option>
-              {properties.map((property) => (
-                <option key={property.id} value={property.id}>
-                  {property.name}
-                </option>
-              ))}
+             {properties.map((property) => (
+  <option key={property.id} value={property.id}>
+    {property._translations?.propertyName ?? property.name}
+  </option>
+))}
             </select>
           </div>
 

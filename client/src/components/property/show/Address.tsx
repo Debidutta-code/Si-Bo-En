@@ -9,6 +9,7 @@ import { PenTool, X, Globe, Languages, Plus } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import AddPropertyAddressLangDialog from "../multilang/components/AddPropertyAddressLangDialog";
 import CheckPropertyAddressLangDialog from "../multilang/components/CheckPropertyAddressLangDialog";
+import { upsertPropertyAddressTranslationService } from "../multilang/services/property-address.services";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import UpdatePropertyAddress from "../update/PropertyAddress";
 import { updatePropertyAddress } from "../api/create/propertyAddress";
+import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
 // import { getCountryISO } from "@/lib/geoUtils";
 interface PropertyId {
   propertyId: string;
@@ -30,6 +32,9 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
   const [loading, setLoading] = useState(true);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
   const [propertyAddress, setPropertyAddress] = useState<IPropertyAddress>({
     addressLine1: "",
     addressLine2: "",
@@ -194,7 +199,30 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
             </DropdownMenu>
 
             <AddPropertyAddressLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} propertyAddressId={propertyId} />
-            <CheckPropertyAddressLangDialog open={checkTranslationsOpen} onOpenChange={setCheckTranslationsOpen} propertyAddressId={propertyId} />
+            <CheckPropertyAddressLangDialog
+              open={checkTranslationsOpen}
+              onOpenChange={setCheckTranslationsOpen}
+              propertyAddressId={propertyId}
+              onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+            />
+            <EditTranslationDialog
+              open={editTranslationOpen}
+              onOpenChange={setEditTranslationOpen}
+              entityId={propertyId}
+              locale={editingLocale}
+              initialData={editingData}
+              title="Edit Address Translation"
+              fields={[
+                { key: "addressLine1", label: "Address Line 1", placeholder: "e.g. Calle 123" },
+                { key: "addressLine2", label: "Address Line 2", placeholder: "e.g. Piso 2" },
+                { key: "city", label: "City", placeholder: "e.g. Madrid" },
+                { key: "state", label: "State", placeholder: "e.g. Comunidad de Madrid" },
+                { key: "country", label: "Country", placeholder: "e.g. España" },
+                { key: "location", label: "Location / Area", placeholder: "e.g. Centro" },
+                { key: "landmark", label: "Landmark", placeholder: "e.g. Cerca del museo" },
+              ]}
+              onSave={async (id, locale, data) => upsertPropertyAddressTranslationService(id, { [locale]: data })}
+            />
           </div>
         </div>
       </CardHeader>

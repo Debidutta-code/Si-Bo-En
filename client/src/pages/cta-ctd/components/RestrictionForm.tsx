@@ -47,7 +47,7 @@ export default function RestrictionForm({
             setSelectedDates([new Date(editData.date)]);
             setNotes(editData.restrictionNotes || "");
             setIsActive(true);
-            
+
             // Auto-select the room type and rate plan
             setSelectedRooms([editData.roomTypeCode]);
             setSelectedRatePlans([editData.ratePlanCode]);
@@ -259,11 +259,8 @@ export default function RestrictionForm({
                                             checked={selectedRooms.includes(room.roomType)}
                                             onCheckedChange={() => handleRoomToggle(room.roomType)}
                                         />
-                                        <Label
-                                            htmlFor={`room-${room.id}`}
-                                            className="cursor-pointer flex-1"
-                                        >
-                                            {room.roomName}
+                                        <Label htmlFor={`room-${room.id}`} className="cursor-pointer flex-1">
+                                            {room._translations?.roomName ?? room.roomName}
                                         </Label>
                                     </div>
                                 ))}
@@ -304,11 +301,8 @@ export default function RestrictionForm({
                                             checked={selectedRatePlans.includes(plan.ratePlanCode)}
                                             onCheckedChange={() => handleRatePlanToggle(plan.ratePlanCode)}
                                         />
-                                        <Label
-                                            htmlFor={`plan-${plan.id}`}
-                                            className="cursor-pointer flex-1"
-                                        >
-                                            {plan.ratePlanName}
+                                        <Label htmlFor={`plan-${plan.id}`} className="cursor-pointer flex-1">
+                                            {plan._translations?.ratePlanName ?? plan.ratePlanName}
                                         </Label>
                                     </div>
                                 ))}
@@ -358,8 +352,8 @@ export default function RestrictionForm({
                             </Label>
                         </div>
                         <span className="text-sm text-gray-600">
-                            {isActive 
-                                ? "Will block bookings for selected dates" 
+                            {isActive
+                                ? "Will block bookings for selected dates"
                                 : "Will allow bookings for selected dates"}
                         </span>
                     </div>

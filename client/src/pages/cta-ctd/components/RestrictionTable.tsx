@@ -18,18 +18,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Restriction } from "../interfaces";
+import type { Restriction ,RoomType, RatePlan} from "../interfaces";
 
 interface RestrictionTableProps {
     restrictions: Restriction[];
     onEdit: (restriction: Restriction) => void;
     isLoading: boolean;
+     roomTypes: RoomType[];
+    ratePlans: RatePlan[];
 }
 
 export default function RestrictionTable({
     restrictions,
     onEdit,
-    isLoading
+    isLoading,
+    roomTypes,
+    ratePlans,
 }: RestrictionTableProps) {
     if (isLoading) {
         return (
@@ -79,7 +83,9 @@ export default function RestrictionTable({
                             </TableCell>
                             <TableCell>
                                 <div>
-                                    <div className="font-medium">{restriction.roomTypeName}</div>
+                                   <div className="font-medium">
+  {roomTypes.find(r => r.roomType === restriction.roomTypeCode)?._translations?.roomName ?? restriction.roomTypeName}
+</div>
                                     <div className="text-sm text-gray-500">
                                         {restriction.roomTypeCode}
                                     </div>
@@ -87,7 +93,9 @@ export default function RestrictionTable({
                             </TableCell>
                             <TableCell>
                                 <div>
-                                    <div className="font-medium">{restriction.ratePlanName}</div>
+                                    <div className="font-medium">
+  {ratePlans.find(r => r.ratePlanCode === restriction.ratePlanCode)?._translations?.ratePlanName ?? restriction.ratePlanName}
+</div>
                                     <div className="text-sm text-gray-500">
                                         {restriction.ratePlanCode}
                                     </div>

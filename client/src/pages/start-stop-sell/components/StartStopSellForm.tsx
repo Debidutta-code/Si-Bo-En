@@ -15,12 +15,20 @@ interface RatePlan {
     id: string;
     ratePlanCode: string;
     ratePlanName: string;
+    _translations?: {
+        ratePlanName: string;
+    };
 }
 
 interface RoomType {
     id: string;
     roomName: string;
     roomType: string;
+    _translations: {
+                roomName: string;
+                roomType: string;
+                description: string;
+            }
 }
 
 interface FormData {
@@ -151,7 +159,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
         }
     };
 
-    if (isLoading && (ratePlans.length === 0 || roomTypes.length === 0)) {
+   if (isLoading && ratePlans.length === 0 && roomTypes.length === 0) {
         return (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="text-center py-12">
@@ -201,11 +209,11 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                             <SelectValue placeholder="Select rate plan (optional)" />
                         </SelectTrigger>
                         <SelectContent>
-                            {ratePlans.map((plan) => (
-                                <SelectItem key={plan.id} value={plan.ratePlanCode}>
-                                    {plan.ratePlanName}
-                                </SelectItem>
-                            ))}
+                          {ratePlans.map((plan) => (
+    <SelectItem key={plan.id} value={plan.ratePlanCode}>
+        {plan._translations?.ratePlanName ?? plan.ratePlanName}
+    </SelectItem>
+))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -223,11 +231,11 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                             <SelectValue placeholder="Select room type (optional)" />
                         </SelectTrigger>
                         <SelectContent>
-                            {roomTypes.map((room) => (
-                                <SelectItem key={room.id} value={room.roomType}>
-                                    {room.roomName}
-                                </SelectItem>
-                            ))}
+                           {roomTypes.map((room) => (
+    <SelectItem key={room.id} value={room.roomType}>
+        {room._translations?.roomName ?? room.roomName}
+    </SelectItem>
+))}
                         </SelectContent>
                     </Select>
                 </div>

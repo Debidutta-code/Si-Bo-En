@@ -72,3 +72,8 @@ export const usePropertyContext = () => {
     }
     return context;
 };
+
+/** Safe version — returns undefined instead of throwing when used outside PropertyProvider */
+export const usePropertyContextSafe = () => {
+    return useContext(PropertyContext);
+};

@@ -152,11 +152,11 @@ export default function RestrictionFiltersComponent({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Rooms</SelectItem>
-                            {roomTypes.map((room) => (
-                                <SelectItem key={room.id} value={room.roomType}>
-                                    {room.roomName}
-                                </SelectItem>
-                            ))}
+                           {roomTypes.map((room) => (
+    <SelectItem key={room.id} value={room.roomType}>
+        {room._translations?.roomName ?? room.roomName}
+    </SelectItem>
+))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -176,10 +176,10 @@ export default function RestrictionFiltersComponent({
                         <SelectContent>
                             <SelectItem value="all">All Rate Plans</SelectItem>
                             {ratePlans.map((plan) => (
-                                <SelectItem key={plan.id} value={plan.ratePlanCode}>
-                                    {plan.ratePlanName}
-                                </SelectItem>
-                            ))}
+    <SelectItem key={plan.id} value={plan.ratePlanCode}>
+        {plan._translations?.ratePlanName ?? plan.ratePlanName}
+    </SelectItem>
+))}
                         </SelectContent>
                     </Select>
                 </div>

@@ -359,11 +359,11 @@ export default function BookingOffset() {
               }}
             >
               <option value="">Select a Rate Plan</option>
-              {ratePlans.map((rp) => (
-                <option key={rp.id} value={rp.id}>
-                  {rp.ratePlanName}
-                </option>
-              ))}
+             {ratePlans.map((rp) => (
+  <option key={rp.id} value={rp.id}>
+    {rp._translations?.ratePlanName ?? rp.ratePlanName}
+  </option>
+))}
             </select>
           </div>
           <div>
@@ -439,9 +439,9 @@ export default function BookingOffset() {
                 ) : (
                   bookingOffsets.map((offset) => (
                     <TableRow key={offset.id}>
-                      <TableCell className="font-medium">
-                        {offset.ratePlanName}
-                      </TableCell>
+                     <TableCell className="font-medium">
+  {ratePlans.find(r => r.ratePlanCode === offset.ratePlanCode)?._translations?.ratePlanName ?? offset.ratePlanName}
+</TableCell>
 
                       <TableCell className="font-medium">
                         {formatDate(offset.date)}

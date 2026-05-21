@@ -304,6 +304,9 @@ export interface IWatermarkData {
 export interface IFilterGroup {
     id: string;
     name: string;
+    _translations?: {
+        name: string;
+    };
 }
 
 export interface IFilterBrand {

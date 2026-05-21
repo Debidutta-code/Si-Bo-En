@@ -109,6 +109,8 @@ import {
   getAllAddonTranslations,
   deleteAddonTranslationLocale
 } from "./api/addon-langa.api";
+import { EditTranslationDialog } from "../management/components/multilang/ManagementTranslationDialogs";
+import { usePropertyContext } from "@/contexts/PropertyContext";
 
 interface LoaderProps {
   isLoading: boolean;
@@ -120,6 +122,8 @@ export default function AddOns() {
 
   // State management
   const [addOns, setAddOns] = useState<IAddon[]>([]);
+  const { languages: propertyLanguages } = usePropertyContext();
+  const activeLanguageCodes = propertyLanguages.map((l) => l.language);
   const [categories, setCategories] = useState<IAddonCategory[]>([]);
   const [subCategories, setSubCategories] = useState<IAddonSubCategory[]>([]);
   const [variants, setVariants] = useState<IAddonVariant[]>([]);
@@ -194,11 +198,17 @@ export default function AddOns() {
   const [translationDialog, setTranslationDialog] = useState<{
     openAdd: boolean;
     openCheck: boolean;
+    openEdit: boolean;
     addonId: string | null;
+    editingLocale: string;
+    editingData: Record<string, any>;
   }>({
     openAdd: false,
     openCheck: false,
+    openEdit: false,
     addonId: null,
+    editingLocale: "",
+    editingData: {},
   });
   const [childAddons, setChildAddons] = useState<IChildAddon[]>([]);
   const [childAddonLoading, setChildAddonLoading] = useState(false);
@@ -1038,7 +1048,7 @@ export default function AddOns() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
-                                setTranslationDialog({ openAdd: true, openCheck: false, addonId: addOn.id })
+                                setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, openEdit: false, addonId: addOn.id }))
                               }
                             >
                               <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
@@ -1046,7 +1056,7 @@ export default function AddOns() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
-                                setTranslationDialog({ openAdd: false, openCheck: true, addonId: addOn.id })
+                                setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, openEdit: false, addonId: addOn.id }))
                               }
                             >
                               <Languages className="w-4 h-4 mr-2 text-green-600" />
@@ -1216,6 +1226,7 @@ export default function AddOns() {
                 { key: "name", label: "Add-On Name", placeholder: "e.g. Desayuno Extra" },
                 { key: "description", label: "Description", placeholder: "Enter translated description..." }
               ]}
+              allowedLanguageCodes={activeLanguageCodes}
               onSave={async (id, locale, data) => {
                 return await upsertAddonTranslation(id, { [locale]: data });
               }}
@@ -1231,6 +1242,20 @@ export default function AddOns() {
               ]}
               onFetch={getAllAddonTranslations}
               onDelete={deleteAddonTranslationLocale}
+              onEdit={(locale, data) => setTranslationDialog(prev => ({ ...prev, openEdit: true, openCheck: false, editingLocale: locale, editingData: data }))}
+            />
+            <EditTranslationDialog
+              open={translationDialog.openEdit}
+              onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openEdit: open }))}
+              entityId={translationDialog.addonId!}
+              locale={translationDialog.editingLocale}
+              initialData={translationDialog.editingData}
+              title="Edit Add-On Translation"
+              fields={[
+                { key: "name", label: "Add-On Name", placeholder: "e.g. Desayuno Extra" },
+                { key: "description", label: "Description", placeholder: "Enter translated description..." }
+              ]}
+              onSave={async (id, locale, data) => upsertAddonTranslation(id, { [locale]: data })}
             />
           </>
         )}

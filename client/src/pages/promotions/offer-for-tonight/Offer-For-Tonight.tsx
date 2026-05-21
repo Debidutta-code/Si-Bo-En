@@ -30,12 +30,14 @@ import { convertBackendToApplicableDays } from '../device-specific/interfaces/mo
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { ILoader } from '@/pages/dashboard/interface';
 import BackButton from '@/components/shared/BackButton';
-import { AddTranslationDialog, CheckTranslationsDialog } from '@/pages/management/components/multilang/ManagementTranslationDialogs';
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from '@/pages/management/components/multilang/ManagementTranslationDialogs';
 import {
-  upsertPromotionTranslationService,
-  getAllPromotionTranslationsService,
-  deletePromotionTranslationLocaleService,
+    upsertPromotionTranslationService,
+    getAllPromotionTranslationsService,
+    deletePromotionTranslationLocaleService,
 } from '../multilanguage/service/promotion.service';
+import { usePropertyContext } from '@/contexts/PropertyContext';
+import { languages } from '@/components/language/language';
 
 export const OfferForTonightList: React.FC = () => {
     const { propertyId } = useParams<{ propertyId: string }>();
@@ -46,6 +48,11 @@ export const OfferForTonightList: React.FC = () => {
         isLoading: false,
         message: ''
     });
+    const { languages: propertyLanguages } = usePropertyContext();
+    const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+        ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+        : languages;
+
     const [showForm, setShowForm] = useState(false);
     const [editData, setEditData] = useState<OfferForTonightWithRatePlan | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -54,6 +61,9 @@ export const OfferForTonightList: React.FC = () => {
     const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
     const [addTranslationOpen, setAddTranslationOpen] = useState(false);
     const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+    const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+    const [editingLocale, setEditingLocale] = useState<string>("");
+    const [editingData, setEditingData] = useState<Record<string, any>>({});
 
     useEffect(() => {
         loadData();
@@ -495,6 +505,8 @@ export const OfferForTonightList: React.FC = () => {
                         onSave={async (id, locale, data) => {
                             return await upsertPromotionTranslationService(id, { [locale]: data });
                         }}
+                        allowedLanguageCodes={availableLanguages.map((l) => l.code)}
+
                     />
                     <CheckTranslationsDialog
                         open={checkTranslationsOpen}
@@ -504,6 +516,17 @@ export const OfferForTonightList: React.FC = () => {
                         displayFields={[{ key: "promotionName", label: "Name" }]}
                         onFetch={getAllPromotionTranslationsService}
                         onDelete={deletePromotionTranslationLocaleService}
+                        onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+                    />
+                    <EditTranslationDialog
+                        open={editTranslationOpen}
+                        onOpenChange={setEditTranslationOpen}
+                        entityId={translationEntityId!}
+                        locale={editingLocale}
+                        initialData={editingData}
+                        title="Edit Promotion Translation"
+                        fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Oferta para esta noche" }]}
+                        onSave={async (id, locale, data) => upsertPromotionTranslationService(id, { [locale]: data })}
                     />
                 </>
             )}

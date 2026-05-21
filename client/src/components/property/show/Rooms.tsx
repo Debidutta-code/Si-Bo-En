@@ -65,6 +65,8 @@ import VideoUploadModal from "../VedioUpload.modal";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import AddRoomLangDialog from "../multilang/components/AddRoomLangDialog";
 import CheckRoomLangDialog from "../multilang/components/CheckRoomLangDialog";
+import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
+import { upsertRoomTranslationService } from "../multilang/services/room.services";
 import {  Languages } from "lucide-react";
 
 interface PropertyId {
@@ -125,6 +127,10 @@ export default function Rooms({ propertyId }: PropertyId) {
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
   const [translationRoomId, setTranslationRoomId] = useState<string | null>(null);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
+  const [editTranslationRoomId, setEditTranslationRoomId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!propertyId) {
@@ -1054,8 +1060,33 @@ export default function Rooms({ propertyId }: PropertyId) {
       {translationRoomId && (
         <>
           <AddRoomLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} roomId={translationRoomId} />
-          <CheckRoomLangDialog open={checkTranslationsOpen} onOpenChange={setCheckTranslationsOpen} roomId={translationRoomId} />
+          <CheckRoomLangDialog
+            open={checkTranslationsOpen}
+            onOpenChange={setCheckTranslationsOpen}
+            roomId={translationRoomId}
+            onEdit={(locale, data) => {
+              setEditingLocale(locale);
+              setEditingData(data);
+              setEditTranslationRoomId(translationRoomId);
+              setEditTranslationOpen(true);
+            }}
+          />
         </>
+      )}
+      {editTranslationRoomId && (
+        <EditTranslationDialog
+          open={editTranslationOpen}
+          onOpenChange={setEditTranslationOpen}
+          entityId={editTranslationRoomId}
+          locale={editingLocale}
+          initialData={editingData}
+          title="Edit Room Translation"
+          fields={[
+            { key: "roomName", label: "Room Name", placeholder: "e.g. Habitación Deluxe" },
+            { key: "description", label: "Description", placeholder: "Enter translated description..." },
+          ]}
+          onSave={async (id, locale, data) => upsertRoomTranslationService(id, { [locale]: data })}
+        />
       )}
     </div>
   );

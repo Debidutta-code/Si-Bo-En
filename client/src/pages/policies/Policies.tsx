@@ -53,6 +53,8 @@ import { createPolicyService, getPoliciesService, fetchRatePlansService, addPoli
 import type { IPolicy, PolicyTypes, ICPolicy, RatePlan } from "./interfaces";
 import { languages } from "@/components/language/language";
 import { upsertPolicyTranslationService, getAllPolicyTranslationsService, deletePolicyTranslationLocaleService } from "./services/policy-multilang.services";
+import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
+import { usePropertyContext } from "@/contexts/PropertyContext";
 
 interface GroupedPolicy {
     id: string;
@@ -69,6 +71,11 @@ interface GroupedPolicy {
 
 export default function PoliciesPage() {
     const { propertyId } = useParams<{ propertyId: string }>();
+
+    const { languages: propertyLanguages } = usePropertyContext();
+    const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+        ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+        : languages;
     const [policies, setPolicies] = useState<IPolicy[]>([]);
     const [loading, setLoading] = useState<{
         isLoading: boolean;
@@ -102,6 +109,7 @@ export default function PoliciesPage() {
     const [langTranslations, setLangTranslations] = useState<Record<string, any>>({});
     const [langLoading, setLangLoading] = useState(false);
     const [langSubmitting, setLangSubmitting] = useState(false);
+    const [editLangDialog, setEditLangDialog] = useState<{ open: boolean; locale: string; data: Record<string, any> }>({ open: false, locale: "", data: {} });
 
     const groupedPolicies = useMemo(() => {
         const map = new Map<string, GroupedPolicy>();
@@ -761,7 +769,7 @@ export default function PoliciesPage() {
                                         <SelectValue placeholder="Select Language" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {languages.map((lang) => (
+                                        {availableLanguages.map((lang) => (
                                             <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -814,20 +822,49 @@ export default function PoliciesPage() {
                                             {data.policyName && <p className="text-xs text-[#475569]">Name: {data.policyName}</p>}
                                             {data.description && <p className="text-xs text-[#94a3b8] line-clamp-2">Desc: {data.description}</p>}
                                         </div>
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            className="shrink-0"
-                                            onClick={() => handleDeleteLocale(locale)}
-                                        >
-                                            Delete
-                                        </Button>
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <button
+                                                className="h-7 w-7 flex items-center justify-center rounded hover:bg-gray-100"
+                                                title="Edit translation"
+                                                onClick={() => setEditLangDialog({ open: true, locale, data })}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                                </svg>
+                                            </button>
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                className="shrink-0"
+                                                onClick={() => handleDeleteLocale(locale)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))
                             )}
                         </div>
                     </DialogContent>
                 </Dialog>
+
+                {/* Edit Policy Translation Dialog */}
+                {selectedPolicyId && (
+                    <EditTranslationDialog
+                        open={editLangDialog.open}
+                        onOpenChange={(open) => setEditLangDialog(prev => ({ ...prev, open }))}
+                        entityId={selectedPolicyId}
+                        locale={editLangDialog.locale}
+                        initialData={editLangDialog.data}
+                        title="Edit Policy Translation"
+                        fields={[
+                            { key: "policyName", label: "Policy Name", placeholder: "Translated policy name" },
+                            { key: "description", label: "Description", placeholder: "Translated description" },
+                        ]}
+                        onSave={async (id, locale, data) => upsertPolicyTranslationService(id, { [locale]: data })}
+                    />
+                )}
             </div>
         </div>
     );

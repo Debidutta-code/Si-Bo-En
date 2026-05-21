@@ -8,7 +8,7 @@ import { getAllSpaCategoryService, getAllSpaSubCategoriesService } from '../mana
 import type { ISpaCategory, ISpaSubCategory } from '../management/types';
 import { getSpaUsersForPropertyService, assignSpaToUserService } from './services';
 import type { ISpaUser } from './interfaces'; 
-import { AddTranslationDialog, CheckTranslationsDialog } from '../management/components/multilang/ManagementTranslationDialogs';
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from '../management/components/multilang/ManagementTranslationDialogs';
 import { upsertSpaTranslationService, getAllSpaTranslationsService, deleteSpaTranslationLocaleService } from './services/multilang.services';
 
 // UI Components
@@ -29,11 +29,17 @@ import SpaCalendar from './components/SpaCalendar';
 import SpaViewDialog from './components/SpaViewDialog';
 import SpaAssignUserDialog from './components/SpaAssignUserDialog';
 import BackButton from '@/components/shared/BackButton';
+import { usePropertyContext } from '@/contexts/PropertyContext';
+import { languages } from '@/components/language/language';
 
 export default function Spa() {
   const { propertyId, spaId } = useParams();
   const navigate = useNavigate();
-
+const { languages: propertyLanguages } = usePropertyContext();
+        const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+            ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+            : languages;
+    
   const [loader, setLoader] = useState<ILoader>({ isLoading: true, message: 'Loading...' });
   const [spas, setSpas] = useState<ISpa[]>([]);
   const [categories, setCategories] = useState<ISpaCategory[]>([]);
@@ -47,6 +53,9 @@ export default function Spa() {
   const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -557,6 +566,7 @@ export default function Spa() {
             onSave={async (id, locale, data) => {
               return await upsertSpaTranslationService(id, { [locale]: data });
             }}
+            allowedLanguageCodes={availableLanguages.map((l) => l.code)}
           />
           <CheckTranslationsDialog
             open={checkTranslationsOpen}
@@ -570,6 +580,21 @@ export default function Spa() {
             ]}
             onFetch={getAllSpaTranslationsService}
             onDelete={deleteSpaTranslationLocaleService}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={translationEntityId!}
+            locale={editingLocale}
+            initialData={editingData}
+            title="Edit Spa Translation"
+            fields={[
+              { key: "name", label: "Spa Name", placeholder: "e.g. Masaje Relajante" },
+              { key: "description", label: "Description", placeholder: "Enter translated description..." },
+              { key: "location", label: "Location", placeholder: "Enter translated location..." }
+            ]}
+            onSave={async (id, locale, data) => upsertSpaTranslationService(id, { [locale]: data })}
           />
         </>
       )}

@@ -187,11 +187,13 @@ export default function RestrictionsPage({ propertyId, propertyCode }: Restricti
                     />
 
                     {/* Table */}
-                    <RestrictionTable
-                        restrictions={restrictions}
-                        onEdit={handleEdit}
-                        isLoading={isLoading}
-                    />
+                   <RestrictionTable
+    restrictions={restrictions}
+    onEdit={handleEdit}
+    isLoading={isLoading}
+    roomTypes={roomTypes}
+    ratePlans={ratePlans}
+/>
                 </>
             )}
         </div>

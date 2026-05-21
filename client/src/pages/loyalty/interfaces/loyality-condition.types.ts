@@ -9,6 +9,9 @@ export interface ILoyalityCondition extends ICLoyalityCondition {
     id: string;
     isActive: boolean;
     isDeleted: boolean;
+    _translations?:{
+        text:string;
+    }
 }
 export interface IULoyalityCondition {
     text: string;
@@ -28,6 +31,10 @@ export interface ILoyalitySpecialCondition extends ICLoyalitySpecialCondition {
     id: string;
     isActive: boolean;
     isDeleted: boolean;
+    _translations?:{
+        title:string;
+        subTitle:string | null;
+    }
 }
 export interface IULoyalitySpecialCondition{
     title: string;

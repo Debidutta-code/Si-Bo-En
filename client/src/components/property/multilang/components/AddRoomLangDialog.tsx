@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { languages } from "@/components/language/language";
+import { usePropertyContextSafe } from "@/contexts/PropertyContext";
 import { upsertRoomTranslationService } from "../services/room.services";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +22,11 @@ export default function AddRoomLangDialog({ open, onOpenChange, roomId }: Props)
   const [roomType, setRoomType] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const propertyCtx = usePropertyContextSafe();
+  const availableLanguages = propertyCtx?.languages && propertyCtx.languages.length > 0
+    ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))
+    : languages;
 
   const handleSave = async () => {
     if (!selectedLang) { toast.error("Please select a language"); return; }
@@ -54,7 +60,7 @@ export default function AddRoomLangDialog({ open, onOpenChange, roomId }: Props)
             <Select value={selectedLang} onValueChange={setSelectedLang}>
               <SelectTrigger><SelectValue placeholder="Select Language" /></SelectTrigger>
               <SelectContent>
-                {languages.map((lang) => (
+                {availableLanguages.map((lang) => (
                   <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
                 ))}
               </SelectContent>

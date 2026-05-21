@@ -9,7 +9,7 @@ import { Plus, Trash2, MoreVertical, Languages } from "lucide-react";
 import toast from "react-hot-toast";
 import type { IAmenity } from "../types";
 import { createPropertyAmenitiesService, deletePropertyAmenitiesService } from "../services/management.services";
-import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "./multilang/ManagementTranslationDialogs";
 import {
   upsertMasterAmenityTranslationService,
   getAllMasterAmenityTranslationsService,
@@ -29,6 +29,9 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
   const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
 
   const handleAddPropertyAmenityToList = () => {
     if (!propertyAmenityInput.trim()) return;
@@ -179,6 +182,20 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
             ]}
             onFetch={getAllMasterAmenityTranslationsService}
             onDelete={deleteMasterAmenityTranslationLocaleService}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={translationEntityId!}
+            locale={editingLocale}
+            initialData={editingData}
+            title="Edit Amenity Translation"
+            fields={[
+              { key: "amenityName", label: "Amenity Name", placeholder: "e.g., Piscina" },
+              { key: "description", label: "Description", placeholder: "Describe this amenity" },
+            ]}
+            onSave={async (id, locale, data) => upsertMasterAmenityTranslationService(id, { [locale]: data })}
           />
         </>
       )}
