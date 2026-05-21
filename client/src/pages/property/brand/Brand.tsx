@@ -44,9 +44,9 @@ export default function page() {
         under: "",
         users: [],
         images: [],
-        _translations:{
-        name:""
-      }
+        _translations: {
+            name: ""
+        }
     })
     const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
     const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
@@ -193,7 +193,7 @@ export default function page() {
             </div>
         );
     }
-    
+
     return (
         <div className="space-y-6 p-4">
             <BackButton />
@@ -214,11 +214,9 @@ export default function page() {
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-6">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{brandDetails._translations?brandDetails._translations.name:brandDetails.name}</h1>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{brandDetails._translations ? brandDetails._translations.name : brandDetails.name}</h1>
                             <div className="flex items-center space-x-3">
-                                <p className="text-sm text-gray-600">
-                                    Parent: <span className="font-semibold text-gray-800">{brandDetails.under}</span>
-                                </p>
+
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${brandDetails.isActive
                                     ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
                                     : 'bg-red-100 text-red-700 ring-1 ring-red-200'
@@ -493,7 +491,7 @@ export default function page() {
 
                                 <div className="flex justify-between items-start mb-3">
                                     <h3 className="font-semibold text-lg text-gray-900 truncate">
-                                        {item._translations?item._translations.name:item.name}
+                                        {item._translations ? item._translations.name : item.name}
                                     </h3>
                                 </div>
 

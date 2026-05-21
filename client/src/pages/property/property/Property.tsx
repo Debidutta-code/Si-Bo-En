@@ -51,6 +51,8 @@ import { languages, type LanguageCode } from '@/components/language/language';
 import { Plus, Globe } from "lucide-react";
 import AddCreationLanguageDialog from "@/components/creation/AddCreationLanguageDialog";
 import CheckCreationLanguagesDialog from "@/components/creation/CheckCreationLanguagesDialog";
+import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
+import { upsertCreationTranslationService } from "../service/creation-lang.service";
 
 
 export default function PropertyPage() {
@@ -133,6 +135,9 @@ export default function PropertyPage() {
 
     const [addTranslationDialogOpen, setAddTranslationDialogOpen] = useState(false);
     const [checkTranslationsDialogOpen, setCheckTranslationsDialogOpen] = useState(false);
+    const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+    const [editingLocale, setEditingLocale] = useState<string>("");
+    const [editingData, setEditingData] = useState<Record<string, any>>({});
 
     useEffect(() => {
         initialFetch();
@@ -1113,6 +1118,19 @@ export default function PropertyPage() {
                         open={checkTranslationsDialogOpen}
                         onOpenChange={setCheckTranslationsDialogOpen}
                         creationId={creationDetails.id}
+                        onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+                    />
+                    <EditTranslationDialog
+                        open={editTranslationOpen}
+                        onOpenChange={setEditTranslationOpen}
+                        entityId={creationDetails.id}
+                        locale={editingLocale}
+                        initialData={editingData}
+                        title="Edit Property Translation"
+                        fields={[
+                            { key: "name", label: "Property Name", placeholder: "e.g., Hotel Sol" },
+                        ]}
+                        onSave={async (id, locale, data) => upsertCreationTranslationService(id, { [locale]: data })}
                     />
                 </>
             )}

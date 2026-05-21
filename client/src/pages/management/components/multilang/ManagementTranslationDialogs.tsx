@@ -141,6 +141,8 @@ export function EditTranslationDialog({
     if (res.success) {
       toast.success("Translation updated successfully!");
       onOpenChange(false);
+      // Refresh so the updated translation is immediately visible
+      window.location.reload();
     } else {
       toast.error(res.message || "Failed to update translation");
     }
