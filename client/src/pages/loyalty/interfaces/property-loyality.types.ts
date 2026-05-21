@@ -6,6 +6,7 @@ export interface ICPropertyLoyaltyConfig {
     propertyCode: string;
     propertyName: string;
     loyalityConfigLogo: string | null;
+     
 }
 export interface IPropertyLoyaltyConfig extends ICPropertyLoyaltyConfig {
     id: string;

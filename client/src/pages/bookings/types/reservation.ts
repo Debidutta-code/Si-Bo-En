@@ -310,6 +310,10 @@ export interface IPropertyListItem {
   id: string;
   code: string;
   name: string;
+  _translations?: {
+    propertyName: string;
+    description?: string;
+  };
 }
 // ─── Filters ──────────────────────────────────────────────────────────────────
 
