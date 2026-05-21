@@ -22,9 +22,7 @@ interface IFieldConfig {
   visibleInCustomerForm: boolean;
   required: boolean;
   masterRegistrationFieldId: string;
-  _translations?: {
-    fieldName: string;
-  };
+  _translations?: { fieldName: string };
 }
 
 interface IMasterField {
@@ -32,7 +30,9 @@ interface IMasterField {
   name: string;
   apiCode: string;
   fieldType?: string;
+  _translations?: { fieldName: string };
 }
+
 
 export default function LoyaltyForm() {
   const { creationId } = useParams();
@@ -77,22 +77,23 @@ export default function LoyaltyForm() {
           id: field.id || field._id,
           name: field.fieldName || field.name,
           apiCode: field.fieldName || field.apiCode || field.name,
-          fieldType: field.fieldType || field.type
+          fieldType: field.fieldType || field.type,
+_translations: field._translations
         }));
         setAvailableMasterFields(masterFields);
         
         const configuredResponse = await getFieldsService(actualLoyaltyProgramId);
         
         if (configuredResponse.success && configuredResponse.data && Array.isArray(configuredResponse.data)) {
-       const configured: IFieldConfig[] = configuredResponse.data.map((field: any) => ({
-  fieldName: field.fieldName,
-  apiCode: field.masterRegistrationFieldId || field.fieldName,
-  visibleInRegistration: field.visibleInRegistration ?? true,
-  visibleInCustomerForm: field.visibleInCustomerForm ?? true,
-  required: field.required ?? false,
-  masterRegistrationFieldId: field.masterRegistrationFieldId || field.fieldName,
-  _translations: field._translations
-}));
+          const configured: IFieldConfig[] = configuredResponse.data.map((field: any) => ({
+            fieldName: field.fieldName,
+            apiCode: field.masterRegistrationFieldId || field.fieldName,
+            visibleInRegistration: field.visibleInRegistration ?? true,
+            visibleInCustomerForm: field.visibleInCustomerForm ?? true,
+            required: field.required ?? false,
+            masterRegistrationFieldId: field.masterRegistrationFieldId || field.fieldName,
+_translations: field._translations
+          }));
           setConfiguredFields(configured);
         } else {
           setConfiguredFields([]);
@@ -280,7 +281,7 @@ export default function LoyaltyForm() {
                             onCheckedChange={() => handleToggleFieldSelection(field.id)}
                           />
                           <div className="flex-1">
-                            <div className="font-medium">{field.name}</div>
+                            <div className="font-medium">{field._translations?.fieldName ?? field.name}</div>
                             <div className="text-sm text-muted-foreground">{field.apiCode}</div>
                           </div>
                           {field.fieldType && (
@@ -340,7 +341,8 @@ export default function LoyaltyForm() {
                     className="border-b hover:bg-muted/50 cursor-move transition-colors"
                   >
                     
-                    <td className="py-4 pr-4 font-medium">{field._translations?.fieldName ?? field.fieldName}</td>
+                    <td className="py-4 pr-4 font-medium">{field._translations?.fieldName ?? field.fieldName}
+</td>
                     <td className="py-4 px-4 text-center">
                       <div className="flex justify-center">
                         <Checkbox

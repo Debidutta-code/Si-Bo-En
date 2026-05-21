@@ -29,8 +29,13 @@ import BackButton from "@/components/shared/BackButton";
 
 interface Property {
   id: string;
-  propertyCode: string;
-  propertyName: string;
+  code: string,
+  name: string,
+  _translations?: {
+    propertyName: string;
+    description: string;
+  }
+
 }
 
 export default function Loyalty() {
@@ -83,12 +88,8 @@ export default function Loyalty() {
       const response = await fetchPropertiesByCreationIdService(creationId);
       if (response.success && response.data) {
         // Map the response to match the Property interface
-       const properties: Property[] = response.data.map((prop: any) => ({
-  id: prop.id,
-  propertyCode: prop.code,
-  propertyName: prop._translations?.propertyName ?? prop.name
-}));
-        setAvailableProperties(properties);
+      
+        setAvailableProperties(response.data);
       } else {
         toast.error(response.message || "Failed to fetch properties");
         setAvailableProperties([]);
@@ -381,7 +382,7 @@ export default function Loyalty() {
           />
         </TabsContent>
 
-      
+
         <ImageUploadModal
           isOpen={isImageModalOpen}
           onClose={() => setIsImageModalOpen(false)}
