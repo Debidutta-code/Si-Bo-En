@@ -20,6 +20,8 @@ model Guests {
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
 
+  primaryReservations Reservation[] @relation("ReservationPrimaryGuest")
+
   @@unique([propertyId, email])
   @@map("guests")
 }

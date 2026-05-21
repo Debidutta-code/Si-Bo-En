@@ -73,9 +73,7 @@ model Reservation {
   reservationGuests     ReservationGuest[]
   reservationPromoCodes ReservationPromoCode[]
   agency                Agency?                @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-  OtaGuest              OtaGuest?              @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
   PricingBrakeDown      PricingBreakdown?      @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
-  primaryGuest          Guests                 @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id], onDelete: Cascade)
   promo                 PromoCode?             @relation(fields: [promoId], references: [id], onDelete: Cascade)
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   SpaSlot               SpaSlots[]

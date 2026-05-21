@@ -2,6 +2,7 @@ model ProblemTickets {
   id          String         @id @default(uuid())
   ticketNo    String         @unique @map("ticket_no")
   propertyId  String         @map("property_id")
+  Property    Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   subject     String
   description String?
 

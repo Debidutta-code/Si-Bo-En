@@ -15,7 +15,7 @@ import { clearCustomer } from "@/src/store/customerSlice";
 const Navbar = () => {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const propertyCode = searchParams.get("code") || searchParams.get("propertyCode");
+  const propertyCode = searchParams.get("code");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dynamicLogo, setDynamicLogo] = useState<string | null>(null);
   const pathname = usePathname();
@@ -214,33 +214,44 @@ const Navbar = () => {
               {t("Navbar.loyaltyGuestLogin")}
             </button> */}
             {/* My Booking */}
-            {!isHomePage && propertyCode && (
-              <>
-                <button
-                  onClick={() => router.push(`/spa?propertyCode=${propertyCode}`)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                      : "#F4EFE6",
-                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                  }}
-                >
-                  Spa
-                </button>
-                <button
+{!isHomePage && propertyCode && (
+
+              <button
                   onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                      : "#F4EFE6",
-                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                  }}
-                >
-                  {t("Navbar.myBooking")}
-                </button>
-              </>
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                    ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                    : "#F4EFE6",
+                  color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                }}
+              >
+{t("Navbar.myBooking")}
+              </button>
+            )}
+
+            {/* SPA */}
+            {propertyCode && (
+              <button
+                onClick={() => {
+                  const target = `/spa?propertyCode=${propertyCode}`;
+                  if (customer.isAuthenticated) {
+                    router.push(target);
+                  } else {
+                    sessionStorage.setItem("customerRedirectUrl", target);
+                    router.push("/login");
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                    ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                    : "#F4EFE6",
+                  color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                }}
+              >
+                Spa
+              </button>
             )}
             {/* Customer Login / User Dropdown */}
             <div className="relative" ref={customerDropdownRef}>
@@ -362,41 +373,6 @@ const Navbar = () => {
               </>
             )}
 
-            {!isHomePage && !isRoomsPage && propertyCode && (
-              <>
-                <button
-                  onClick={() => { setIsMenuOpen(false); router.push(`/spa?propertyCode=${propertyCode}`); }}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                      : "#F4EFE6",
-                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Spa
-                </button>
-                <button
-                  onClick={() => { setIsMenuOpen(false); router.push(`/my-trip?propertyCode=${propertyCode}`); }}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                      : "#F4EFE6",
-                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-                    <rect x="9" y="3" width="6" height="4" rx="1" />
-                  </svg>
-                  {t("Navbar.myBooking")}
-                </button>
-              </>
-            )}
             {isRoomsPage && (
               <>
                 {
@@ -501,21 +477,6 @@ const Navbar = () => {
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                   {t("Navbar.partnerLogin")}
-                </button>
-                <button
-                  onClick={() => router.push(`/spa?propertyCode=${propertyCode}`)}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                      : "#F4EFE6",
-                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  Spa
                 </button>
                 <button
                   onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}

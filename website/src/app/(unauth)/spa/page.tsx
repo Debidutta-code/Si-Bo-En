@@ -2,16 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { MapPin, CheckCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { getSpaByPropertyCodeApi } from "./api/spa.api";
 import { ISpa, ISpaDate, ISpaSlot } from "./interface";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../store/store";
 
 type Tab = "all" | "booked";
 
 export default function SpaPage() {
+  const router = useRouter();
+  const customer = useSelector((state: RootState) => (state as any).customer);
+
   const searchParams = useSearchParams();
   const propertyCode = searchParams.get("propertyCode") || searchParams.get("code") || "";
   const [spas, setSpas] = useState<ISpa[]>([]);
@@ -21,6 +26,7 @@ export default function SpaPage() {
   const hasPropertyCode = Boolean(propertyCode.trim());
 
   useEffect(() => {
+
     if (!hasPropertyCode) {
       return;
     }

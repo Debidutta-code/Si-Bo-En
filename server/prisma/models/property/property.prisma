@@ -31,6 +31,8 @@ model Property {
   payments                    Payment[]
   Policy                      Policy[]
   ProblemTickets              ProblemTickets[]
+
+
   promoCodes                  PromoCode[]
   promotions                  Promotion[]
   createdBy                   User                         @relation("PropertyCreatedBy", fields: [createdById], references: [id])

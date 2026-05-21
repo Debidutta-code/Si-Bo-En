@@ -22,7 +22,7 @@ export const createSpaReservationApi = async (
   data: ICreateSpaReservationRequest,
 ): Promise<ISpaApiResponse> => {
     try {
-        const response = await axios.post(`${SPA_BASE}/reservation`, data);
+        const response = await axios.post(`${SPA_BASE}/reservation`, data, { withCredentials: true });
         return response.data;
     } catch (error: any) {
         return error?.response?.data ?? { success: false, message: error?.message };
@@ -46,7 +46,7 @@ export const cancelSpaReservationApi = async (
   bookingId: string,
 ): Promise<ISpaApiResponse> => {
     try {
-        const response = await axios.put(`${SPA_BASE}/reservation/cancel/${encodeURIComponent(bookingId)}`);
+        const response = await axios.put(`${SPA_BASE}/reservation/cancel/${encodeURIComponent(bookingId)}`, {}, { withCredentials: true });
         return response.data;
     } catch (error: any) {
         return error?.response?.data ?? { success: false, message: error?.message };
