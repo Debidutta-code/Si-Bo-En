@@ -356,4 +356,30 @@ export class SpaRepository {
             throw new Error('Error occur while cancelling spa booking');
         }
     }
+    public async getSpaBookingsByCustomerId(customerId: string) {
+        try {
+            return await prisma.spaBooking.findMany({
+                where: {
+                    userId: customerId,
+                },
+                include: {
+                    SlotBookings: {
+                        include: {
+                            Spa: true,
+                            SpaSlot: {
+                                include: {
+                                    spaDate: true
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occur while fetching customer spa bookings');
+        }
+    }
 }

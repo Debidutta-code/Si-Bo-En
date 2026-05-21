@@ -219,4 +219,15 @@ export class SpaService {
             return errorResponse('Failed to cancel spa booking');
         }
     }
+    public async getCustomerSpaBookings(customerId: string): Promise<IApiResponse> {
+        try {
+            const bookings = await this.spaRepository.getSpaBookingsByCustomerId(customerId);
+            return successResponse('Customer spa bookings retrieved successfully', bookings);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse('Failed to retrieve customer spa bookings', error.message);
+            }
+            return errorResponse('Failed to retrieve customer spa bookings');
+        }
+    }
 }
