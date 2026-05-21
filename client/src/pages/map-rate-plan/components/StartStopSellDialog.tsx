@@ -178,11 +178,11 @@ export default function StartStopSellDialog({
                                 <SelectValue placeholder="Select rate plan (optional)" />
                             </SelectTrigger>
                             <SelectContent>
-                                {ratePlans.map((plan) => (
-                                    <SelectItem key={plan.id} value={plan.ratePlanCode}>
-                                        {plan.ratePlanName}
-                                    </SelectItem>
-                                ))}
+                               {ratePlans.map((plan) => (
+    <SelectItem key={plan.id} value={plan.ratePlanCode}>
+        {plan._translations?.ratePlanName ?? plan.ratePlanName}
+    </SelectItem>
+))}
                             </SelectContent>
                         </Select>
                     </div>

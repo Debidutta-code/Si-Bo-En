@@ -49,6 +49,7 @@ export interface RatePlan {
   propertyId: string;
   b2bAvailable: boolean;
   b2cAvailable: boolean;
+  
   _translations?: {
     ratePlanName: string;
   };

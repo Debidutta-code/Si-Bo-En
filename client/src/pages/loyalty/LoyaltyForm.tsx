@@ -22,6 +22,9 @@ interface IFieldConfig {
   visibleInCustomerForm: boolean;
   required: boolean;
   masterRegistrationFieldId: string;
+  _translations?: {
+    fieldName: string;
+  };
 }
 
 interface IMasterField {
@@ -81,14 +84,15 @@ export default function LoyaltyForm() {
         const configuredResponse = await getFieldsService(actualLoyaltyProgramId);
         
         if (configuredResponse.success && configuredResponse.data && Array.isArray(configuredResponse.data)) {
-          const configured: IFieldConfig[] = configuredResponse.data.map((field: any) => ({
-            fieldName: field.fieldName,
-            apiCode: field.masterRegistrationFieldId || field.fieldName,
-            visibleInRegistration: field.visibleInRegistration ?? true,
-            visibleInCustomerForm: field.visibleInCustomerForm ?? true,
-            required: field.required ?? false,
-            masterRegistrationFieldId: field.masterRegistrationFieldId || field.fieldName
-          }));
+       const configured: IFieldConfig[] = configuredResponse.data.map((field: any) => ({
+  fieldName: field.fieldName,
+  apiCode: field.masterRegistrationFieldId || field.fieldName,
+  visibleInRegistration: field.visibleInRegistration ?? true,
+  visibleInCustomerForm: field.visibleInCustomerForm ?? true,
+  required: field.required ?? false,
+  masterRegistrationFieldId: field.masterRegistrationFieldId || field.fieldName,
+  _translations: field._translations
+}));
           setConfiguredFields(configured);
         } else {
           setConfiguredFields([]);
@@ -336,7 +340,7 @@ export default function LoyaltyForm() {
                     className="border-b hover:bg-muted/50 cursor-move transition-colors"
                   >
                     
-                    <td className="py-4 pr-4 font-medium">{field.fieldName}</td>
+                    <td className="py-4 pr-4 font-medium">{field._translations?.fieldName ?? field.fieldName}</td>
                     <td className="py-4 px-4 text-center">
                       <div className="flex justify-center">
                         <Checkbox

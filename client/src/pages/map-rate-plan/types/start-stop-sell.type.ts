@@ -3,4 +3,5 @@ export interface ICStartStopSell {
     to:Date;
     ratePlanCode?:string;
     roomTypeCode?:string;
+    
 }

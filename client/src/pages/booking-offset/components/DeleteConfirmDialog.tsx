@@ -62,11 +62,11 @@ export default function DeleteConfirmDialog({
                   onChange={(e) => onRatePlanChange?.(e.target.value)}
                 >
                   <option value="">Select a Rate Plan</option>
-                  {ratePlans.map((rp) => (
-                    <option key={rp.id} value={rp.id}>
-                      {rp.ratePlanName}
-                    </option>
-                  ))}
+                 {ratePlans.map((rp) => (
+  <option key={rp.id} value={rp.id}>
+    {rp._translations?.ratePlanName ?? rp.ratePlanName}
+  </option>
+))}
                 </select>
               </div>
             )}

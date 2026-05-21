@@ -24,4 +24,7 @@ export interface ICBookingOffsetR extends ICBookingOffsetS {
 export interface IBookingOffset extends ICBookingOffsetR {
     id: string;
     date: Date;
+    _translations?: {
+        ratePlanName: string;
+    };
 }

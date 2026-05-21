@@ -83,11 +83,11 @@ export default function Loyalty() {
       const response = await fetchPropertiesByCreationIdService(creationId);
       if (response.success && response.data) {
         // Map the response to match the Property interface
-        const properties: Property[] = response.data.map((prop: any) => ({
-          id: prop.id,
-          propertyCode: prop.code,
-          propertyName: prop.name
-        }));
+       const properties: Property[] = response.data.map((prop: any) => ({
+  id: prop.id,
+  propertyCode: prop.code,
+  propertyName: prop._translations?.propertyName ?? prop.name
+}));
         setAvailableProperties(properties);
       } else {
         toast.error(response.message || "Failed to fetch properties");
