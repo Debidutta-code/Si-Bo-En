@@ -320,4 +320,39 @@ export class SpaController {
                 );
         }
     }
+    public async getCustomerSpaBookings(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const customerId = req.customer?.id || req.user?.id;
+            if (!customerId) {
+                return res
+                    .status(401)
+                    .json(
+                        errorResponse(
+                            'Unauthorized User',
+                            'Complete Authentication to view bookings'
+                        )
+                    );
+            }
+
+            const response = await this.spaService.getCustomerSpaBookings(customerId);
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to retrieve customer spa bookings', error.message));
+            }
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to retrieve customer spa bookings',
+                        'Internal Server Error'
+                    )
+                );
+        }
+    }
 }

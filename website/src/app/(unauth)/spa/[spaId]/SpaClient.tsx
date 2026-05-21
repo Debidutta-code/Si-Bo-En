@@ -4,14 +4,17 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
-import { MapPin, CheckCircle } from "lucide-react";
+import { MapPin, CheckCircle, Trash2, ShoppingCart } from "lucide-react";
 import toast from "react-hot-toast";
 import { getSpaByPropertyCodeApi, createSpaReservationApi, cancelSpaReservationApi } from "../api/spa.api";
 import { ISpa, ISpaDate, ISpaSlot } from "../interface";
 
 interface SelectedSlot {
+  id: string; // unique identifier combining slotId and date
   spaId: string;
   slotId: string;
+  spaDateId: string;
+  date: string;
   spaName: string;
   dateLabel: string;
   startTime: string;
@@ -31,7 +34,7 @@ export default function SpaClient({ params }: SpaClientProps) {
     searchParams.get("propertyCode") || searchParams.get("code") || "";
   const [spas, setSpas] = useState<ISpa[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
+  const [selectedSlots, setSelectedSlots] = useState<Map<string, SelectedSlot>>(new Map());
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -80,26 +83,68 @@ export default function SpaClient({ params }: SpaClientProps) {
     [spas],
   );
 
-  const handleSelectSlot = (spa: ISpa, spaDate: ISpaDate, slot: ISpaSlot) => {
+  // Generate a unique ID for a slot
+  const getSlotUniqueId = (slotId: string, dateId: string) => {
+    return `${slotId}_${dateId}`;
+  };
+
+  // Toggle slot selection
+  const handleToggleSlot = (spa: ISpa, spaDate: ISpaDate, slot: ISpaSlot) => {
     if (slot.isBooked) {
       toast.error("This slot is already booked.");
       return;
     }
 
+    const uniqueId = getSlotUniqueId(slot.id, spaDate.id);
     const amount = spa.isInclusive ? 0 : spa.discountValue || 0;
-    setSelectedSlot({
-      spaId: spa.id || params.spaId,
-      slotId: slot.id,
-      spaName: spa.name,
-      dateLabel: format(new Date(spaDate.date), "EEEE, MMM dd, yyyy"),
-      startTime: slot.startTime,
-      endTime: slot.endTime || slot.startTime,
-      amount,
+
+    setSelectedSlots(prev => {
+      const newSelection = new Map(prev);
+      if (newSelection.has(uniqueId)) {
+        newSelection.delete(uniqueId);
+        toast.success(`Removed ${formatTime(slot.startTime)} slot`);
+      } else {
+        newSelection.set(uniqueId, {
+          id: uniqueId,
+          spaId: spa.id || params.spaId,
+          slotId: slot.id,
+          spaDateId: spaDate.id,
+          date: spaDate.date,
+          spaName: spa.name,
+          dateLabel: format(new Date(spaDate.date), "EEEE, MMM dd, yyyy"),
+          startTime: slot.startTime,
+          endTime: slot.endTime || slot.startTime,
+          amount,
+        });
+        toast.success(`Added ${formatTime(slot.startTime)} slot`);
+      }
+      return newSelection;
     });
   };
 
+  // Check if a slot is selected
+  const isSlotSelected = (slotId: string, dateId: string) => {
+    return selectedSlots.has(getSlotUniqueId(slotId, dateId));
+  };
+
+  // Clear all selected slots
+  const handleClearSelection = () => {
+    setSelectedSlots(new Map());
+    toast.success("All slots cleared");
+  };
+
+  // Calculate total amount
+  const totalAmount = useMemo(() => {
+    let total = 0;
+    selectedSlots.forEach(slot => {
+      total += slot.amount;
+    });
+    return total;
+  }, [selectedSlots]);
+
   const handleConfirmBooking = async () => {
-    if (!selectedSlot) {
+    if (selectedSlots.size === 0) {
+      toast.error("Please select at least one slot to book.");
       return;
     }
 
@@ -110,53 +155,61 @@ export default function SpaClient({ params }: SpaClientProps) {
 
     setSubmitting(true);
     try {
+      const slotsData = Array.from(selectedSlots.values()).map(slot => ({
+        spaId: slot.spaId,
+        spaSlotId: slot.slotId,
+        amount: slot.amount,
+      }));
+
       const response = await createSpaReservationApi({
         userEmail: customerEmail.trim(),
         userContactNumber: customerPhone.trim(),
-        slots: [
-          {
-            spaId: selectedSlot.spaId,
-            spaSlotId: selectedSlot.slotId,
-            amount: selectedSlot.amount,
-          },
-        ],
+        slots: slotsData,
       });
 
       if (response.success) {
-        toast.success(response.message || "Spa slot booked successfully.");
-        // attach booking id locally so user can cancel immediately
+        toast.success(`${selectedSlots.size} slot(s) booked successfully.`);
+        
+        // Store booking IDs in memory
         const bookingId = response.data?.id;
-        if (bookingId && selectedSlot) {
-          // store in in-memory map (fast immediate lookup)
-          bookingMapRef.current[selectedSlot.slotId] = bookingId;
-
-          // Also mirror the backend response shape into the slot so cancel works even after refresh
-          setSpas((prev) =>
-            prev.map((s) => ({
-              ...s,
-              SpaDates: s.SpaDates?.map((d) => ({
-                ...d,
-                Slots: d.Slots?.map((sl) =>
-                  sl.id === selectedSlot.slotId
-                    ? {
-                        ...sl,
-                        isBooked: true,
-                        reservationId: bookingId,
-                        SlotBooking: { spaBookingId: bookingId },
-                        Reservation: { bookingCode: sl.Reservation?.bookingCode || "", id: bookingId } as any,
-                      }
-                    : sl,
-                ),
-              })),
-            })),
-          );
+        if (bookingId) {
+          selectedSlots.forEach((slot) => {
+            bookingMapRef.current[slot.slotId] = bookingId;
+          });
         }
 
+        // Update local state to mark slots as booked
+        setSpas((prev) =>
+          prev.map((s) => ({
+            ...s,
+            SpaDates: s.SpaDates?.map((d) => ({
+              ...d,
+              Slots: d.Slots?.map((sl) => {
+                const isSelectedSlot = Array.from(selectedSlots.values()).some(
+                  selected => selected.slotId === sl.id && selected.spaDateId === d.id
+                );
+                if (isSelectedSlot) {
+                  return {
+                    ...sl,
+                    isBooked: true,
+                    reservationId: bookingId,
+                    SlotBooking: { spaBookingId: bookingId },
+                    Reservation: { bookingCode: sl.Reservation?.bookingCode || "", id: bookingId } as any,
+                  };
+                }
+                return sl;
+              }),
+            })),
+          })),
+        );
 
-        setSelectedSlot(null);
+        // Clear form and selections
+        setSelectedSlots(new Map());
         setCustomerName("");
         setCustomerEmail("");
         setCustomerPhone("");
+        
+        // Refresh data
         await loadSpas(propertyCode.trim());
       } else {
         toast.error(response.message || "Failed to create spa booking.");
@@ -168,29 +221,25 @@ export default function SpaClient({ params }: SpaClientProps) {
     }
   };
 
-  const handleCancelBooking = async (slot: ISpaSlot) => {
-    // prioritize in-memory booking id from recent create to avoid timing issues
+  const handleCancelBooking = async (slot: ISpaSlot, spaDateId: string) => {
     const bookingId =
       bookingMapRef.current[slot.id] ||
       slot.SlotBooking?.spaBookingId ||
       slot.reservationId ||
-      // your backend returns cancel id as reservation.id (not slot reservation bookingCode)
       (slot.Reservation as any)?.id ||
-      // last fallback: some APIs may provide bookingId under another name
       (slot as any)?.bookingId;
-    console.log(bookingId)
+      
     if (!bookingId) {
       console.error('Cancel failed — booking id missing for slot:', slot);
       toast.error("Unable to cancel booking: booking id is missing.");
       return;
     }
-    console.debug('Cancelling spa booking', { slotId: slot.id, bookingId });
 
     setCancellingSlotId(slot.id);
     try {
       const response = await cancelSpaReservationApi(bookingId);
       if (response.success) {
-        toast.success(response.message || "Spa booking canceled successfully.");
+        toast.success("Spa booking canceled successfully.");
         await loadSpas(propertyCode.trim());
       } else {
         toast.error(response.message || "Failed to cancel spa booking.");
@@ -293,7 +342,18 @@ export default function SpaClient({ params }: SpaClientProps) {
 
             <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-slate-900">Available dates and slots</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-slate-900">Available dates and slots</h3>
+                  {selectedSlots.size > 0 && (
+                    <button
+                      onClick={handleClearSelection}
+                      className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Clear all ({selectedSlots.size})
+                    </button>
+                  )}
+                </div>
                 {spa.SpaDates && spa.SpaDates.length > 0 ? (
                   <div className="mt-6 space-y-6">
                     {spa.SpaDates.map((spaDate: ISpaDate) => (
@@ -301,45 +361,82 @@ export default function SpaClient({ params }: SpaClientProps) {
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                           <div>
                             <p className="text-sm font-semibold text-slate-900">{formatDate(spaDate.date)}</p>
-                            <p className="text-sm text-slate-500">{spaDate.Slots?.length || 0} slot{spaDate.Slots?.length === 1 ? "" : "s"}</p>
+                            <p className="text-sm text-slate-500">
+                              {spaDate.Slots?.filter(slot => !slot.isBooked).length || 0} open slots
+                            </p>
                           </div>
-                          <div className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">Date ID: {spaDate.id.slice(0, 8)}</div>
+                          <div className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700">
+                            {spaDate.Slots?.filter(slot => selectedSlots.has(getSlotUniqueId(slot.id, spaDate.id))).length || 0} selected
+                          </div>
                         </div>
                         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                          {spaDate.Slots?.map((slot: ISpaSlot) => (
-                            <div key={slot.id} className="rounded-3xl border border-slate-200 p-4">
-                              <div className="flex items-center justify-between gap-4">
-                                <div>
-                                  <p className="font-medium text-slate-900">{formatTime(slot.startTime)} - {formatTime(slot.endTime || slot.startTime)}</p>
-                                  <p className="text-sm text-slate-500">{slot.isBooked ? "Booked" : "Available"}</p>
+                          {spaDate.Slots?.map((slot: ISpaSlot) => {
+                            const isSelected = isSlotSelected(slot.id, spaDate.id);
+                            return (
+                              <div 
+                                key={slot.id} 
+                                className={`rounded-3xl border p-4 transition-all ${
+                                  isSelected 
+                                    ? 'border-emerald-500 bg-emerald-50' 
+                                    : slot.isBooked 
+                                      ? 'border-slate-200 bg-slate-50' 
+                                      : 'border-slate-200 hover:border-slate-300'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-4">
+                                  <div>
+                                    <p className="font-medium text-slate-900">
+                                      {formatTime(slot.startTime)} - {formatTime(slot.endTime || slot.startTime)}
+                                    </p>
+                                    <p className="text-sm text-slate-500">
+                                      {slot.isBooked ? "Booked" : isSelected ? "Selected" : "Available"}
+                                    </p>
+                                  </div>
+                                  {!slot.isBooked && (
+                                    <div className="flex items-center gap-2">
+                                      {isSelected && (
+                                        <CheckCircle className="h-5 w-5 text-emerald-600" />
+                                      )}
+                                      <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
+                                        slot.isBooked 
+                                          ? "bg-red-100 text-red-700" 
+                                          : isSelected
+                                            ? "bg-emerald-100 text-emerald-700"
+                                            : "bg-emerald-100 text-emerald-700"
+                                      }`}>
+                                        {slot.isBooked ? "Booked" : isSelected ? "Selected" : "Open"}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
-                                <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${slot.isBooked ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
-                                  {slot.isBooked ? "Booked" : "Open"}
-                                </span>
+                                {slot.isBooked && slot.Reservation?.bookingCode ? (
+                                  <p className="mt-3 text-sm text-slate-600">Code: {slot.Reservation.bookingCode}</p>
+                                ) : null}
+                                {slot.isBooked ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCancelBooking(slot, spaDate.id)}
+                                    disabled={cancellingSlotId === slot.id}
+                                    className="mt-4 inline-flex w-full justify-center rounded-2xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-70"
+                                  >
+                                    {cancellingSlotId === slot.id ? "Cancelling..." : "Cancel booking"}
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleToggleSlot(spa, spaDate, slot)}
+                                    className={`mt-4 inline-flex w-full justify-center rounded-2xl px-4 py-2 text-sm font-semibold transition ${
+                                      isSelected
+                                        ? 'bg-red-600 text-white hover:bg-red-700'
+                                        : 'bg-slate-900 text-white hover:bg-slate-700'
+                                    }`}
+                                  >
+                                    {isSelected ? "Remove" : "Select slot"}
+                                  </button>
+                                )}
                               </div>
-                              {slot.isBooked && slot.Reservation?.bookingCode ? (
-                                <p className="mt-3 text-sm text-slate-600">Code: {slot.Reservation.bookingCode}</p>
-                              ) : null}
-                              {slot.isBooked ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleCancelBooking(slot)}
-                                  disabled={cancellingSlotId === slot.id}
-                                  className="mt-4 inline-flex w-full justify-center rounded-2xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-70"
-                                >
-                                  {cancellingSlotId === slot.id ? "Cancelling..." : "Cancel booking"}
-                                </button>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelectSlot(spa, spaDate, slot)}
-                                  className="mt-4 inline-flex w-full justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
-                                >
-                                  Select this slot
-                                </button>
-                              )}
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
@@ -352,60 +449,106 @@ export default function SpaClient({ params }: SpaClientProps) {
               </div>
 
               <aside className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-slate-900">Spa summary</h3>
-                {selectedSlot ? (
-                  <div className="mt-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                    <p className="font-semibold text-slate-900">Selected slot</p>
-                    <p className="mt-2">{selectedSlot.dateLabel}</p>
-                    <p>{selectedSlot.startTime} – {selectedSlot.endTime}</p>
-                    <p className="mt-2 font-medium">{selectedSlot.amount === 0 ? "Inclusive" : `${spa.currencyCode || "AED"} ${selectedSlot.amount}`}</p>
-                    <div className="mt-4 space-y-3">
+                <div className="flex items-center gap-2 mb-4">
+                  <ShoppingCart className="h-5 w-5 text-slate-600" />
+                  <h3 className="text-lg font-semibold text-slate-900">Booking summary</h3>
+                </div>
+                
+                {selectedSlots.size > 0 ? (
+                  <div className="space-y-4">
+                    <div className="max-h-[300px] overflow-y-auto space-y-2">
+                      {Array.from(selectedSlots.values()).map((slot) => (
+                        <div key={slot.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-slate-900">{slot.dateLabel}</p>
+                              <p className="text-slate-600">{slot.startTime} – {slot.endTime}</p>
+                            </div>
+                            <button
+                              onClick={() => {
+                                setSelectedSlots(prev => {
+                                  const newSelection = new Map(prev);
+                                  newSelection.delete(slot.id);
+                                  return newSelection;
+                                });
+                              }}
+                              className="text-red-600 hover:text-red-700 text-xs"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                          <p className="mt-1 font-medium text-emerald-700">
+                            {slot.amount === 0 ? "Inclusive" : `${spa.currencyCode || "AED"} ${slot.amount}`}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="border-t border-slate-200 pt-4">
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="font-semibold text-slate-900">Total slots:</span>
+                        <span className="text-lg font-bold text-slate-900">{selectedSlots.size}</span>
+                      </div>
+                      <div className="flex justify-between items-center mb-4">
+                        <span className="font-semibold text-slate-900">Total amount:</span>
+                        <span className="text-xl font-bold text-emerald-700">
+                          {totalAmount === 0 
+                            ? "Inclusive" 
+                            : `${spa.currencyCode || "AED"} ${totalAmount}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
                       <input
                         type="text"
                         value={customerName}
                         onChange={(event) => setCustomerName(event.target.value)}
-                        placeholder="Name"
+                        placeholder="Full name *"
                         className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
                       />
                       <input
                         type="email"
                         value={customerEmail}
                         onChange={(event) => setCustomerEmail(event.target.value)}
-                        placeholder="Email"
+                        placeholder="Email address *"
                         className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
                       />
                       <input
                         type="tel"
                         value={customerPhone}
                         onChange={(event) => setCustomerPhone(event.target.value)}
-                        placeholder="Phone"
+                        placeholder="Phone number *"
                         className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
                       />
                     </div>
-                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    
+                    <div className="flex flex-col gap-3">
                       <button
                         type="button"
                         onClick={handleConfirmBooking}
                         disabled={submitting}
-                        className="inline-flex w-full justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                        className="inline-flex w-full justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
                       >
-                        {submitting ? "Booking..." : "Confirm booking"}
+                        {submitting ? "Booking..." : `Book ${selectedSlots.size} slot(s)`}
                       </button>
                       <button
                         type="button"
-                        onClick={() => setSelectedSlot(null)}
-                        className="inline-flex w-full justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
+                        onClick={handleClearSelection}
+                        className="inline-flex w-full justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                       >
-                        Clear selection
+                        Clear all slots
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="mt-4 rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-                    Select a slot to book it and enter your contact details.
+                  <div className="mt-4 rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                    <ShoppingCart className="h-12 w-12 mx-auto mb-3 text-slate-400" />
+                    Select slots to book them
                   </div>
                 )}
-                <div className="mt-4 space-y-4 text-sm text-slate-600">
+                
+                <div className="mt-6 pt-4 border-t border-slate-200 space-y-3 text-sm text-slate-600">
                   <div>
                     <p className="font-medium text-slate-900">Property code</p>
                     <p>{propertyCode.toUpperCase()}</p>
