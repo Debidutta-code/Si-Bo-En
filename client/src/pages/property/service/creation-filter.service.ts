@@ -122,6 +122,7 @@ export async function getBrandCreationId(id: string) {
                     under: data.group ? data.group.name : data.super.name,
                     isActive: data.isActive,
                     users: data.users,
+                    _translations: data._translations
 
                 }
             }
