@@ -23,7 +23,7 @@ import {
     getAllRoomViews,
     updateRoomViewService,
 } from "../services/room-view.services";
-import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "./multilang/ManagementTranslationDialogs";
 import {
     upsertMasterRoomViewTranslationService,
     getAllMasterRoomViewTranslationsService,
@@ -45,6 +45,9 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
     const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
     const [addTranslationOpen, setAddTranslationOpen] = useState(false);
     const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+    const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+    const [editingLocale, setEditingLocale] = useState<string>("");
+    const [editingData, setEditingData] = useState<Record<string, any>>({});
 
     const sortedRoomViews = useMemo(() => {
         return [...roomViews].sort((a, b) => a.viewName.localeCompare(b.viewName));
@@ -235,6 +238,17 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         displayFields={[{ key: "viewName", label: "Name" }]}
                         onFetch={getAllMasterRoomViewTranslationsService}
                         onDelete={deleteMasterRoomViewTranslationLocaleService}
+                        onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+                    />
+                    <EditTranslationDialog
+                        open={editTranslationOpen}
+                        onOpenChange={setEditTranslationOpen}
+                        entityId={translationEntityId!}
+                        locale={editingLocale}
+                        initialData={editingData}
+                        title="Edit Room View Translation"
+                        fields={[{ key: "viewName", label: "View Name", placeholder: "e.g., Vista al mar" }]}
+                        onSave={async (id, locale, data) => upsertMasterRoomViewTranslationService(id, { [locale]: data })}
                     />
                 </>
             )}

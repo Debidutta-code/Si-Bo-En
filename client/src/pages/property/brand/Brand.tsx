@@ -21,6 +21,8 @@ import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 import { Plus, Globe } from "lucide-react";
 import AddCreationLanguageDialog from "@/components/creation/AddCreationLanguageDialog";
 import CheckCreationLanguagesDialog from "@/components/creation/CheckCreationLanguagesDialog";
+import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
+import { upsertCreationTranslationService } from "../service/creation-lang.service";
 
 
 export default function page() {
@@ -58,6 +60,9 @@ export default function page() {
 
     const [addLanguageDialogOpen, setAddLanguageDialogOpen] = useState(false);
     const [checkLanguagesDialogOpen, setCheckLanguagesDialogOpen] = useState(false);
+    const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+    const [editingLocale, setEditingLocale] = useState<string>("");
+    const [editingData, setEditingData] = useState<Record<string, any>>({});
 
     const fetchGroup = async () => {
         try {
@@ -541,6 +546,19 @@ export default function page() {
                         open={checkLanguagesDialogOpen}
                         onOpenChange={setCheckLanguagesDialogOpen}
                         creationId={brandDetails.id}
+                        onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+                    />
+                    <EditTranslationDialog
+                        open={editTranslationOpen}
+                        onOpenChange={setEditTranslationOpen}
+                        entityId={brandDetails.id}
+                        locale={editingLocale}
+                        initialData={editingData}
+                        title="Edit Brand Translation"
+                        fields={[
+                            { key: "name", label: "Brand Name", placeholder: "e.g. Marca Sol" },
+                        ]}
+                        onSave={async (id, locale, data) => upsertCreationTranslationService(id, { [locale]: data })}
                     />
                 </>
             )}

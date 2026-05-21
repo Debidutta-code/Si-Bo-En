@@ -39,6 +39,8 @@ import RatePlanRulesDialog from "./components/ratePlanRuleForm";
 import ManageRateWithAddonsForm from "./components/ManageRateWithAddonsForm"; // ✅ ADDED
 import AddRatePlanLanguageDialog from "./components/AddRatePlanLanguageDialog";
 import CheckRatePlanLanguagesDialog from "./components/CheckRatePlanLanguagesDialog";
+import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
+import { upsertRatePlanTranslationService } from "./services/ratePlan-language.service";
 // import { usePropertyContext } from '@/contexts/PropertyContext';
 
 export default function RatePlan() {
@@ -88,6 +90,13 @@ export default function RatePlan() {
     open: false,
     ratePlan: null,
   });
+
+  const [editLanguageDialog, setEditLanguageDialog] = useState<{
+    open: boolean;
+    ratePlanId: string | null;
+    locale: string;
+    data: Record<string, any>;
+  }>({ open: false, ratePlanId: null, locale: "", data: {} });
 
   const [loader, setLoader] = useState<LoaderProps>({ isLoading: false, text: "" });
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; ratePlan: RatePlan | null }>({
@@ -714,6 +723,23 @@ export default function RatePlan() {
             }
           }}
           ratePlanId={checkLanguagesDialog.ratePlan.id}
+          onEdit={(locale, data) => setEditLanguageDialog({ open: true, ratePlanId: checkLanguagesDialog.ratePlan!.id, locale, data })}
+        />
+      )}
+
+      {/* Edit Language Dialog */}
+      {editLanguageDialog.ratePlanId && (
+        <EditTranslationDialog
+          open={editLanguageDialog.open}
+          onOpenChange={(open) => setEditLanguageDialog(prev => ({ ...prev, open }))}
+          entityId={editLanguageDialog.ratePlanId}
+          locale={editLanguageDialog.locale}
+          initialData={editLanguageDialog.data}
+          title="Edit Rate Plan Translation"
+          fields={[
+            { key: "ratePlanName", label: "Rate Plan Name", placeholder: "e.g., Plan Estándar" },
+          ]}
+          onSave={async (id, locale, data) => upsertRatePlanTranslationService(id, { [locale]: data })}
         />
       )}
     </>

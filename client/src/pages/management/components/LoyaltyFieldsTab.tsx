@@ -9,7 +9,7 @@ import { Plus, Trash2, MoreVertical, Languages } from "lucide-react";
 import toast from "react-hot-toast";
 import type { ILoyaltyGuestField } from "../types";
 import { createLoyaltyGuestFieldsService, deleteLoyaltyGuestFieldService } from "../services/management.services";
-import { AddTranslationDialog, CheckTranslationsDialog } from "./multilang/ManagementTranslationDialogs";
+import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from "./multilang/ManagementTranslationDialogs";
 import {
   upsertMasterLoyaltyRegistrationFieldTranslationService,
   getAllMasterLoyaltyRegistrationFieldTranslationsService,
@@ -29,6 +29,9 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
   const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
+  const [editTranslationOpen, setEditTranslationOpen] = useState(false);
+  const [editingLocale, setEditingLocale] = useState<string>("");
+  const [editingData, setEditingData] = useState<Record<string, any>>({});
 
   const handleAddLoyaltyFieldToList = () => {
     if (!loyaltyFieldInput.trim()) return;
@@ -169,6 +172,17 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
             displayFields={[{ key: "fieldName", label: "Field Name" }]}
             onFetch={getAllMasterLoyaltyRegistrationFieldTranslationsService}
             onDelete={deleteMasterLoyaltyRegistrationFieldTranslationLocaleService}
+            onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
+          />
+          <EditTranslationDialog
+            open={editTranslationOpen}
+            onOpenChange={setEditTranslationOpen}
+            entityId={translationEntityId!}
+            locale={editingLocale}
+            initialData={editingData}
+            title="Edit Loyalty Field Translation"
+            fields={[{ key: "fieldName", label: "Field Name", placeholder: "e.g., Número de teléfono" }]}
+            onSave={async (id, locale, data) => upsertMasterLoyaltyRegistrationFieldTranslationService(id, { [locale]: data })}
           />
         </>
       )}
