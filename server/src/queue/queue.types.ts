@@ -2,7 +2,7 @@ export type EmailJobPriority = 'critical' | 'high' | 'normal' | 'low';
 
 export interface EmailJobData {
     to: string;
-    cc: string[];
+    bcc: string[];
     subject: string;
     htmlContent: string;
     priority?: EmailJobPriority;

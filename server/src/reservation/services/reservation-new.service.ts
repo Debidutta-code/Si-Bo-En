@@ -294,10 +294,6 @@ export class NewReservationService {
                     );
                 }
             }
-            await this.reservationRepository.createReservationGuests(
-                reservation.id,
-                guestDetails
-            );
             const ngeniusOrderRef = payload?.ngeniusOrderRef;
             if (ngeniusOrderRef) {
                 const count =

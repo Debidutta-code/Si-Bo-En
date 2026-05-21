@@ -72,7 +72,6 @@ export const generateBookingVoucherHTML = (data: any): string => {
   const taxes = priceData?.taxBrakeDown ?? [];
   const addonsData = priceData?.addonBrakeDown ?? [];
   const promos = priceData?.promotionBrakeDown ?? [];
-
   // Group daily by date string for display
   const dailyByDate: Record<string, any[]> = {};
   for (const d of daily) {
@@ -241,7 +240,7 @@ ${reservationGuests && reservationGuests.length > 0
         .map(
           (g: any) => `
     <div class="guest-chip ${g.type}">
-      ${g.firstName} ${g.lastName}
+     ${[g.firstName?.trim(), g.lastName?.trim()].filter(Boolean).join(' ') || 'Not Available'}
       <span style="color:#94a3b8;"> · ${toTitleCase(g.type)}${g.age ? ` · Age ${g.age}` : ''}</span>
     </div>`
         )

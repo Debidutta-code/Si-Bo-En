@@ -138,32 +138,32 @@ export default function MyTripPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
- const handleDownloadPDF = async () => {
-  if (!bookingData) return;
-  const toastId = toast.loading("Generating voucher...");
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/booking-voucher/${bookingData.bookingCode}`,
-      { method: "GET" }
-    );
-    if (!response.ok) throw new Error("Failed to download voucher");
+  const handleDownloadPDF = async () => {
+    if (!bookingData) return;
+    const toastId = toast.loading("Generating voucher...");
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/booking-voucher/${bookingData.bookingCode}`,
+        { method: "GET" }
+      );
+      if (!response.ok) throw new Error("Failed to download voucher");
 
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `voucher-${bookingData.bookingCode}.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `voucher-${bookingData.bookingCode}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
 
-    toast.dismiss(toastId);
-  } catch (err: any) {
-    toast.dismiss(toastId);
-    toast.error(err.message || "Failed to download voucher");
-  }
-};
+      toast.dismiss(toastId);
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      toast.error(err.message || "Failed to download voucher");
+    }
+  };
 
   useEffect(() => {
     const isAnyModalOpen = showModal || showCancelModal || showUpdateModal;
@@ -816,7 +816,8 @@ export default function MyTripPage() {
                       <p className="text-blue-700 font-bold text-lg">
                         {bookingData.currencyCode}{" "}
                         {(
-                          (bookingData.PricingBrakeDown?.totalAmount || 0) +
+                          (bookingData.PricingBrakeDown?.currentChargeableAmount || 0) +
+                          (bookingData.PricingBrakeDown?.latterpayableAmount || 0) +
                           (bookingData.PricingBrakeDown?.totalSpa || 0)
                         ).toFixed(2)}
                       </p>
@@ -833,7 +834,7 @@ export default function MyTripPage() {
                     )}
 
                     {/* Refund */}
-                    {bookingData.refundAmount && bookingData.paidAmount > 0 && (
+                    {!!bookingData.refundAmount && bookingData.paidAmount > 0 && (
                       <div className="flex justify-between items-center">
                         <p className="text-gray-600">{t("MyTrip.refundableAmount")}</p>
                         <p className="font-medium text-green-600">
@@ -843,7 +844,8 @@ export default function MyTripPage() {
                             (bookingData.PricingBrakeDown?.latterpayableAmount || 0) -
                             (bookingData.refundAmount || 0) -
                             (bookingData.PricingBrakeDown?.totalSpa || 0)
-                          ).toFixed(2)}</p>
+                          ).toFixed(2)}
+                        </p>
                       </div>
                     )}
                   </div>

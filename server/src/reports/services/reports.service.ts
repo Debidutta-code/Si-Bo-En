@@ -197,7 +197,6 @@ export class ReportsService {
         try {
             const reservation =
                 await this.reportsRepository.getReservationDetails(bookingCode);
-
             if (!reservation) {
                 return errorResponse(
                     'Reservation not found',

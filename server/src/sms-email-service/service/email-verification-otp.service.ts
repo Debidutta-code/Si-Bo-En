@@ -68,7 +68,7 @@ export class EmailService {
 
             await emailQueue.enqueueEmail({
                 to: email,
-                cc: [],
+                bcc: [],
                 subject,
                 htmlContent,
                 priority: 'critical',
@@ -142,7 +142,7 @@ export class EmailService {
 
             await emailQueue.enqueueEmail({
                 to: email,
-                cc: [],
+                bcc: [],
                 subject,
                 htmlContent,
                 priority: 'critical',
