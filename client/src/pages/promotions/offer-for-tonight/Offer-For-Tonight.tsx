@@ -32,10 +32,12 @@ import type { ILoader } from '@/pages/dashboard/interface';
 import BackButton from '@/components/shared/BackButton';
 import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from '@/pages/management/components/multilang/ManagementTranslationDialogs';
 import {
-  upsertPromotionTranslationService,
-  getAllPromotionTranslationsService,
-  deletePromotionTranslationLocaleService,
+    upsertPromotionTranslationService,
+    getAllPromotionTranslationsService,
+    deletePromotionTranslationLocaleService,
 } from '../multilanguage/service/promotion.service';
+import { usePropertyContext } from '@/contexts/PropertyContext';
+import { languages } from '@/components/language/language';
 
 export const OfferForTonightList: React.FC = () => {
     const { propertyId } = useParams<{ propertyId: string }>();
@@ -46,6 +48,11 @@ export const OfferForTonightList: React.FC = () => {
         isLoading: false,
         message: ''
     });
+    const { languages: propertyLanguages } = usePropertyContext();
+    const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+        ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+        : languages;
+
     const [showForm, setShowForm] = useState(false);
     const [editData, setEditData] = useState<OfferForTonightWithRatePlan | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -498,6 +505,8 @@ export const OfferForTonightList: React.FC = () => {
                         onSave={async (id, locale, data) => {
                             return await upsertPromotionTranslationService(id, { [locale]: data });
                         }}
+                        allowedLanguageCodes={availableLanguages.map((l) => l.code)}
+
                     />
                     <CheckTranslationsDialog
                         open={checkTranslationsOpen}

@@ -29,11 +29,17 @@ import SpaCalendar from './components/SpaCalendar';
 import SpaViewDialog from './components/SpaViewDialog';
 import SpaAssignUserDialog from './components/SpaAssignUserDialog';
 import BackButton from '@/components/shared/BackButton';
+import { usePropertyContext } from '@/contexts/PropertyContext';
+import { languages } from '@/components/language/language';
 
 export default function Spa() {
   const { propertyId, spaId } = useParams();
   const navigate = useNavigate();
-
+const { languages: propertyLanguages } = usePropertyContext();
+        const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+            ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+            : languages;
+    
   const [loader, setLoader] = useState<ILoader>({ isLoading: true, message: 'Loading...' });
   const [spas, setSpas] = useState<ISpa[]>([]);
   const [categories, setCategories] = useState<ISpaCategory[]>([]);
@@ -560,6 +566,7 @@ export default function Spa() {
             onSave={async (id, locale, data) => {
               return await upsertSpaTranslationService(id, { [locale]: data });
             }}
+            allowedLanguageCodes={availableLanguages.map((l) => l.code)}
           />
           <CheckTranslationsDialog
             open={checkTranslationsOpen}

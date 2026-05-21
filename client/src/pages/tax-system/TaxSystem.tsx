@@ -91,6 +91,8 @@ import {
     getAllTouristTaxTranslations,
     deleteTouristTaxTranslationLocale
 } from "./api/multilanguage.api";
+import { usePropertyContext } from "@/contexts/PropertyContext";
+import { languages } from "@/components/language/language";
 
 interface LoadingProps {
     isLoading: boolean;
@@ -101,6 +103,11 @@ export default function TaxSystem() {
     const { propertyId } = useParams<{ propertyId: string }>();
     const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
     // State management
+        const { languages: propertyLanguages } = usePropertyContext();
+        const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+            ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+            : languages;
+    
     const [taxRules, setTaxRules] = useState<ITaxRule[]>([]);
     const [taxGroups, setTaxGroups] = useState<ITaxGroup[]>([]);
     const [touristTaxes, setTouristTaxes] = useState<ITouristTax[]>([]);
@@ -1574,6 +1581,7 @@ export default function TaxSystem() {
                             onSave={async (id, locale, data) => {
                                 return await upsertTaxRuleTranslation(id, { [locale]: data });
                             }}
+                            allowedLanguageCodes={availableLanguages.map((l) => l.code)}
                         />
                         <CheckTranslationsDialog
                             open={translationDialog.openCheck}
