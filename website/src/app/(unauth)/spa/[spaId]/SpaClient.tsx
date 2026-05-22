@@ -41,6 +41,7 @@ export default function SpaClient({ params }: SpaClientProps) {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [cancellingSlotId, setCancellingSlotId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
@@ -48,6 +49,7 @@ export default function SpaClient({ params }: SpaClientProps) {
     slotId: string;
     label: string;
   } | null>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const bookingMapRef = useRef<Record<string, string>>({});
 
   const hasPropertyCode = Boolean(propertyCode.trim());
@@ -77,6 +79,17 @@ export default function SpaClient({ params }: SpaClientProps) {
 
   const getSlotUniqueId = (slotId: string, dateId: string) => `${slotId}_${dateId}`;
 
+  const isUpcomingDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return date >= today;
+    } catch {
+      return false;
+    }
+  };
+
   const handleToggleSlot = (spa: ISpa, spaDate: ISpaDate, slot: ISpaSlot) => {
     if (slot.isBooked) { toast.error("This slot is already booked."); return; }
     const uniqueId = getSlotUniqueId(slot.id, spaDate.id);
@@ -105,10 +118,41 @@ export default function SpaClient({ params }: SpaClientProps) {
     return total;
   }, [selectedSlots]);
 
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidPhone = (phone: string) => /^[0-9+()\-\s]{7,20}$/.test(phone);
+
+  const validateField = (field: "name" | "email" | "phone", value: string) => {
+    let error: string | undefined;
+    const trimmed = value.trim();
+
+    if (field === "name") {
+      if (!trimmed) error = "Full name is required.";
+    }
+    if (field === "email") {
+      if (!trimmed) error = "Email address is required.";
+      else if (!isValidEmail(trimmed)) error = "Enter a valid email address.";
+    }
+    if (field === "phone") {
+      if (!trimmed) error = "Phone number is required.";
+      else if (!isValidPhone(trimmed)) error = "Enter a valid phone number.";
+    }
+
+    setFormErrors(prev => ({ ...prev, [field]: error }));
+    return !error;
+  };
+
+  const validateBookingForm = () => {
+    const nameValid = validateField("name", customerName);
+    const emailValid = validateField("email", customerEmail);
+    const phoneValid = validateField("phone", customerPhone);
+    return nameValid && emailValid && phoneValid;
+  };
+
   const handleConfirmBooking = async () => {
     if (selectedSlots.size === 0) { toast.error("Please select at least one slot."); return; }
-    if (!customerName.trim() || !customerEmail.trim() || !customerPhone.trim()) {
-      toast.error("Please fill in all required fields."); return;
+    if (!validateBookingForm()) {
+      toast.error("Please fix the highlighted fields.");
+      return;
     }
 
     // If not logged in, redirect to login and come back to this SPA page after success
@@ -149,6 +193,8 @@ export default function SpaClient({ params }: SpaClientProps) {
             })),
           }))
         );
+        // Close booking modal and clear form
+        setShowBookingModal(false);
         setSelectedSlots(new Map());
         setCustomerName(""); setCustomerEmail(""); setCustomerPhone("");
         await loadSpas(propertyCode.trim());
@@ -191,7 +237,21 @@ export default function SpaClient({ params }: SpaClientProps) {
       const response = await cancelSpaReservationApi(bookingId, slotId);
       if (response.success) {
         toast.success(`Slot cancelled successfully.`);
-        await loadSpas(propertyCode.trim());
+        // Mark the specific slot as cancelled locally so the UI shows 'Cancelled'
+        setSpas(prev =>
+          prev.map(s => ({
+            ...s,
+            SpaDates: s.SpaDates?.map(d => ({
+              ...d,
+              Slots: d.Slots?.map(sl => {
+                if (sl.id === slotId) {
+                  return { ...sl, status: 'cancelled', isCancelled: true } as any;
+                }
+                return sl;
+              }),
+            })),
+          }))
+        );
       } else {
         toast.error(response.message || "Failed to cancel slot.");
       }
@@ -207,7 +267,7 @@ export default function SpaClient({ params }: SpaClientProps) {
 
   const spa = useMemo(() => spas.find(item => item.id === params.spaId), [spas, params.spaId]);
   const availableSlots = useMemo(
-    () => spa?.SpaDates?.reduce((s, d) => s + (d.Slots?.filter(sl => !sl.isBooked).length || 0), 0) || 0,
+    () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.filter(sl => !sl.isBooked).length || 0) : 0), 0) || 0,
     [spa],
   );
   const coverImage = (spa as any)?.images?.[0];
@@ -253,7 +313,6 @@ export default function SpaClient({ params }: SpaClientProps) {
           >
             <ChevronLeft className="h-4 w-4" /> Back to services
           </Link>
-          <p className="text-xs font-semibold uppercase tracking-widest text-amber-700">{propertyCode.toUpperCase()}</p>
         </div>
 
         {!hasPropertyCode ? (
@@ -314,7 +373,7 @@ export default function SpaClient({ params }: SpaClientProps) {
               </div>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+            <div className="space-y-6">
               {/* Dates & Slots */}
               <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-5">
@@ -335,7 +394,7 @@ export default function SpaClient({ params }: SpaClientProps) {
                   </div>
                 ) : (
                   <div className="space-y-5">
-                    {spa.SpaDates.map((spaDate: ISpaDate) => {
+                    {spa.SpaDates?.filter((spaDate: ISpaDate) => isUpcomingDate(spaDate.date)).map((spaDate: ISpaDate) => {
                       const openCount = spaDate.Slots?.filter(s => !s.isBooked).length || 0;
                       const selectedCount = spaDate.Slots?.filter(s => selectedSlots.has(getSlotUniqueId(s.id, spaDate.id))).length || 0;
 
@@ -432,109 +491,174 @@ export default function SpaClient({ params }: SpaClientProps) {
                 )}
               </div>
 
-              {/* Booking Sidebar */}
-              <aside className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm self-start sticky top-6">
-                <div className="flex items-center gap-2 mb-5">
-                  <ShoppingCart className="h-5 w-5 text-stone-500" />
-                  <h3 className="text-lg font-bold text-stone-900">Booking Summary</h3>
+              {/* Booking Button */}
+              {selectedSlots.size > 0 && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setShowBookingModal(true)}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 hover:shadow-lg"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    Review & Book ({selectedSlots.size})
+                  </button>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
 
-                {selectedSlots.size === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-8 text-center">
-                    <ShoppingCart className="h-10 w-10 mx-auto mb-3 text-stone-300" />
-                    <p className="text-sm text-stone-400">Tap a slot to select it</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="max-h-[280px] overflow-y-auto space-y-2 pr-1">
-                      {Array.from(selectedSlots.values()).map(slot => (
-                        <div key={slot.id} className="rounded-xl border border-stone-100 bg-stone-50 p-3">
-                          <div className="flex items-start justify-between">
-                            <div className="text-xs">
-                              <p className="font-semibold text-stone-700">{slot.dateLabel}</p>
-                              <p className="text-stone-500 mt-0.5">
-                                {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
-                              </p>
-                              <p className="font-semibold text-emerald-700 mt-1">
-                                {slot.amount === 0 ? "Inclusive" : `${spa.currencyCode || "AED"} ${slot.amount}`}
-                              </p>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setSelectedSlots(prev => { const n = new Map(prev); n.delete(slot.id); return n; });
-                              }}
-                              className="rounded-lg p-1 text-stone-400 hover:bg-stone-200 hover:text-stone-600 transition"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
+        {/* Booking Modal */}
+        {showBookingModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowBookingModal(false)} />
+            <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-stone-900">Complete Your Booking</h2>
+                <button
+                  onClick={() => setShowBookingModal(false)}
+                  className="rounded-xl p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Selected Slots Summary */}
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-stone-500 mb-3">Selected Slots</p>
+                  <div className="max-h-[200px] overflow-y-auto space-y-2 pr-1">
+                    {Array.from(selectedSlots.values()).map(slot => (
+                      <div key={slot.id} className="rounded-xl border border-stone-100 bg-stone-50 p-3">
+                        <div className="flex items-start justify-between">
+                          <div className="text-xs">
+                            <p className="font-semibold text-stone-700">{slot.dateLabel}</p>
+                            <p className="text-stone-500 mt-0.5">
+                              {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
+                            </p>
+                            <p className="font-semibold text-emerald-700 mt-1">
+                              {slot.amount === 0 ? "Inclusive" : `${spa?.currencyCode || "AED"} ${slot.amount}`}
+                            </p>
                           </div>
+                          <button
+                            onClick={() => {
+                              setSelectedSlots(prev => { const n = new Map(prev); n.delete(slot.id); return n; });
+                            }}
+                            className="rounded-lg p-1 text-stone-400 hover:bg-stone-200 hover:text-stone-600 transition flex-shrink-0"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="rounded-2xl bg-stone-50 border border-stone-200 p-4 space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-stone-500">Slots</span>
-                        <span className="font-semibold text-stone-900">{selectedSlots.size}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-stone-500">Total</span>
-                        <span className="text-base font-bold text-stone-900">
-                          {totalAmount === 0 ? "Inclusive" : `${spa.currencyCode || "AED"} ${totalAmount}`}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2.5">
-                      <input
-                        type="text"
-                        value={customerName}
-                        onChange={e => setCustomerName(e.target.value)}
-                        placeholder="Full name *"
-                        className="w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
-                      />
-                      <input
-                        type="email"
-                        value={customerEmail}
-                        onChange={e => setCustomerEmail(e.target.value)}
-                        placeholder="Email address *"
-                        className="w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
-                      />
-                      <input
-                        type="tel"
-                        value={customerPhone}
-                        onChange={e => setCustomerPhone(e.target.value)}
-                        placeholder="Phone number *"
-                        className="w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm text-stone-900 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleConfirmBooking}
-                      disabled={submitting}
-                      className="w-full rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed"
-                    >
-                      {submitting ? (
-                        <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Booking…</span>
-                      ) : (
-                        `Book ${selectedSlots.size} Slot${selectedSlots.size !== 1 ? "s" : ""}`
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                <div className="mt-5 pt-4 border-t border-stone-100 grid grid-cols-2 gap-3 text-xs text-stone-500">
-                  <div>
-                    <p className="font-semibold text-stone-700 mb-0.5">Property</p>
-                    <p>{propertyCode.toUpperCase()}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-stone-700 mb-0.5">Open slots</p>
-                    <p>{availableSlots}</p>
+                    ))}
                   </div>
                 </div>
-              </aside>
+
+                {/* Price Summary */}
+                <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-stone-50 border border-amber-100 p-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-stone-500">Slots</span>
+                    <span className="font-semibold text-stone-900">{selectedSlots.size}</span>
+                  </div>
+                  <div className="border-t border-amber-100 pt-2 flex justify-between">
+                    <span className="text-stone-500">Total</span>
+                    <span className="text-lg font-bold text-stone-900">
+                      {totalAmount === 0 ? "Inclusive" : `${spa?.currencyCode || "AED"} ${totalAmount}`}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Customer Details */}
+                <div className="space-y-2.5 pt-2">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-stone-500">Your Details</p>
+                  <div>
+                    <input
+                      type="text"
+                      value={customerName}
+                      onChange={e => {
+                        setCustomerName(e.target.value);
+                        if (formErrors.name) validateField("name", e.target.value);
+                      }}
+                      onBlur={e => validateField("name", e.target.value)}
+                      placeholder="Full name *"
+                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
+                        formErrors.name
+                          ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                          : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                      } text-stone-900`}
+                    />
+                    {formErrors.name && (
+                      <p className="mt-2 text-xs text-red-600">{formErrors.name}</p>
+                    )}
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      value={customerEmail}
+                      onChange={e => {
+                        setCustomerEmail(e.target.value);
+                        if (formErrors.email) validateField("email", e.target.value);
+                      }}
+                      onBlur={e => validateField("email", e.target.value)}
+                      placeholder="Email address *"
+                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
+                        formErrors.email
+                          ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                          : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                      } text-stone-900`}
+                    />
+                    {formErrors.email && (
+                      <p className="mt-2 text-xs text-red-600">{formErrors.email}</p>
+                    )}
+                  </div>
+                  <div>
+                    <input
+                      type="tel"
+                      value={customerPhone}
+                      onChange={e => {
+                        setCustomerPhone(e.target.value);
+                        if (formErrors.phone) validateField("phone", e.target.value);
+                      }}
+                      onBlur={e => validateField("phone", e.target.value)}
+                      placeholder="Phone number *"
+                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
+                        formErrors.phone
+                          ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                          : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                      } text-stone-900`}
+                    />
+                    {formErrors.phone && (
+                      <p className="mt-2 text-xs text-red-600">{formErrors.phone}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setShowBookingModal(false)}
+                    className="flex-1 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm font-semibold text-stone-700 transition hover:bg-stone-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmBooking}
+                    disabled={submitting}
+                    className="flex-1 rounded-2xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {submitting ? (
+                      <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Booking…</span>
+                    ) : (
+                      `Book ${selectedSlots.size} Slot${selectedSlots.size !== 1 ? "s" : ""}`
+                    )}
+                  </button>
+                </div>
+
+                <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4 text-xs text-stone-500 text-center">
+                  <p className="font-semibold text-stone-700 mb-1">Available Slots</p>
+                  <p className="text-lg font-bold text-stone-900">{availableSlots}</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
