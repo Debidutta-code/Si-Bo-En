@@ -41,7 +41,6 @@ export class ReportsService {
             new Set(daily.map((d) => d.roomNumber)).size || 1;
 
         return {
-            // ── Totals ────────────────────────────────────────────────────
             totalAmount:             Number(pricingBreakdown.totalAmount),
             amountBeforeTax:         Number(pricingBreakdown.amountBeforeTax),
             taxedAmount:             Number(pricingBreakdown.taxedAmount),
@@ -52,6 +51,7 @@ export class ReportsService {
             promoCodeDiscount:       Number(pricingBreakdown.promoCodeDiscount),
             loyalityDiscount:        Number(pricingBreakdown.loyalityDiscount),
             currencyCode:            cur,
+            totalSpa:pricingBreakdown.totalSpa,
 
             // ── Computed ──────────────────────────────────────────────────
             numberOfNights,
@@ -103,6 +103,7 @@ export class ReportsService {
                 restrictionType: p.restrictionType,
                 type:            p.type,
             })),
+            SpaPricingBrakeDowns:pricingBreakdown.SpaPricingBrakeDowns
         };
     }
 
@@ -196,7 +197,6 @@ export class ReportsService {
         try {
             const reservation =
                 await this.reportsRepository.getReservationDetails(bookingCode);
-
             if (!reservation) {
                 return errorResponse(
                     'Reservation not found',

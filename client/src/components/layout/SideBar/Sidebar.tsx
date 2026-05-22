@@ -168,7 +168,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
           { name: 'Policy', href: `/property/policy/${pid}`, icon: FileText, userLevels: [0, 1, 2, 3, 4], priority: 0, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff',] },
           { name: 'Promo Code', href: `/property/promo-code/${pid}`, icon: Tag, userLevels: [0, 1, 2, 3, 4], priority: 0, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
           { name: 'Add On', href: `/property/add-on/${pid}`, icon: Users, userLevels: [1, 2, 3, 4], priority: 0, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
-          { name: 'Tax System', href: `/property/tax-system/${pid}`, icon: ScrollText, userLevels: [4], priority: 0, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+          { name: 'Tax System', href: `/property/tax-system/${pid}`, icon: ScrollText, userLevels: [0, 1, 2, 3, 4], priority: 0, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
         ],
       });
       main.push({

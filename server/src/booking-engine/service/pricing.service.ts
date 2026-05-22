@@ -345,10 +345,10 @@ class BasePriceClass {
             toUTC(this.startDate),
             toUTC(this.endDate)
         );
-        console.log("differnt",{
+        console.log("differnt", {
             diffInDays,
-            charges:this.charges,
-            len:this.charges.length
+            charges: this.charges,
+            len: this.charges.length
         })
         if (diffInDays != this.charges.length) {
             throw new Error('Charges not found for the given date range');
@@ -919,9 +919,21 @@ class PromotionClass {
         }, 0);
 
         const totalDiscountedAmount = visibleDiscountAmount + geoDiscountAmount;
-
+const updatedDailyPriceBrakeDown = (this.priceBrakeDown.dailyPriceBrakeDown ?? []).map(day => {
+            if (geoDiscountAmount === 0) return day;
+            const dayWeight = day.totalAmount / this.priceBrakeDown.amountBeforeTax;
+            const dayGeoDiscount = geoDiscountAmount * dayWeight;
+            const restrictionType = geoPriceBrakedown[0]?.restrictionType; // 'increase' or 'decrease'
+            return {
+                ...day,
+                totalAmount: restrictionType === 'increase'
+                    ? day.totalAmount + dayGeoDiscount
+                    : day.totalAmount - dayGeoDiscount,
+            };
+        });
         return {
             ...this.priceBrakeDown,
+            dailyPriceBrakeDown: updatedDailyPriceBrakeDown, // ✅
             totalPromotionAmount: visibleDiscountAmount,
             amountBeforeTax:
                 this.priceBrakeDown.amountBeforeTax - geoDiscountAmount,

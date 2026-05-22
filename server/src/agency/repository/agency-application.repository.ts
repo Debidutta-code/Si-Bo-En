@@ -37,7 +37,7 @@ export class AgencyApplicationRepository {
     ): Promise<IAgencyApplication | null> {
         try {
             const applications = await prisma.agentApplications.findUnique({
-                where: { applicantEmail: email },
+                where: { agencyEmail: email },
             });
             return applications;
         } catch (error) {

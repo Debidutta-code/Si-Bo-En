@@ -55,8 +55,6 @@ export interface IUSpaR {
 }
 export interface ISpaO extends ICSpaR {
     id: string;
-    isActive: boolean;
-
 }
 export interface ISpa extends ICSpaR {
     id:string;

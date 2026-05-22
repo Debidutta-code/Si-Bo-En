@@ -51,51 +51,48 @@ export class SpaPricingService {
                     spaSlotId: data.spaSlotId,
                 });
             } else {
-                /*
-                if tax is not inclusive then first get the applicable tax, sort it according to priority
-                get the pricebrakedowwn, remote the old taxes,add the spa amount create new taxes and amount 
-                 */
-                const [applicableTaxes, taxRuleBrakedownDeleted] =
-                    await Promise.all([
-                        this.spaPricingRepository.getApplicableTaxes(
-                            reservation.ratePlanCode
-                        ),
-                        this.spaPricingRepository.deleteTaxBrakedowns(
-                            reservation.pricingBrakedownId
-                        ),
-                    ]);
-                const sortedTaxRules = (
-                    applicableTaxes?.taxGroup?.taxGroupRules || []
-                ).sort(
-                    (a, b) =>
-                        (a.taxRule?.priority ?? 0) - (b.taxRule?.priority ?? 0)
-                );
-                const newTotalAmountBeforeTaxes =
-                    (pricingBrakedown?.amountBeforeTax ?? 0) +
-                    (spa.discountValue ? spa.discountValue : 0);
-                const newTaxBreakdown = sortedTaxRules.map(rule => {
-                    const value = rule.taxRule?.value ?? 0;
-                    const baseAmount = spa.discountValue
-                        ? spa.discountValue
-                        : 0;
+                // const [applicableTaxes, ] =
+                //     await Promise.all([
+                //         this.spaPricingRepository.getApplicableTaxes(
+                //             reservation.ratePlanCode
+                //         ),
+                        // this.spaPricingRepository.deleteTaxBrakedowns(
+                        //     reservation.pricingBrakedownId
+                        // ),
+                    // ]);
+                // const sortedTaxRules = (
+                //     applicableTaxes?.taxGroup?.taxGroupRules || []
+                // ).sort(
+                //     (a, b) =>
+                //         (a.taxRule?.priority ?? 0) - (b.taxRule?.priority ?? 0)
+                // );
+                // const newTotalAmountBeforeTaxes =
+                //     pricingBrakedown?.amountBeforeTax??0 +
+                //     (spa.discountValue ? spa.discountValue : 0);
 
-                    const taxAmount =
-                        rule.taxRule?.type === 'percentage'
-                            ? (baseAmount * value) / 100
-                            : value;
-                    return {
-                        currencyCode: rule.taxRule?.currencyCode!,
-                        taxedAmount: taxAmount,
-                        name: rule.taxRule?.name!,
-                        pricingBrakeDownId: reservation.pricingBrakedownId!,
-                    };
-                });
-                const newTotalTaxedAmount = newTaxBreakdown.reduce(
-                    (acc, curr) => acc + curr.taxedAmount,
-                    0
-                );
+                // const newTaxBreakdown = sortedTaxRules.map(rule => {
+                //     const value = rule.taxRule?.value ?? 0;
+                //     const baseAmount = spa.discountValue
+                //         ? spa.discountValue
+                //         : 0;
+
+                //     const taxAmount =
+                //         rule.taxRule?.type === 'percentage'
+                //             ? (baseAmount * value) / 100
+                //             : value;
+                //     return {
+                //         currencyCode: rule.taxRule?.currencyCode!,
+                //         // taxedAmount: taxAmount,
+                //         name: rule.taxRule?.name!,
+                //         pricingBrakeDownId: reservation.pricingBrakedownId!,
+                //     };
+                // });
+                // const newTotalTaxedAmount = newTaxBreakdown.reduce(
+                //     (acc, curr) => acc + curr.taxedAmount,
+                //     0
+                // );
                 const newFinalAmount =
-                    newTotalAmountBeforeTaxes + newTotalTaxedAmount;
+                    pricingBrakedown?.totalAmount ?? 0 + (spa.discountValue ?? 0);
                 await Promise.all([
                     this.spaPricingRepository.createSpaPricing({
                         price: spa.discountValue ? spa.discountValue : 0,
@@ -110,16 +107,11 @@ export class SpaPricingService {
                     }),
                     this.spaPricingRepository.updatePriceBrakeDown({
                         priceBrakeDownId: reservation.pricingBrakedownId,
-                        amountBeforeTax: newTotalAmountBeforeTaxes,
                         newTotalAmount: newFinalAmount,
                         totalSpaAmount:
                             (pricingBrakedown?.totalSpa ?? 0) +
                             (spa.discountValue ?? 0),
-                        taxedAmount: newTotalTaxedAmount,
                     }),
-                    await this.spaPricingRepository.createTaxBrakeDowns(
-                        newTaxBreakdown
-                    ),
                 ]);
             }
             return successResponse('Spa slot created successfully');
@@ -161,81 +153,67 @@ export class SpaPricingService {
             }
 
             // Fetch applicable taxes, delete the old tax breakdowns, and delete the spa pricing record itself
-            const [applicableTaxes, _deletedTaxes, _deletedSpa] =
+            const [ _deletedSpa] =
                 await Promise.all([
-                    this.spaPricingRepository.getApplicableTaxes(
-                        reservation.ratePlanCode
-                    ),
-                    this.spaPricingRepository.deleteTaxBrakedowns(
-                        reservation.pricingBrakedownId
-                    ),
+                    // this.spaPricingRepository.getApplicableTaxes(
+                    //     reservation.ratePlanCode
+                    // ),
+                    // this.spaPricingRepository.deleteTaxBrakedowns(
+                    //     reservation.pricingBrakedownId
+                    // ),
                     this.spaPricingRepository.deleteSpaPricing(data.spaSlotId),
                 ]);
 
             // Recalculate amount before taxes by subtracting deleted spa pricing
-            const newTotalAmountBeforeTaxes = Math.max(
-                0,
-                (pricingBrakedown.amountBeforeTax ?? 0) - spaPricing.price
-            );
+            // const newTotalAmountBeforeTaxes = Math.max(
+            //     0,
+            //     (pricingBrakedown.amountBeforeTax ?? 0) - spaPricing.price
+            // );
             const newTotalSpaAmount = Math.max(
                 0,
                 (pricingBrakedown.totalSpa ?? 0) - spaPricing.price
             );
 
-            const sortedTaxRules = (
-                applicableTaxes?.taxGroup?.taxGroupRules || []
-            ).sort(
-                (a, b) =>
-                    (a.taxRule?.priority ?? 0) - (b.taxRule?.priority ?? 0)
-            );
-            const newTaxBreakdown = sortedTaxRules.map(rule => {
-                const value = rule.taxRule?.value ?? 0;
-                // @ts-ignore
-                const taxAmount =
-                    rule.taxRule?.type === 'percentage'
-                        ? (newTotalAmountBeforeTaxes * value) / 100
-                        : value;
-                return {
-                    currencyCode: rule.taxRule?.currencyCode!,
-                    taxedAmount: taxAmount,
-                    name: rule.taxRule?.name!,
-                    pricingBrakeDownId: reservation.pricingBrakedownId!,
-                };
-            });
+            // const sortedTaxRules = (
+            //     applicableTaxes?.taxGroup?.taxGroupRules || []
+            // ).sort(
+            //     (a, b) =>
+            //         (a.taxRule?.priority ?? 0) - (b.taxRule?.priority ?? 0)
+            // );
+            // const newTaxBreakdown = sortedTaxRules.map(rule => {
+            //     const value = rule.taxRule?.value ?? 0;
+            //     // @ts-ignore
+            //     const taxAmount =
+            //         rule.taxRule?.type === 'percentage'
+            //             ? (newTotalAmountBeforeTaxes * value) / 100
+            //             : value;
+            //     return {
+            //         currencyCode: rule.taxRule?.currencyCode!,
+            //         taxedAmount: taxAmount,
+            //         name: rule.taxRule?.name!,
+            //         pricingBrakeDownId: reservation.pricingBrakedownId!,
+            //     };
+            // });
 
-            const newTotalTaxedAmount = newTaxBreakdown.reduce(
-                (acc, curr) => acc + curr.taxedAmount,
-                0
-            );
-            const newFinalAmount =
-                newTotalAmountBeforeTaxes + newTotalTaxedAmount;
+            // const newTotalTaxedAmount = newTaxBreakdown.reduce(
+            //     (acc, curr) => acc + curr.taxedAmount,
+            //     0
+            // );
+            // const newFinalAmount =
+            //     pricingBrakedown.amountBeforeTax + newTotalTaxedAmount;
 
-            let refundableAmount = reservation.refundAmount;
-            let newExtraAmountToPay =
-                reservation.extraAmountToPay - spaPricing.price;
-
-            //case for spa amount is paid and got cancelled
-            if (
-                reservation.amount + reservation.extraAmountToPay >=
-                reservation.paidAmount
-            ) {
-                refundableAmount = spaPricing.price;
-            }
+            let refundableAmount = reservation.refundAmount + spaPricing.price;
 
             await Promise.all([
                 this.spaPricingRepository.updatePricingForPaidAndCancelled({
                     reservationId: data.reservationId,
-                    refundableAmount: refundableAmount,
-                    extraAmountToPay: Math.max(0, newExtraAmountToPay),
+                    refundableAmount,
                 }),
                 this.spaPricingRepository.updatePriceBrakeDown({
                     priceBrakeDownId: reservation.pricingBrakedownId,
-                    amountBeforeTax: newTotalAmountBeforeTaxes,
-                    newTotalAmount: newFinalAmount,
+                    newTotalAmount: pricingBrakedown.totalAmount,
                     totalSpaAmount: newTotalSpaAmount,
-                    taxedAmount: newTotalTaxedAmount,
                 }),
-                this.spaPricingRepository.createTaxBrakeDowns(newTaxBreakdown),
             ]);
 
             return successResponse('Spa slot deleted successfully');

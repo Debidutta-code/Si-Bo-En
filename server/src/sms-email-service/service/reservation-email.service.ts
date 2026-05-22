@@ -104,7 +104,7 @@ export class ReservationEmailService {
             // Email 1 – Customer
             await emailQueue.enqueueEmail({
                 to: reservation.bookingUserEmail,
-                cc: [],
+                bcc: [],
                 subject: 'Your Reservation Confirmation - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'critical',
@@ -118,7 +118,7 @@ export class ReservationEmailService {
             // Email 2 – Property (with other emails in CC)
             await emailQueue.enqueueEmail({
                 to: propertyDetails.propertyEmail,
-                cc: ccEmails,
+                bcc: ccEmails,
                 subject: 'New Reservation - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'high',
@@ -175,7 +175,7 @@ export class ReservationEmailService {
             // Email 1 – Customer
             await emailQueue.enqueueEmail({
                 to: existingReservation.bookingUserEmail,
-                cc: [],
+                bcc: [],
                 subject: 'Your Reservation Has Been Updated - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'high',
@@ -189,7 +189,7 @@ export class ReservationEmailService {
             // Email 2 – Property (with other emails in CC)
             await emailQueue.enqueueEmail({
                 to: propertyDetails.propertyEmail,
-                cc: ccEmails,
+                bcc: ccEmails,
                 subject: 'Reservation Updated - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'normal',
@@ -252,7 +252,7 @@ export class ReservationEmailService {
             // Email 1 – Customer
             await emailQueue.enqueueEmail({
                 to: reservation.bookingUserEmail,
-                cc: [],
+                bcc: [],
                 subject: 'Your Reservation Cancellation Confirmation - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'high',
@@ -266,7 +266,7 @@ export class ReservationEmailService {
             // Email 2 – Property (with other emails in CC)
             await emailQueue.enqueueEmail({
                 to: propertyDetails.propertyEmail,
-                cc: ccEmails,
+                bcc: ccEmails,
                 subject: 'Reservation Cancelled - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'normal',

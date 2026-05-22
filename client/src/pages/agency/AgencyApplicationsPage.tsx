@@ -227,9 +227,8 @@ const AgencyApplicationsPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Applicant Name</TableHead>
                 <TableHead>Application No</TableHead>
-
+                <TableHead>Applicant Name</TableHead>
                 <TableHead>Agency Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
@@ -247,9 +246,8 @@ const AgencyApplicationsPage: React.FC = () => {
               ) : (
                 filteredApplications.map((application) => (
                   <TableRow key={application.id}>
+                    <TableCell>{application.id}</TableCell>
                     <TableCell>{application.applicantName}</TableCell>
-                    <TableCell>{application.applicationNoForThisUser}</TableCell>
-
                     <TableCell>{application.agencyName}</TableCell>
                     <TableCell>{application.applicantEmail}</TableCell>
                     <TableCell>{application.applicantPhone}</TableCell>

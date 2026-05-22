@@ -5,10 +5,7 @@ export class SpaRepository {
     public async createSpa(data: ICSpaR): Promise<ISpaO> {
         try {
             return await prisma.spa.create({
-                data: {
-                    ...data,
-                    isActive: true,
-                },
+                data,
             });
         } catch (error) {
             throw new Error('Error occur while creating spa');

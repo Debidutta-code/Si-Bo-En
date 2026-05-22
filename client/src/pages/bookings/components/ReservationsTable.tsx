@@ -290,10 +290,23 @@ export default function ReservationsTable({
                 <TableCell>{formatDate(reservation.reservationEndDate)}</TableCell>
                 <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
                 <TableCell className="uppercase text-[12px]">{reservation.bookingSource}</TableCell>
-                <TableCell>{reservation.PricingBrakeDown?.totalAmount?.toFixed(2) ?? reservation.amount?.toFixed(2) ?? "—"}</TableCell>
                 <TableCell>
-                  {((reservation.PricingBrakeDown?.totalAmount ?? reservation.amount ?? 0) - (reservation.PricingBrakeDown?.taxedAmount ?? 0)).toFixed(2)}
-                </TableCell>
+                  {(
+                    (reservation.amount ?? 0) +
+                    (reservation.PricingBrakeDown?.totalSpa ?? 0)
+                  ).toFixed(2)}
+                </TableCell>                <TableCell>
+                  {
+                    (
+                      (
+                        (reservation.PricingBrakeDown?.totalAmount ??
+                          reservation.amount ??
+                          0) +
+                        (reservation.PricingBrakeDown?.totalSpa ?? 0)
+                      ) -
+                      (reservation.PricingBrakeDown?.taxedAmount ?? 0)
+                    ).toFixed(2)
+                  }                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
 
@@ -307,12 +320,12 @@ export default function ReservationsTable({
                         <Eye className="w-4 h-4 mr-3" />
                         View Details
                       </DropdownMenuItem>
-                        {!["cancelled", "no_show","checked_out"].includes(reservation.bookingStatus) && (
-                      <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
-                        <VenetianMask className="w-4 h-4 mr-3" />
-                        Add Spa / Activity
-                      </DropdownMenuItem>
-                        )}
+                      {!["cancelled", "no_show", "checked_out"].includes(reservation.bookingStatus) && (
+                        <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
+                          <VenetianMask className="w-4 h-4 mr-3" />
+                          Add Spa / Activity
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleDownloadVoucher(reservation.bookingCode)} className="cursor-pointer">
                         <FileText className="w-4 h-4 mr-3" />
                         Download Voucher
