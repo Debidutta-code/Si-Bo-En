@@ -1,8 +1,6 @@
 model MasterLoyaltyRegistrationFields {
-  id String @id @default(uuid())
-
-  fieldName String
-
+  id                         String                      @id @default(uuid())
+  fieldName                  String
   LoyaltyProgramFieldConfigs LoyaltyProgramFieldConfig[]
 
   @@map("master_loyalty_registration_fields")

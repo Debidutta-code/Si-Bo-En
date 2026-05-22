@@ -1,14 +1,12 @@
 model ReservationPromoCode {
-    id              String   @id @default(uuid())
-    reservationId   String   @map("reservation_id")
-    promoCodeId     String   @map("promo_code_id")
-    amount          Float  
-    currency        CurrencyCode
+  id            String       @id @default(uuid())
+  reservationId String       @map("reservation_id")
+  promoCodeId   String       @map("promo_code_id")
+  amount        Float
+  currency      CurrencyCode
+  createdAt     DateTime     @default(now())
+  promoCode     PromoCode    @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  reservation   Reservation  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
 
-    reservation     Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-    promoCode       PromoCode   @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
-
-    createdAt       DateTime @default(now())
-
-    @@map("reservation_promocode")
+  @@map("reservation_promocode")
 }

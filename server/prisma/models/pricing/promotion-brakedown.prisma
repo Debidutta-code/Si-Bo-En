@@ -1,15 +1,15 @@
+model PromotionBrakeDown {
+  id                 String                   @id @default(uuid())
+  pricingBrakedownId String                   @map("pricing_breakdown_id")
+  promotionType      ReservationPromotionType @default(normal) @map("promotion_type")
+  name               String                   @map("name")
+  discountType       DiscountType             @map("discount_type")
+  discountValue      Float                    @map("discount_value")
+  currencyCode       CurrencyCode?            @map("currency_code")
+  discountAmount     Float                    @map("discount_amount")
+  restrictionType    RestrictionType          @map("restriction_type")
+  type               PromotionApplyType       @map("type")
+  PricingBreakdown   PricingBreakdown         @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
 
-model PromotionBrakeDown{
-    id                      String       @id @default(uuid())
-    pricingBrakedownId     String       @map("pricing_breakdown_id")
-    promotionType ReservationPromotionType @default(normal) @map("promotion_type")
-    name String @map("name")
-    discountType DiscountType @map("discount_type")
-    discountValue Float @map("discount_value")
-    currencyCode CurrencyCode? @map("currency_code")
-    discountAmount Float @map("discount_amount")
-    restrictionType RestrictionType @map("restriction_type")
-    type PromotionApplyType @map("type")
-    PricingBreakdown PricingBreakdown @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
-    @@map("promotion_breakdown")
+  @@map("promotion_breakdown")
 }

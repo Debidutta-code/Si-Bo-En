@@ -214,9 +214,10 @@ const Navbar = () => {
               {t("Navbar.loyaltyGuestLogin")}
             </button> */}
             {/* My Booking */}
-            {!isHomePage && propertyCode && (
+{!isHomePage && propertyCode && (
+
               <button
-                onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
+                  onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 style={{
                   backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
@@ -225,7 +226,32 @@ const Navbar = () => {
                   color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
                 }}
               >
-                {t("Navbar.myBooking")}
+{t("Navbar.myBooking")}
+              </button>
+            )}
+
+            {/* SPA */}
+            {propertyCode && (
+              <button
+                onClick={() => {
+                  const target = `/spa?propertyCode=${propertyCode}`;
+                   router.push(target);
+                  // if (customer.isAuthenticated) {
+                  //   router.push(target);
+                  // } else {
+                  //   sessionStorage.setItem("customerRedirectUrl", target);
+                  //   router.push("/login");
+                  // }
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                    ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                    : "#F4EFE6",
+                  color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                }}
+              >
+                Spa
               </button>
             )}
             {/* Customer Login / User Dropdown */}

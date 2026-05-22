@@ -4,8 +4,7 @@ model RoomVideo {
   url       String
   thumbnail String?
   createdAt DateTime @default(now())
-
-  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@map("room_videos")
 }

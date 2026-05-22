@@ -1,25 +1,23 @@
 model MasterIntegrations {
-  id       String           @id @default(uuid())
-  type     IntegrationTypes @default(channel_manager)
-  name     String
-  isActive Boolean          @default(true)
-
+  id                                 String                            @id @default(uuid())
+  type                               IntegrationTypes                  @default(channel_manager)
+  name                               String
+  isActive                           Boolean                           @default(true)
   createdAt                          DateTime                          @default(now()) @map("created_at")
+  masterIntegrationURLFields         MasterIntegrationURLFields[]
   propertyIntegrations               PropertyIntegrations[]
   requiredFieldsForMasterIntegration MasterIntegrationRequiredFields[]
-  masterIntegrationURLFields         MasterIntegrationURLFields[]
 
   @@unique([name, type])
   @@map("master_integrations")
 }
 
 model MasterIntegrationRequiredFields {
-  id                  String @id @default(uuid())
-  name                String
-  masterIntegrationId String @map("master_integration_id")
-
-  MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
+  id                         String                       @id @default(uuid())
+  name                       String
+  masterIntegrationId        String                       @map("master_integration_id")
   propertyInregrationSecrets PropertyInregrationSecrets[]
+  MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
 
   @@unique([masterIntegrationId, name])
   @@index([masterIntegrationId])
@@ -27,12 +25,12 @@ model MasterIntegrationRequiredFields {
 }
 
 model MasterIntegrationURLFields {
-  id                  String @id @default(uuid())
+  id                  String             @id @default(uuid())
   name                String
   url                 String
-  masterIntegrationId String @map("master_integration_id")
+  masterIntegrationId String             @map("master_integration_id")
+  MasterIntegration   MasterIntegrations @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
 
-  MasterIntegration MasterIntegrations @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
   @@unique([masterIntegrationId, name])
   @@index([masterIntegrationId])
   @@map("master_integration_url_fields")

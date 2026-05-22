@@ -1,61 +1,57 @@
 model Property {
-  id              String   @id @default(uuid())
-  propertyName    String   @map("property_name")
-  propertyEmail   String   @map("property_email")
-  propertyContact String   @map("property_contact")
-  propertyCode    String   @unique @map("property_code")
-  description     String
-  image           String[]
-  starRating      Float?   @map("star_rating")
-  isDraft         Boolean  @default(true) @map("is_draft")
-  isAvailable     Boolean  @default(true) @map("is_available")
-  isDeleted       Boolean  @default(false) @map("is_deleted")
+  id                  String                       @id @default(uuid())
+  propertyName        String                       @map("property_name")
+  propertyEmail       String                       @map("property_email")
+  propertyContact     String                       @map("property_contact")
+  propertyCode        String                       @unique @map("property_code")
+  description         String
+  image               String[]
+  starRating          Float?                       @map("star_rating")
+  isDraft             Boolean                      @default(true) @map("is_draft")
+  isAvailable         Boolean                      @default(true) @map("is_available")
+  isDeleted           Boolean                      @default(false) @map("is_deleted")
+  createdById         String                       @map("created_by_id")
+  creationId          String                       @unique @map("creation_id")
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
+  addOns              Addon[]
+  AddonCategories     AddonCategory[]
+  AddonSubCategories  AddonSubCategory[]
+  AddonVariants       AddonVariant[]
+  propertyEmails      PropertyEmails[]
+  agenticProperties   AgenticProperty[]
+  bankDetails         BankDetails?
+  bookingEngineConfig BookingEngineConfigurations?
+  bookingOffsets      BookingOffset[]
+  Reviews             Review[]
+  WishLists           WishList[]
+  customizableDeals   CustomizableDeal[]
+  geoRatePlans        GeoRatePlan[]
+  Guests              Guests[]
+  payments            Payment[]
+  Policy              Policy[]
+  ProblemTickets      ProblemTickets[]
 
-  // Relations
-  createdBy   User   @relation("PropertyCreatedBy", fields: [createdById], references: [id])
-  createdById String @map("created_by_id")
-
-  creation   Creation @relation(fields: [creationId], references: [id], onDelete: Cascade)
-  creationId String   @unique @map("creation_id")
-
-  // Embedded Data (1:1 relations)
-  propertyCategory            PropertyCategory?
-  propertyType                PropertyType?
-  propertyAddress             PropertyAddress?
-  bankDetails                 BankDetails?
-  propertyVideos              PropertyVideo?
-  bookingEngineConfig         BookingEngineConfigurations?
-  propertyConfigs             PropertyConfigs?
-  Commissions                 PropertyCommission?
-  loyaltyProgramConfig        PropertyLoyaltyConfig?
-  propertyEmails              PropertyEmails[]
-  reservations                Reservation[]
-  propertyAmenities           PropertyAmenitySelection[]
-  propertyRooms               Room[]
-  ratePlans                   RatePlan[]
   promoCodes                  PromoCode[]
-  taxRules                    TaxRule[]                    @relation("PropertyTaxRules")
-  taxGroups                   TaxGroup[]                   @relation("PropertyTaxGroups")
-  addOns                      Addon[]
-  Guests                      Guests[]
-  Policy                      Policy[]
-  agenticProperties           AgenticProperty[]
-  geoRatePlans                GeoRatePlan[]
   promotions                  Promotion[]
-  createdAt                   DateTime                     @default(now())
-  updatedAt                   DateTime                     @updatedAt
-  customizableDeals           CustomizableDeal[]
-  propertyPaymentIntegrations PropertyPaymentIntegration[]
-  payments                    Payment[]
+  createdBy                   User                         @relation("PropertyCreatedBy", fields: [createdById], references: [id])
+  creation                    Creation                     @relation(fields: [creationId], references: [id], onDelete: Cascade)
+  propertyAddress             PropertyAddress?
+  propertyAmenities           PropertyAmenitySelection[]
+  propertyCategory            PropertyCategory?
+  Commissions                 PropertyCommission?
+  propertyConfigs             PropertyConfigs?
   propertyIntegrations        PropertyIntegrations[]
-  bookingOffsets              BookingOffset[]
-  ProblemTickets              ProblemTickets[]
+  loyaltyProgramConfig        PropertyLoyaltyConfig?
+  propertyPaymentIntegrations PropertyPaymentIntegration[]
+  propertyType                PropertyType?
+  propertyVideos              PropertyVideo?
+  ratePlans                   RatePlan[]
+  reservations                Reservation[]
+  propertyRooms               Room[]
   Spa                         Spa[]
-  Reviews                     Review[]
-  AddonCategories             AddonCategory[]
-  AddonSubCategories          AddonSubCategory[]
-  AddonVariants               AddonVariant[]
-  WishLists                   WishList[]
+  taxGroups                   TaxGroup[]                   @relation("PropertyTaxGroups")
+  taxRules                    TaxRule[]                    @relation("PropertyTaxRules")
 
   @@index([createdById])
   @@index([creationId])

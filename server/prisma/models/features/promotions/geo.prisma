@@ -1,15 +1,10 @@
 model GeoRatePlan {
-  id         String   @id @default(uuid())
-  propertyId String   @map("property_id")
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
-  roomId       String?  @map("room_id")
-  roomType     String?  @map("room_type")
-  room         Room?    @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  ratePlanId   String   @map("rate_plan_id")
-  ratePlanCode String   @map("rate_plan_code")
-  ratePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
-
+  id                    String                    @id @default(uuid())
+  propertyId            String                    @map("property_id")
+  roomId                String?                   @map("room_id")
+  roomType              String?                   @map("room_type")
+  ratePlanId            String                    @map("rate_plan_id")
+  ratePlanCode          String                    @map("rate_plan_code")
   restrictionType       geoRestrictionType        @default(percentage) @map("restriction_type")
   restrictionTypeAction geoRestrictionTypeAction? @default(increase) @map("restriction_type_action")
   restrictionValue      Float?                    @map("restriction_value")
@@ -17,6 +12,9 @@ model GeoRatePlan {
   countryCode           String[]                  @map("country_code")
   isActive              Boolean                   @default(true) @map("is_active")
   createdAt             DateTime                  @default(now()) @map("created_at")
+  property              Property                  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  ratePlan              RatePlan                  @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  room                  Room?                     @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@index([propertyId, roomId, ratePlanId])
   @@map("geo_rate_plan")

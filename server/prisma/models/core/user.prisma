@@ -1,44 +1,33 @@
 model User {
-  id        String  @id @default(uuid())
-  firstName String  @map("first_name")
-  lastName  String  @map("last_name")
-  email     String  @unique
-  password  String
-  role      Role    @default(staff)
-  userLevel Int     @default(0) @map("user_level")
-  isDrafted Boolean @default(false) @map("is_drafted")
-
-
-  createdBy   User?   @relation("UserCreatedBy", fields: [createdById], references: [id])
-  createdById String? @map("created_by_id")
-
-  creation   Creation? @relation("UserCreation", fields: [creationId], references: [id])
-  creationId String?   @map("creation_id")
-
-  // Level-based creation relations
-  level0Creation   Creation? @relation("Level0Users", fields: [level0CreationId], references: [id])
-  level0CreationId String?   @map("level0_creation_id")
-
-  level1Creation   Creation? @relation("Level1Users", fields: [level1CreationId], references: [id])
-  level1CreationId String?   @map("level1_creation_id")
-
-  level2Creation   Creation? @relation("Level2Users", fields: [level2CreationId], references: [id])
-  level2CreationId String?   @map("level2_creation_id")
-
-  level3Creation   Creation? @relation("Level3Users", fields: [level3CreationId], references: [id])
-  level3CreationId String?   @map("level3_creation_id")
-
-  level4Creation   Creation? @relation("Level4Users", fields: [level4CreationId], references: [id])
-  level4CreationId String?   @map("level4_creation_id")
-
-  propertiesCreated Property[] @relation("PropertyCreatedBy")
-  usersCreated      User[]     @relation("UserCreatedBy")
-  creationsCreated  Creation[] @relation("CreationCreatedBy")
+  id                String            @id @default(uuid())
+  firstName         String            @map("first_name")
+  lastName          String            @map("last_name")
+  email             String            @unique
+  password          String
+  role              Role              @default(staff)
+  userLevel         Int               @default(0) @map("user_level")
+  isDrafted         Boolean           @default(false) @map("is_drafted")
+  createdById       String?           @map("created_by_id")
+  creationId        String?           @map("creation_id")
+  level0CreationId  String?           @map("level0_creation_id")
+  level1CreationId  String?           @map("level1_creation_id")
+  level2CreationId  String?           @map("level2_creation_id")
+  level3CreationId  String?           @map("level3_creation_id")
+  level4CreationId  String?           @map("level4_creation_id")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  creationsCreated  Creation[]        @relation("CreationCreatedBy")
+  propertiesCreated Property[]        @relation("PropertyCreatedBy")
+  CreatedSpas       Spa[]             @relation("SpaCreatedBy")
   UserAssignedSpa   UserAssignedSpa[] @relation("UserAssignedSpa")
-  CreatedSpas      Spa[] @relation("SpaCreatedBy")
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  // RecivedPayments        Payments[]         @relation("PaymentProcessedBy")
+  createdBy         User?             @relation("UserCreatedBy", fields: [createdById], references: [id])
+  usersCreated      User[]            @relation("UserCreatedBy")
+  creation          Creation?         @relation("UserCreation", fields: [creationId], references: [id])
+  level0Creation    Creation?         @relation("Level0Users", fields: [level0CreationId], references: [id])
+  level1Creation    Creation?         @relation("Level1Users", fields: [level1CreationId], references: [id])
+  level2Creation    Creation?         @relation("Level2Users", fields: [level2CreationId], references: [id])
+  level3Creation    Creation?         @relation("Level3Users", fields: [level3CreationId], references: [id])
+  level4Creation    Creation?         @relation("Level4Users", fields: [level4CreationId], references: [id])
 
   @@index([createdById])
   @@index([creationId])
