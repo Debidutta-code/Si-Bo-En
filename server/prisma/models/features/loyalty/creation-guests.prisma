@@ -16,19 +16,18 @@
 // }
 
 model CreationGuest {
-    id                      String                @id @default(uuid())
-    customerId              String                @map("customer_id")
-    metaData                Json                  @map("meta_data")
-    guestLevel              Int                   @default(1) @map("guest_level")
-    Customer                Customers           @relation(fields: [customerId], references: [id], onDelete: Cascade)
-    creationLoyaltyConfigId String               @map("creation_loyalty_config_id")
-    noOfBookings            Int                   @default(0) @map("no_of_bookings")
-    CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
+  id                      String                @id @default(uuid())
+  customerId              String                @map("customer_id")
+  metaData                Json                  @map("meta_data")
+  guestLevel              Int                   @default(1) @map("guest_level")
+  Customer                Customers             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  creationLoyaltyConfigId String                @map("creation_loyalty_config_id")
+  noOfBookings            Int                   @default(0) @map("no_of_bookings")
+  CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
 
   @@unique([creationLoyaltyConfigId, customerId])
   @@map("creation_guest")
 }
-
 
 // delete loyality_guests
 //delete loyality_guests

@@ -1,17 +1,17 @@
 model Reservation {
   id String @id @default(uuid()) @map("id") @db.VarChar(36)
 
-  propertyId   String @map("property_id") 
+  propertyId   String @map("property_id")
   propertyCode String @map("property_code")
   hotelName    String @map("hotel_name")
 
   roomName     String? @default("-") @map("room_name")
-  roomTypeCode String @default("-")  @map("room_type_code")
+  roomTypeCode String  @default("-") @map("room_type_code")
 
   ratePlanCode String  @map("rate_plan_code")
   ratePlanName String? @default("-") @map("rate_plan_name")
 
-  bookingCode String @unique @map("booking_code") 
+  bookingCode String @unique @map("booking_code")
 
   bookedAt DateTime @default(now()) @map("booked_at")
 
@@ -21,12 +21,12 @@ model Reservation {
   reservationStartDate DateTime @default(now()) @map("reservation_start_date") @db.Date
   reservationEndDate   DateTime @default(now()) @map("reservation_end_date") @db.Date
 
-  countryCode String     @map("country_code") 
-  timezone    String     @map("timezone") 
+  countryCode String     @map("country_code")
+  timezone    String     @map("timezone")
   deviceTypes DeviceType @map("device_types")
   platforms   Platforms  @default(web) @map("platforms")
 
-  primaryGuestId String @map("primary_guest_id") 
+  primaryGuestId String @map("primary_guest_id")
   primaryGuest   Guests @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id], onDelete: Cascade)
 
   guests           Json    @map("guests")
@@ -50,17 +50,17 @@ model Reservation {
   bookingSource BookingSource @default(direct) @map("source")
 
   isPromoUsed Boolean @default(false) @map("is_promo_used")
-  promoId     String? @map("promo_id") 
+  promoId     String? @map("promo_id")
 
   cancelledAt DateTime? @map("cancelled_at")
-  agencyId    String?   @map("agency_id") 
+  agencyId    String?   @map("agency_id")
 
   //ota-guest
   // otaGuestId String?   @map("ota_guest_id") 
   // OtaGuest   OtaGuest? @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
 
   //customers
-  customerId String?   @map("customer_id") 
+  customerId String?    @map("customer_id")
   Customers  Customers? @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   pricingBrakedownId    String?                @unique @map("pricing_breakdown_id")

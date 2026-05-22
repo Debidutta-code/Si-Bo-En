@@ -1,8 +1,8 @@
 model ProblemTickets {
-  id          String         @id @default(uuid())
-  ticketNo    String         @unique @map("ticket_no")
-  propertyId  String         @map("property_id")
-  Property    Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid())
+  ticketNo    String   @unique @map("ticket_no")
+  propertyId  String   @map("property_id")
+  Property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   subject     String
   description String?
 
@@ -10,8 +10,7 @@ model ProblemTickets {
   status    TicketStatus   @default(open)
   priority  TicketPriority @default(medium)
 
-
-  customerId String @map("customer_id")
+  customerId String    @map("customer_id")
   Customer   Customers @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -21,4 +20,5 @@ model ProblemTickets {
   @@index([status])
   @@map("problem_tickets")
 }
+
 //delete problem_tickets

@@ -1,7 +1,7 @@
-model Review{
+model Review {
   id String @id @default(uuid()) @map("id")
 
-  propertyId String @map("property_id")
+  propertyId   String @map("property_id")
   propertyCode String @map("property_code")
   propertyName String @map("property_name")
 
@@ -9,15 +9,16 @@ model Review{
 
   reservationId String @unique @map("reservation_id")
 
-  rating Float @map("rating")
-  review String @map("review")
+  rating    Float   @map("rating")
+  review    String  @map("review")
   isDeleted Boolean @default(false) @map("is_deleted")
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
   Reservation Reservation @relation(fields: [reservationId], references: [id])
-  Property Property @relation(fields: [propertyId], references: [id])
+  Property    Property    @relation(fields: [propertyId], references: [id])
 
   @@map("customer_reviews")
 }
+
 //delete loyality_guests

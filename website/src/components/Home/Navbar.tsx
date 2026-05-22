@@ -235,12 +235,13 @@ const Navbar = () => {
               <button
                 onClick={() => {
                   const target = `/spa?propertyCode=${propertyCode}`;
-                  if (customer.isAuthenticated) {
-                    router.push(target);
-                  } else {
-                    sessionStorage.setItem("customerRedirectUrl", target);
-                    router.push("/login");
-                  }
+                   router.push(target);
+                  // if (customer.isAuthenticated) {
+                  //   router.push(target);
+                  // } else {
+                  //   sessionStorage.setItem("customerRedirectUrl", target);
+                  //   router.push("/login");
+                  // }
                 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 style={{
