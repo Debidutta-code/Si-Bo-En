@@ -374,7 +374,7 @@ export default function SpaPage() {
                             </div>
 
                             <Link
-                              href={`/spa/${encodeURIComponent(spa.id)}?propertyCode=${encodeURIComponent(propertyCode)}`}
+                              href={`/spa/spaid/?id=${encodeURIComponent(spa.id)}&propertyCode=${encodeURIComponent(propertyCode)}`}
                               className="mt-auto flex w-full items-center justify-center rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700"
                             >
                               View & Book

@@ -27,13 +27,11 @@ interface SelectedSlot {
   amount: number;
 }
 
-interface SpaClientProps {
-  params: { spaId: string };
-}
 
-export default function SpaClient({ params }: SpaClientProps) {
+export default function SpaClient() {
   const searchParams = useSearchParams();
   const propertyCode = searchParams.get("propertyCode") || searchParams.get("code") || "";
+  const spaId = searchParams.get("id")||"";
   const customer = useSelector((state: RootState) => (state as any).customer);
   const [spas, setSpas] = useState<ISpa[]>([]);
   const [loading, setLoading] = useState(false);
@@ -100,7 +98,7 @@ export default function SpaClient({ params }: SpaClientProps) {
         next.delete(uniqueId);
       } else {
         next.set(uniqueId, {
-          id: uniqueId, spaId: spa.id || params.spaId, slotId: slot.id,
+          id: uniqueId, spaId: spa.id || spaId as string, slotId: slot.id,
           spaDateId: spaDate.id, date: spaDate.date, spaName: spa.name,
           dateLabel: format(new Date(spaDate.date), "EEEE, MMM dd, yyyy"),
           startTime: slot.startTime, endTime: slot.endTime || slot.startTime, amount,
@@ -157,7 +155,7 @@ export default function SpaClient({ params }: SpaClientProps) {
 
     // If not logged in, redirect to login and come back to this SPA page after success
     if (!(customer as any)?.isAuthenticated) {
-      const redirectUrl = `/spa/${encodeURIComponent(params.spaId)}?propertyCode=${encodeURIComponent(propertyCode)}`;
+      const redirectUrl = `/spa/spaid/?id=${encodeURIComponent(spaId)}&propertyCode=${encodeURIComponent(propertyCode)}`;
       sessionStorage.setItem("customerRedirectUrl", redirectUrl);
       toast.error("Please login to book spa slots");
       window.location.href = "/login";
@@ -265,7 +263,7 @@ export default function SpaClient({ params }: SpaClientProps) {
   const formatDate = (v: string) => { try { return format(new Date(v), "EEE, MMM d, yyyy"); } catch { return v; } };
   const formatTime = (v: string) => { try { return format(new Date(v), "hh:mm a"); } catch { return v; } };
 
-  const spa = useMemo(() => spas.find(item => item.id === params.spaId), [spas, params.spaId]);
+  const spa = useMemo(() => spas.find(item => item.id === spaId), [spas, spaId]);
   const availableSlots = useMemo(
     () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.filter(sl => !sl.isBooked).length || 0) : 0), 0) || 0,
     [spa],
@@ -477,7 +475,7 @@ export default function SpaClient({ params }: SpaClientProps) {
                   <button
                     onClick={() => {
                       if (!(customer as any)?.isAuthenticated) {
-                        const redirectUrl = `/spa/${encodeURIComponent(params.spaId)}?propertyCode=${encodeURIComponent(propertyCode)}`;
+                        const redirectUrl = `/spa/spaid/?id=${encodeURIComponent(spaId)}&propertyCode=${encodeURIComponent(propertyCode)}`;
                         sessionStorage.setItem("customerRedirectUrl", redirectUrl);
                         window.location.href = "/login";
                         return;

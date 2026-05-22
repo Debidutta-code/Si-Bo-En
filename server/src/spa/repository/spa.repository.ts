@@ -410,6 +410,7 @@ export class SpaRepository {
             return await prisma.spaBooking.findMany({
                 where: {
                     userId: customerId,
+                    status:"confirmed",
                 },
                 include: {
                     SlotBookings: {
