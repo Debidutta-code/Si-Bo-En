@@ -1,8 +1,6 @@
 model Agents {
-  id       String @id @default(uuid())
-  agencyId String @map("agency_id")
-  agency   Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-
+  id                String             @id @default(uuid())
+  agencyId          String             @map("agency_id")
   agentName         String             @map("agent_name")
   agentEmail        String             @unique @map("agent_email")
   agentPhone        String             @map("agent_phone")
@@ -11,6 +9,7 @@ model Agents {
   createdAt         DateTime           @default(now()) @map("created_at")
   updatedAt         DateTime           @updatedAt @map("updated_at")
   AgencyCommissions AgencyCommission[]
+  agency            Agency             @relation(fields: [agencyId], references: [id], onDelete: Cascade)
 
   @@index([agencyId])
   @@map("agents")

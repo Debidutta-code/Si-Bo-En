@@ -1,18 +1,17 @@
 model PropertyAddress {
-  id           String  @id @default(uuid())
-  addressLine1 String  @map("address_line1")
-  addressLine2 String? @map("address_line2")
+  id           String   @id @default(uuid())
+  addressLine1 String   @map("address_line1")
+  addressLine2 String?  @map("address_line2")
   country      String
   state        String
   city         String
   location     String
   landmark     String
-  zipCode      String  @map("zip_code")
+  zipCode      String   @map("zip_code")
   latitude     Float
   longitude    Float
-
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId String   @unique @map("property_id")
+  propertyId   String   @unique @map("property_id")
+  property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("property_addresses")
 }

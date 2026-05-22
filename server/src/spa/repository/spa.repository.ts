@@ -307,7 +307,10 @@ export class SpaRepository {
                 return booking;
             });
         } catch (error) {
-            throw new Error('Error occur while creating spa booking');
+            if (error instanceof Error) {
+                throw new Error(error.message);
+            }
+            throw new Error(String(error) || 'Error occur while creating spa booking');
         }
     }
     public async cancelSpaBooking(bookingId: string, customerId?: string, spaSlotId?: string) {

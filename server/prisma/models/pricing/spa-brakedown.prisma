@@ -1,10 +1,10 @@
-model SpaPricing{
-    id String @id @default(uuid()) @map("id")
-    pricingId String @map("pricing_id")
-    spaSlotId String @unique @map("spa_slot_id")
-    price Float @map("price")
-    
-    PricingBreakdown PricingBreakdown  @relation(fields: [pricingId], references: [id], onDelete: Cascade)
-    SpaSlot SpaSlots @relation(fields: [spaSlotId], references: [id], onDelete: Cascade)
-    @@map("spa_pricing")
+model SpaPricing {
+  id               String           @id @default(uuid()) @map("id")
+  pricingId        String           @map("pricing_id")
+  spaSlotId        String           @unique @map("spa_slot_id")
+  price            Float            @map("price")
+  PricingBreakdown PricingBreakdown @relation(fields: [pricingId], references: [id], onDelete: Cascade)
+  SpaSlot          SpaSlots         @relation(fields: [spaSlotId], references: [id], onDelete: Cascade)
+
+  @@map("spa_pricing")
 }

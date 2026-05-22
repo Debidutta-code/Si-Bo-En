@@ -4,11 +4,10 @@ model Guests {
   lastName             String                @map("last_name")
   email                String?
   phoneNumber          String?               @map("phone_number")
-  primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
   userType             GuestType             @default(adult) @map("user_type")
   propertyId           String                @map("property_id")
   customerId           String?               @map("customer_id")
-  Customer             Customers?              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  Customer             Customers?            @relation(fields: [customerId], references: [id], onDelete: Cascade)
   property             Property              @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   address              String?
   city                 String?
@@ -20,6 +19,8 @@ model Guests {
   identityCardImage    String?               @map("identity_card_image")
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
+
+  primaryReservations Reservation[] @relation("ReservationPrimaryGuest")
 
   @@unique([propertyId, email])
   @@map("guests")

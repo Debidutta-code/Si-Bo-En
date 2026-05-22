@@ -5,9 +5,8 @@ model Inventory {
   date         DateTime @db.Date
   availability Int
   ratePlans    String[] @default([]) @map("rate_plans")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@unique([propertyCode, roomTypeCode, date])
   @@index([propertyCode])

@@ -197,7 +197,7 @@ export class PricingService {
                 endDate
             );
             const touristTaxClass = new TouristTaxClass(
-                selectedRoom.TouristTaxs,
+                (selectedRoom as any).TouristTaxs || [],
                 selectedRoom,
                 rooms,
                 priceBrakedowns,

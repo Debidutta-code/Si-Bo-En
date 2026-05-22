@@ -22,13 +22,11 @@ model Promotion {
   satApplicable      Boolean       @default(true) @map("sat_applicable")
   sunApplicable      Boolean       @default(true) @map("sun_applicable")
   isActive           Boolean       @default(true) @map("is_active")
-
-  isAutoApplied         Boolean                @default(false) @map("is_auto_applied")
-  createdAt             DateTime               @default(now()) @map("created_at")
-  property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  room                  Room?                  @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  ratePlan              RatePlan               @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
-  // reservationPromotions ReservationPromotion[]
+  isAutoApplied      Boolean       @default(false) @map("is_auto_applied")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  property           Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  ratePlan           RatePlan      @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  room               Room?         @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@index([propertyId, roomId, ratePlanId])
   @@map("promotion_rule")
