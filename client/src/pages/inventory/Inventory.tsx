@@ -26,9 +26,12 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { AvailabilityCalendar } from "./components";
+import { useTranslation } from "react-i18next";
 
 
 export default function Inventory() {
+    const { t } = useTranslation();
+
   const { propertyId } = useParams<{ propertyId: string }>();
   const [allRooms, setAllRooms] = useState<RoomTypes[]>([]);
   const [availability, setAvailability] = useState<IRoomDateAvailability[]>([]);
@@ -58,20 +61,20 @@ export default function Inventory() {
 
   const fetchRoomTypes = async () => {
     if (!propertyId) {
-      toast.error("Property ID is required");
+      toast.error(t("Inventory.propertyIdRequired"));
       return;
     }
     try {
-      setLoader({ isLoading: true, text: "Loading room types..." });
+      setLoader({ isLoading: true, text: t("Inventory.loadingRoomTypes") });
       const response = await fetchRoomTypesService(propertyId);
       if (response.success) {
         setAllRooms(response.data || []);
-        toast.success(response?.message || "Room types fetched successfully");
+        toast.success(response?.message || t("Inventory.roomTypesFetchedSuccess"));
       } else {
-        toast.error(response?.message || "Failed to fetch room types");
+        toast.error(response?.message || t("Inventory.failedFetchRoomTypes"));
       }
     } catch {
-      toast.error("Failed to fetch room types");
+      toast.error(t("Inventory.failedFetchRoomTypes"));
     } finally {
       setLoader({ isLoading: false, text: "" });
     }
@@ -96,9 +99,9 @@ export default function Inventory() {
     try {
       const res = await fetchRoomAvailabilityService(propertyId, roomType);
       if (res.success) setAvailability(res.data || []);
-      else toast.error(res.message || "Failed to fetch availability");
+      else toast.error(res.message || t("Inventory.failedFetchAvailability"));
     } catch {
-      toast.error("Failed to fetch availability");
+      toast.error(t("Inventory.failedFetchAvailability"));
     }
   };
 
@@ -117,23 +120,23 @@ export default function Inventory() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRooms.id) return toast.error("Please select a room type");
-    if (!selectedRooms.startDate || !selectedRooms.endDate) return toast.error("Please select a date range");
-    if (selectedRooms.availableRooms <= 0) return toast.error("Available rooms must be greater than 0");
-    if (selectedRooms.availableRooms > selectedRooms.totalRoom) return toast.error("Available rooms cannot exceed total rooms");
+    if (!selectedRooms.id) return toast.error(t("Inventory.selectRoomTypeError"));
+    if (!selectedRooms.startDate || !selectedRooms.endDate) return toast.error(t("Inventory.selectDateRangeError"));
+    if (selectedRooms.availableRooms <= 0) return toast.error(t("Inventory.availableRoomsError"));
+    if (selectedRooms.availableRooms > selectedRooms.totalRoom) return toast.error(t("Inventory.availableRoomsExceedError"));
 
     try {
       setIsSaving(true);
       const response = await addRoomInventoryService(propertyId!, selectedRooms);
       if (response.success) {
-        toast.success(response?.message || "Inventory added successfully");
+        toast.success(response?.message || t("Inventory.inventoryAddedSuccess"));
         setSelectedRooms({ id: "", roomName: "", roomType: "", totalRoom: 0, availableRooms: 0, startDate: "", endDate: "" });
         setDateRange({ from: undefined, to: undefined });
       } else {
-        toast.error(response?.message || "Failed to add inventory");
+        toast.error(response?.message || t("Inventory.failedAddInventory"));
       }
     } catch {
-      toast.error("An error occurred while adding inventory");
+      toast.error(t("Inventory.errorAddingInventory"));
     } finally {
       setIsSaving(false);
     }
@@ -160,8 +163,8 @@ export default function Inventory() {
               <Package className="w-6 h-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Room Inventory</h1>
-              <p className="text-gray-600">Manage room availability and inventory</p>
+              <h1 className="text-3xl font-bold text-gray-900">{t("Inventory.title")}</h1>
+              <p className="text-gray-600">{t("Inventory.subtitle")}</p>
             </div>
           </div>
         </div>
@@ -172,10 +175,10 @@ export default function Inventory() {
             <CardHeader className="border-b bg-white">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Plus className="w-5 h-5" />
-                Add Room Inventory
+                {t("Inventory.addRoomInventory")}
               </CardTitle>
               <CardDescription>
-                Select room type, date range, and set available rooms
+                {t("Inventory.addRoomInventoryDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -184,11 +187,11 @@ export default function Inventory() {
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold flex items-center gap-2">
                     <Bed className="w-4 h-4" />
-                    Room Type
+                    {t("Inventory.roomType")}
                   </Label>
                   <Select value={selectedRooms.id} onValueChange={handleRoomSelect}>
                     <SelectTrigger className="w-full h-12">
-                      <SelectValue placeholder="Select a room type" />
+                      <SelectValue placeholder={t("Inventory.selectRoomType")} />
                     </SelectTrigger>
                     <SelectContent>
                       {allRooms.length > 0 ? (
@@ -204,7 +207,7 @@ export default function Inventory() {
                         ))
                       ) : (
                         <SelectItem value="no-rooms" disabled>
-                          No rooms available
+                          {t("Inventory.noRoomsAvailable")}
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -215,7 +218,7 @@ export default function Inventory() {
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
-                    Date Range
+                    {t("Inventory.dateRange")}
                   </Label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Start Date */}
@@ -226,7 +229,7 @@ export default function Inventory() {
                           className={cn("w-full h-11 justify-start text-left font-normal", !dateRange.from && "text-muted-foreground")}
                         >
                           <Calendar className="mr-2 h-4 w-4" />
-                          {dateRange.from ? format(dateRange.from, "MMM dd, yyyy") : <span>Start date</span>}
+                          {dateRange.from ? format(dateRange.from, "MMM dd, yyyy") : <span>{t("Inventory.startDate")}</span>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="p-0" align="start">
@@ -249,7 +252,7 @@ export default function Inventory() {
                           className={cn("w-full h-11 justify-start text-left font-normal", !dateRange.to && "text-muted-foreground")}
                         >
                           <Calendar className="mr-2 h-4 w-4" />
-                          {dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : <span>End date</span>}
+                          {dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : <span>{t("Inventory.endDate")}</span>}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="p-0" align="start">
@@ -276,7 +279,7 @@ export default function Inventory() {
                   {dateRange.from && dateRange.to && (
                     <p className="text-xs text-gray-600 flex items-center gap-1">
                       <span className="inline-block w-1 h-1 rounded-full bg-green-500" />
-                      {Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24))} days selected
+                      {t("Inventory.daysSelected", { count: Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24)) })}
                     </p>
                   )}
                 </div>
@@ -285,14 +288,14 @@ export default function Inventory() {
                 <div className="space-y-2">
                   <Label htmlFor="availableRooms" className="text-sm font-semibold flex items-center gap-2">
                     <Users className="w-4 h-4" />
-                    Available Rooms
+                    {t("Inventory.availableRooms")}
                   </Label>
                   <Input
                     id="availableRooms"
                     type="number"
                     min="0"
                     max={selectedRooms.totalRoom || undefined}
-                    placeholder="Enter number of available rooms"
+                    placeholder={t("Inventory.availableRoomsPlaceholder")}
                     value={selectedRooms.availableRooms || ""}
                     onChange={(e) =>
                       setSelectedRooms({ ...selectedRooms, availableRooms: parseInt(e.target.value) || 0 })
@@ -300,7 +303,7 @@ export default function Inventory() {
                     className="h-12"
                   />
                   {selectedRooms.totalRoom > 0 && (
-                    <p className="text-xs text-gray-500">Maximum: {selectedRooms.totalRoom} rooms</p>
+                    <p className="text-xs text-gray-500">{t("Inventory.maximumRooms", { count: selectedRooms.totalRoom })}</p>
                   )}
                 </div>
 
@@ -311,9 +314,9 @@ export default function Inventory() {
                   disabled={isSaving || !selectedRooms.id}
                 >
                   {isSaving ? (
-                    <><span className="animate-spin mr-2">⏳</span>Adding Inventory...</>
+                    <><span className="animate-spin mr-2">⏳</span>{t("Inventory.addingInventory")}</>
                   ) : (
-                    <><Plus className="w-5 h-5 mr-2" />Add Inventory</>
+                    <><Plus className="w-5 h-5 mr-2" />{t("Inventory.addInventory")}</>
                   )}
                 </Button>
               </form>

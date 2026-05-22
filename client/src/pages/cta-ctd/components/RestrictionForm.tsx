@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import type { CreateRestrictionPayload, RoomType, RatePlan, RestrictionType, Restriction } from "../interfaces";
 import { applyRestrictionService } from "../services";
+import { useTranslation } from "react-i18next";
 
 interface RestrictionFormProps {
     propertyCode: string;
@@ -32,6 +33,8 @@ export default function RestrictionForm({
     onCancel,
     editData
 }: RestrictionFormProps) {
+        const { t } = useTranslation();
+
     const [restrictionType, setRestrictionType] = useState<RestrictionType>("CTA");
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
     const [notes, setNotes] = useState("");
@@ -93,17 +96,17 @@ export default function RestrictionForm({
     const handleSubmit = async () => {
         // Validation
         if (selectedDates.length === 0) {
-            toast.error("Please select at least one date");
+            toast.error(t("CTACTD.form.selectAtLeastOneDate"));
             return;
         }
 
         if (selectedRooms.length === 0) {
-            toast.error("Please select at least one room type");
+            toast.error(t("CTACTD.form.selectAtLeastOneRoom"));
             return;
         }
 
         if (selectedRatePlans.length === 0) {
-            toast.error("Please select at least one rate plan");
+            toast.error(t("CTACTD.form.selectAtLeastOneRatePlan"));
             return;
         }
 
@@ -128,15 +131,15 @@ export default function RestrictionForm({
 
             const response = await applyRestrictionService(payload);
 
-            if (response.success) {
-                toast.success(response.message || `Restriction ${isActive ? 'applied' : 'removed'} successfully`);
+             if (response.success) {
+                toast.success(response.message || (isActive ? t("CTACTD.form.restrictionApplied") : t("CTACTD.form.restrictionRemoved")));
                 onSuccess();
             } else {
-                toast.error(response.message || "Failed to apply restriction");
+                toast.error(response.message || t("CTACTD.form.failedToApply"));
             }
         } catch (error) {
             console.error("Restriction Error:", error);
-            toast.error("An error occurred while applying restriction");
+            toast.error(t("CTACTD.form.errorApplying"));
         } finally {
             setIsSubmitting(false);
         }
@@ -149,7 +152,7 @@ export default function RestrictionForm({
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-semibold">
-                    {editData ? "Edit Restriction" : "Create New Restriction"}
+                    {editData ? t("CTACTD.form.editRestriction") : t("CTACTD.form.createNewRestriction")}
                 </h2>
                 <Button variant="ghost" size="sm" onClick={onCancel}>
                     <X className="w-4 h-4" />
@@ -159,7 +162,7 @@ export default function RestrictionForm({
             <div className="grid gap-6">
                 {/* Restriction Type */}
                 <div className="grid gap-2">
-                    <Label>Restriction Type *</Label>
+                    <Label>{t("CTACTD.form.restrictionType")}</Label>
                     <div className="flex gap-4">
                         <Button
                             type="button"
@@ -168,7 +171,7 @@ export default function RestrictionForm({
                             className="flex items-center gap-2"
                         >
                             <Ban className="w-4 h-4" />
-                            CTA (Closed to Arrival)
+                            {t("CTACTD.form.ctaClosedToArrival")}
                         </Button>
                         <Button
                             type="button"
@@ -177,14 +180,14 @@ export default function RestrictionForm({
                             className="flex items-center gap-2"
                         >
                             <DoorOpen className="w-4 h-4" />
-                            CTD (Closed to Departure)
+                            {t("CTACTD.form.ctdClosedToDeparture")}
                         </Button>
                     </div>
                 </div>
 
                 {/* Date Selection */}
                 <div className="grid gap-2">
-                    <Label>Select Dates *</Label>
+                    <Label>{t("CTACTD.form.selectDates")}</Label>
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
@@ -196,8 +199,8 @@ export default function RestrictionForm({
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {selectedDates.length > 0
-                                    ? `${selectedDates.length} date(s) selected`
-                                    : "Select dates"}
+                                    ? t("CTACTD.form.datesSelected", { count: selectedDates.length })
+                                    : t("CTACTD.form.selectDatesPlaceholder")}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -235,7 +238,7 @@ export default function RestrictionForm({
                 {/* Room Types Selection */}
                 <div className="grid gap-2">
                     <div className="flex items-center justify-between">
-                        <Label>Select Room Types *</Label>
+                        <Label>{t("CTACTD.form.roomTypes")}</Label>
                         {roomTypes.length > 0 && (
                             <Button
                                 type="button"
@@ -243,13 +246,13 @@ export default function RestrictionForm({
                                 size="sm"
                                 onClick={handleSelectAllRooms}
                             >
-                                {allRoomsSelected ? "Deselect All" : "Select All"}
+                                {allRoomsSelected ? t("CTACTD.form.deselectAll") : t("CTACTD.form.selectAll")}
                             </Button>
                         )}
                     </div>
                     <div className="border rounded-lg p-4 max-h-64 overflow-y-auto">
                         {roomTypes.length === 0 ? (
-                            <p className="text-sm text-gray-500 text-center py-4">No room types available</p>
+                            <p className="text-sm text-gray-500 text-center py-4">{t("CTACTD.form.noRoomTypesAvailable")}</p>
                         ) : (
                             <div className="space-y-3">
                                 {roomTypes.map((room) => (
@@ -269,7 +272,7 @@ export default function RestrictionForm({
                     </div>
                     {selectedRooms.length > 0 && (
                         <p className="text-sm text-gray-600">
-                            {selectedRooms.length} room type(s) selected
+                            {t("CTACTD.form.roomTypesSelected", { count: selectedRooms.length })}
                         </p>
                     )}
                 </div>
@@ -277,7 +280,7 @@ export default function RestrictionForm({
                 {/* Rate Plans Selection */}
                 <div className="grid gap-2">
                     <div className="flex items-center justify-between">
-                        <Label>Select Rate Plans *</Label>
+                        <Label>{t("CTACTD.form.ratePlans")}</Label>
                         {ratePlans.length > 0 && (
                             <Button
                                 type="button"
@@ -285,13 +288,13 @@ export default function RestrictionForm({
                                 size="sm"
                                 onClick={handleSelectAllRatePlans}
                             >
-                                {allRatePlansSelected ? "Deselect All" : "Select All"}
+                                {allRatePlansSelected ? t("CTACTD.form.deselectAll") : t("CTACTD.form.selectAll")}
                             </Button>
                         )}
                     </div>
                     <div className="border rounded-lg p-4 max-h-64 overflow-y-auto">
                         {ratePlans.length === 0 ? (
-                            <p className="text-sm text-gray-500 text-center py-4">No rate plans available</p>
+                            <p className="text-sm text-gray-500 text-center py-4">{t("CTACTD.form.noRatePlansAvailable")}</p>
                         ) : (
                             <div className="space-y-3">
                                 {ratePlans.map((plan) => (
@@ -311,16 +314,16 @@ export default function RestrictionForm({
                     </div>
                     {selectedRatePlans.length > 0 && (
                         <p className="text-sm text-gray-600">
-                            {selectedRatePlans.length} rate plan(s) selected
+                            {t("CTACTD.form.ratePlansSelected", { count: selectedRatePlans.length })}
                         </p>
                     )}
                 </div>
 
                 {/* Notes */}
                 <div className="grid gap-2">
-                    <Label>Notes (Optional)</Label>
+                    <Label>{t("CTACTD.form.notes")}</Label>
                     <Textarea
-                        placeholder="Add any additional notes about this restriction..."
+                        placeholder={t("CTACTD.form.notesPlaceholder")}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={3}
@@ -341,20 +344,20 @@ export default function RestrictionForm({
                                 {isActive ? (
                                     <span className="flex items-center gap-2 text-red-600">
                                         <Ban className="w-4 h-4" />
-                                        Apply Restriction
+                                        {t("CTACTD.form.applyRestriction")}
                                     </span>
                                 ) : (
                                     <span className="flex items-center gap-2 text-green-600">
                                         <DoorOpen className="w-4 h-4" />
-                                        Remove Restriction
+                                        {t("CTACTD.form.removeRestriction")}
                                     </span>
                                 )}
                             </Label>
                         </div>
                         <span className="text-sm text-gray-600">
                             {isActive
-                                ? "Will block bookings for selected dates"
-                                : "Will allow bookings for selected dates"}
+                                ? t("CTACTD.form.willBlockBookings") 
+                                : t("CTACTD.form.willAllowBookings")}
                         </span>
                     </div>
                 </div>
@@ -362,7 +365,7 @@ export default function RestrictionForm({
                 {/* Summary */}
                 {selectedRooms.length > 0 && selectedRatePlans.length > 0 && (
                     <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm font-medium text-blue-900 mb-1">Summary:</p>
+                        <p className="text-sm font-medium text-blue-900 mb-1">{t("CTACTD.form.summary")}</p>
                         <p className="text-sm text-blue-800">
                             Applying <strong>{restrictionType}</strong> restriction to{" "}
                             <strong>{selectedRooms.length}</strong> room type(s) with{" "}
@@ -370,7 +373,7 @@ export default function RestrictionForm({
                             <strong>{selectedDates.length}</strong> date(s)
                         </p>
                         <p className="text-xs text-blue-700 mt-2">
-                            All selected rate plans will be applied to all selected room types.
+                            {t("CTACTD.form.allRatePlansApplied")}
                         </p>
                     </div>
                 )}
@@ -382,10 +385,10 @@ export default function RestrictionForm({
                         disabled={isSubmitting}
                         className={isActive ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
                     >
-                        {isSubmitting ? "Processing..." : isActive ? "Apply Restriction" : "Remove Restriction"}
+                        {isSubmitting ? t("CTACTD.form.processing") : isActive ? t("CTACTD.form.applyRestriction") : t("CTACTD.form.removeRestriction")}
                     </Button>
                     <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>
-                        Cancel
+                        {t("CTACTD.form.cancel")}
                     </Button>
                 </div>
             </div>

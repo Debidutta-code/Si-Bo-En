@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Bed, Calendar, ChevronDown, X } from 'lucide-react';
 import type { IRatePlan } from '@/pages/promotions/geo/interfaces';
+import { useTranslation } from 'react-i18next';
 
 interface RoomTypeFilter {
   invTypeCode: string;
   name?: string;
-  _translations?:{
-                    roomName?: string,
-                    roomType?: string,
-                    description?: string
+  _translations?: {
+    roomName?: string,
+    roomType?: string,
+    description?: string
 
   }
 }
@@ -28,7 +29,7 @@ interface FilterBarProps {
   isLoading?: boolean;
 }
 
-export const FilterBar: React.FC<FilterBarProps> = ({ 
+export const FilterBar: React.FC<FilterBarProps> = ({
   roomTypes,
   selectedRoomTypes,
   ratePlans,
@@ -39,10 +40,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onDateRangeApply,
   isLoading = false
 }) => {
+    const { t } = useTranslation();
+
   const [showRoomTypeDropdown, setShowRoomTypeDropdown] = useState(false);
   const [showRatePlanDropdown, setShowRatePlanDropdown] = useState(false); // ADD THIS
   const [showDateRangeDropdown, setShowDateRangeDropdown] = useState(false);
-  
+
   // Local state for room types before applying
   const [tempSelectedRoomTypes, setTempSelectedRoomTypes] = useState<string[]>(selectedRoomTypes);
   const [tempSelectedRatePlans, setTempSelectedRatePlans] = useState<string[]>(selectedRatePlans); // ADD THIS
@@ -80,7 +83,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       setTempSelectedRatePlans(ratePlans.map(rp => rp.ratePlanCode));
     }
   };
-   const handleRatePlanToggle = (ratePlanCode: string) => {
+  const handleRatePlanToggle = (ratePlanCode: string) => {
     setTempSelectedRatePlans(prev => {
       const isSelected = prev.includes(ratePlanCode);
       if (isSelected) {
@@ -90,17 +93,17 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       }
     });
   };
-    const handleApplyRatePlans = () => {
+  const handleApplyRatePlans = () => {
     onRatePlanChange(tempSelectedRatePlans);
     setShowRatePlanDropdown(false);
   };
-    const handleClearRatePlans = () => {
+  const handleClearRatePlans = () => {
     const allRatePlans = ratePlans.map(rp => rp.ratePlanCode);
     setTempSelectedRatePlans(allRatePlans);
     onRatePlanChange(allRatePlans);
     setShowRatePlanDropdown(false);
   };
-   const getRatePlanButtonText = () => {
+  const getRatePlanButtonText = () => {
     if (selectedRatePlans.length === 0) return 'No Rate Plans';
     if (selectedRatePlans.length === ratePlans.length) return 'All Rate Plans';
     return `${selectedRatePlans.length} Rate Plan${selectedRatePlans.length > 1 ? 's' : ''}`;
@@ -109,7 +112,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const handleRoomTypeToggle = (invTypeCode: string) => {
     setTempSelectedRoomTypes(prev => {
       const isSelected = prev.includes(invTypeCode);
-      
+
       if (isSelected) {
         const newSelection = prev.filter(rt => rt !== invTypeCode);
         // console.log('❌ Deselected:', invTypeCode, '| New selection:', newSelection);
@@ -155,9 +158,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // Get display text for room type button
   const getRoomTypeButtonText = () => {
-    if (selectedRoomTypes.length === 0) return 'No Room Types';
-    if (selectedRoomTypes.length === roomTypes.length) return 'All Room Types';
-    return `${selectedRoomTypes.length} Room Type${selectedRoomTypes.length > 1 ? 's' : ''}`;
+    if (selectedRoomTypes.length === 0) return t('CalendarView.filterBar.noRoomTypes') || 'No Room Types';
+    if (selectedRoomTypes.length === roomTypes.length) return t('CalendarView.filterBar.allRoomTypes');
+    return `${selectedRoomTypes.length} ${t('CalendarView.filterBar.roomTypes')}`;
   };
 
   return (
@@ -178,9 +181,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0" />
                 <span className="text-xs sm:text-sm font-medium text-gray-700 truncate">
-                  {dateRange.startDate && dateRange.endDate 
+                  {dateRange.startDate && dateRange.endDate
                     ? `${dateRange.startDate} to ${dateRange.endDate}`
-                    : 'Select Date Range'
+                    : t('CalendarView.filterBar.selectDateRange')
                   }
                 </span>
               </div>
@@ -190,15 +193,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             {/* Date Range Dropdown */}
             {showDateRangeDropdown && (
               <>
-                <div 
-                  className="fixed inset-0 bg-black/50 z-40 sm:hidden" 
+                <div
+                  className="fixed inset-0 bg-black/50 z-40 sm:hidden"
                   onClick={() => setShowDateRangeDropdown(false)}
                 />
-                
+
                 <div className="fixed sm:absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:top-[calc(100%+0.5rem)] sm:left-0 sm:translate-x-0 sm:translate-y-0 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-[calc(100%-2rem)] sm:w-80 max-w-md">
                   <div className="p-4">
                     <h3 className="text-sm font-semibold text-gray-900 mb-4">Select Date Range</h3>
-                    
+
                     <div className="space-y-4">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1.5">
@@ -246,7 +249,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </>
             )}
           </div>
-          
+
           {/* Room Type Filter */}
           <div className="relative flex-1">
             <button
@@ -269,16 +272,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             {/* Room Type Dropdown */}
             {showRoomTypeDropdown && (
               <>
-                <div 
-                  className="fixed inset-0 bg-black/50 z-40 sm:hidden" 
+                <div
+                  className="fixed inset-0 bg-black/50 z-40 sm:hidden"
                   onClick={() => setShowRoomTypeDropdown(false)}
                 />
-                
+
                 <div className="fixed sm:absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:top-[calc(100%+0.5rem)] sm:left-0 sm:translate-x-0 sm:translate-y-0 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-[calc(100%-2rem)] sm:w-80 max-w-md max-h-[80vh] sm:max-h-96 overflow-hidden flex flex-col">
                   <div className="p-3 border-b border-gray-200">
                     <h3 className="text-sm font-semibold text-gray-900">Select Room Types</h3>
                   </div>
-                  
+
                   <div className="overflow-y-auto flex-1 p-3">
                     <label className="flex items-center gap-3 mb-3 pb-3 border-b cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition">
                       <input
@@ -292,7 +295,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                     <div className="space-y-2">
                       {roomTypes.map((roomType) => (
-                        <label 
+                        <label
                           key={roomType.invTypeCode}
                           className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition"
                         >
@@ -303,7 +306,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             className="w-4 h-4 mt-0.5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                           />
                           <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900">{roomType._translations?roomType._translations.roomName:roomType.name}</div>
+                            <div className="text-sm font-medium text-gray-900">{roomType._translations ? roomType._translations.roomName : roomType.name}</div>
                             {/* <div className="text-xs text-gray-500 mt-0.5">
                               {roomType.ratePlanCodes.length} rate plan{roomType.ratePlanCodes.length !== 1 ? 's' : ''}
                             </div> */}
@@ -334,7 +337,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               </>
             )}
           </div>
-<div className="relative flex-1">
+          <div className="relative flex-1">
             <button
               onClick={() => {
                 setShowRatePlanDropdown(!showRatePlanDropdown);
@@ -355,16 +358,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
             {showRatePlanDropdown && (
               <>
-                <div 
-                  className="fixed inset-0 bg-black/50 z-40 sm:hidden" 
+                <div
+                  className="fixed inset-0 bg-black/50 z-40 sm:hidden"
                   onClick={() => setShowRatePlanDropdown(false)}
                 />
-                
+
                 <div className="fixed sm:absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:top-[calc(100%+0.5rem)] sm:left-0 sm:translate-x-0 sm:translate-y-0 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-[calc(100%-2rem)] sm:w-80 max-w-md max-h-[80vh] sm:max-h-96 overflow-hidden flex flex-col">
                   <div className="p-3 border-b border-gray-200">
                     <h3 className="text-sm font-semibold text-gray-900">Select Rate Plans</h3>
                   </div>
-                  
+
                   <div className="overflow-y-auto flex-1 p-3">
                     <label className="flex items-center gap-3 mb-3 pb-3 border-b cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition">
                       <input
@@ -378,7 +381,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                     <div className="space-y-2">
                       {ratePlans.map((ratePlan) => (
-                        <label 
+                        <label
                           key={ratePlan.ratePlanCode}
                           className="flex items-start gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition"
                         >
@@ -389,7 +392,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                             className="w-4 h-4 mt-0.5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                           />
                           <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900">{ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}</div>
+                            <div className="text-sm font-medium text-gray-900">{ratePlan._translations ? ratePlan._translations.ratePlanName : ratePlan.ratePlanName}</div>
                             <div className="text-xs text-gray-500 mt-0.5">{ratePlan.ratePlanCode}</div>
                           </div>
                         </label>
@@ -420,79 +423,79 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </div>
 
           {/* Clear All Filters - UPDATE THIS */}
-          {(selectedRoomTypes.length < roomTypes.length || 
-            selectedRatePlans.length < ratePlans.length || 
+          {(selectedRoomTypes.length < roomTypes.length ||
+            selectedRatePlans.length < ratePlans.length ||
             dateRange.startDate || dateRange.endDate) && (
-            <button
-              onClick={() => {
-                handleClearRoomTypes();
-                handleClearRatePlans();
-                handleClearDateRange();
-              }}
-              className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition whitespace-nowrap"
-            >
-              <X className="w-4 h-4" />
-              <span>Clear All</span>
-            </button>
-          )}
+              <button
+                onClick={() => {
+                  handleClearRoomTypes();
+                  handleClearRatePlans();
+                  handleClearDateRange();
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition whitespace-nowrap"
+              >
+                <X className="w-4 h-4" />
+                <span>Clear All</span>
+              </button>
+            )}
         </div>
 
         {/* Active Filters Summary - UPDATE THIS */}
         {((selectedRoomTypes.length > 0 && selectedRoomTypes.length < roomTypes.length) ||
           (selectedRatePlans.length > 0 && selectedRatePlans.length < ratePlans.length)) && (
-          <div className="pt-3 border-t border-gray-200">
-            <div className="flex flex-wrap gap-2 items-start">
-              <span className="text-xs font-medium text-gray-500 py-1">Active filters:</span>
-              <div className="flex flex-wrap gap-1.5 flex-1">
-                {/* Room Type Badges */}
-                {selectedRoomTypes.map(roomType => (
-                  <span 
-                    key={roomType}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
-                  >
-                    {(() => {
-                      const rt = roomTypes.find(r => r.invTypeCode === roomType);
-                      return rt?._translations?.roomName || rt?.name || roomType;
-                    })()}
-                    <button
-                      onClick={() => {
-                        const newSelection = selectedRoomTypes.filter(rt => rt !== roomType);
-                        setTempSelectedRoomTypes(newSelection);
-                        onRoomTypeChange(newSelection);
-                      }}
-                      className="hover:bg-blue-100 rounded-full p-0.5"
+            <div className="pt-3 border-t border-gray-200">
+              <div className="flex flex-wrap gap-2 items-start">
+                <span className="text-xs font-medium text-gray-500 py-1">Active filters:</span>
+                <div className="flex flex-wrap gap-1.5 flex-1">
+                  {/* Room Type Badges */}
+                  {selectedRoomTypes.map(roomType => (
+                    <span
+                      key={roomType}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-                
-                {/* Rate Plan Badges - ADD THIS */}
-                {selectedRatePlans.map(ratePlan => (
-                  <span 
-                    key={ratePlan}
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full"
-                  >
-                    {(() => {
-                      const rp = ratePlans.find(r => r.ratePlanCode === ratePlan);
-                      return rp?._translations?.ratePlanName || rp?.ratePlanName || ratePlan;
-                    })()}
-                    <button
-                      onClick={() => {
-                        const newSelection = selectedRatePlans.filter(rp => rp !== ratePlan);
-                        setTempSelectedRatePlans(newSelection);
-                        onRatePlanChange(newSelection);
-                      }}
-                      className="hover:bg-green-100 rounded-full p-0.5"
+                      {(() => {
+                        const rt = roomTypes.find(r => r.invTypeCode === roomType);
+                        return rt?._translations?.roomName || rt?.name || roomType;
+                      })()}
+                      <button
+                        onClick={() => {
+                          const newSelection = selectedRoomTypes.filter(rt => rt !== roomType);
+                          setTempSelectedRoomTypes(newSelection);
+                          onRoomTypeChange(newSelection);
+                        }}
+                        className="hover:bg-blue-100 rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+
+                  {/* Rate Plan Badges - ADD THIS */}
+                  {selectedRatePlans.map(ratePlan => (
+                    <span
+                      key={ratePlan}
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-xs rounded-full"
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
+                      {(() => {
+                        const rp = ratePlans.find(r => r.ratePlanCode === ratePlan);
+                        return rp?._translations?.ratePlanName || rp?.ratePlanName || ratePlan;
+                      })()}
+                      <button
+                        onClick={() => {
+                          const newSelection = selectedRatePlans.filter(rp => rp !== ratePlan);
+                          setTempSelectedRatePlans(newSelection);
+                          onRatePlanChange(newSelection);
+                        }}
+                        className="hover:bg-green-100 rounded-full p-0.5"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

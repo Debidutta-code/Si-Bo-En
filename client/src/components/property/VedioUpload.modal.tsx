@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { X, Video,  } from 'lucide-react';
+import { X, Video, } from 'lucide-react';
 import axios from "axios";
 import createAxiosInstance from '../axiosInstance';
+import { useTranslation } from "react-i18next";
 
 const uploadToS3 = async (
   file: File,
@@ -40,6 +41,7 @@ const uploadToCloudinary = async (
   uploadPreset: string,
   onProgress: (p: number) => void
 ): Promise<{ videoUrl: string; thumbnailUrl: string }> => {
+
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -96,6 +98,8 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   onUploadSuccess,
   title = "Upload Video",
 }) => {
+  const { t } = useTranslation();
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -115,13 +119,13 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
     if (!file) return;
 
     if (!file.type.startsWith("video/")) {
-      setError("Please select a valid video file");
+      setError(t("VideoUpload.selectValidVideo"));
       return;
     }
 
     const maxSize = 50 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError("Video file size should not exceed 50MB");
+      setError(t("VideoUpload.fileSizeError"));
       return;
     }
 
@@ -134,7 +138,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   };
   const handleUpload = async () => {
     if (!selectedFile) {
-      setError("Please select a video file");
+      setError(t("VideoUpload.selectVideo"));
       return;
     }
 
@@ -170,7 +174,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
       }, 1200);
 
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setError(err instanceof Error ? err.message : t("VideoUpload.uploadFailed"));
       setIsUploading(false);
       setUploadProgress(0);
     }
@@ -209,7 +213,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
       } as unknown as React.ChangeEvent<HTMLInputElement>;
       handleFileSelect(event);
     } else {
-      setError("Please drop a valid video file");
+      setError(t("VideoUpload.selectValidVideo"));
     }
   };
 
@@ -221,7 +225,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
 
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
+          <h2 className="text-2xl font-semibold text-gray-800">{title || t("VideoUpload.title")}</h2>
           <button
             onClick={handleClose}
             disabled={isUploading}
@@ -243,7 +247,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
             >
               <Video size={48} className="mx-auto mb-4 text-gray-400" />
               <p className="text-lg font-medium text-gray-700 mb-2">
-                Drop your video here or click to browse
+                {t("VideoUpload.dropVideoHere")}
               </p>
               <input
                 ref={fileInputRef}
@@ -276,7 +280,7 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
               {error && <p className="text-red-500">{error}</p>}
 
               {uploadSuccess && (
-                <p className="text-green-600">Uploaded successfully</p>
+                <p className="text-green-600">{t("VideoUpload.uploadSuccess")}</p>
               )}
             </div>
           )}
@@ -285,12 +289,13 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
 
         {/* Footer */}
         <div className="p-6 border-t flex justify-end gap-4">
-          <button onClick={handleClose}>Cancel</button>
+          <button onClick={handleClose}>{t("VideoUpload.cancel")}</button>
           <button
             onClick={handleUpload}
             disabled={!selectedFile || isUploading}
           >
-            Upload
+            {t("VideoUpload.upload")}
+
           </button>
         </div>
 

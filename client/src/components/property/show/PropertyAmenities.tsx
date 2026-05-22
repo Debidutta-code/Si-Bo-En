@@ -20,12 +20,16 @@ import {
 import { updatePropertyAmenity } from "../api/create/propertyAmenity";
 import UpdatePropertyAminity from "../update/PropertyAmenities";
 import type { IAmenity } from "../types/amenity.types";
+import { useTranslation } from "react-i18next";
+
 interface PropertyId {
   propertyId: string;
 }
 
 
 export default function PropertyAmenities({ propertyId }: PropertyId) {
+    const { t } = useTranslation();
+
   const [loading, setLoading] = useState(true);
   const [propertyAmenities, setPropertyAmenities] = useState<IAmenity[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<Record<string, boolean>>({});
@@ -42,7 +46,7 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
         setPropertyAmenities([]);
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to fetch property details");
+      toast.error(error?.message || t('Toast.failedToFetchProperty'));
       setPropertyAmenities([]);
     } finally {
       setLoading(false);
@@ -51,7 +55,7 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
 
   useEffect(() => {
     if (!propertyId) {
-      toast.error("Property id not found");
+      toast.error(t('Toast.propertyIdMissing'));
       return;
     }
     fetchPropertyAmenity(propertyId);
@@ -60,7 +64,7 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <Loader text="Loading Property Amenities" />
+        <Loader text={t('PropertyDetails.loadingAmenities')} />
       </div>
     );
   }
@@ -71,12 +75,12 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
       if (res.success) {
         setUpdateDialogOpen(false);
 fetchPropertyAmenity(propertyId)
-        toast.success("Property Amenities Updated successfully")
+        toast.success(t('Toast.amenitiesUpdated'))
       } else {
-        toast.error(res.message || "Failed to update Amenities")
+        toast.error(res.message || t('Toast.failedToUpdateAmenities'))
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to update the proprty amenities")
+      toast.error(error?.message || t('Toast.failedToUpdateAmenities'))
     }finally{
       setLoading(false)
     }
@@ -88,10 +92,12 @@ fetchPropertyAmenity(propertyId)
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-semibold text-gray-900">
-              Property Amenities
+              {t('PropertyDetails.propertyAmenities')}
             </CardTitle>
             <p className="text-sm text-gray-500 mt-1">
-              {propertyAmenities.length} {propertyAmenities.length === 1 ? 'amenity' : 'amenities'} available
+              {propertyAmenities.length === 1 
+                ? t('PropertyDetails.amenityAvailable', { count: propertyAmenities.length })
+                : t('PropertyDetails.amenitiesAvailable', { count: propertyAmenities.length })}
             </p>
           </div>
           <Button
@@ -100,7 +106,7 @@ fetchPropertyAmenity(propertyId)
             onClick={() => setUpdateDialogOpen(true)}
           >
             <PenTool className="h-4 w-4" />
-            Edit Amenities
+            {t('PropertyDetails.editAmenities')}
           </Button>
         </div>
       </CardHeader>
@@ -137,9 +143,9 @@ fetchPropertyAmenity(propertyId)
                 />
               </svg>
             </div>
-            <p className="text-gray-500 font-medium mb-1">No amenities added yet</p>
+            <p className="text-gray-500 font-medium mb-1">{t('PropertyDetails.noAmenities')}</p>
             <p className="text-sm text-gray-400">
-              Click "Edit Amenities" to add amenities to this property
+              {t('PropertyDetails.editAmenitiesDescription')}
             </p>
           </div>
         )}
@@ -152,10 +158,10 @@ fetchPropertyAmenity(propertyId)
             <div className="flex w-full justify-between items-start">
               <div>
                 <AlertDialogTitle className="text-xl">
-                  Update Property Amenities
+                  {t('PropertyDetails.updatePropertyAmenities')}
                 </AlertDialogTitle>
                 <p className="text-sm text-gray-500 mt-1">
-                  Select or deselect amenities for this property
+                  {t('PropertyDetails.selectAmenities')}
                 </p>
               </div>
               <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -168,7 +174,7 @@ fetchPropertyAmenity(propertyId)
             />
           </AlertDialogHeader>
           <AlertDialogFooter className="border-t pt-4">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('PropertyDetails.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e: any) => {
                 e.preventDefault();
@@ -176,7 +182,7 @@ fetchPropertyAmenity(propertyId)
               }}
               disabled={loading}
             >
-              {loading ? "Updating..." : "Update Amenities"}
+              {loading ? t('PropertyDetails.updatingAmenities') : t('PropertyDetails.updateAmenities')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

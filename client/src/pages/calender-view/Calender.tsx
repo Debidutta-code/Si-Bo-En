@@ -18,10 +18,12 @@ import Loader from "@/components/Loader/Loader";
 import { fetchRatePlansService } from "../rate-plan/services";
 import type { RatePlan } from "../rate-plan/interfaces";
 import type { IRatePlan } from "../promotions/geo/interfaces";
+import { useTranslation } from "react-i18next";
 
 export default function InventoryPage() {
-  // Get propertyId from URL params
+  const { t } = useTranslation();
   const params = useParams();
+  
   const propertyId = params?.propertyId as string;
 
   // View and date state
@@ -108,8 +110,8 @@ export default function InventoryPage() {
         }
       } catch (error: any) {
         console.error("❌ Failed to fetch room types:", error);
-        setError(error.message || "Failed to load room types");
-        toast.error("Failed to load room types");
+        setError(error.message || t('CalendarView.toast.failedLoadRoomTypes'));
+        toast.error(t('CalendarView.toast.failedLoadRoomTypes'));
       } finally {
         setIsLoadingRoomTypes(false);
       }
@@ -152,8 +154,8 @@ export default function InventoryPage() {
         }
       } catch (error: any) {
         console.error("❌ Failed to fetch rate plans:", error);
-        setError(error.message || "Failed to load rate plans");
-        toast.error("Failed to load rate plans");
+        setError(error.message || t('CalendarView.toast.failedLoadRatePlans'));
+        toast.error(t('CalendarView.toast.failedLoadRatePlans'));
       } finally {
         setIsLoadingRatePlans(false);
       }
@@ -215,8 +217,8 @@ export default function InventoryPage() {
         setHotelName(response.data?.hotelName || "");
       } catch (error: any) {
         console.error("❌ Failed to fetch inventory data:", error);
-        setError(error.message || "Failed to load inventory data");
-        toast.error(error.message || "Failed to load inventory data");
+        setError(error.message || t('CalendarView.toast.failedLoadInventory'));
+        toast.error(error.message || t('CalendarView.toast.failedLoadInventory'));
       } finally {
         if (!silent) {
           setIsLoadingInventory(false);
@@ -321,8 +323,8 @@ export default function InventoryPage() {
       setHotelName(response.data?.hotelName || "");
     } catch (error: any) {
       console.error("❌ Failed to fetch inventory data:", error);
-      setError(error.message || "Failed to load inventory data");
-      toast.error(error.message || "Failed to load inventory data");
+      setError(error.message || t('CalendarView.toast.failedLoadInventory'));
+      toast.error(error.message || t('CalendarView.toast.failedLoadInventory'));
     } finally {
       setIsLoadingInventory(false);
     }
@@ -375,8 +377,8 @@ export default function InventoryPage() {
       setHotelName(response.data?.hotelName || "");
     } catch (error: any) {
       console.error("❌ Failed to fetch inventory data:", error);
-      setError(error.message || "Failed to load inventory data");
-      toast.error(error.message || "Failed to load inventory data");
+      setError(error.message || t('CalendarView.toast.failedLoadInventory'));
+      toast.error(error.message || t('CalendarView.toast.failedLoadInventory'));
     } finally {
       setIsLoadingInventory(false);
     }
@@ -431,8 +433,8 @@ export default function InventoryPage() {
       setHotelName(response.data?.hotelName || "");
     } catch (error: any) {
       console.error("❌ Failed to fetch inventory data:", error);
-      setError(error.message || "Failed to load inventory data");
-      toast.error(error.message || "Failed to load inventory data");
+      setError(error.message || t('CalendarView.toast.failedLoadInventory'));
+      toast.error(error.message || t('CalendarView.toast.failedLoadInventory'));
     } finally {
       setIsLoadingInventory(false);
     }
@@ -546,12 +548,12 @@ export default function InventoryPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <h1 className="text-base sm:text-xl font-semibold text-gray-800">
-              Inventory Calendar
+              {t('CalendarView.title')}
             </h1>
             <div className="hidden sm:flex items-center gap-1 text-xs text-gray-500">
-              <span>Home</span>
+              <span>{t('CalendarView.home')}</span>
               <span>/</span>
-              <span className="text-blue-600">Inventory</span>
+              <span className="text-blue-600">{t('CalendarView.inventory')}</span>
             </div>
           </div>
 
@@ -606,8 +608,8 @@ export default function InventoryPage() {
               <Loader
                 text={
                   isLoadingRoomTypes
-                    ? "Loading room types..."
-                    : "Loading inventory data..."
+                    ? t('CalendarView.loadingRoomTypes')
+                    : t('CalendarView.loadingInventoryData')
                 }
                 textStyle="text-blue-600 mt-4 text-sm font-medium"
               />
@@ -619,7 +621,7 @@ export default function InventoryPage() {
             !isLoadingRoomTypes &&
             selectedRoomTypes.length === 0 && (
               <div className="text-center py-8 text-gray-500 text-xs">
-                <p>Please select at least one room type to view inventory</p>
+                <p>{t('CalendarView.selectRoomType')}</p>
               </div>
             )}
 
@@ -629,7 +631,7 @@ export default function InventoryPage() {
             selectedRoomTypes.length > 0 &&
             inventoryData.length === 0 && (
               <div className="text-center py-8 text-gray-500 text-xs">
-                <p>No inventory data available for the selected filters</p>
+                <p>{t('CalendarView.noDataAvailable')}</p>
               </div>
             )}
 

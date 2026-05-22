@@ -67,13 +67,16 @@ import AddRoomLangDialog from "../multilang/components/AddRoomLangDialog";
 import CheckRoomLangDialog from "../multilang/components/CheckRoomLangDialog";
 import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
 import { upsertRoomTranslationService } from "../multilang/services/room.services";
-import {  Languages } from "lucide-react";
+import { Languages } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface PropertyId {
   propertyId: string;
 }
 
 export default function Rooms({ propertyId }: PropertyId) {
+  const { t } = useTranslation();
+
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState<IRoom[]>([]);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
@@ -99,10 +102,10 @@ export default function Rooms({ propertyId }: PropertyId) {
     view360Link: "",
     roomVideos: { url: "", thumbnail: "" },
     priority: 0,
-    RoomViews: { MasterRoomView: { id: "", viewName: "",_translations:{viewName:""} } },
-    _translations:{
-      description:"",
-      roomName:""
+    RoomViews: { MasterRoomView: { id: "", viewName: "", _translations: { viewName: "" } } },
+    _translations: {
+      description: "",
+      roomName: ""
     }
   };
 
@@ -134,7 +137,7 @@ export default function Rooms({ propertyId }: PropertyId) {
 
   useEffect(() => {
     if (!propertyId) {
-      toast.error("Property id not found");
+      toast.error(t("Rooms.propertyIdNotFound"));
       return;
     }
     fetchRoom(propertyId);
@@ -147,18 +150,18 @@ export default function Rooms({ propertyId }: PropertyId) {
         const data = response.data.propertyRooms;
         setRooms(data);
       } else {
-        toast.error(response.message);
+        toast.error(t("Rooms." + response.message));
         setRooms([]);
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to fetch room details");
+      toast.error(t("Rooms.failedToFetchRoomDetails"));
       setRooms([]);
     } finally {
       setLoading(false);
     }
   };
   if (loading) {
-    return <Loader text="Loading Rooms..." />;
+    return <Loader text={t("Rooms.loadingRooms")} />;
   }
   const updateRoomQ = async (
     propertyId: string,
@@ -169,14 +172,14 @@ export default function Rooms({ propertyId }: PropertyId) {
     try {
       const res = await updateRoom(propertyId, roomId, roomDetails);
       if (res.success) {
-        toast.success("Room Updated Successfully");
+        toast.success(t("Rooms.roomUpdatedSuccessfully"));
         setOpenDialog(null);
       } else {
-        toast.error(res.message || "Failed to Update Room Details");
+        toast.error(res.message || t("Rooms.failedToUpdateRoomDetails"));
       }
       fetchRoom(propertyId);
     } catch (error) {
-      toast.error("Falied to Update Room Details");
+      toast.error(t("Rooms.failedToUpdateRoom"));
     } finally {
       setLoading(false);
     }
@@ -186,14 +189,14 @@ export default function Rooms({ propertyId }: PropertyId) {
     try {
       const res = await createRoom(propertyId, payload);
       if (res.success) {
-        toast.success("Room Created Successfully");
+        toast.success(t("Rooms.roomCreatedSuccessfully"));
         setOpenDialog(null);
       } else {
-        toast.error(res.message || "Failed to Create Room Details");
+        toast.error(res.message || t("Rooms.failedToCreateRoomDetails"));
       }
       fetchRoom(propertyId);
     } catch (error) {
-      toast.error("Falied to Create Room Details");
+      toast.error(t("Rooms.failedToCreateRoom"));
     } finally {
       setLoading(false);
     }
@@ -202,13 +205,13 @@ export default function Rooms({ propertyId }: PropertyId) {
     try {
       const res = await deleteRoom(propertyId, roomId);
       if (res.success) {
-        toast.success("Room Created Successfully");
+        toast.success(t("Rooms.roomCreatedSuccessfully"));
       } else {
-        toast.error(res.message || "Failed to Create Room Details");
+        toast.error(res.message || t("Rooms.failedToDeleteRoomDetails"));
       }
       fetchRoom(propertyId);
     } catch (error) {
-      toast.error("Failed to Delete Room Details");
+      toast.error(t("Rooms.failedToDeleteRoom"));
     } finally {
       setLoading(false);
     }
@@ -221,13 +224,13 @@ export default function Rooms({ propertyId }: PropertyId) {
     try {
       const res = await createRoomAmenity(propertyId, roomId, payload);
       if (res.success) {
-        toast.success(`Room Amenity Added Successfully`);
+        toast.success(t("Rooms.roomAmenityAddedSuccessfully"));
       } else {
-        toast.error(res.message || "Failed to Add Room Amenity");
+        toast.error(res.message || t("Rooms.failedToAddRoomAmenity"));
       }
       fetchRoom(propertyId);
     } catch (error) {
-      toast.error("Failed to Add Room Amenity");
+      toast.error(t("Rooms.failedToAddRoomAmenity"));
     } finally {
       setLoading(false);
     }
@@ -240,13 +243,13 @@ export default function Rooms({ propertyId }: PropertyId) {
     try {
       const res = await updateRoomAmenity(propertyId, roomId, payload);
       if (res.success) {
-        toast.success(`Room Amenity Updated Successfully`);
+        toast.success(t("Rooms.roomAmenityUpdatedSuccessfully"));
       } else {
-        toast.error(res.message || "Failed to update Room Amenity");
+        toast.error(res.message || t("Rooms.failedToUpdateRoomAmenity"));
       }
       fetchRoom(propertyId);
     } catch (error) {
-      toast.error("Failed to update Room Amenity");
+      toast.error(t("Rooms.failedToUpdateRoomAmenity"));
     } finally {
       setLoading(false);
     }
@@ -256,7 +259,7 @@ export default function Rooms({ propertyId }: PropertyId) {
     thumbnailUrl: string,
   ) => {
     if (!propertyId || !selectedRoomId) {
-      toast.error("Property ID or Room ID is missing");
+      toast.error(t("Rooms.propertyIdOrRoomIdMissing"));
       return;
     }
 
@@ -268,22 +271,20 @@ export default function Rooms({ propertyId }: PropertyId) {
       );
 
       if (response.success) {
-        // console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
-        toast.success("Video uploaded and saved successfully!");
+        toast.success(t("Rooms.videoSavedSuccessfully"));
         await fetchRoom(propertyId);
       } else {
-        toast.error(response.message || "Failed to save video");
+        toast.error(response.message || t("Rooms.failedToSaveVideo"));
       }
     } catch (error) {
-      console.error("Error saving video:", error);
-      toast.error("Failed to save video");
+      toast.error(t("Rooms.failedToSaveVideo"));
     }
   };
 
   const handleDeleteVideo = async () => {
     // Remove parameter
     if (!propertyId || !selectedRoomId) {
-      toast.error("Property ID or Room ID is missing");
+      toast.error(t("Rooms.propertyIdOrRoomIdMissing"));
       return;
     }
 
@@ -294,15 +295,15 @@ export default function Rooms({ propertyId }: PropertyId) {
       const response = await deleteRoomVideo(selectedRoomId); // Use selectedRoomId
 
       if (response.success) {
-        toast.success("Video deleted successfully!");
+        toast.success(t("Rooms.videoDeletedSuccessfully"));
         await fetchRoom(propertyId);
         setSelectedRoomId(""); // Clear selected room ID after deletion
       } else {
-        toast.error(response.message || "Failed to delete video");
+        toast.error(response.message || t("Rooms.failedToDeleteVideo"));
       }
     } catch (error) {
       console.error("Error deleting video:", error);
-      toast.error("Failed to delete video");
+      toast.error(t("Rooms.failedToDeleteVideo"));
     } finally {
       setIsDeletingVideo(false);
     }
@@ -323,11 +324,11 @@ export default function Rooms({ propertyId }: PropertyId) {
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
                       <CardTitle className="text-2xl font-semibold text-gray-900">
-                        {room._translations?room._translations.roomName:room.roomName}
+                        {room._translations ? room._translations.roomName : room.roomName}
                       </CardTitle>
                       {!room.available && (
                         <span className="px-2 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-full">
-                          Unavailable
+                          {t("Rooms.unavailable")}
                         </span>
                       )}
                     </div>
@@ -341,10 +342,10 @@ export default function Rooms({ propertyId }: PropertyId) {
                       <span className="flex items-center gap-1">
                         <Bed className="h-3.5 w-3.5" />
                         {room.totalRoom}{" "}
-                        {room.totalRoom === 1 ? "Room" : "Rooms"}
+                        {room.totalRoom === 1 ? t("Rooms.room") : t("Rooms.rooms")}
                       </span>
                       <span className="text-gray-400">•</span>
-                      <span className="text-gray-400">Priority: {room.priority}</span>
+                      <span className="text-gray-400">{t("Rooms.priority")}: {room.priority}</span>
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
@@ -360,7 +361,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                         className="gap-2 bg-primary hover:bg-primary/90"
                       >
                         <Rotate3d className="w-4 h-4" />
-                        360° View
+                        {t("Rooms.view360")}
                       </Button>
                     )}
                     <DropdownMenu>
@@ -397,7 +398,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 }}
                               >
                                 <Plus className="h-4 w-4 mr-2" />
-                                Create Room
+                                {t("Rooms.createNewRoom")}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
@@ -405,10 +406,10 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 <div className="flex justify-between items-start">
                                   <div>
                                     <AlertDialogTitle className="text-xl">
-                                      Create New Room
+                                      {t("Rooms.createNewRoom")}
                                     </AlertDialogTitle>
                                     <p className="text-sm text-gray-500 mt-1">
-                                      Add a new room type to your property
+                                      {t("Rooms.addNewRoomType")}
                                     </p>
                                   </div>
                                   <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -422,14 +423,14 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 />
                               </AlertDialogHeader>
                               <AlertDialogFooter className="border-t ">
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() =>
                                     createRoomQ(propertyId, roomDetails)
                                   }
                                   disabled={loading}
                                 >
-                                  {loading ? "Creating..." : "Create Room"}
+                                  {loading ? t("Rooms.creating") : t("Rooms.create")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -477,12 +478,12 @@ export default function Rooms({ propertyId }: PropertyId) {
                                     roomVideos: room.roomVideos,
                                     priority: room.priority,
                                     RoomViews: room.RoomViews,
-                                    _translations:room._translations
+                                    _translations: room._translations
                                   });
                                 }}
                               >
                                 <PenTool className="h-4 w-4 mr-2" />
-                                Edit Details
+                                {t("Common.edit")}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
@@ -490,10 +491,10 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 <div className="flex justify-between items-start">
                                   <div>
                                     <AlertDialogTitle className="text-xl">
-                                      Update {room.roomName}
+                                      {t("Rooms.updateRoomTitle", { name: room.roomName })}
                                     </AlertDialogTitle>
                                     <p className="text-sm text-gray-500 mt-1">
-                                      Modify room details and specifications
+                                      {t("Rooms.modifyRoomDetails")}
                                     </p>
                                   </div>
                                   <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -507,7 +508,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 />
                               </AlertDialogHeader>
                               <AlertDialogFooter className="border-t pt-4">
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() =>
                                     updateRoomQ(
@@ -518,7 +519,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                   }
                                   disabled={loading}
                                 >
-                                  {loading ? "Updating..." : "Update Room"}
+                                  {loading ? t("Rooms.updating") : t("Rooms.update")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -572,7 +573,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                             }}
                           >
                             <Rotate3d className="h-4 w-4 mr-2" />
-                            {room.view360Link ? "Update" : "Add"} 360° View
+                            {room.view360Link ? t("Rooms.update360View") : t("Rooms.add360View")}
                           </Button>
                         </DropdownMenuItem>
                         {/* Add/Update Video */}
@@ -591,7 +592,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                             }}
                           >
                             <Video className="h-4 w-4 mr-2" />
-                            {room.roomVideos?.url ? "Update" : "Add"} Video
+                            {room.roomVideos?.url ? t("Rooms.updateVideo") : t("Rooms.addVideo")}
                           </Button>
                         </DropdownMenuItem>
 
@@ -612,7 +613,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                               }}
                             >
                               <Trash className="h-4 w-4 mr-2" />
-                              Remove Video
+                              {t("Rooms.removeVideo")}
                             </Button>
                           </DropdownMenuItem>
                         )}
@@ -629,29 +630,28 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <Trash className="h-4 w-4 mr-2" />
-                                Delete Room
+                                {t("Rooms.deleteRoom")}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>
-                                  Delete {room.roomName}?
+                                  {t("Rooms.deleteRoomTitle", { name: room.roomName })}
                                 </AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This action cannot be undone. This will
-                                  permanently delete the room and all its
-                                  associated data.
+                                  {t("Rooms.deleteRoomDescription")}
+
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() =>
                                     handleDelete(propertyId, room.id)
                                   }
                                   className="bg-red-600 hover:bg-red-700"
                                 >
-                                  Delete Room
+                                  {t("Rooms.deleteRoom")}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
@@ -679,7 +679,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                   <div className="lg:col-span-5 space-y-5">
                     <div>
                       <label className="text-xs font-medium text-gray-500  tracking-wide mb-2 block">
-                        Description
+                        {t("Rooms.description")}
                       </label>
                       <PropertyDetailsDialog description={room.description} />
                     </div>
@@ -687,27 +687,27 @@ export default function Rooms({ propertyId }: PropertyId) {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500  tracking-wide block">
-                          Max Occupancy
+                          {t("Rooms.maxOccupancy")}
                         </label>
                         <p className="text-sm text-gray-900">
-                          {room.maxNumberOfAdults} Adults,{" "}
-                          {room.maxNumberOfChildren} Children
+                          {room.maxNumberOfAdults} {t("Rooms.adults")}, {" "}
+                          {room.maxNumberOfChildren} {t("Rooms.children")}
                         </p>
                       </div>
 
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500  tracking-wide block">
-                          Room View
+                          {t("Rooms.roomView")}
                         </label>
                         <p className="text-sm text-gray-900">
-                          {room.RoomViews?.MasterRoomView?._translations?room.RoomViews.MasterRoomView._translations.viewName:room.RoomViews?.MasterRoomView?.viewName || "—"}
+                          {room.RoomViews?.MasterRoomView?._translations ? room.RoomViews.MasterRoomView._translations.viewName : room.RoomViews?.MasterRoomView?.viewName || "—"}
                         </p>
                       </div>
 
 
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500  tracking-wide block">
-                          Smoking Policy
+                          {t("Rooms.smokingPolicy")}
                         </label>
                         <p className="text-sm text-gray-900">
                           {capitalizeFirstLetter(room.smokingPolicy.replace(/_/g, " ")) || "—"}
@@ -716,15 +716,15 @@ export default function Rooms({ propertyId }: PropertyId) {
 
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500  tracking-wide block">
-                          Floor
+                          {t("Rooms.floor")}
                         </label>
                         <p className="text-sm text-gray-900">
-                          Floor {room.floor}
+                          {t("Rooms.floor")} {room.floor}
                         </p>
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500  tracking-wide block">
-                          Available Rooms
+                          {t("Rooms.availableRooms")}
                         </label>
                         <p className="text-sm text-gray-900">
                           {room.totalRoom}
@@ -732,7 +732,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500  tracking-wide block">
-                          No. of Living Rooms
+                          {t("Rooms.livingRooms")}
                         </label>
                         <p className="text-sm text-gray-900">
                           {room.numberOfLivingRoom}
@@ -740,7 +740,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500  tracking-wide block">
-                          Bedrooms
+                          {t("Rooms.bedrooms")}
                         </label>
                         <p className="text-sm text-gray-900">
                           {room.numberOfBedrooms}
@@ -748,7 +748,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                       </div>
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500  tracking-wide block">
-                          Extra Beds
+                          {t("Rooms.extraBeds")}
                         </label>
                         <p className="text-sm text-gray-900">
                           {room.extraBed}
@@ -761,7 +761,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                   <div className="lg:col-span-3">
                     <div className="flex items-center justify-between mb-3 border-b border-primary/20 pb-2">
                       <label className="text-xs font-medium text-gray-500  tracking-wide">
-                        Room Amenities
+                        {t("Rooms.roomAmenities")}
                       </label>
                       {room.roomAmenities && room.roomAmenities.length > 0 ? (
                         <AlertDialog>
@@ -779,7 +779,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                               }}
                             >
                               <PenTool className="h-3.5 w-3.5" />
-                              Edit
+                              {t("Rooms.editAmenities")}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="max-w-4xl">
@@ -787,10 +787,10 @@ export default function Rooms({ propertyId }: PropertyId) {
                               <div className="flex justify-between items-start">
                                 <div>
                                   <AlertDialogTitle className="text-xl">
-                                    Update Room Amenities
+                                    {t("Rooms.updateRoomAmenities")}
                                   </AlertDialogTitle>
                                   <p className="text-sm text-gray-500 mt-1">
-                                    Modify amenities for {room.roomName}
+                                    {t("Rooms.modifyAmenitiesFor", { name: room.roomName })}
                                   </p>
                                 </div>
                                 <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -805,7 +805,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                               />
                             </AlertDialogHeader>
                             <AlertDialogFooter className="border-t pt-4">
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() =>
                                   updateRoomAmenityQ(
@@ -816,7 +816,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 }
                                 disabled={loading}
                               >
-                                {loading ? "Updating..." : "Update Amenities"}
+                                {loading ? t("Rooms.updating") : t("Rooms.updateRoomAmenities")}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -833,7 +833,8 @@ export default function Rooms({ propertyId }: PropertyId) {
                               }}
                             >
                               <Plus className="h-3.5 w-3.5" />
-                              Add
+                              {t("Rooms.addAmenities")}
+
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="max-w-4xl">
@@ -841,10 +842,10 @@ export default function Rooms({ propertyId }: PropertyId) {
                               <div className="flex justify-between items-start">
                                 <div>
                                   <AlertDialogTitle className="text-xl">
-                                    Add Room Amenities
+                                    {t("Rooms.addRoomAmenities")}
                                   </AlertDialogTitle>
                                   <p className="text-sm text-gray-500 mt-1">
-                                    Select amenities for {room._translations?room._translations.roomName:room.roomName}
+                                    {t("Rooms.selectAmenitiesFor", { name: room.roomName })}
                                   </p>
                                 </div>
                                 <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -857,7 +858,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                               />
                             </AlertDialogHeader>
                             <AlertDialogFooter className="border-t pt-4">
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
                               <AlertDialogAction
                                 onClick={() =>
                                   addRoomAmenityQ(
@@ -868,7 +869,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 }
                                 disabled={loading}
                               >
-                                {loading ? "Adding..." : "Add Amenities"}
+                                {loading ? t("Rooms.loading") : t("Rooms.addRoomAmenities")}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -885,7 +886,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           >
                             <div className="w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0" />
                             <span className="capitalize">
-                              {selection.amenity._translations?selection.amenity._translations.amenityName:selection.amenity.amenityName}
+                              {selection.amenity._translations ? selection.amenity._translations.amenityName : selection.amenity.amenityName}
                             </span>
                           </div>
                         ))}
@@ -896,10 +897,10 @@ export default function Rooms({ propertyId }: PropertyId) {
                           <Plus className="h-5 w-5 text-gray-400" />
                         </div>
                         <p className="text-sm text-gray-500 font-medium mb-1">
-                          No amenities added
+                          {t("Rooms.noAmenitiesAdded")}
                         </p>
                         <p className="text-xs text-gray-400">
-                          Click "Add" to include amenities
+                          {t("Rooms.clickAddToInclude")}
                         </p>
                       </div>
                     )}
@@ -916,11 +917,11 @@ export default function Rooms({ propertyId }: PropertyId) {
               <Bed className="h-10 w-10 text-primary-400" />
             </div>
             <h3 className="text-lg font-semibold text-primary-900 mb-1">
-              No Rooms Configured
+              {t("Rooms.noRoomsConfigured")}
             </h3>
             <p className="text-sm text-primary-600 mb-4 text-center max-w-sm">
-              Start by creating your first room type to showcase your property's
-              accommodations
+              {t("Rooms.startByCreating")}
+
             </p>
             <AlertDialog
               open={openDialog === "create"}
@@ -941,7 +942,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                   }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Create First Room
+                  {t("Rooms.createFirstRoom")}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
@@ -949,10 +950,10 @@ export default function Rooms({ propertyId }: PropertyId) {
                   <div className="flex justify-between items-start">
                     <div>
                       <AlertDialogTitle className="text-xl">
-                        Create New Room
+                        {t("Rooms.createNewRoom")}
                       </AlertDialogTitle>
                       <p className="text-sm text-gray-500 mt-1">
-                        Add a new room type to your property
+                        {t("Rooms.addNewRoomType")}
                       </p>
                     </div>
                     <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -966,12 +967,12 @@ export default function Rooms({ propertyId }: PropertyId) {
                   />
                 </AlertDialogHeader>
                 <AlertDialogFooter className="border-t ">
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => createRoomQ(propertyId, roomDetails)}
                     disabled={loading}
                   >
-                    {loading ? "Creating..." : "Create Room"}
+                    {loading ? t("Rooms.creating") : t("Rooms.create")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -1006,11 +1007,10 @@ export default function Rooms({ propertyId }: PropertyId) {
         <DialogContent className="max-w-[95vw] max-h-[95vh] h-[95vh] p-0">
           <DialogHeader className="p-6 pb-4 border-b flex-shrink-0">
             <DialogTitle className="text-xl">
-              360° View - {panoramaRoomName}
+              {t("Rooms.panoramaViewer", { name: panoramaRoomName })}
             </DialogTitle>
             <DialogDescription className="text-sm">
-              Drag to look around • Scroll to zoom • Click fullscreen for
-              immersive experience
+              {t("Rooms.dragToLookAround")}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 px-6 pb-6 min-h-0">
@@ -1027,7 +1027,7 @@ export default function Rooms({ propertyId }: PropertyId) {
           setSelectedRoomName("");
         }}
         onUploadSuccess={handleVideoUploadSuccess}
-        title={`Upload Video for ${selectedRoomName}`}
+        title={t("Rooms.uploadVideoFor", { name: selectedRoomName })}
       />
       <AlertDialog
         open={isDeleteDialogOpen}
@@ -1036,21 +1036,20 @@ export default function Rooms({ propertyId }: PropertyId) {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Are you sure you want to delete this video?
+              {t("Rooms.deleteVideoTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              room video from the system.
+              {t("Rooms.deleteVideoDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteVideo} // Now calls without parameter
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
               disabled={isDeletingVideo} // Added disabled state
             >
-              {isDeletingVideo ? "Deleting..." : "Delete Video"}{" "}
+              {isDeletingVideo ? t("Rooms.deleting") : t("Rooms.deleteVideo")}
               {/* Added loading text */}
             </AlertDialogAction>
           </AlertDialogFooter>

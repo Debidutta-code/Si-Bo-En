@@ -2,6 +2,7 @@ import { Trophy, TrendingUp, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ITopPerformingProperties } from '../interface';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
+import { useTranslation } from 'react-i18next';
 
 interface TopPropertiesStatsProps {
   data: ITopPerformingProperties;
@@ -9,6 +10,8 @@ interface TopPropertiesStatsProps {
 }
 
 export default function TopPropertiesStats({ data , currencyCode }: TopPropertiesStatsProps) {
+    const { t } = useTranslation();
+
 const formatCurrency = (amount: number) => {
     const symbol = currencyCode;
     return `${symbol} ${amount.toLocaleString('en-US', {
@@ -23,7 +26,7 @@ const formatCurrency = (amount: number) => {
           <Trophy className="h-5 w-5 text-white" />
         </div>
         <h2 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-          Top Performing Properties
+          {t('DashboardStats.topPerformingProperties')}
         </h2>
       </div>
       
@@ -32,7 +35,7 @@ const formatCurrency = (amount: number) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              Top by Revenue
+              {t('DashboardStats.topByRevenue')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -77,7 +80,7 @@ const formatCurrency = (amount: number) => {
                 ))
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  No data available
+                  {t('Common.noDataAvailable')}
                 </div>
               )}
             </div>
@@ -88,7 +91,7 @@ const formatCurrency = (amount: number) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Star className="h-5 w-5 text-blue-600" />
-              Top by Bookings
+              {t('DashboardStats.topByBookings')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -126,14 +129,14 @@ const formatCurrency = (amount: number) => {
                         <div className="font-bold text-blue-600">
                           {property.totalBookings}
                         </div>
-                        <div className="text-xs text-muted-foreground">bookings</div>
+                        <div className="text-xs text-muted-foreground">{t('DashboardStats.bookingsLabel')}</div>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  No data available
+                  {t('Common.noDataAvailable')}
                 </div>
               )}
             </div>
@@ -144,7 +147,7 @@ const formatCurrency = (amount: number) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="h-5 w-5 text-purple-600" />
-              Top by Occupancy
+              {t('DashboardStats.topByOccupancy')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -191,7 +194,7 @@ const formatCurrency = (amount: number) => {
                 ))
               ) : (
                 <div className="text-center text-muted-foreground py-8">
-                  No data available
+                  {t('Common.noDataAvailable')}
                 </div>
               )}
             </div>

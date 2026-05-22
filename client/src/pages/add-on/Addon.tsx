@@ -111,6 +111,7 @@ import {
 } from "./api/addon-langa.api";
 import { EditTranslationDialog } from "../management/components/multilang/ManagementTranslationDialogs";
 import { usePropertyContext } from "@/contexts/PropertyContext";
+import { useTranslation } from "react-i18next";
 
 interface LoaderProps {
   isLoading: boolean;
@@ -118,6 +119,7 @@ interface LoaderProps {
 }
 
 export default function AddOns() {
+  const { t } = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
 
   // State management
@@ -221,7 +223,7 @@ export default function AddOns() {
   }, [propertyId]);
 
   const fetchAllData = async () => {
-    setLoader({ isLoading: true, message: "Loading add-ons data..." });
+    setLoader({ isLoading: true, message: t("Addon.loadingAddonsData") });
     try {
       await Promise.all([
         fetchAddOns(),
@@ -230,7 +232,7 @@ export default function AddOns() {
         fetchVariants(),
       ]);
     } catch (error) {
-      toast.error("Failed to load data");
+      toast.error(t("Addon.failedToLoadData"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -243,15 +245,15 @@ export default function AddOns() {
       if (response.success) {
         setAddOns(response.data || []);
       } else {
-        toast.error(response.message || "Failed to fetch add-ons");
+        toast.error(response.message || t("Addon.failedToFetchAddons"));
       }
     } catch (error) {
-      toast.error("Failed to fetch add-ons");
+      toast.error(t("Addon.failedToFetchAddons"));
     }
   };
 
   const fetchCategories = async () => {
-    if(!propertyId)return
+    if (!propertyId) return
     try {
       const response = await fetchCategoriesService(propertyId);
       if (response.success) {
@@ -263,7 +265,7 @@ export default function AddOns() {
   };
 
   const fetchSubCategories = async () => {
-        if(!propertyId)return
+    if (!propertyId) return
 
     try {
       const response = await fetchSubCategoriesService(propertyId);
@@ -276,7 +278,7 @@ export default function AddOns() {
   };
 
   const fetchVariants = async () => {
-        if(!propertyId)return
+    if (!propertyId) return
 
     try {
       const response = await fetchVariantsService(propertyId);
@@ -299,25 +301,25 @@ export default function AddOns() {
 
   const handleCreateAddOn = async (data: IAddonCreate | IAddonUpdate) => {
     if (!propertyId) {
-      toast.error("Property ID is missing");
+      toast.error(t("Addon.propertyIdMissing"));
       return;
     }
 
-    setLoader({ isLoading: true, message: "Creating add-on..." });
+    setLoader({ isLoading: true, message: t("Addon.creatingAddon") });
     try {
       const response = await createAddOnService(
         data as IAddonCreate,
         propertyId,
       );
       if (response.success) {
-        toast.success(response.message || "Add-on created successfully");
+        toast.success(response.message || t("Addon.addonCreatedSuccessfully"));
         setAddOnDialog({ open: false, mode: "create", addOn: null });
         fetchAddOns();
       } else {
-        toast.error(response.message || "Failed to create add-on");
+        toast.error(response.message || t("Addon.failedToCreateAddon"));
       }
     } catch (error) {
-      toast.error("Failed to create add-on");
+      toast.error(t("Addon.failedToCreateAddon"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -326,21 +328,21 @@ export default function AddOns() {
   const handleUpdateAddOn = async (data: IAddonCreate | IAddonUpdate) => {
     if (!addOnDialog.addOn) return;
 
-    setLoader({ isLoading: true, message: "Updating add-on..." });
+    setLoader({ isLoading: true, message: t("Addon.updatingAddon") });
     try {
       const response = await updateAddOnService(
         addOnDialog.addOn.id,
         data as IAddonUpdate,
       );
       if (response.success) {
-        toast.success(response.message || "Add-on updated successfully");
+        toast.success(response.message || t("Addon.addonUpdatedSuccessfully"));
         setAddOnDialog({ open: false, mode: "create", addOn: null });
         fetchAddOns();
       } else {
-        toast.error(response.message || "Failed to update add-on");
+        toast.error(response.message || t("Addon.failedToUpdateAddon"));
       }
     } catch (error) {
-      toast.error("Failed to update add-on");
+      toast.error(t("Addon.failedToUpdateAddon"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -349,18 +351,18 @@ export default function AddOns() {
   const handleDeleteAddOn = async () => {
     if (!deleteDialog.addOn) return;
 
-    setLoader({ isLoading: true, message: "Deleting add-on..." });
+    setLoader({ isLoading: true, message: t("Addon.deletingAddon") });
     try {
       const response = await deleteAddOnService(deleteDialog.addOn.id);
       if (response.success) {
-        toast.success(response.message || "Add-on deleted successfully");
+        toast.success(response.message || t("Addon.addonDeletedSuccessfully"));
         setDeleteDialog({ open: false, addOn: null });
         fetchAddOns();
       } else {
-        toast.error(response.message || "Failed to delete add-on");
+        toast.error(response.message || t("Addon.failedToDeleteAddon"));
       }
     } catch (error) {
-      toast.error("Failed to delete add-on");
+      toast.error(t("Addon.failedToDeleteAddon"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -376,19 +378,19 @@ export default function AddOns() {
   };
 
   const handleCreateCategory = async (data: IAddonCategoryCreate) => {
-    if(!propertyId)return
-    setLoader({ isLoading: true, message: "Creating category..." });
+    if (!propertyId) return
+    setLoader({ isLoading: true, message: t("Addon.creatingCategory") });
     try {
-      const response = await createCategoryService(data,propertyId);
+      const response = await createCategoryService(data, propertyId);
       if (response.success) {
-        toast.success(response.message || "Category created successfully");
+        toast.success(response.message || t("Addon.categoryCreatedSuccessfully"));
         setCategoryDialog({ open: false, mode: "create", category: null });
         fetchCategories();
       } else {
-        toast.error(response.message || "Failed to create category");
+        toast.error(response.message || t("Addon.failedToCreateCategory"));
       }
     } catch (error) {
-      toast.error("Failed to create category");
+      toast.error(t("Addon.failedToCreateCategory"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -397,38 +399,38 @@ export default function AddOns() {
   const handleUpdateCategory = async (data: IAddonCategoryCreate) => {
     if (!categoryDialog.category) return;
 
-    setLoader({ isLoading: true, message: "Updating category..." });
+    setLoader({ isLoading: true, message: t("Addon.updatingCategory") });
     try {
       const response = await updateCategoryService(
         categoryDialog.category.id,
         data,
       );
       if (response.success) {
-        toast.success(response.message || "Category updated successfully");
+        toast.success(response.message || t("Addon.categoryUpdatedSuccessfully"));
         setCategoryDialog({ open: false, mode: "create", category: null });
         fetchCategories();
       } else {
-        toast.error(response.message || "Failed to update category");
+        toast.error(response.message || t("Addon.failedToUpdateCategory"));
       }
     } catch (error) {
-      toast.error("Failed to update category");
+      toast.error(t("Addon.failedToUpdateCategory"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
   };
 
   const handleDeleteCategory = async (categoryId: string) => {
-    setLoader({ isLoading: true, message: "Deleting category..." });
+    setLoader({ isLoading: true, message: t("Addon.deletingCategory") });
     try {
       const response = await deleteCategoryService(categoryId);
       if (response.success) {
-        toast.success(response.message || "Category deleted successfully");
+        toast.success(response.message || t("Addon.categoryDeletedSuccessfully"));
         fetchCategories();
       } else {
-        toast.error(response.message || "Failed to delete category");
+        toast.error(response.message || t("Addon.failedToDeleteCategory"));
       }
     } catch (error) {
-      toast.error("Failed to delete category");
+      toast.error(t("Addon.failedToDeleteCategory"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -444,12 +446,12 @@ export default function AddOns() {
   };
 
   const handleCreateSubCategory = async (data: IAddonSubCategoryCreate) => {
-    if(!propertyId)return
-    setLoader({ isLoading: true, message: "Creating subcategory..." });
+    if (!propertyId) return
+    setLoader({ isLoading: true, message: t("Addon.creatingSubcategory") });
     try {
-      const response = await createSubCategoryService(data,propertyId);
+      const response = await createSubCategoryService(data, propertyId);
       if (response.success) {
-        toast.success(response.message || "Subcategory created successfully");
+        toast.success(response.message || t("Addon.subcategoryCreatedSuccessfully"));
         setSubCategoryDialog({
           open: false,
           mode: "create",
@@ -457,10 +459,10 @@ export default function AddOns() {
         });
         fetchSubCategories();
       } else {
-        toast.error(response.message || "Failed to create subcategory");
+        toast.error(response.message || t("Addon.failedToCreateSubcategory"));
       }
     } catch (error) {
-      toast.error("Failed to create subcategory");
+      toast.error(t("Addon.failedToCreateSubcategory"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -469,14 +471,14 @@ export default function AddOns() {
   const handleUpdateSubCategory = async (data: IAddonSubCategoryCreate) => {
     if (!subCategoryDialog.subCategory) return;
 
-    setLoader({ isLoading: true, message: "Updating subcategory..." });
+    setLoader({ isLoading: true, message: t("Addon.updatingSubcategory") });
     try {
       const response = await updateSubCategoryService(
         subCategoryDialog.subCategory.id,
         data,
       );
       if (response.success) {
-        toast.success(response.message || "Subcategory updated successfully");
+        toast.success(response.message || t("Addon.subcategoryUpdatedSuccessfully"));
         setSubCategoryDialog({
           open: false,
           mode: "create",
@@ -484,27 +486,27 @@ export default function AddOns() {
         });
         fetchSubCategories();
       } else {
-        toast.error(response.message || "Failed to update subcategory");
+        toast.error(response.message || t("Addon.failedToUpdateSubcategory"));
       }
     } catch (error) {
-      toast.error("Failed to update subcategory");
+      toast.error(t("Addon.failedToUpdateSubcategory"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
   };
 
   const handleDeleteSubCategory = async (subCategoryId: string) => {
-    setLoader({ isLoading: true, message: "Deleting subcategory..." });
+    setLoader({ isLoading: true, message: t("Addon.deletingSubcategory") });
     try {
       const response = await deleteSubCategoryService(subCategoryId);
       if (response.success) {
-        toast.success(response.message || "Subcategory deleted successfully");
+        toast.success(response.message || t("Addon.subcategoryDeletedSuccessfully"));
         fetchSubCategories();
       } else {
-        toast.error(response.message || "Failed to delete subcategory");
+        toast.error(response.message || t("Addon.failedToDeleteSubcategory"));
       }
     } catch (error) {
-      toast.error("Failed to delete subcategory");
+      toast.error(t("Addon.failedToDeleteSubcategory"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -520,19 +522,19 @@ export default function AddOns() {
   };
 
   const handleCreateVariant = async (data: IAddonVariantCreate) => {
-    if(!propertyId)return
-    setLoader({ isLoading: true, message: "Creating variant..." });
+    if (!propertyId) return
+    setLoader({ isLoading: true, message: t("Addon.creatingVariant") });
     try {
-      const response = await createVariantService(data,propertyId);
+      const response = await createVariantService(data, propertyId);
       if (response.success) {
-        toast.success(response.message || "Variant created successfully");
+        toast.success(response.message || t("Addon.variantCreatedSuccessfully"));
         setVariantDialog({ open: false, mode: "create", variant: null });
         fetchVariants();
       } else {
-        toast.error(response.message || "Failed to create variant");
+        toast.error(response.message || t("Addon.failedToCreateVariant"));
       }
     } catch (error) {
-      toast.error("Failed to create variant");
+      toast.error(t("Addon.failedToCreateVariant"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -541,35 +543,35 @@ export default function AddOns() {
   const handleUpdateVariant = async (data: IAddonVariantCreate) => {
     if (!variantDialog.variant) return;
 
-    setLoader({ isLoading: true, message: "Updating variant..." });
+    setLoader({ isLoading: true, message: t("Addon.updatingVariant") });
     try {
       const response = await updateVariantService(
         variantDialog.variant.id,
         data,
       );
       if (response.success) {
-        toast.success(response.message || "Variant updated successfully");
+        toast.success(response.message || t("Addon.variantUpdatedSuccessfully"));
         setVariantDialog({ open: false, mode: "create", variant: null });
         fetchVariants();
       } else {
-        toast.error(response.message || "Failed to update variant");
+        toast.error(response.message || t("Addon.failedToUpdateVariant"));
       }
     } catch (error) {
-      toast.error("Failed to update variant");
+      toast.error(t("Addon.failedToUpdateVariant"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
   };
 
   const handleDeleteVariant = async (variantId: string) => {
-    setLoader({ isLoading: true, message: "Deleting variant..." });
+    setLoader({ isLoading: true, message: t("Addon.deletingVariant") });
     try {
       const response = await deleteVariantService(variantId);
       if (response.success) {
-        toast.success(response.message || "Variant deleted successfully");
+        toast.success(response.message || t("Addon.variantDeletedSuccessfully"));
         fetchVariants();
       } else {
-        toast.error(response.message || "Failed to delete variant");
+        toast.error(response.message || t("Addon.failedToDeleteVariant"));
       }
     } catch (error) {
       toast.error("Failed to delete variant");
@@ -580,36 +582,36 @@ export default function AddOns() {
 
   // Availability handlers
   const handleCreateAvailability = async (data: IAddonAvailabilityCreate) => {
-    setLoader({ isLoading: true, message: "Creating availability..." });
+    setLoader({ isLoading: true, message: t("Addon.creatingAvailability") });
     try {
       const response = await createAvailabilityService(data);
       if (response.success) {
-        toast.success(response.message || "Availability created successfully");
+        toast.success(response.message || t("Addon.availabilityCreatedSuccessfully"));
         setAvailabilityDialog({ open: false });
         if (selectedAddonForAvailability) {
           fetchAvailabilitiesForAddon(selectedAddonForAvailability.id);
         }
       } else {
-        toast.error(response.message || "Failed to create availability");
+        toast.error(response.message || t("Addon.failedToCreateAvailability"));
       }
     } catch (error) {
-      toast.error("Failed to create availability");
+      toast.error(t("Addon.failedToCreateAvailability"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
   };
 
   const fetchAvailabilitiesForAddon = async (addonId: string) => {
-    setLoader({ isLoading: true, message: "Loading availabilities..." });
+    setLoader({ isLoading: true, message: t("Addon.loadingAvailabilities") });
     try {
       const response = await fetchAvailabilitiesService(addonId);
       if (response.success) {
         setAvailabilities(response.data || []);
       } else {
-        toast.error(response.message || "Failed to fetch availabilities");
+        toast.error(response.message || t("Addon.failedToFetchAvailabilities"));
       }
     } catch (error) {
-      toast.error("Failed to fetch availabilities");
+      toast.error(t("Addon.failedToFetchAvailabilities"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -619,7 +621,7 @@ export default function AddOns() {
     availabilityId: string,
     data: { price: number; currencyCode: string; isAvailable: boolean },
   ) => {
-    setLoader({ isLoading: true, message: "Updating availability..." });
+    setLoader({ isLoading: true, message: t("Addon.updatingAvailability") });
     try {
       const updateData: IAddonAvailabilityUpdate = {
         id: availabilityId,
@@ -630,34 +632,34 @@ export default function AddOns() {
         updateData,
       );
       if (response.success) {
-        toast.success(response.message || "Availability updated successfully");
+        toast.success(response.message || t("Addon.availabilityUpdatedSuccessfully"));
         if (selectedAddonForAvailability) {
           fetchAvailabilitiesForAddon(selectedAddonForAvailability.id);
         }
       } else {
-        toast.error(response.message || "Failed to update availability");
+        toast.error(response.message || t("Addon.failedToUpdateAvailability"));
       }
     } catch (error) {
-      toast.error("Failed to update availability");
+      toast.error(t("Addon.failedToUpdateAvailability"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
   };
 
   const handleDeleteAvailability = async (availabilityId: string) => {
-    setLoader({ isLoading: true, message: "Deleting availability..." });
+    setLoader({ isLoading: true, message: t("Addon.deletingAvailability") });
     try {
       const response = await deleteAvailabilityService(availabilityId);
       if (response.success) {
-        toast.success(response.message || "Availability deleted successfully");
+        toast.success(response.message || t("Addon.availabilityDeletedSuccessfully"));
         if (selectedAddonForAvailability) {
           fetchAvailabilitiesForAddon(selectedAddonForAvailability.id);
         }
       } else {
-        toast.error(response.message || "Failed to delete availability");
+        toast.error(response.message || t("Addon.failedToDeleteAvailability"));
       }
     } catch (error) {
-      toast.error("Failed to delete availability");
+      toast.error(t("Addon.failedToDeleteAvailability"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -686,10 +688,10 @@ export default function AddOns() {
       if (response.success) {
         setChildAddons(response.data || []);
       } else {
-        toast.error(response.message || "Failed to fetch children catalog");
+        toast.error(response.message || t("Addon.failedToFetchChildrenCatalog"));
       }
     } catch (error) {
-      toast.error("Failed to fetch children catalog");
+      toast.error(t("Addon.failedToFetchChildrenCatalog"));
     } finally {
       setChildAddonLoading(false);
     }
@@ -702,16 +704,16 @@ export default function AddOns() {
       const response = await createChildAddonService(data, propertyId);
       if (response.success) {
         toast.success(
-          response.message || "Children catalog created successfully",
+          response.message || t("Addon.childrenCatalogCreatedSuccessfully"),
         );
         if (childAddonDialog.addonId) {
           await fetchChildAddons(childAddonDialog.addonId);
         }
       } else {
-        toast.error(response.message || "Failed to create children catalog");
+        toast.error(response.message || t("Addon.failedToCreateChildrenCatalog"));
       }
     } catch (error) {
-      toast.error("Failed to create children catalog");
+      toast.error(t("Addon.failedToCreateChildrenCatalog"));
     } finally {
       setChildAddonLoading(false);
     }
@@ -727,16 +729,16 @@ export default function AddOns() {
       const response = await updateChildAddonService(id, data, propertyId);
       if (response.success) {
         toast.success(
-          response.message || "Children catalog updated successfully",
+          response.message || t("Addon.childrenCatalogUpdatedSuccessfully"),
         );
         if (childAddonDialog.addonId) {
           await fetchChildAddons(childAddonDialog.addonId);
         }
       } else {
-        toast.error(response.message || "Failed to update children catalog");
+        toast.error(response.message || t("Addon.failedToUpdateChildrenCatalog"));
       }
     } catch (error) {
-      toast.error("Failed to update children catalog");
+      toast.error(t("Addon.failedToUpdateChildrenCatalog"));
     } finally {
       setChildAddonLoading(false);
     }
@@ -748,16 +750,16 @@ export default function AddOns() {
       const response = await deleteChildAddonService(id);
       if (response.success) {
         toast.success(
-          response.message || "Children catalog deleted successfully",
+          response.message || t("Addon.childrenCatalogDeletedSuccessfully"),
         );
         if (childAddonDialog.addonId) {
           await fetchChildAddons(childAddonDialog.addonId);
         }
       } else {
-        toast.error(response.message || "Failed to delete children catalog");
+        toast.error(response.message || t("Addon.failedToDeleteChildrenCatalog"));
       }
     } catch (error) {
-      toast.error("Failed to delete children catalog");
+      toast.error(t("Addon.failedToDeleteChildrenCatalog"));
     } finally {
       setChildAddonLoading(false);
     }
@@ -806,10 +808,10 @@ export default function AddOns() {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
-                  Add-Ons Management
+                  {t("Addon.addonsManagement")}
                 </h1>
                 <p className="text-gray-600">
-                  Manage additional services and amenities
+                  {t("Addon.manageAdditionalServices")}
                 </p>
               </div>
             </div>
@@ -818,7 +820,7 @@ export default function AddOns() {
               onClick={() => setShowManagement(!showManagement)}
             >
               <Settings className="w-4 h-4 mr-2" />
-              {showManagement ? "View Add-Ons" : "Manage Categories"}
+              {showManagement ? t("Addon.viewAddons") : t("Addon.manageCategories")}
             </Button>
           </div>
         </div>
@@ -859,7 +861,7 @@ export default function AddOns() {
           // Availability Management View
           <div className="space-y-6">
             <Button variant="outline" onClick={handleBackToAddOns}>
-              ← Back to Add-Ons
+              ← {t("Addon.backToAddons")}
             </Button>
             <AddOnAvailabilityTable
               availabilities={availabilities}
@@ -879,7 +881,7 @@ export default function AddOns() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">
-                        Total Add-Ons
+                        {t("Addon.totalAddons")}
                       </p>
                       <p className="text-2xl font-bold text-gray-900">
                         {addOns.length}
@@ -894,7 +896,7 @@ export default function AddOns() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">
-                        Active Add-Ons
+                        {t("Addon.activeAddons")}
                       </p>
                       <p className="text-2xl font-bold text-green-600">
                         {addOns.filter((a) => a.isActive).length}
@@ -909,7 +911,7 @@ export default function AddOns() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">
-                        Inactive Add-Ons
+                        {t("Addon.inactiveAddons")}
                       </p>
                       <p className="text-2xl font-bold text-red-600">
                         {addOns.filter((a) => !a.isActive).length}
@@ -928,7 +930,7 @@ export default function AddOns() {
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <Input
-                      placeholder="Search add-ons by name or description..."
+                      placeholder={t("Addon.searchAddons")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10"
@@ -944,9 +946,9 @@ export default function AddOns() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="all">{t("Addon.allStatus")}</SelectItem>
+                        <SelectItem value="active">{t("Addon.active")}</SelectItem>
+                        <SelectItem value="inactive">{t("Addon.inactive")}</SelectItem>
                       </SelectContent>
                     </Select>
                     <Button
@@ -959,7 +961,7 @@ export default function AddOns() {
                       }
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Add New
+                      {t("Addon.addNew")}
                     </Button>
                   </div>
                 </div>
@@ -972,12 +974,12 @@ export default function AddOns() {
                 <CardContent className="p-12 text-center">
                   <Package className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                   <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                    No Add-Ons Found
+                    {t("Addon.noAddonsFound")}
                   </h3>
                   <p className="text-gray-500 mb-6">
                     {searchQuery || filterActive !== "all"
-                      ? "No add-ons match your search criteria."
-                      : "Get started by creating your first add-on."}
+                      ? t("Addon.noAddonsMatchCriteria")
+                      : t("Addon.getStartedAddons")}
                   </p>
                   {!searchQuery && filterActive === "all" && (
                     <Button
@@ -990,7 +992,7 @@ export default function AddOns() {
                       }
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Create Add-On
+                      {t("Addon.createAddon")}
                     </Button>
                   )}
                 </CardContent>
@@ -1015,10 +1017,10 @@ export default function AddOns() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <CardTitle className="text-lg mb-1">
-                            {addOn._translations?addOn._translations.name:addOn.name}
+                            {addOn._translations ? addOn._translations.name : addOn.name}
                           </CardTitle>
                           <CardDescription className="text-xs">
-                            Code: {addOn.code}
+                            {t("Addon.code")}: {addOn.code}
                           </CardDescription>
                         </div>
                         <DropdownMenu>
@@ -1036,7 +1038,7 @@ export default function AddOns() {
                               onClick={() => handleManageAvailability(addOn)}
                             >
                               <Calendar className="w-4 h-4 mr-2" />
-                              Manage Availability
+                              {t("Addon.manageAvailability")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -1044,7 +1046,7 @@ export default function AddOns() {
                               }
                             >
                               <Baby className="w-4 h-4 mr-2" />
-                              Manage Children
+                              {t("Addon.manageChildren")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -1072,7 +1074,8 @@ export default function AddOns() {
                               }
                             >
                               <Pencil className="w-4 h-4 mr-2" />
-                              Edit
+                              {t("Common.edit")}
+
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -1081,7 +1084,8 @@ export default function AddOns() {
                               className="text-red-600"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
-                              Delete
+                              {t("Common.delete")}
+
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1090,13 +1094,13 @@ export default function AddOns() {
                     <CardContent>
                       <div className="space-y-3">
                         <p className="text-sm text-gray-600 line-clamp-2 min-h-[40px]">
-                          {addOn._translations?addOn._translations.description:addOn.description || "No description provided"}
+                          {addOn._translations ? addOn._translations.description : addOn.description || t("Addon.noDescriptionProvided")}
                         </p>
                         <div className="flex gap-2 flex-wrap">
                           <Badge
                             variant={addOn.isActive ? "default" : "secondary"}
                           >
-                            {addOn.isActive ? "Active" : "Inactive"}
+                            {addOn.isActive ? t("Addon.active") : t("Addon.inactive")}
                           </Badge>
                           <Badge variant="outline">
                             {convertText(addOn.postingRhythm)}
@@ -1104,7 +1108,7 @@ export default function AddOns() {
                         </div>
                         <div className="pt-2 border-t">
                           <p className="text-xs text-gray-500">
-                            Created:{" "}
+                            {t("Addon.created")}:{" "}
                             {new Date(addOn.createdAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -1194,21 +1198,20 @@ export default function AddOns() {
           open={deleteDialog.open}
           onOpenChange={(open) => setDeleteDialog({ open, addOn: null })}
         >
-          <AlertDialogContent>
+           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogTitle>{t("Addon.areYouSure")}</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently delete the add-on "
-                {deleteDialog.addOn?.name}". This action cannot be undone.
+                {t("Addon.deleteAddonDescription", { name: deleteDialog.addOn?.name })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("Common.cancel")}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteAddOn}
                 className="bg-red-600 hover:bg-red-700"
               >
-                Delete
+                {t("Common.delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

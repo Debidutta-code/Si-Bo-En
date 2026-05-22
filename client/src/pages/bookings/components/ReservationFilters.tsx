@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { countries } from "../utils/country.utils";
+import { useTranslation } from "react-i18next";
 
 // Change the interface - remove PDF handler
 interface ReservationFiltersProps {
@@ -35,6 +36,8 @@ export default function ReservationFilters({
   properties,
   onClearFilters,
 }: ReservationFiltersProps) {
+  const { t } = useTranslation();
+
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Local state for filters before applying
@@ -143,14 +146,13 @@ export default function ReservationFilters({
   const getDateFilterLabel = () => {
     switch (localFilters.dateFilterType) {
       case "booking":
-        return "Booking Date";
+        return t('BookingFilters.bookingDate');
       case "modification":
-        return "Modification Date";
+        return t('BookingFilters.modificationDate');
       default:
-        return "Check-in Date";
+        return t('BookingFilters.checkInDate');
     }
   };
-
   const hasActiveFilters =
     localFilters.propertyId ||
     localFilters.bookingStatus !== "all" ||
@@ -166,14 +168,14 @@ export default function ReservationFilters({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Filter className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+          <h3 className="text-lg font-semibold text-gray-900">{t('BookingFilters.filters')}</h3>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className="text-sm text-primary hover:text-primary/90 transition-colors"
           >
-            {showAdvancedFilters ? "Hide" : "Show"} Advanced Filters
+            {showAdvancedFilters ? t('BookingFilters.hideAdvancedFilters') : t('BookingFilters.showAdvancedFilters')}
           </button>
           {hasActiveFilters && (
             <button
@@ -181,7 +183,7 @@ export default function ReservationFilters({
               className="flex items-center gap-1 text-sm text-destructive hover:text-destructive/90 transition-colors"
             >
               <X className="w-4 h-4" />
-              Clear Filters
+              {t('BookingFilters.clearFilters')}
             </button>
           )}
         </div>
@@ -195,7 +197,7 @@ export default function ReservationFilters({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Calendar className="w-4 h-4 inline mr-1" />
-              Date Filter Type
+              {t('BookingFilters.dateFilterType')}
             </label>
             <Select
               value={localFilters.dateFilterType || "checkin"}
@@ -205,8 +207,9 @@ export default function ReservationFilters({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="checkin">Check-in Date</SelectItem>
-                <SelectItem value="booking">Booking Date</SelectItem>
+                <SelectItem value="checkin">{t('BookingFilters.checkInDate')}</SelectItem>
+                <SelectItem value="booking">{t('BookingFilters.bookingDate')}</SelectItem>
+                {/* <SelectItem value="modification">{t('BookingFilters.modificationDate')}</SelectItem> */}
                 {/* <SelectItem value="modification">Modification Date</SelectItem> */}
               </SelectContent>
             </Select>
@@ -241,38 +244,39 @@ export default function ReservationFilters({
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               <Building2 className="w-4 h-4 inline mr-1" />
-              Property
+              {t('BookingFilters.property')}
             </label>
             <select
               value={localFilters.propertyId || "all"}
               onChange={(e) => handlePropertyChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             >
-              <option value="all">All Properties</option>
-             {properties.map((property) => (
-  <option key={property.id} value={property.id}>
-    {property._translations?.propertyName ?? property.name}
-  </option>
-))}
+              <option value="all">{t('BookingFilters.allProperties')}</option>
+              {properties.map((property) => (
+                <option key={property.id} value={property.id}>
+                  {property._translations?.propertyName ?? property.name}
+                </option>
+              ))}
             </select>
           </div>
 
           {/* Booking Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
+              {t('BookingFilters.status')}
+
             </label>
             <select
               value={localFilters.bookingStatus || "all"}
               onChange={(e) => handleStatusChange(e.target.value as any)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             >
-              <option value="all">All Statuses</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="pending">Pending</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="modified">Modified</option>
-              <option value="no_show">No Show</option>
+              <option value="all">{t('BookingFilters.allStatuses')}</option>
+              <option value="confirmed">{t('BookingFilters.confirmed')}</option>
+              <option value="pending">{t('BookingFilters.pending')}</option>
+              <option value="cancelled">{t('BookingFilters.cancelled')}</option>
+              <option value="modified">{t('BookingFilters.modified')}</option>
+              <option value="no_show">{t('BookingFilters.noShow')}</option>
             </select>
           </div>
         </div>
@@ -283,11 +287,11 @@ export default function ReservationFilters({
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-sm font-semibold text-gray-900">
-              Advanced Filters
+              {t('BookingFilters.advancedFilters')}
             </h4>
             {advancedFiltersChanged && (
               <span className="text-xs text-amber-600 font-medium">
-                Click "Apply Filters" to search
+                {t('BookingFilters.clickApplyToSearch')}
               </span>
             )}
           </div>
@@ -296,7 +300,7 @@ export default function ReservationFilters({
             {/* Booking Source */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Booking Source
+                {t('BookingFilters.bookingSource')}
               </label>
               <select
                 value={localFilters.bookingSource || "all"}
@@ -305,13 +309,13 @@ export default function ReservationFilters({
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               >
-                <option value="all">All Sources</option>
-                <option value="direct">Direct</option>
-                <option value="google">Google</option>
-                <option value="trip_adviser">TripAdvisor</option>
-                <option value="trivago">Trivago</option>
-                <option value="social_media">Social Media</option>
-                <option value="agency">Agency</option>
+                <option value="all">{t('BookingFilters.allSources')}</option>
+                <option value="direct">{t('BookingFilters.direct')}</option>
+                <option value="google">{t('BookingFilters.google')}</option>
+                <option value="trip_adviser">{t('BookingFilters.tripAdvisor')}</option>
+                <option value="trivago">{t('BookingFilters.trivago')}</option>
+                <option value="social_media">{t('BookingFilters.socialMedia')}</option>
+                <option value="agency">{t('BookingFilters.agency')}</option>
               </select>
             </div>
 
@@ -319,17 +323,17 @@ export default function ReservationFilters({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Smartphone className="w-4 h-4 inline mr-1" />
-                Device Type
+                {t('BookingFilters.deviceType')}
               </label>
               <select
                 value={localFilters.deviceType || "all"}
                 onChange={(e) => handleDeviceTypeChange(e.target.value as any)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               >
-                <option value="all">All Devices</option>
-                <option value="mobile">Mobile</option>
-                <option value="tablet">Tablet</option>
-                <option value="desktop">Desktop</option>
+                <option value="all">{t('BookingFilters.allDevices')}</option>
+                <option value="mobile">{t('BookingFilters.mobile')}</option>
+                <option value="tablet">{t('BookingFilters.tablet')}</option>
+                <option value="desktop">{t('BookingFilters.desktop')}</option>
               </select>
             </div>
 
@@ -337,11 +341,11 @@ export default function ReservationFilters({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Search className="w-4 h-4 inline mr-1" />
-                Booking Code
+                {t('BookingFilters.bookingCode')}
               </label>
               <input
                 type="text"
-                placeholder="Search by booking code"
+                placeholder={t('BookingFilters.searchByBookingCode')}
                 value={localFilters.bookingCode || ""}
                 onChange={(e) =>
                   handleLocalFilterChange(
@@ -357,11 +361,11 @@ export default function ReservationFilters({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Search className="w-4 h-4 inline mr-1" />
-                Guest Name
+                {t('BookingFilters.guestName')}
               </label>
               <input
                 type="text"
-                placeholder="Search by guest name"
+                placeholder={t('BookingFilters.searchByGuestName')}
                 value={localFilters.guestName || ""}
                 onChange={(e) =>
                   handleLocalFilterChange(
@@ -376,11 +380,11 @@ export default function ReservationFilters({
             {/* Promo Code */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Promo Code
+                {t('BookingFilters.promoCode')}
               </label>
               <input
                 type="text"
-                placeholder="Search by promo code"
+                placeholder={t('BookingFilters.searchByPromoCode')}
                 value={localFilters.promoCode || ""}
                 onChange={(e) =>
                   handleLocalFilterChange(
@@ -396,7 +400,7 @@ export default function ReservationFilters({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Globe className="w-4 h-4 inline mr-1" />
-                Source Market
+                {t('BookingFilters.sourceMarket')}
               </label>
               <Select
                 value={localFilters.countryCode || "all"}
@@ -411,7 +415,7 @@ export default function ReservationFilters({
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
-                  <SelectItem value="all">All Countries</SelectItem>
+                  <SelectItem value="all">{t('BookingFilters.allCountries')}</SelectItem>
                   {countries.map((country) => (
                     <SelectItem key={country.code} value={country.code}>
                       <span className="flex items-center gap-2">
@@ -427,35 +431,34 @@ export default function ReservationFilters({
         </div>
       )}
 
-     <div className="mt-4 border-t pt-4">
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Reservation Type
-  </label>
+      <div className="mt-4 border-t pt-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          {t('BookingFilters.reservationType')}
+        </label>
 
-  <div className="flex flex-col md:flex-row md:items-center gap-3">
-    {/* Reservation Type Buttons */}
-    <div className="flex flex-wrap gap-2">
-      {[
-        { value: "all", label: "All Reservations" },
-        { value: "arrivals", label: "Arrivals" },
-        { value: "departures", label: "Departures" },
-      ].map((type) => (
-        <button
-          key={type.value}
-          onClick={() => handleReservationTypeChange(type.value as any)}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            localFilters.reservationType === type.value
-              ? "bg-primary text-primary-foreground"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-          }`}
-        >
-          {type.label}
-        </button>
-      ))}
-    </div>
+        <div className="flex flex-col md:flex-row md:items-center gap-3">
+          {/* Reservation Type Buttons */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: "all", label: t('Bookings.allReservations') },
+              { value: "arrivals", label: t('Bookings.arrivals') },
+              { value: "departures", label: t('Bookings.departures') },
+            ].map((type) => (
+              <button
+                key={type.value}
+                onClick={() => handleReservationTypeChange(type.value as any)}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${localFilters.reservationType === type.value
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  }`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
 
-  </div>
-</div>
+        </div>
+      </div>
 
 
       {/* Apply Filters Button - Only for Advanced Filters */}
@@ -466,13 +469,13 @@ export default function ReservationFilters({
             onClick={handleLocalClearFilters}
             disabled={!hasActiveFilters}
           >
-            Reset
+            {t('BookingFilters.reset')}
           </Button>
           <Button
             onClick={handleApplyFilters}
             disabled={!advancedFiltersChanged}
           >
-            Apply Filters
+            {t('BookingFilters.applyFilters')}
           </Button>
         </div>
       )}

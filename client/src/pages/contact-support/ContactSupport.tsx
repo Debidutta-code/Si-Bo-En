@@ -11,7 +11,11 @@ import { getAllTicketsService } from "./services";
 import Loader from "@/components/Loader/Loader";
 import type { ILoader, IPropertyCodeAndIds } from "../dashboard/interface";
 import { fetchPropertiesService } from "../dashboard/services";
+import { useTranslation } from "react-i18next";
+
 export default function ContactSupport() {
+    const { t } = useTranslation('ContactSupport');
+
   const user = useSelector((state: RootState) => state.user.user);
   const [tickets, setTickets] = useState<ITicket[]>([]);
   const [isLoadingTickets, setIsLoadingTickets] = useState<ILoader>({
@@ -63,9 +67,9 @@ const fetchProperties = async () => {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Contact Support</h1>
+        <h1 className="text-3xl font-bold mb-2">{t('title')}</h1>
         <p className="text-muted-foreground">
-          Have questions or need assistance? We're here to help!
+          {t('subtitle')}
         </p>
       </div>
 
@@ -74,9 +78,9 @@ const fetchProperties = async () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Your Support Tickets</CardTitle>
+              <CardTitle>{t('yourSupportTickets')}</CardTitle>
               <CardDescription>
-                View and manage all your support tickets
+                {t('viewAndManageTickets')}
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -87,14 +91,14 @@ const fetchProperties = async () => {
                 disabled={isLoadingTickets.isLoading}
               >
                 <RefreshCw className={`mr-2 h-4 w-4 ${isLoadingTickets.isLoading ? "animate-spin" : ""}`} />
-                Refresh
+                {t('refresh')}
               </Button>
               <Button
                 size="sm"
                 onClick={() => setCreateDialogOpen(true)}
               >
                 <Plus className="mr-2 h-4 w-4" />
-                Create Issue
+                {t('createIssue')}
               </Button>
             </div>
           </div>
@@ -104,10 +108,10 @@ const fetchProperties = async () => {
             <Loader text={isLoadingTickets.message} />
           ) : tickets.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No support tickets yet</p>
+              <p className="text-muted-foreground mb-4">{t('noSupportTicketsYet')}</p>
               <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Your First Ticket
+                {t('createYourFirstTicket')}
               </Button>
             </div>
           ) : (

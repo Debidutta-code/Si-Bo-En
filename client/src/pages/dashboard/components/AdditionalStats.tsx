@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { IAddonAnalytics, IBookingSourceAnalytics, IPaymentMethodAnalytics } from '../interface';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
+import { useTranslation } from 'react-i18next';
 
 interface AdditionalStatsProps {
   addonData: IAddonAnalytics;
@@ -18,6 +19,8 @@ export default function AdditionalStats({
   paymentMethodData,
   currencyCode
 }: AdditionalStatsProps) {
+  const { t } = useTranslation();
+
   const formatCurrency = (amount: number) => {
     const symbol = currencyCode;
     return `${symbol} ${amount.toLocaleString('en-US', {
@@ -32,7 +35,7 @@ export default function AdditionalStats({
           <ShoppingBag className="h-5 w-5 text-white" />
         </div>
         <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          Additional Insights
+          {t('DashboardStats.additionalInsights')}
         </h2>
       </div>
       
@@ -41,7 +44,7 @@ export default function AdditionalStats({
           <CardHeader>
             <CardTitle className="flex text-lg items-center gap-2">
               <ShoppingBag className="h-5 w-5" />
-              Add-on Revenue
+              {t('DashboardStats.addonRevenue')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -51,12 +54,12 @@ export default function AdditionalStats({
                   {formatCurrency(addonData?.totalAddonRevenue)}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  From {addonData?.addonCount} add-ons
+                  {t('DashboardStats.fromAddons', { count: addonData?.addonCount })}
                 </div>
               </div>
               
               <div className="space-y-2">
-                <div className="text-sm font-semibold">Top 5 Popular Add-ons</div>
+                <div className="text-sm font-semibold">{t('DashboardStats.top5PopularAddons')}</div>
                 {addonData?.popularAddons.length > 0 ? (
                   addonData?.popularAddons.map((addon, index) => (
                     <div 
@@ -70,14 +73,14 @@ export default function AdditionalStats({
                       <div className="text-right">
                         <div className="font-semibold">{formatCurrency(addon.revenue)}</div>
                         <div className="text-xs text-muted-foreground">
-                          {addon.bookingCount} bookings
+                          {addon.bookingCount} {t('DashboardStats.bookings')}
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
                   <div className="text-center text-muted-foreground py-4 text-sm">
-                    No add-on data
+                    {t('DashboardStats.noAddonData')}
                   </div>
                 )}
               </div>
@@ -90,7 +93,7 @@ export default function AdditionalStats({
           <CardHeader>
             <CardTitle className="flex text-lg items-center gap-2">
               <Globe className="h-5 w-5 text-purple-600" />
-              Booking Sources
+              {t('DashboardStats.bookingSources')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -99,10 +102,10 @@ export default function AdditionalStats({
                 <div key={source.source} className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between text-sm">
                     <span className="capitalize font-semibold">{source.source.replace('_', ' ')}</span>
-                    <span className="font-bold text-purple-600">{source.count} bookings</span>
+                    <span className="font-bold text-purple-600">{source.count} {t('DashboardStats.bookings')}</span>
                   </div>
                   <div className="text-sm font-semibold text-gray-700 mt-1">
-                    Revenue: {formatCurrency(source.revenue)}
+                    {t('DashboardStats.totalRevenue')}: {formatCurrency(source.revenue)}
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                     <div 
@@ -132,8 +135,8 @@ export default function AdditionalStats({
               color: colors[index % colors.length]
             };
           })}
-          title="Payment Methods"
-          centerLabel="Total Payments"
+          title={t('DashboardStats.paymentMethods')}
+          centerLabel={t('DashboardStats.totalPayments')}
         />
       </div>
     </div>

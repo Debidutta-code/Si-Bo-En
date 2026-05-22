@@ -9,18 +9,13 @@ import { Mail, Lock, Eye, EyeOff, Building2, Shield, Zap } from 'lucide-react';
 import AxiosInstance from "@/components/axiosInstance";
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { setLanguage } from '@/redux/language.slice';
 import { useDispatch } from 'react-redux';
+import LanguageSwitcher from '../languageSwitcher/LanguageSwitcher';
+import i18next from '../i18n/index';
+import { useTranslation } from "react-i18next";
 
-import { Languages } from "lucide-react";
-import { languages, type LanguageCode } from '../language/language';
+import { type LanguageCode } from '../language/language';
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z
@@ -31,13 +26,14 @@ const loginSchema = z.object({
     .regex(/[0-9]/, { message: "Password must contain at least one number." }),
 });
 export default function LoginForm() {
+    const { t } = useTranslation();
+
   const [loginDetails, setLoginDetails] = useState({
     email: "",
     password: "",
   });
   const dispatch = useDispatch();
 
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>('en');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -63,8 +59,9 @@ export default function LoginForm() {
       const axiosInstance = AxiosInstance();
       const response = await axiosInstance.get('/user/me');
       if (response.data.success) {
-        dispatch(setLanguage(selectedLanguage));
-        localStorage.setItem("exlang", selectedLanguage);
+        const activeLang = (i18next.language || 'en') as LanguageCode;
+        dispatch(setLanguage(activeLang));
+        localStorage.setItem("exlang", activeLang);
 
         navigate('/app');
       } else {
@@ -99,17 +96,18 @@ export default function LoginForm() {
         } else {
           localStorage.removeItem("swiftRoomsLogCred");
         }
-        dispatch(setLanguage(selectedLanguage));
-        localStorage.setItem("exlang", selectedLanguage);
+        const activeLang = (i18next.language || 'en') as LanguageCode;
+        dispatch(setLanguage(activeLang));
+        localStorage.setItem("exlang", activeLang);
 
-        toast.success("Login Successfull")
+        toast.success(t("Auth.toast.loginSuccess"))
 
         navigate('/app');
       } else {
         toast.error(response?.data?.message)
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to login");
+      toast.error(error.response?.data?.message || t("Auth.toast.loginFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -150,23 +148,24 @@ export default function LoginForm() {
           <div className="space-y-8 animate-fade-in-delay">
             <div>
               <h2 className="text-4xl mt-10 font-bold mb-4 leading-tight">
-                Manage your bookings
+                {t("Auth.loginForm.heroTitle")}
                 <br />
                 <span className="relative inline-block">
-                  <span className="relative z-10">with confidence</span>
+                  <span className="relative z-10">{t("Auth.loginForm.heroSubtitle")}</span>
                   <span className="absolute bottom-1 left-0 w-full h-3 bg-white/20"></span>
                 </span>
               </h2>
-              <p className="text-lg leading-relaxed max-w-md">
-                Streamline operations, maximize revenue, and deliver exceptional guest experiences all from a single, powerful platform.              </p>
+             <p className="text-lg leading-relaxed max-w-md">
+                {t("Auth.loginForm.heroDescription")}
+              </p>
             </div>
 
             {/* Features */}
             <div className="space-y-4">
               {[
-                { icon: Shield, text: "Enterprise-grade security" },
-                { icon: Zap, text: "Real-time analytics & insights" },
-                { icon: Building2, text: "Multi-property management" }
+                { icon: Shield, text: t("Auth.loginForm.features.enterpriseSecurity") },
+                { icon: Zap, text: t("Auth.loginForm.features.realTimeAnalytics") },
+                { icon: Building2, text: t("Auth.loginForm.features.multiProperty") }
               ].map((feature, index) => (
                 <div
                   key={index}
@@ -184,7 +183,7 @@ export default function LoginForm() {
 
           {/* Footer */}
           <div className="text-sm animate-fade-in">
-            © {new Date().getFullYear()} Revchill. All rights reserved.
+           {t("Auth.loginForm.footer", { year: new Date().getFullYear() })}
           </div>
         </div>
       </div>
@@ -193,7 +192,9 @@ export default function LoginForm() {
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-background relative">
         {/* Subtle Pattern */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMDAwMDAiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTAgMGg0MHY0MEgweiIvPjwvZz48L2c+PC9zdmc+')] opacity-50"></div>
-
+        <div className="absolute top-4 right-4 z-20">
+          <LanguageSwitcher />
+        </div>
         <div className="w-full max-w-md relative z-10 animate-fade-in-up">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center mb-8">
@@ -211,23 +212,23 @@ export default function LoginForm() {
                 alt="Revchill Logo"
                 className="h-12 w-auto hidden lg:block object-contain"
               />
-              <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
+              <CardTitle className="text-3xl font-bold">{t("Auth.loginForm.welcomeBack")}</CardTitle>
               <CardDescription className="text-base">
-                Sign in to access your dashboard
+                {t("Auth.loginForm.signInToAccess")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Email Field */}
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium">
-                  Email Address
+                 {t("Auth.loginForm.emailAddress")}
                 </Label>
                 <div className="relative group">
                   <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 transition-colors group-focus-within:text-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="you@company.com"
+                    placeholder={t("Auth.loginForm.placeholderEmail")}
                     disabled={isLoading}
                     value={loginDetails.email}
                     onChange={(e) => setLoginDetails({ ...loginDetails, email: e.target.value })}
@@ -245,14 +246,14 @@ export default function LoginForm() {
               {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">
-                  Password
+                  {t("Auth.password")}
                 </Label>
                 <div className="relative group">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5 transition-colors group-focus-within:text-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
+                    placeholder={t("Auth.loginForm.placeholderPassword")}
                     value={loginDetails.password}
                     disabled={isLoading}
                     onChange={(e) => setLoginDetails({ ...loginDetails, password: e.target.value })}
@@ -288,7 +289,7 @@ export default function LoginForm() {
                     htmlFor="remember"
                     className="text-sm cursor-pointer select-none"
                   >
-                    Remember me
+                    {t("Auth.rememberMe")}
                   </Label>
                 </div>
                 <button
@@ -297,7 +298,7 @@ export default function LoginForm() {
                   className="text-sm hover:underline font-medium transition-colors"
                   disabled={isLoading}
                 >
-                  Forgot password?
+                 {t("Auth.loginForm.forgotPassword")}
                 </button>
 
               </div>
@@ -311,45 +312,13 @@ export default function LoginForm() {
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
-                    <span>Signing in...</span>
+                   <span>{t("Auth.loginForm.signingIn")}</span>
                   </div>
                 ) : (
-                  'Sign In'
+                  t("Auth.loginForm.signIn")
                 )}
               </Button>
-              <div className="flex items-center justify-end">
-                <div className="w-full sm:w-[220px]">
-                  <Select
-                    value={selectedLanguage}
-                    onValueChange={(value) => setSelectedLanguage(value as LanguageCode)}    >
-                    <SelectTrigger className="h-11 rounded-xl border bg-background/60 backdrop-blur-sm transition-all hover:border-primary/40">
-                      <div className="flex items-center gap-2">
-                        <Languages className="h-4 w-4 text-muted-foreground" />
-                        <SelectValue placeholder="Select language" />
-                      </div>
-                    </SelectTrigger>
 
-                    <SelectContent className="rounded-xl">
-                      {languages
-                        .filter((language) => ['en', 'zh', 'hi', 'ar', 'ru', 'tr'].includes(language.code))
-                        .map((language) => (
-                          <SelectItem
-                            key={language.code}
-                            value={language.code}
-                            className="cursor-pointer"
-                          >
-                            <div className="flex items-center justify-between w-full gap-3">
-                              <span>{language.name}</span>
-                              <span className="text-xs text-muted-foreground uppercase">
-                                {language.code}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
 
 
             </CardContent>

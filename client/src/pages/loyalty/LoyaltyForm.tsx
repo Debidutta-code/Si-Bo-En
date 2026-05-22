@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import {  Save, Plus } from "lucide-react";
+import { Save, Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
+import { useTranslation } from "react-i18next";
 
 interface ILoader {
   isLoading: boolean;
@@ -35,12 +36,14 @@ interface IMasterField {
 
 
 export default function LoyaltyForm() {
+  const { t } = useTranslation();
+
   const { creationId } = useParams();
   const [loader, setLoader] = useState<ILoader>({
     isLoading: true,
-    message: "Loading Registration Form Fields..."
+    message: t('Loyalty.loadingFields')
   });
-  
+
   const [loyaltyProgramId, setLoyaltyProgramId] = useState<string>("");
   const [availableMasterFields, setAvailableMasterFields] = useState<IMasterField[]>([]);
   const [configuredFields, setConfiguredFields] = useState<IFieldConfig[]>([]);
@@ -53,25 +56,25 @@ export default function LoyaltyForm() {
   }, [creationId]);
 
   const fetchFields = async (): Promise<void> => {
-    setLoader({ isLoading: true, message: "Loading Registration Form Fields..." });
+    setLoader({ isLoading: true, message: t('Loyalty.loadingFields') });
     try {
       if (!creationId) {
-        toast.error("Creation ID is missing");
+        toast.error(t('Loyalty.creationIdMissing'));
         return;
       }
-      
+
       const creationLoyaltyResponse = await getLoyalityByCreationService(creationId);
-      
+
       if (!creationLoyaltyResponse.success || !creationLoyaltyResponse.data?.id) {
-        toast.error("Loyalty program not found for this creation");
+        toast.error(t('Loyalty.loyaltyNotFound'));
         return;
       }
-      
+
       const actualLoyaltyProgramId = creationLoyaltyResponse.data.id;
       setLoyaltyProgramId(actualLoyaltyProgramId);
-      
+
       const allFieldsResponse = await getAllFieldService();
-      
+
       if (allFieldsResponse.success && allFieldsResponse.data) {
         const masterFields: IMasterField[] = allFieldsResponse.data.map((field: any) => ({
           id: field.id || field._id,
@@ -81,9 +84,9 @@ export default function LoyaltyForm() {
 _translations: field._translations
         }));
         setAvailableMasterFields(masterFields);
-        
+
         const configuredResponse = await getFieldsService(actualLoyaltyProgramId);
-        
+
         if (configuredResponse.success && configuredResponse.data && Array.isArray(configuredResponse.data)) {
           const configured: IFieldConfig[] = configuredResponse.data.map((field: any) => ({
             fieldName: field.fieldName,
@@ -100,7 +103,7 @@ _translations: field._translations
         }
       }
     } catch (error) {
-      toast.error("Failed to load fields");
+      toast.error(t('Loyalty.failedToLoadFields'));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -125,16 +128,16 @@ _translations: field._translations
 
   const handleAddFields = async (): Promise<void> => {
     if (!loyaltyProgramId) {
-      toast.error("Loyalty Program ID is required");
+      toast.error(t('Loyalty.loyaltyIdRequired'));
       return;
     }
 
     if (selectedFields.size === 0) {
-      toast.error("Please select at least one field");
+      toast.error(t('Loyalty.selectAtLeastOne'));
       return;
     }
 
-    setLoader({ isLoading: true, message: "Adding fields..." });
+    setLoader({ isLoading: true, message: t('Loyalty.addingFields') });
     try {
       const fieldsToAdd = Array.from(selectedFields).map((fieldId) => {
         const masterField = availableMasterFields.find(f => f.id === fieldId);
@@ -149,17 +152,17 @@ _translations: field._translations
       });
 
       const response = await addFieldsService(fieldsToAdd);
-      
+
       if (response.success) {
-        toast.success(`${fieldsToAdd.length} field(s) added successfully`);
+        toast.success(t('Loyalty.fieldsAdded', { count: fieldsToAdd.length }));
         setSelectedFields(new Set());
         setIsAddDialogOpen(false);
         await fetchFields();
       } else {
-        toast.error(response.message || "Failed to add fields");
+        toast.error(response.message || t('Loyalty.failedToAddFields'));
       }
     } catch (error) {
-      toast.error("An error occurred while adding fields");
+      toast.error(t('Loyalty.errorAddingFields'));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -190,7 +193,7 @@ _translations: field._translations
       updated.splice(index, 0, removed);
       return updated;
     });
-    
+
     setDraggedIndex(index);
   };
 
@@ -200,11 +203,11 @@ _translations: field._translations
 
   const handleSave = async (): Promise<void> => {
     if (!loyaltyProgramId) {
-      toast.error("Loyalty Program ID is required");
+      toast.error(t('Loyalty.loyaltyIdRequired'));
       return;
     }
 
-    setLoader({ isLoading: true, message: "Saving field configuration..." });
+    setLoader({ isLoading: true, message: t('Loyalty.savingConfiguration') });
     try {
       const fieldsToUpdate = configuredFields.map((field) => ({
         fieldName: field.fieldName,
@@ -216,13 +219,13 @@ _translations: field._translations
       const response = await updateManyFieldsService(loyaltyProgramId, fieldsToUpdate);
 
       if (response.success) {
-        toast.success("Registration form updated successfully");
+        toast.success(t('Loyalty.formUpdated'));
         await fetchFields();
       } else {
-        toast.error(response.message || "Failed to update form");
+        toast.error(response.message || t('Loyalty.failedToUpdateForm'));
       }
     } catch (error) {
-      toast.error("An error occurred while saving");
+      toast.error(t('Loyalty.errorSaving'));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -238,13 +241,13 @@ _translations: field._translations
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-2 ">
-          <BackButton/>
+      <BackButton />
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-2xl">Registration Form</CardTitle>
+            <CardTitle className="text-2xl">{t('Loyalty.registerFormTitle')}</CardTitle>
             <CardDescription>
-              Configure which fields appear in the loyalty program registration and customer forms
+              {t('Loyalty.registerFormDescription')}
             </CardDescription>
           </div>
           <div className="flex gap-2">
@@ -252,21 +255,21 @@ _translations: field._translations
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Add Fields
+                  {t('Loyalty.addFields')}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Add Fields to Registration Form</DialogTitle>
+                  <DialogTitle>{t('Loyalty.addFieldsToForm')}</DialogTitle>
                   <DialogDescription>
-                    Select fields from the master list to add to your loyalty program registration form
+                    {t('Loyalty.selectFieldsDescription')}
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <div className="space-y-4 py-4">
                   {getAvailableFieldsToAdd().length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
-                      All available fields have been added to the registration form
+                      {t('Loyalty.allFieldsAdded')}
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -300,13 +303,13 @@ _translations: field._translations
                     setIsAddDialogOpen(false);
                     setSelectedFields(new Set());
                   }}>
-                    Cancel
+                    {t('Loyalty.cancel')}
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleAddFields}
                     disabled={selectedFields.size === 0}
                   >
-                    Add {selectedFields.size > 0 && `(${selectedFields.size})`} Field{selectedFields.size !== 1 ? 's' : ''}
+                    {t('Loyalty.addFields')} {selectedFields.size > 0 && `(${selectedFields.size})`} {selectedFields.size !== 1 ? '' : ''}
                   </Button>
                 </div>
               </DialogContent>
@@ -314,7 +317,7 @@ _translations: field._translations
 
             <Button onClick={handleSave} className="gap-2">
               <Save className="h-4 w-4" />
-              Save Changes
+              {t('Loyalty.saveChanges')}
             </Button>
           </div>
         </CardHeader>
@@ -324,10 +327,9 @@ _translations: field._translations
             <table className="w-full">
               <thead className="border-b">
                 <tr className="text-left">
-                  <th className="pb-3 pr-4 font-medium text-sm">Field</th>
-                  <th className="pb-3 px-4 font-medium text-sm text-center">Visible in registration form</th>
-                  {/* <th className="pb-3 px-4 font-medium text-sm text-center">Visible in customer form</th> */}
-                  <th className="pb-3 px-4 font-medium text-sm text-center">Required</th>
+                  <th className="pb-3 pr-4 font-medium text-sm">{t('Loyalty.field')}</th>
+                  <th className="pb-3 px-4 font-medium text-sm text-center">{t('Loyalty.visibleInRegistration')}</th>
+                  <th className="pb-3 px-4 font-medium text-sm text-center">{t('Loyalty.required')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -375,7 +377,7 @@ _translations: field._translations
 
           {configuredFields.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
-              No fields available. Please configure master registration fields first.
+              {t('Loyalty.noFieldsConfigured')}
             </div>
           )}
         </CardContent>

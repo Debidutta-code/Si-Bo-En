@@ -1,0 +1,32 @@
+{
+  "en": {
+    "name": "English",
+    "code": "en",
+    "flag": "https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
+  },
+  "ar": {
+    "name": "العربية",
+    "code": "ar",
+    "flag": "https://upload.wikimedia.org/wikipedia/commons/0/0d/Flag_of_Saudi_Arabia.svg"
+  },
+  "tr": {
+    "name": "Türkçe",
+    "code": "tr",
+    "flag": "https://upload.wikimedia.org/wikipedia/commons/b/b4/Flag_of_Turkey.svg"
+  },
+  "ru": {
+    "name": "Русский",
+    "code": "ru",
+    "flag": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Flag_of_Russia.svg"
+  },
+  "hi": {
+    "name": "हिन्दी",
+    "code": "hi",
+    "flag": "https://upload.wikimedia.org/wikipedia/en/4/41/Flag_of_India.svg"
+  },
+  "zh": {
+    "name": "中文",
+    "code": "zh",
+    "flag": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Flag_of_the_People%27s_Republic_of_China.svg"
+  }
+}

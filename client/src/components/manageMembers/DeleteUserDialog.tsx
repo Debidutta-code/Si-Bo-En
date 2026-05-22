@@ -12,6 +12,8 @@ import {
 import { Button } from '@/components/ui/button';
 import type { IUser } from '../../pages/members/types/types';
 import type { Dispatch, SetStateAction } from 'react';
+import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 
 interface DeleteConfirmationDialogProps {
   user: IUser | null;
@@ -29,7 +31,10 @@ export default function DeleteConfirmationDialog({
   onConfirm,
   loading,
 }: DeleteConfirmationDialogProps) {
+  const { t } = useTranslation();
   if (!user) {
+        toast.error(t("ManageMembers.toast.userNotFound"));
+
     return;
   }
 
@@ -38,13 +43,13 @@ export default function DeleteConfirmationDialog({
 
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Are you sure?</DialogTitle>
+          <DialogTitle>{t("ManageMembers.deleteConfirm.title")}</DialogTitle>
           <DialogDescription>
-            This will permanently delete {user.firstName} {user.lastName} ({user.email}). This action cannot be undone.
+            {t("ManageMembers.deleteConfirm.message", { name: `${user.firstName} ${user.lastName}`, email: user.email })}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <DialogClose>Cancel</DialogClose>
+          <DialogClose>{t("ManageMembers.cancel")}</DialogClose>
           <Button
             onClick={() => {
               onConfirm()
@@ -52,7 +57,7 @@ export default function DeleteConfirmationDialog({
             className="bg-red-600 hover:bg-red-700"
             disabled={loading}
           >
-            {loading ? 'Deleting...' : 'Delete User'}
+            {loading ? t("ManageMembers.deleting") : t("ManageMembers.deleteUserBtn")}
           </Button>
         </DialogFooter>
       </DialogContent>

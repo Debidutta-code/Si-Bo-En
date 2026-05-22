@@ -21,8 +21,11 @@ import { ReservationFilters } from "./components";
 import Loader from "@/components/Loader/Loader";
 import {  noShowReservation } from "./api/reservation.api";
 import ReservationsTable from "./components/ReservationsTable";
+import { useTranslation } from "react-i18next";
 
 export default function ReservationsPage() {
+    const { t } = useTranslation();
+
   const [reservations, setReservations] = useState<IReservation[]>([]);
   const [properties, setProperties] = useState<IPropertyListItem[]>([]);
   const [pagination, setPagination] = useState<IPaginationMeta>({
@@ -108,11 +111,11 @@ export default function ReservationsPage() {
         setReservations(response.data);
         setPagination(response.meta);
       } else {
-        toast.error(response.message || "Failed to load reservations");
+        toast.error(response.message || t('Toast.failedToLoadReservations'));
         setReservations([]);
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to load reservations");
+      toast.error(error.message || t('Toast.failedToLoadReservations'));
       setReservations([]);
     } finally {
       setLoading(false);
@@ -155,39 +158,40 @@ export default function ReservationsPage() {
     try {
       const response = await cancelReservation(reservationId);
       if (response.success) {
-        toast.success("Reservation cancelled successfully");
+        toast.success(t('Toast.reservationCancelledSuccessfully'));
         loadReservations();
       } else {
-        toast.error(response.message || "Failed to cancel reservation");
+        toast.error(response.message || t('Toast.failedToCancelReservation'));
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to cancel reservation");
+      toast.error(error.message || t('Toast.failedToCancelReservation'));
     }
   };
   const handleNoShowReservation = async (reservationId: string) => {
     try {
       const response = await noShowReservation(reservationId);
       if (response.success) {
-        toast.success("Reservation marked as no-show successfully");
+        toast.success(t('Toast.reservationMarkedAsNoShow'));
         loadReservations();
       } else {
         toast.error(
-          response.message || "Failed to mark reservation as no-show",
+          response.message || t('Toast.failedToMarkAsNoShow'),
         );
       }
     } catch (error: any) {
-      toast.error(error.message || "Failed to mark reservation as no-show");
+      toast.error(error.message || t('Toast.failedToMarkAsNoShow'));
     }
   };
+
 
   const getReservationTypeLabel = () => {
     switch (filters.reservationType) {
       case "arrivals":
-        return "Arrivals";
+        return t('Bookings.arrivals');
       case "departures":
-        return "Departures";
+        return t('Bookings.departures');
       default:
-        return "All Reservations";
+        return t('Bookings.allReservations');
     }
   };
   return (
@@ -197,10 +201,10 @@ export default function ReservationsPage() {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Calendar className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold text-gray-900">Reservations</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{t('Bookings.title')}</h1>
           </div>
           <p className="text-gray-600">
-            View and manage your property reservations
+            {t('Bookings.subtitle')}
           </p>
         </div>
 
@@ -221,8 +225,8 @@ export default function ReservationsPage() {
             </h2>
             {pagination.totalResults > 0 && (
               <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                {pagination.totalResults} result
-                {pagination.totalResults !== 1 ? "s" : ""}
+                 {pagination.totalResults} {pagination.totalResults !== 1 ? t('Bookings.results') : t('Bookings.result')}
+
               </span>
             )}
           </div>
@@ -231,22 +235,22 @@ export default function ReservationsPage() {
         {/* Content */}
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <Loader text="Loading reservations..." />
+            <Loader text={t('Bookings.loadingReservations')} />
           </div>
         ) : reservations.length === 0 ? (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
             <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No reservations found
+              {t('Bookings.noReservationsFound')}
             </h3>
             <p className="text-gray-600 mb-4">
-              Try adjusting your filters to see more results
+              {t('Bookings.tryAdjustingFilters')}
             </p>
             <button
               onClick={handleClearFilters}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
             >
-              Clear Filters
+              {t('Bookings.clearFilters')}
             </button>
           </div>
         ) : (

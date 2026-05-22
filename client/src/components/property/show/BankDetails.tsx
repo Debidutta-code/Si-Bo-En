@@ -20,6 +20,7 @@ import {
 import PaymentMethodUi from "../update/PaymentMethods";
 import { updatePaymentMethod } from "../api/update/bankDetails";
 import { useAppSelector } from '@/redux/hooks';
+import { useTranslation } from 'react-i18next';
 
 interface PropertyId {
   propertyId: string;
@@ -45,6 +46,8 @@ interface BankDetailsResponse {
 }
 
 export default function BankDetails({ propertyId }: PropertyId) {
+    const { t } = useTranslation();
+
   const { user } = useAppSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
   const [payAtHotel, setPayAtHotel] = useState(false);
@@ -76,7 +79,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
         toast.error(response.message);
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to fetch property details");
+      toast.error(t("BankDetails.failedToFetchPropertyDetails"));
     } finally {
       setLoading(false);
     }
@@ -90,7 +93,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
 
   const updatePaymentMethodsQ = async (propertyId: string) => {
     if (paymentGateway && !selectedPaymentData) {
-      toast.error("Please select a payment integration when Payment Gateway is enabled");
+      toast.error(t("BankDetails.selectPaymentIntegration"));
       return;
     }
 
@@ -105,13 +108,13 @@ export default function BankDetails({ propertyId }: PropertyId) {
       
       const res = await updatePaymentMethod(propertyId, payload);
       if (res.success) {
-        toast.success("Payment methods updated successfully");
+        toast.success(t("BankDetails.paymentMethodsUpdated"));
         fetchBankDetails(propertyId); // Refresh data
       } else {
-        toast.error(res?.message || "Failed to update payment methods");
+        toast.error(res?.message || t("BankDetails.failedToUpdatePaymentMethods"));
       }
     } catch (error) {
-      toast.error("Failed to update payment methods");
+      toast.error(t("BankDetails.failedToUpdatePaymentMethods"));
     } finally {
       setLoading(false);
     }
@@ -138,7 +141,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
 
   useEffect(() => {
     if (!propertyId) {
-      toast.error("Property id not found");
+      toast.error(t("BankDetails.propertyNotFound"));
       return;
     }
     fetchBankDetails(propertyId);
@@ -147,7 +150,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <Loader text="Loading Bank Details" />
+        <Loader text={t("BankDetails.loadingDetails")} />
       </div>
     );
   }
@@ -161,10 +164,10 @@ export default function BankDetails({ propertyId }: PropertyId) {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-semibold text-gray-900">
-              Bank & Payment Details
+              {t("BankDetails.title")}
             </CardTitle>
             <p className="text-sm text-gray-500 mt-1">
-              Manage your banking information and accepted payment methods
+              {t("BankDetails.manageBanking")}
             </p>
           </div>
         </div>
@@ -192,7 +195,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Payment Methods
+                  {t("BankDetails.paymentMethods")}
                 </h3>
               </div>
               {canEdit && (
@@ -200,7 +203,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                   <AlertDialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2 text-primary-600 hover:text-primary-700">
                       <PenTool className="h-3.5 w-3.5" />
-                      Edit
+                      {t("BankDetails.editPaymentMethods")}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
@@ -208,10 +211,10 @@ export default function BankDetails({ propertyId }: PropertyId) {
                       <div className="flex w-full justify-between items-start">
                         <div>
                           <AlertDialogTitle className="text-xl">
-                            Update Payment Methods
+                            {t("BankDetails.updatePaymentMethods")}
                           </AlertDialogTitle>
                           <p className="text-sm text-gray-500 mt-1">
-                            Select which payment methods you accept
+                            {t("BankDetails.selectPaymentMethods")}
                           </p>
                         </div>
                         <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -232,7 +235,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                           )}
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold text-sm">Pay at Hotel</h4>
+                            <h4 className="font-semibold text-sm">{t("BankDetails.payAtHotel")}</h4>
                             <div
                               className={cn(
                                 "flex items-center justify-center w-5 h-5 rounded-full border-2",
@@ -248,7 +251,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                             "text-xs leading-relaxed",
                             payAtHotel ? "text-gray-300" : "text-gray-500"
                           )}>
-                            Guests pay at property
+                            {t("BankDetails.guestsPayAtProperty")}
                           </p>
                         </button>
 
@@ -263,7 +266,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                           )}
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold text-sm">Payment Gateway</h4>
+                            <h4 className="font-semibold text-sm">{t("BankDetails.paymentGateway")}</h4>
                             <div
                               className={cn(
                                 "flex items-center justify-center w-5 h-5 rounded-full border-2",
@@ -279,7 +282,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                             "text-xs leading-relaxed",
                             paymentGateway ? "text-gray-300" : "text-gray-500"
                           )}>
-                            Online payments enabled
+                            {t("BankDetails.onlinePaymentsEnabled")}
                           </p>
                         </button>
                       </div>
@@ -296,13 +299,13 @@ export default function BankDetails({ propertyId }: PropertyId) {
                       {!payAtHotel && !paymentGateway && (
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <p className="text-sm text-yellow-700 font-medium">
-                            Please select at least one payment method
+                            {t("BankDetails.selectAtLeastOne")}
                           </p>
                         </div>
                       )}
                     </AlertDialogHeader>
                     <AlertDialogFooter className="border-t pt-4">
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t("BankDetails.cancel")}</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={(e: any) => {
                           e.preventDefault();
@@ -310,7 +313,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                         }}
                         disabled={loading}
                       >
-                        {loading ? "Updating..." : "Update Methods"}
+                        {loading ? t("BankDetails.updating") : t("BankDetails.updateMethods")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -338,7 +341,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                       <X className="h-3.5 w-3.5 text-white" />
                     )}
                   </div>
-                  <span className="font-medium text-gray-900">Online Gateway</span>
+                  <span className="font-medium text-gray-900">{t("BankDetails.onlineGateway")}</span>
                 </div>
                 <span
                   className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -347,7 +350,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                       : "bg-gray-200 text-gray-600"
                   }`}
                 >
-                  {paymentGateway ? "Active" : "Inactive"}
+{paymentGateway ? t("BankDetails.active") : t("BankDetails.inactive")}
                 </span>
               </div>
 
@@ -370,7 +373,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                       <X className="h-3.5 w-3.5 text-white" />
                     )}
                   </div>
-                  <span className="font-medium text-gray-900">Pay at Hotel</span>
+                  <span className="font-medium text-gray-900">{t("BankDetails.payAtHotel")}</span>
                 </div>
                 <span
                   className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -379,7 +382,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                       : "bg-gray-200 text-gray-600"
                   }`}
                 >
-                  {payAtHotel ? "Active" : "Inactive"}
+                  {payAtHotel ? t("BankDetails.active") : t("BankDetails.inactive")}
                 </span>
               </div>
             </div>
@@ -388,7 +391,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
             {paymentGateway && paymentIntegrationDetails.length > 0 && (
               <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="text-sm font-semibold text-blue-900 mb-2">
-                  Selected Payment Integrations:
+                  {t("BankDetails.selectedPaymentIntegrations")}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {paymentIntegrationDetails.map((integration) => (

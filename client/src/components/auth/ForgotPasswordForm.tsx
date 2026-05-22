@@ -8,6 +8,7 @@ import { Mail, Lock, ArrowLeft, Shield, Eye, EyeOff } from 'lucide-react';
 import { sendPasswordResetOTP, verifyPasswordResetOTP, resetPassword } from '../api/forgetEmail.api';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
+import { useTranslation } from "react-i18next";
 
 const passwordSchema = z
   .string()
@@ -27,6 +28,8 @@ const resetPasswordSchema = z.object({
 type Step = 'email' | 'otp' | 'password';
 
 export default function ForgotPasswordForm() {
+    const { t } = useTranslation();
+
   const [searchParams] = useSearchParams();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
@@ -154,10 +157,10 @@ export default function ForgotPasswordForm() {
             <div>
               <Shield className="h-16 w-16 mb-4" />
               <h2 className="text-4xl font-bold mb-4 leading-tight">
-                Reset Your Password
+                {t("Auth.forgotPassword.heroTitle")}
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
-                We'll send you a verification code to reset your password securely.
+                {t("Auth.forgotPassword.heroDescription")}
               </p>
             </div>
           </div>
@@ -177,11 +180,11 @@ export default function ForgotPasswordForm() {
 
           <Card className="border shadow-xl">
             <CardHeader className="space-y-2 text-center pb-2">
-              <CardTitle className="text-3xl font-bold">Forgot Password</CardTitle>
+              <CardTitle className="text-3xl font-bold">{t("Auth.forgotPassword.title")}</CardTitle>
               <CardDescription className="text-base">
-                {step === 'email' && "Enter your email to receive a verification code"}
-                {step === 'otp' && "Enter the 6-digit code sent to your email"}
-                {step === 'password' && "Create a new password for your account"}
+                {step === 'email' && t("Auth.forgotPassword.stepEmail")}
+                {step === 'otp' && t("Auth.forgotPassword.stepOtp")}
+                {step === 'password' && t("Auth.forgotPassword.stepPassword")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -190,14 +193,14 @@ export default function ForgotPasswordForm() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-sm font-medium">
-                      Email Address
+                      {t("Auth.forgotPassword.emailLabel")}
                     </Label>
                     <div className="relative group">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                       <Input
                         id="email"
                         type="email"
-                        placeholder="you@company.com"
+                        placeholder={t("Auth.forgotPassword.emailPlaceholder")}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSendOTP()}
@@ -226,12 +229,12 @@ export default function ForgotPasswordForm() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="otp" className="text-sm font-medium">
-                      Verification Code
+                      {t("Auth.forgotPassword.verificationCode")}
                     </Label>
                     <Input
                       id="otp"
                       type="text"
-                      placeholder="Enter 6-digit code"
+                      placeholder={t("Auth.forgotPassword.otpPlaceholder")}
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleVerifyOTP()}
@@ -246,14 +249,14 @@ export default function ForgotPasswordForm() {
                   </div>
 
                   <div className="text-sm text-center">
-                    <span className="text-muted-foreground">Didn't receive the code? </span>
+                    <span className="text-muted-foreground">{t("Auth.forgotPassword.didntReceive")} </span>
                     <button
                       type="button"
                       onClick={handleSendOTP}
                       disabled={isLoading}
                       className="font-medium hover:underline"
                     >
-                      Resend OTP
+                      {t("Auth.forgotPassword.resendOtp")}
                     </button>
                   </div>
 
@@ -262,7 +265,7 @@ export default function ForgotPasswordForm() {
                     disabled={isLoading}
                     className="w-full h-12"
                   >
-                    {isLoading ? 'Verifying...' : 'Verify OTP'}
+                    {isLoading ? t("Auth.forgotPassword.verifying") : t("Auth.forgotPassword.verifyOtp")}
                   </Button>
                 </>
               )}
@@ -272,14 +275,14 @@ export default function ForgotPasswordForm() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-sm font-medium">
-                      New Password
+                      {t("Auth.forgotPassword.newPassword")}
                     </Label>
                     <div className="relative group">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter new password"
+                        placeholder={t("Auth.forgotPassword.newPasswordPlaceholder")}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-11 pr-11 h-12"
@@ -302,14 +305,14 @@ export default function ForgotPasswordForm() {
 
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                      Confirm Password
+                      {t("Auth.forgotPassword.confirmPassword")}
                     </Label>
                     <div className="relative group">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
                       <Input
                         id="confirmPassword"
                         type={showConfirmPassword ? 'text' : 'password'}
-                        placeholder="Confirm new password"
+                        placeholder={t("Auth.forgotPassword.confirmPasswordPlaceholder")}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleResetPassword()}
@@ -348,7 +351,7 @@ export default function ForgotPasswordForm() {
                 className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Login
+                {t("Auth.forgotPassword.backToLogin")}
               </button>
             </CardContent>
           </Card>

@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { RestrictionFilters, RoomType, RatePlan } from "../interfaces";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface RestrictionFiltersProps {
     filters: RestrictionFilters;
@@ -26,6 +27,8 @@ export default function RestrictionFiltersComponent({
     ratePlans,
     onReset
 }: RestrictionFiltersProps) {
+        const { t } = useTranslation();
+
     const [fromDateOpen, setFromDateOpen] = useState(false);
     const [toDateOpen, setToDateOpen] = useState(false);
     const handleStartDateChange = (date: Date | undefined) => {
@@ -48,13 +51,13 @@ export default function RestrictionFiltersComponent({
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
             <div className="flex items-center gap-2 mb-4">
                 <Filter className="w-5 h-5 text-gray-600" />
-                <h3 className="text-lg font-semibold">Filters</h3>
+                <h3 className="text-lg font-semibold">{t("CTACTD.filters.title")}</h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 {/* Restriction Type */}
                 <div className="grid gap-2">
-                    <Label>Restriction Type</Label>
+                    <Label>{t("CTACTD.filters.restrictionType")}</Label>
                     <Select
                         value={filters.restrictionType || ""}
                         onValueChange={(value) =>
@@ -65,19 +68,20 @@ export default function RestrictionFiltersComponent({
                         }
                     >
                         <SelectTrigger>
-                            <SelectValue placeholder="All" />
+                            <SelectValue placeholder={t("CTACTD.filters.all")} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="CTA">CTA (Closed to Arrival)</SelectItem>
-                            <SelectItem value="CTD">CTD (Closed to Departure)</SelectItem>
+                            <SelectItem value="all">{t("CTACTD.filters.all")}</SelectItem>
+                            <SelectItem value="CTA">{t("CTACTD.filters.ctaClosedToArrival")}</SelectItem>
+                            <SelectItem value="CTD">{t("CTACTD.filters.ctdClosedToDeparture")}</SelectItem>
                         </SelectContent>
+
                     </Select>
                 </div>
 
                 {/* Start Date */}
                 <div className="grid gap-2">
-                    <Label>Start Date</Label>
+                    <Label>{t("CTACTD.filters.startDate")}</Label>
                     <Popover onOpenChange={setFromDateOpen} open={fromDateOpen}>
                         <PopoverTrigger asChild>
                             <Button
@@ -90,7 +94,7 @@ export default function RestrictionFiltersComponent({
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {filters.startDate
                                     ? format(new Date(filters.startDate), "PPP")
-                                    : "Pick a date"}
+                                    : t("CTACTD.filters.pickDate")}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -106,7 +110,7 @@ export default function RestrictionFiltersComponent({
 
                 {/* End Date */}
                 <div className="grid gap-2">
-                    <Label>End Date</Label>
+                    <Label>{t("CTACTD.filters.endDate")}</Label>
                     <Popover onOpenChange={setToDateOpen} open={toDateOpen}>
                         <PopoverTrigger asChild>
                             <Button
@@ -119,7 +123,7 @@ export default function RestrictionFiltersComponent({
                                 <CalendarIcon className="mr-2 h-4 w-4" />
                                 {filters.endDate
                                     ? format(new Date(filters.endDate), "PPP")
-                                    : "Pick a date"}
+                                    : t("CTACTD.filters.pickDate")}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
@@ -140,7 +144,7 @@ export default function RestrictionFiltersComponent({
 
                 {/* Room Type */}
                 <div className="grid gap-2">
-                    <Label>Room Type</Label>
+                    <Label>{t("CTACTD.filters.roomType")}</Label>
                     <Select
                         value={filters.roomTypeCode || ""}
                         onValueChange={(value) =>
@@ -148,10 +152,10 @@ export default function RestrictionFiltersComponent({
                         }
                     >
                         <SelectTrigger>
-                            <SelectValue placeholder="All Rooms" />
+                            <SelectValue placeholder={t("CTACTD.filters.allRooms")} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Rooms</SelectItem>
+                            <SelectItem value="all">{t("CTACTD.filters.allRooms")}</SelectItem>
                            {roomTypes.map((room) => (
     <SelectItem key={room.id} value={room.roomType}>
         {room._translations?.roomName ?? room.roomName}
@@ -163,7 +167,7 @@ export default function RestrictionFiltersComponent({
 
                 {/* Rate Plan */}
                 <div className="grid gap-2">
-                    <Label>Rate Plan</Label>
+                    <Label>{t("CTACTD.filters.ratePlan")}</Label>
                     <Select
                         value={filters.ratePlanCode || ""}
                         onValueChange={(value) =>
@@ -171,10 +175,10 @@ export default function RestrictionFiltersComponent({
                         }
                     >
                         <SelectTrigger>
-                            <SelectValue placeholder="All Rate Plans" />
+                            <SelectValue placeholder={t("CTACTD.filters.allRatePlans")} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Rate Plans</SelectItem>
+                            <SelectItem value="all">{t("CTACTD.filters.allRatePlans")}</SelectItem>
                             {ratePlans.map((plan) => (
     <SelectItem key={plan.id} value={plan.ratePlanCode}>
         {plan._translations?.ratePlanName ?? plan.ratePlanName}
@@ -188,7 +192,7 @@ export default function RestrictionFiltersComponent({
             {/* Reset Button */}
             <div className="mt-4">
                 <Button variant="outline" onClick={onReset} size="sm">
-                    Reset Filters
+                    {t("CTACTD.filters.resetFilters")}
                 </Button>
             </div>
         </div>

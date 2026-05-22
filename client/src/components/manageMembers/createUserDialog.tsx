@@ -18,6 +18,7 @@ import { z } from 'zod';
 import type { ICreateUser, IRoleAccess } from '../../pages/members/types/types';
 import { useAppSelector } from '@/redux/hooks';
 import { capitalizeFirstLetter } from "@/lib/utils";
+import { useTranslation } from 'react-i18next';
 
 interface CreateMemberDialogProps {
   roles: IRoleAccess[];
@@ -36,6 +37,8 @@ export default function CreateMemberDialog({
   errors,
   loading
 }: CreateMemberDialogProps) {
+    const { t } = useTranslation();
+
   const { user } = useAppSelector((state) => state.user);
   const [formData, setFormData] = useState<ICreateUser>({
     firstName: '',
@@ -95,21 +98,21 @@ export default function CreateMemberDialog({
           <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          Add New Member
+          {t("ManageMembers.addNewMember")}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md max-h-[70vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Member</DialogTitle>
+          <DialogTitle>{t("ManageMembers.addNewMember")}</DialogTitle>
           <DialogDescription>
-            Create a new member account with property access
+            {t("ManageMembers.subtitle")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">{t("ManageMembers.firstName")}</Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
@@ -124,7 +127,7 @@ export default function CreateMemberDialog({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">{t("ManageMembers.lastName")}</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
@@ -141,7 +144,7 @@ export default function CreateMemberDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("ManageMembers.email")}</Label>
             <Input
               id="email"
               type="email"
@@ -159,7 +162,7 @@ export default function CreateMemberDialog({
 
           {/* Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("ManageMembers.password")}</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -192,7 +195,7 @@ export default function CreateMemberDialog({
 
           {/* Confirm Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">{t("ManageMembers.confirmPassword")}</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
@@ -224,7 +227,7 @@ export default function CreateMemberDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
+            <Label htmlFor="role">{t("ManageMembers.role")}</Label>
             <Select
               value={formData.role}
               onValueChange={(value) => {
@@ -243,7 +246,7 @@ export default function CreateMemberDialog({
                 aria-invalid={!!getErrorMessage('role')} 
                 aria-describedby={getErrorMessage('role') ? "role-error" : undefined}
               >
-                <SelectValue placeholder="Select role" />
+                <SelectValue placeholder={t("ManageMembers.selectRole")} />
               </SelectTrigger>
               <SelectContent>
                 {roles && roles.length > 0 ? (
@@ -255,7 +258,7 @@ export default function CreateMemberDialog({
                     )
                   ))
                 ) : (
-                  <div className="p-2 text-sm text-gray-500">No roles available</div>
+                  <div className="p-2 text-sm text-gray-500">{t("ManageMembers.noRolesAvailable")}</div>
                 )}
               </SelectContent>
             </Select>
@@ -275,13 +278,13 @@ export default function CreateMemberDialog({
                 resetForm();
               }}
             >
-              Cancel
+              {t("ManageMembers.cancel")}
             </Button>
             <Button 
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? 'Creating...' : 'Create Member'}
+              {loading ? t("ManageMembers.creating") : t("ManageMembers.createMemberBtn")}
             </Button>
           </div>
         </div>

@@ -8,6 +8,7 @@ import { Shield, XCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 import { verifyResetToken, resetPasswordWithToken } from '../api/forgetEmail.api';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
+import { useTranslation } from "react-i18next";
 
 const passwordSchema = z
   .string()
@@ -27,6 +28,8 @@ const resetPasswordSchema = z.object({
 type VerificationState = 'verifying' | 'valid' | 'invalid' | 'expired';
 
 export default function LinkVerification() {
+    const { t } = useTranslation();
+
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
@@ -85,10 +88,10 @@ export default function LinkVerification() {
 
     try {
       await resetPasswordWithToken(token!, password);
-      toast.success('Password reset successfully!');
+      toast.success(t("Auth.toast.passwordResetSuccess"));
       navigate('/login');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to reset password');
+      toast.error(error.response?.data?.message || t("Auth.toast.passwordResetFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -104,13 +107,13 @@ export default function LinkVerification() {
           <div className="flex flex-col items-center text-center">
             <Shield className="h-16 w-16 mb-4" />
             <h2 className="text-4xl font-bold mb-4 leading-tight">
-              Reset Your Password
+              {t("Auth.linkVerification.passwordReset.heroTitle")}
             </h2>
             <p className="text-primary-foreground/90 text-lg leading-relaxed max-w-md">
-              {verificationState === 'verifying' && "We're verifying your reset link..."}
-              {verificationState === 'valid' && "Create a new secure password for your account."}
-              {verificationState === 'invalid' && "This link appears to be invalid."}
-              {verificationState === 'expired' && "This link has expired."}
+              {verificationState === 'verifying' && t("Auth.linkVerification.passwordReset.verifying")}
+              {verificationState === 'valid' && t("Auth.linkVerification.passwordReset.valid")}
+              {verificationState === 'invalid' && t("Auth.linkVerification.passwordReset.invalid")}
+              {verificationState === 'expired' && t("Auth.linkVerification.passwordReset.expired")}
             </p>
           </div>
         </div>
@@ -129,12 +132,12 @@ export default function LinkVerification() {
 
           <Card className="border shadow-xl">
             <CardHeader className="space-y-2 text-center pb-2">
-              <CardTitle className="text-3xl font-bold">Password Reset</CardTitle>
-              <CardDescription className="text-base">
-                {verificationState === 'verifying' && "Please wait while we verify your link..."}
-                {verificationState === 'valid' && "Enter your new password below"}
-                {verificationState === 'invalid' && "The reset link is invalid"}
-                {verificationState === 'expired' && "The reset link has expired"}
+              <CardTitle className="text-3xl font-bold">{t("Auth.linkVerification.passwordReset.title")}</CardTitle>
+               <CardDescription className="text-base">
+                {verificationState === 'verifying' && t("Auth.linkVerification.passwordReset.verifyingDesc")}
+                {verificationState === 'valid' && t("Auth.linkVerification.passwordReset.validDesc")}
+                {verificationState === 'invalid' && t("Auth.linkVerification.passwordReset.invalidDesc")}
+                {verificationState === 'expired' && t("Auth.linkVerification.passwordReset.expiredDesc")}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -142,7 +145,7 @@ export default function LinkVerification() {
               {verificationState === 'verifying' && (
                 <div className="flex flex-col items-center justify-center py-8 space-y-4">
                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                  <p className="text-muted-foreground">Verifying your reset link...</p>
+                  <p className="text-muted-foreground">{t("Auth.linkVerification.passwordReset.verifying")}</p>
                 </div>
               )}
 
@@ -151,13 +154,13 @@ export default function LinkVerification() {
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-sm font-medium">
-                      New Password
+                      {t("Auth.linkVerification.passwordReset.newPassword")}
                     </Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter new password"
+                        placeholder={t("Auth.linkVerification.passwordReset.newPasswordPlaceholder")}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pr-10 h-12"
@@ -179,13 +182,13 @@ export default function LinkVerification() {
 
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                      Confirm New Password
+                      {t("Auth.linkVerification.passwordReset.confirmPassword")}
                     </Label>
                     <div className="relative">
                       <Input
                         id="confirmPassword"
                         type={showConfirmPassword ? 'text' : 'password'}
-                        placeholder="Confirm new password"
+                        placeholder={t("Auth.linkVerification.passwordReset.confirmPasswordPlaceholder")}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleResetPassword()}
@@ -206,12 +209,12 @@ export default function LinkVerification() {
                   </div>
 
                   <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                    <p className="text-sm font-medium">Password Requirements:</p>
+                    <p className="text-sm font-medium">{t("Auth.linkVerification.passwordReset.requirements")}</p>
                     <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                      <li>At least 6 characters long</li>
-                      <li>One uppercase letter</li>
-                      <li>One number</li>
-                      <li>One special character (@, $, &)</li>
+                    <li>{t("Auth.linkVerification.passwordReset.minLength")}</li>
+                      <li>{t("Auth.linkVerification.passwordReset.uppercase")}</li>
+                      <li>{t("Auth.linkVerification.passwordReset.number")}</li>
+                      <li>{t("Auth.linkVerification.passwordReset.specialChar")}</li>
                     </ul>
                   </div>
 
@@ -220,7 +223,7 @@ export default function LinkVerification() {
                     disabled={isLoading}
                     className="w-full h-12"
                   >
-                    {isLoading ? 'Resetting...' : 'Reset Password'}
+                    {isLoading ? t("Auth.linkVerification.passwordReset.resetting") : t("Auth.linkVerification.passwordReset.resetPassword")}
                   </Button>
                 </>
               )}
@@ -230,14 +233,14 @@ export default function LinkVerification() {
                 <div className="flex flex-col items-center justify-center py-8 space-y-4">
                   <XCircle className="h-12 w-12 text-destructive" />
                   <p className="text-center text-muted-foreground">
-                    This reset link is invalid. Please request a new password reset.
+                    {t("Auth.linkVerification.passwordReset.invalidMessage")}
                   </p>
                   <Button
                     onClick={() => navigate('/forgot-password')}
                     variant="outline"
                     className="w-full h-12"
                   >
-                    Request New Link
+                    {t("Auth.linkVerification.passwordReset.requestNewLink")}
                   </Button>
                 </div>
               )}
@@ -247,14 +250,14 @@ export default function LinkVerification() {
                 <div className="flex flex-col items-center justify-center py-8 space-y-4">
                   <XCircle className="h-12 w-12 text-destructive" />
                   <p className="text-center text-muted-foreground">
-                    This reset link has expired. Please request a new one.
+                    {t("Auth.linkVerification.passwordReset.expiredMessage")}
                   </p>
                   <Button
                     onClick={() => navigate('/forgot-password')}
                     variant="outline"
                     className="w-full h-12"
                   >
-                    Request New Link
+                    {t("Auth.linkVerification.passwordReset.requestNewLink")}
                   </Button>
                 </div>
               )}
@@ -266,7 +269,7 @@ export default function LinkVerification() {
                   onClick={() => navigate('/login')}
                   className="text-sm"
                 >
-                  Back to Login
+                  {t("Auth.linkVerification.passwordReset.backToLoginBtn")}
                 </Button>
               </div>
             </CardContent>
