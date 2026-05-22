@@ -414,8 +414,8 @@ export class SpaRepository {
                 include: {
                     SlotBookings: {
                         include: {
-                            Spa: true,
-                            SpaSlot: {
+                            spa: true,
+                            spaSlots: {
                                 include: {
                                     spaDate: true
                                 }
