@@ -96,6 +96,7 @@ export class SpaController {
             const propertyCode = req.params.propertyCode;
             const response =
                 await this.spaService.getSpaForPropertyCode(propertyCode);
+                
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

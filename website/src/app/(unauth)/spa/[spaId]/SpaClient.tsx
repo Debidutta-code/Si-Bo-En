@@ -227,40 +227,40 @@ export default function SpaClient({ params }: SpaClientProps) {
     });
   };
 
-  const handleConfirmCancel = async () => {
-    if (!confirmModal) return;
-    const { bookingId, slotId, label } = confirmModal;
-    setConfirmModal(null);
-    setCancellingSlotId(slotId);
-    try {
-      // Cancel single slot: pass spaSlotId in body
-      const response = await cancelSpaReservationApi(bookingId, slotId);
-      if (response.success) {
-        toast.success(`Slot cancelled successfully.`);
-        // Mark the specific slot as cancelled locally so the UI shows 'Cancelled'
-        setSpas(prev =>
-          prev.map(s => ({
-            ...s,
-            SpaDates: s.SpaDates?.map(d => ({
-              ...d,
-              Slots: d.Slots?.map(sl => {
-                if (sl.id === slotId) {
-                  return { ...sl, status: 'cancelled', isCancelled: true } as any;
-                }
-                return sl;
-              }),
-            })),
-          }))
-        );
-      } else {
-        toast.error(response.message || "Failed to cancel slot.");
-      }
-    } catch {
-      toast.error("Failed to cancel slot.");
-    } finally {
-      setCancellingSlotId(null);
-    }
-  };
+  // const handleConfirmCancel = async () => {
+  //   if (!confirmModal) return;
+  //   const { bookingId, slotId, label } = confirmModal;
+  //   setConfirmModal(null);
+  //   setCancellingSlotId(slotId);
+  //   try {
+  //     // Cancel single slot: pass spaSlotId in body
+  //     const response = await cancelSpaReservationApi(bookingId, slotId);
+  //     if (response.success) {
+  //       toast.success(`Slot cancelled successfully.`);
+  //       // Mark the specific slot as cancelled locally so the UI shows 'Cancelled'
+  //       setSpas(prev =>
+  //         prev.map(s => ({
+  //           ...s,
+  //           SpaDates: s.SpaDates?.map(d => ({
+  //             ...d,
+  //             Slots: d.Slots?.map(sl => {
+  //               if (sl.id === slotId) {
+  //                 return { ...sl, status: 'cancelled', isCancelled: true } as any;
+  //               }
+  //               return sl;
+  //             }),
+  //           })),
+  //         }))
+  //       );
+  //     } else {
+  //       toast.error(response.message || "Failed to cancel slot.");
+  //     }
+  //   } catch {
+  //     toast.error("Failed to cancel slot.");
+  //   } finally {
+  //     setCancellingSlotId(null);
+  //   }
+  // };
 
   const formatDate = (v: string) => { try { return format(new Date(v), "EEE, MMM d, yyyy"); } catch { return v; } };
   const formatTime = (v: string) => { try { return format(new Date(v), "hh:mm a"); } catch { return v; } };
@@ -275,7 +275,7 @@ export default function SpaClient({ params }: SpaClientProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-amber-50/30">
       {/* Cancel Confirm Modal */}
-      {confirmModal && (
+      {/* {confirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setConfirmModal(null)} />
           <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
@@ -302,7 +302,7 @@ export default function SpaClient({ params }: SpaClientProps) {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Back nav */}
@@ -412,75 +412,55 @@ export default function SpaClient({ params }: SpaClientProps) {
                             )}
                           </div>
                           <div className="grid gap-3 p-4 sm:grid-cols-2">
-                    {spaDate.Slots?.map((slot: ISpaSlot) => {
-                      const isSelected = isSlotSelected(slot.id, spaDate.id);
-                      const isCancellingThis = cancellingSlotId === slot.id;
+                            {spaDate.Slots?.map((slot: ISpaSlot) => {
+                              const isSelected = isSlotSelected(slot.id, spaDate.id);
+                              const isCancellingThis = cancellingSlotId === slot.id;
 
-                      const isInPast = (() => {
-                        try {
-                          // Slot startTime is expected to be "HH:mm:ss" or similar.
-                          // We combine spaDate.date + startTime to compare against now.
-                          const datePart = spaDate.date;
-                          if (!datePart || !slot.startTime) return false;
+                              const isInPast = (() => {
+                                try {
+                                  // Slot startTime is expected to be "HH:mm:ss" or similar.
+                                  // We combine spaDate.date + startTime to compare against now.
+                                  const datePart = spaDate.date;
+                                  if (!datePart || !slot.startTime) return false;
 
-                          const start = new Date(`${datePart}T${String(slot.startTime)}`);
-                          return Number.isFinite(start.getTime()) ? start.getTime() < Date.now() : false;
-                        } catch {
-                          return false;
-                        }
-                      })();
+                                  const start = new Date(`${datePart}T${String(slot.startTime)}`);
+                                  return Number.isFinite(start.getTime()) ? start.getTime() < Date.now() : false;
+                                } catch {
+                                  return false;
+                                }
+                              })();
 
-                      return (
-
-                                <div
-                                  key={slot.id}
-                                  className={`rounded-2xl border p-4 transition-all ${
-                                    slot.isBooked
-                                      ? "border-stone-200 bg-stone-50"
-                                      : isSelected
-                                        ? "border-amber-400 bg-amber-50 shadow-sm"
-                                        : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer"
-                                  }`}
-                                  onClick={() => !slot.isBooked && handleToggleSlot(spa, spaDate, slot)}
-                                >
-                                  <div className="flex items-start justify-between gap-2">
-                                    <div>
-                                      <p className={`text-sm font-semibold ${slot.isBooked ? "text-stone-400" : "text-stone-900"}`}>
-                                        {formatTime(slot.startTime)}
-                                      </p>
-                                      {slot.endTime && (
-                                        <p className="text-xs text-stone-400">to {formatTime(slot.endTime)}</p>
-                                      )}
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                      {isSelected && <CheckCircle className="h-4 w-4 text-amber-600" />}
-                                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                                        slot.isBooked
-                                          ? "bg-stone-100 text-stone-500"
-                                          : isSelected
-                                            ? "bg-amber-100 text-amber-800"
-                                            : "bg-emerald-100 text-emerald-700"
-                                      }`}>
-                                        {slot.isBooked ? "Booked" : isSelected ? "Selected" : "Open"}
-                                      </span>
+                              return (
+                                !slot.isBooked && (
+                                  <div
+                                    key={slot.id}
+                                    className={`rounded-2xl border p-4 transition-all ${isSelected
+                                      ? "border-amber-400 bg-amber-50 shadow-sm"
+                                      : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer"
+                                      }`}
+                                    onClick={() => handleToggleSlot(spa, spaDate, slot)}
+                                  >
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div>
+                                        <p className="text-sm font-semibold text-stone-900">
+                                          {formatTime(slot.startTime)}
+                                        </p>
+                                        {slot.endTime && (
+                                          <p className="text-xs text-stone-400">to {formatTime(slot.endTime)}</p>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                        {isSelected && <CheckCircle className="h-4 w-4 text-amber-600" />}
+                                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isSelected
+                                          ? "bg-amber-100 text-amber-800"
+                                          : "bg-emerald-100 text-emerald-700"
+                                          }`}>
+                                          {isSelected ? "Selected" : "Open"}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
-
-                                  {slot.isBooked && (
-                                    <button
-                                      type="button"
-                                      onClick={e => { e.stopPropagation(); openCancelModal(slot, spaDate.id); }}
-                                      disabled={isCancellingThis}
-                                      className="mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
-                                    >
-                                      {isCancellingThis ? (
-                                        <><Loader2 className="h-3.5 w-3.5 animate-spin" />Cancelling…</>
-                                      ) : (
-                                        <><X className="h-3.5 w-3.5" />Cancel Slot</>
-                                      )}
-                                    </button>
-                                  )}
-                                </div>
+                                )
                               );
                             })}
                           </div>
@@ -495,8 +475,15 @@ export default function SpaClient({ params }: SpaClientProps) {
               {selectedSlots.size > 0 && (
                 <div className="flex justify-center">
                   <button
-                    onClick={() => setShowBookingModal(true)}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 hover:shadow-lg"
+                    onClick={() => {
+                      if (!(customer as any)?.isAuthenticated) {
+                        const redirectUrl = `/spa/${encodeURIComponent(params.spaId)}?propertyCode=${encodeURIComponent(propertyCode)}`;
+                        sessionStorage.setItem("customerRedirectUrl", redirectUrl);
+                        window.location.href = "/login";
+                        return;
+                      }
+                      setShowBookingModal(true);
+                    }} className="inline-flex items-center gap-2 rounded-2xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 hover:shadow-lg"
                   >
                     <ShoppingCart className="h-5 w-5" />
                     Review & Book ({selectedSlots.size})
@@ -508,7 +495,7 @@ export default function SpaClient({ params }: SpaClientProps) {
         )}
 
         {/* Booking Modal */}
-        {showBookingModal && (
+        {showBookingModal && customer.isAuthenticated && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowBookingModal(false)} />
             <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -580,11 +567,10 @@ export default function SpaClient({ params }: SpaClientProps) {
                       }}
                       onBlur={e => validateField("name", e.target.value)}
                       placeholder="Full name *"
-                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
-                        formErrors.name
-                          ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
-                          : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
-                      } text-stone-900`}
+                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${formErrors.name
+                        ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                        : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                        } text-stone-900`}
                     />
                     {formErrors.name && (
                       <p className="mt-2 text-xs text-red-600">{formErrors.name}</p>
@@ -600,11 +586,10 @@ export default function SpaClient({ params }: SpaClientProps) {
                       }}
                       onBlur={e => validateField("email", e.target.value)}
                       placeholder="Email address *"
-                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
-                        formErrors.email
-                          ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
-                          : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
-                      } text-stone-900`}
+                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${formErrors.email
+                        ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                        : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                        } text-stone-900`}
                     />
                     {formErrors.email && (
                       <p className="mt-2 text-xs text-red-600">{formErrors.email}</p>
@@ -620,11 +605,10 @@ export default function SpaClient({ params }: SpaClientProps) {
                       }}
                       onBlur={e => validateField("phone", e.target.value)}
                       placeholder="Phone number *"
-                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
-                        formErrors.phone
-                          ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
-                          : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
-                      } text-stone-900`}
+                      className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${formErrors.phone
+                        ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                        : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                        } text-stone-900`}
                     />
                     {formErrors.phone && (
                       <p className="mt-2 text-xs text-red-600">{formErrors.phone}</p>

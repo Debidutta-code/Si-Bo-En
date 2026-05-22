@@ -133,6 +133,7 @@ export class SpaRepository {
         try {
             return await prisma.spa.findMany({
                 where: {
+                    isInclusive:false,
                     Property: {
                         propertyCode: propertyCode,
                     },
