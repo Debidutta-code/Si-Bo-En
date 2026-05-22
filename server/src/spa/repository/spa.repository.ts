@@ -380,19 +380,28 @@ export class SpaRepository {
 
                     return updatedBooking;
                 } else {
-                    // Update booking status
+                    // Update booking status and reset totalAmount to 0
                     const updatedBooking = await tx.spaBooking.update({
                         where: { id: bookingId },
-                        data: { status: 'cancelled' }
+                        data: { 
+                            status: 'cancelled',
+                            totalAmount: 0
+                        }
                     });
 
-                    // Free up all associated slots
-                    for (const slotBooking of booking.SlotBookings) {
-                        await tx.spaSlots.update({
-                            where: { id: slotBooking.spaSlotId },
-                            data: { isBooked: false }
-                        });
-                    }
+                    // Free up all associated slots in a single query
+                    const slotIds = booking.SlotBookings.map((sb) => sb.spaSlotId);
+                    await tx.spaSlots.updateMany({
+                        where: {
+                            id: { in: slotIds }
+                        },
+                        data: { isBooked: false }
+                    });
+
+                    // Delete all associated slot booking records for this booking
+                    await tx.slotBooking.deleteMany({
+                        where: { spaBookingId: bookingId }
+                    });
 
                     return updatedBooking;
                 }
