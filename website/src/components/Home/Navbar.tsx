@@ -15,13 +15,13 @@ import { clearCustomer } from "@/src/store/customerSlice";
 const Navbar = () => {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const propertyCode = searchParams.get("code");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dynamicLogo, setDynamicLogo] = useState<string | null>(null);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
   const isAgencyApplicationPage = pathname.includes("/agency-application");
   const isRoomsPage = pathname.includes("/Rooms");
+    const propertyCode = isRoomsPage?searchParams.get("code"):searchParams.get("propertyCode");
   const dispatch = useDispatch();
   const router = useRouter();
   const bookingContext = useSelector((state: RootState) => state.booking);

@@ -6,8 +6,8 @@ import toast from "react-hot-toast";
 import { RootState } from "@/src/store/store";
 import { setLoyaltyProfile } from "@/src/store/loyaltyUserSlice";
 import { PropertyLoyaltyConfig } from "@/src/store/loyaltyUserTypes";
-import { getMyProfileApi, getAvailableSpasApi } from "../api/profile.api";
-import SpaBookingDialog from "../../../../../components/loyalty/SpaBookingDialog";
+import SpaBookingDialog from "../../../../components/loyalty/SpaBookingDialog";
+import { getAvailableSpasApi, getMyProfileApi } from "@/src/app/(auth)/profile/api/profile.api";
 
 type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 

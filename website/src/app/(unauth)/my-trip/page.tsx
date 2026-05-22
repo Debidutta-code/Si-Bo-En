@@ -20,8 +20,8 @@ import {
 import { GiCancel } from "react-icons/gi";
 import { HiOutlineViewGridAdd } from "react-icons/hi";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
-import { getAvailableSpasApi } from "@/src/app/(loyality)/(loyality-guest)/profile/api/profile.api";
 import SpaBookingDialog from "@/src/components/loyalty/SpaBookingDialog";
+import { getAvailableSpasApi } from "../../(auth)/profile/api/profile.api";
 
 type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 

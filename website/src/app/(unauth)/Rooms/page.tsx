@@ -205,11 +205,11 @@ const Rooms = () => {
     selectedPromotionsList: any[],
     priceData: any,
   ) => {
-    if (!customer.isAuthenticated) {
-      sessionStorage.setItem("customerRedirectUrl", "/Rooms");
-      router.push("/login");
-      return;
-    }
+    // if (!customer.isAuthenticated) {
+    //   sessionStorage.setItem("customerRedirectUrl", "/Rooms");
+    //   router.push("/login");
+    //   return;
+    // }
     setBookingSelectedPromotions(selectedPromotionsList);
 
     const rawRooms =
@@ -1083,7 +1083,7 @@ const Rooms = () => {
       </Dialog>
 
       {/* Guest Form Modal */}
-      {bookingRoom && price !== null && customer.isAuthenticated && (
+      {bookingRoom && price !== null  && (
         <GuestFormModal
           guestForms={guestForms}
           contactInfo={contactInfo}

@@ -722,7 +722,7 @@ const GuestFormModal: React.FC<Props> = ({
                               {payLaterPromos.map((promo: any, i: number) => (
                                 <div key={i} className="flex justify-between text-xs text-blue-500">
                                   <span>
-                                    {promo.name} ({promo.discountValue}{promo.discountType === 'percentage' ? '%' : ''})
+                                    {promo.name} 
                                     <span className="ml-1 text-[10px] text-gray-800">{t("GuestForm.payLater")}</span>
                                   </span>
                                   <span>{cur} {(promo.discountAmount ?? 0).toFixed(2)}</span>
