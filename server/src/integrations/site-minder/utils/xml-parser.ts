@@ -48,7 +48,13 @@ const builder = new XMLBuilder({
     suppressEmptyNode: false,
 });
 
-// ─── MAIN PARSER ──────────────────────────────────────────────────────────────
+const responseBuilder = new XMLBuilder({
+    ignoreAttributes: false,
+    attributeNamePrefix: '@_',
+    format: true,
+    suppressEmptyNode: true,  // ← <Success/> self-closing
+});
+
 
 export class SiteMinderXmlParser {
 
@@ -77,7 +83,6 @@ export class SiteMinderXmlParser {
             return { type: 'availability', security, availPayload };
         }
 
-        // Rooms & Rates pull — SiteMinder sends OTA_HotelAvailRQ
         if (body.OTA_HotelAvailRQ) {
             const roomsRatesPayload = SiteMinderXmlParser.parseRoomsRatesRQ(body.OTA_HotelAvailRQ);
             return { type: 'roomsRates', security, roomsRatesPayload };
@@ -214,7 +219,6 @@ export class SiteMinderXmlParser {
     // ─── ROOMS & RATES PARSER ─────────────────────────────────────────────────
 
     private static parseRoomsRatesRQ(rq: any): SiteMinderHotelAvailRQ {
-        // HotelCode is nested inside AvailRequestSegments > AvailRequestSegment > HotelSearchCriteria > Criterion > HotelRef
         const hotelCode =
             rq?.AvailRequestSegments?.AvailRequestSegment
                 ?.HotelSearchCriteria?.Criterion?.HotelRef?.['@_HotelCode'];
@@ -253,14 +257,14 @@ export class SiteMinderXmlParser {
                         '@_xmlns': 'http://www.opentravel.org/OTA/2003/05',
                         '@_EchoToken': rs.echoToken,
                         '@_TimeStamp': rs.timeStamp,
-                        '@_Version': rs.version,
+                        '@_Version': '1.0',  // ← fixed: was rs.version
                         ...body,
                     },
                 },
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);
+        return `<?xml version="1.0" encoding="UTF-8"?>\n` + responseBuilder.build(envelope);  // ← fixed: was builder
     }
 
     public static buildAvailResponse(rs: SiteMinderHotelAvailNotifRS): string {
@@ -285,21 +289,16 @@ export class SiteMinderXmlParser {
                         '@_xmlns': 'http://www.opentravel.org/OTA/2003/05',
                         '@_EchoToken': rs.echoToken,
                         '@_TimeStamp': rs.timeStamp,
-                        '@_Version': rs.version,
+                        '@_Version': '1.0',  // ← fixed: was 1.0 (number)
                         ...body,
                     },
                 },
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);
+        return `<?xml version="1.0" encoding="UTF-8"?>\n` + responseBuilder.build(envelope);  // ← fixed: was builder
     }
 
-    /**
-     * Build OTA_HotelAvailRS — response to SiteMinder's rooms & rates pull
-     * OBP only: includes Occupancy element with MaxOccupancy per room type
-     * Each RoomType + RatePlan combination gets its own RoomStay element
-     */
     public static buildRoomsRatesResponse(params: {
         echoToken: string;
         version: string;
@@ -312,7 +311,7 @@ export class SiteMinderXmlParser {
         }>;
         error?: { type: number; code?: number; text: string };
     }): string {
-        const { echoToken, version, roomStays, error } = params;
+        const { echoToken, roomStays, error } = params;
         const timeStamp = new Date().toISOString();
 
         let body: any;
@@ -331,7 +330,6 @@ export class SiteMinderXmlParser {
             body = {
                 Success: '',
                 RoomStays: {
-                    // Each room+rate combination is its own RoomStay as per SiteMinder spec
                     RoomStay: roomStays.map(rs => ({
                         RoomTypes: {
                             RoomType: {
@@ -339,7 +337,6 @@ export class SiteMinderXmlParser {
                                 RoomDescription: {
                                     '@_Name': rs.roomTypeName,
                                 },
-                                // OBP: MaxOccupancy tells SiteMinder how many BaseByGuestAmt to send
                                 Occupancy: {
                                     '@_AgeQualifyingCode': '10',
                                     '@_MaxOccupancy': rs.maxOccupancy,
@@ -368,14 +365,14 @@ export class SiteMinderXmlParser {
                         '@_xmlns': 'http://www.opentravel.org/OTA/2003/05',
                         '@_EchoToken': echoToken,
                         '@_TimeStamp': timeStamp,
-                        '@_Version': version,
+                        '@_Version': '1.0',  // ← fixed: was version (param)
                         ...body,
                     },
                 },
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);
+        return `<?xml version="1.0" encoding="UTF-8"?>\n` + responseBuilder.build(envelope);  // ← fixed: was builder
     }
 
     public static buildSoapFault(code: string, message: string): string {
@@ -392,6 +389,6 @@ export class SiteMinderXmlParser {
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);
+        return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);  // ← keeps original builder (no Success tag here)
     }
 }

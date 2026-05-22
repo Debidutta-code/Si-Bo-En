@@ -919,7 +919,7 @@ class PromotionClass {
         }, 0);
 
         const totalDiscountedAmount = visibleDiscountAmount + geoDiscountAmount;
-const updatedDailyPriceBrakeDown = (this.priceBrakeDown.dailyPriceBrakeDown ?? []).map(day => {
+        const updatedDailyPriceBrakeDown = (this.priceBrakeDown.dailyPriceBrakeDown ?? []).map(day => {
             if (geoDiscountAmount === 0) return day;
             const dayWeight = day.totalAmount / this.priceBrakeDown.amountBeforeTax;
             const dayGeoDiscount = geoDiscountAmount * dayWeight;
@@ -1259,13 +1259,17 @@ class TouristTaxClass {
     noOfDays: number;
     noOfBedrooms: number;
     constructor(
-        touristTax: ITouristTax[],
+        touristTax: ITouristTax[] | ITouristTax,
         room: IRoom,
         noOfRooms: number,
         priceBrakeDown: PriceBrakeDown,
         noOfDays: number
     ) {
-        this.touristTax = touristTax;
+        this.touristTax = Array.isArray(touristTax)
+            ? touristTax
+            : touristTax
+                ? [touristTax]
+                : [];
         this.room = room;
         this.noOfRooms = noOfRooms;
         this.priceBrakedown = priceBrakeDown;
@@ -1274,7 +1278,6 @@ class TouristTaxClass {
     }
     public findTouristTax(): PriceBrakeDown {
         let touristTaxes: PromotionBrakeDown[] = [];
-
         this.touristTax.map(tax => {
             touristTaxes.push(this.calculateTouristTaxvalue(tax));
         });
