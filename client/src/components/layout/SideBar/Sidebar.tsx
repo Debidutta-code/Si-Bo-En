@@ -186,7 +186,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
       main.push({
         name: t('Sidebar.spa'), icon: Flower2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'],
         children: [
-          { name: t('Sidebar.spaConfiguration'), href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'] },
+          { name: t('Sidebar.spaConfiguration'), href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
           { name: t('Sidebar.mySpa'), href: `/property/spa/me/${pid}`, icon: Smile, userLevels: [0], priority: 1, roles: ['spa_manager'] },
         ]
       })

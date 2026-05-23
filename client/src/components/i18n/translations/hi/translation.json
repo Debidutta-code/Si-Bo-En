@@ -759,7 +759,9 @@
     "staff": "स्टाफ",
     "revenueManager": "राजस्व प्रबंधक",
     "frontDesk": "फ्रंट डेस्क",
-    "housekeeping": "हाउसकीपिंग"
+    "housekeeping": "हाउसकीपिंग",
+  "spaManager": "स्पा प्रबंधक"
+
   },
   "Booking": {
     "title": "बुकिंग",

@@ -15,7 +15,7 @@ import ImageSlider from "@/components/shared/ImageSlider";
 import { formatInTimeZone } from "date-fns-tz";
 
 export default function MySpa() {
-    const { t } = useTranslation('MySpa');
+    const { t } = useTranslation();
     const { propertyId } = useParams();
     const [loader, setLoader] = useState<ILoader>({ isLoading: false, message: "" });
     const [spas, setSpas] = useState<ISpa[]>([]);
@@ -32,7 +32,7 @@ export default function MySpa() {
     }, [propertyId, dateRange]);
     
     const fetchUserSpa = async (propertyId: string) => {
-        setLoader({ isLoading: true, message: t('Spa.loader.loading') });
+        setLoader({ isLoading: true, message: t('MySpa.loader.loading') });
         try {
             const startISO = format(dateRange.start, "yyyy-MM-dd'T'HH:mm:ss");
             const endISO = format(dateRange.end, "yyyy-MM-dd'T'HH:mm:ss");
@@ -41,10 +41,10 @@ export default function MySpa() {
             if (result.success) {
                 setSpas(result.data || []);
             } else {
-                toast.error(result.message || t('Spa.toast.fetchError'));
+                toast.error(result.message || t('MySpa.toast.fetchError'));
             }
         } catch (error) {
-            toast.error(t('Spa.toast.fetchError'));
+            toast.error(t('MySpa.toast.fetchError'));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -52,20 +52,20 @@ export default function MySpa() {
 
     const handleMarkCompleted = async (slotId: string) => {
         if (!propertyId) return;
-        setLoader({ isLoading: true, message: t('Spa.loader.markingCompleted') });
+        setLoader({ isLoading: true, message: t('MySpa.loader.markingCompleted') });
         try {
             const res = await markSlotAsCompletedService(slotId);
             if (res.success) {
-                toast.success(t('Spa.toast.markCompletedSuccess'));
+                toast.success(t('MySpa.toast.markCompletedSuccess'));
                 const startISO = format(dateRange.start, "yyyy-MM-dd'T'HH:mm:ss");
                 const endISO = format(dateRange.end, "yyyy-MM-dd'T'HH:mm:ss");
                 const result = await SpasForUserService(propertyId, startISO, endISO);
                 if (result.success) setSpas(result.data || []);
             } else {
-                toast.error(res.message || t('Spa.toast.markCompletedFailed'));
+                toast.error(res.message || t('MySpa.toast.markCompletedFailed'));
             }
         } catch (error) {
-            toast.error(t('Spa.toast.markCompletedError'));
+            toast.error(t('MySpa.toast.markCompletedError'));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -83,15 +83,15 @@ export default function MySpa() {
         <div className="container mx-auto py-8">
             <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{t('Spa.title')}</h1>
-                    <p className="text-gray-500 mt-2">{t('Spa.subtitle')}</p>
+                    <h1 className="text-3xl font-bold text-gray-900">{t('MySpa.title')}</h1>
+                    <p className="text-gray-500 mt-2">{t('MySpa.subtitle')}</p>
                 </div>
                 
                 {/* Filter */}
                 <div className="flex flex-col gap-2 bg-white p-4 border rounded-md shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 mb-1">{t('Spa.filter.startDate')}</span>
+                            <span className="text-xs text-gray-500 mb-1">{t('MySpa.filter.startDate')}</span>
                             <input 
                                 type="date" 
                                 className="text-sm border rounded p-1.5 focus:ring-primary focus:border-primary"
@@ -105,7 +105,7 @@ export default function MySpa() {
                         </div>
                         <span className="text-gray-400 mt-5">-</span>
                         <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 mb-1">{t('Spa.filter.endDate')}</span>
+                            <span className="text-xs text-gray-500 mb-1">{t('MySpa.filter.endDate')}</span>
                             <input 
                                 type="date" 
                                 className="text-sm border rounded p-1.5 focus:ring-primary focus:border-primary"
@@ -135,16 +135,16 @@ export default function MySpa() {
                                             <div className="flex items-center gap-2 mb-1">
                                                 <CardTitle className="text-xl">{spa.name}</CardTitle>
                                                 <Badge variant={spa.isActive ? "default" : "secondary"}>
-                                                    {spa.isActive ? t('Spa.badge.active') : t('Spa.badge.inactive')}
+                                                    {spa.isActive ? t('MySpa.badge.active') : t('MySpa.badge.inactive')}
                                                 </Badge>
                                             </div>
                                             <CardDescription className="line-clamp-2 max-w-md">
-                                                {spa.description || t('Spa.card.noDescription')}
+                                                {spa.description || t('MySpa.card.noDescription')}
                                             </CardDescription>
                                         </div>
                                         <div className="text-right">
                                             <Badge variant="outline" className="font-mono bg-white">
-                                                {t('Spa.card.code')} {spa.itemCode}
+                                                {t('MySpa.card.code')} {spa.itemCode}
                                             </Badge>
                                         </div>
                                     </div>
@@ -158,7 +158,7 @@ export default function MySpa() {
                                     <div className="grid grid-cols-2 gap-2 text-sm text-gray-600 mt-4">
                                         <div className="flex items-center gap-1.5">
                                             <Clock className="w-4 h-4 text-primary/70" />
-                                            <span>{spa.serviceTime} {t('Spa.card.minsSession')}</span>
+                                            <span>{spa.serviceTime} {t('MySpa.card.minsSession')}</span>
                                         </div>
                                         {spa.location && (
                                             <div className="flex items-center gap-1.5">
@@ -184,7 +184,7 @@ export default function MySpa() {
                                                             <div className="text-left">
                                                                 <p className="font-semibold text-base">{formatDate(spaDate.date)}</p>
                                                                 <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                                                                    {spaDate.Slots?.length || 0} {t('Spa.slots.available')}
+                                                                    {spaDate.Slots?.length || 0} {t('MySpa.slots.available')}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -204,23 +204,23 @@ export default function MySpa() {
                                                                             </div>
                                                                             {slot.isCompleted ? (
                                                                                 <Badge variant="default" className="bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200">
-                                                                                    {t('Spa.badge.completed')}
+                                                                                    {t('MySpa.badge.completed')}
                                                                                 </Badge>
                                                                             ) : slot.isBooked ? (
                                                                                 <Badge variant="default" className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100">
-                                                                                    {t('Spa.badge.booked')}
+                                                                                    {t('MySpa.badge.booked')}
                                                                                 </Badge>
                                                                             ) : (
                                                                                 <Badge variant="outline" className="text-green-600 bg-green-50 border-green-200">
-                                                                                    {t('Spa.badge.available')}
+                                                                                    {t('MySpa.badge.available')}
                                                                                 </Badge>
                                                                             )}
                                                                         </div>
                                                                         {slot.isBooked && !slot.isCompleted && (
                                                                             <div className="flex flex-col gap-2 mt-2 pt-2 border-t text-sm flex-grow">
                                                                                 <div className="flex flex-col gap-1 text-gray-600">
-                                                                                    <span><strong>{t('Spa.slots.guest')}</strong> {slot.userName || t('Spa.table.na')}</span>
-                                                                                    {slot.Reservation?.bookingCode && <span><strong>{t('Spa.slots.code')}</strong> {slot.Reservation.bookingCode.split("-")[1]}</span>}
+                                                                                    <span><strong>{t('MySpa.slots.guest')}</strong> {slot.userName || t('MySpa.table.na')}</span>
+                                                                                    {slot.Reservation?.bookingCode && <span><strong>{t('MySpa.slots.code')}</strong> {slot.Reservation.bookingCode.split("-")[1]}</span>}
                                                                                     {spa.discountValue && (
                                                                                         <span><strong>Price:</strong> {spa.currencyCode || "AED"} {spa.discountValue}</span>
                                                                                     )}
@@ -233,7 +233,7 @@ export default function MySpa() {
                                                                                         onClick={() => handleMarkCompleted(slot.id)}
                                                                                         className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90 transition font-medium text-center w-full"
                                                                                     >
-                                                                                        {t('Spa.slots.markCompleted')}
+                                                                                        {t('MySpa.slots.markCompleted')}
                                                                                     </button>
                                                                                 </div>
                                                                             </div>
@@ -241,8 +241,8 @@ export default function MySpa() {
                                                                         {slot.isCompleted && (
                                                                             <div className="flex flex-col gap-2 mt-2 pt-2 border-t text-sm flex-grow">
                                                                                 <div className="flex flex-col gap-1 text-gray-600">
-                                                                                    <span><strong>{t('Spa.slots.guest')}</strong> {slot.userName || t('Spa.table.na')}</span>
-                                                                                    {slot.Reservation?.bookingCode && <span><strong>{t('Spa.slots.code')}</strong> {slot.Reservation.bookingCode}</span>}
+                                                                                    <span><strong>{t('MySpa.slots.guest')}</strong> {slot.userName || t('MySpa.table.na')}</span>
+                                                                                    {slot.Reservation?.bookingCode && <span><strong>{t('MySpa.slots.code')}</strong> {slot.Reservation.bookingCode}</span>}
                                                                                      {spa.discountValue && (
                                                                                         <span><strong>Price:</strong> {spa.currencyCode || "AED"} {spa.discountValue}</span>
                                                                                     )}
@@ -257,7 +257,7 @@ export default function MySpa() {
                                                             </div>
                                                         ) : (
                                                             <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg">
-                                                                {t('Spa.slots.noSlots')}
+                                                                {t('MySpa.slots.noSlots')}
                                                             </div>
                                                         )}
                                                     </AccordionContent>
@@ -267,7 +267,7 @@ export default function MySpa() {
                                     ) : (
                                         <div className="p-8 text-center text-gray-500 bg-gray-50 m-4 rounded-lg border border-dashed">
                                             <Calendar className="w-8 h-8 text-gray-400 mx-auto mb-2 opacity-50" />
-                                            <p>{t('Spa.slots.noDates')}</p>
+                                            <p>{t('MySpa.slots.noDates')}</p>
                                         </div>
                                     )}
                                 </CardContent>
@@ -276,9 +276,9 @@ export default function MySpa() {
                     ) : (
                         <div className="col-span-full py-16 text-center border rounded-xl bg-gray-50">
                             <UserX className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900">{t('Spa.empty.title')}</h3>
+                            <h3 className="text-lg font-medium text-gray-900">{t('MySpa.empty.title')}</h3>
                             <p className="text-gray-500 mt-1 max-w-sm mx-auto">
-                                {t('Spa.empty.subtitle')}
+                                {t('MySpa.empty.subtitle')}
                             </p>
                         </div>
                     )}

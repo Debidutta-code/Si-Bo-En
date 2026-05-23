@@ -756,8 +756,7 @@
     "hotelManager": "Hotel Manager",
     "staff": "Staff",
     "revenueManager": "Revenue Manager",
-    "frontDesk": "Front Desk",
-    "housekeeping": "Housekeeping"
+    "spaManager":"Spa Manager"
   },
   "Booking": {
     "title": "Bookings",
@@ -4018,7 +4017,7 @@
       "selectSubCategory": "Select Sub-Category",
       "serviceTime": "Service Time (mins)",
       "location": "Location",
-      "discountValue": "Discount Value",
+      "discountValue": "Price",
       "currencyCode": "Currency Code",
       "selectCurrency": "Select Currency",
       "isInclusive": "Is Inclusive",

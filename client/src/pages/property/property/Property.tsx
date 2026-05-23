@@ -57,7 +57,7 @@ import { upsertCreationTranslationService } from "../service/creation-lang.servi
 import { useTranslation } from 'react-i18next';
 
 export default function PropertyPage() {
-        const { t } = useTranslation();
+    const { t } = useTranslation();
 
     const { user } = useAppSelector((state) => state.user);
     const [addMemberDialogOpen, setAddMemberDialogOpen] = useState<boolean>(false)
@@ -87,14 +87,17 @@ export default function PropertyPage() {
         under: "",
         users: [],
         _translations: {
-            name:""
-      }
+            name: ""
+        }
 
     });
     const [propertyDetails, setPropertyDetails] = useState<IPropertyCreations | null>(null);
     const [isCreationCompleted, setIsCreationCompleted] = useState<boolean>(false);
     const [isDrafted, setIsDrafted] = useState<boolean>(false);
-    const roles = [{ value: "hotel_manager", label: t('Roles.hotelManager') }, { value: "staff", label: t('Roles.staff') },];
+    const roles = [
+        { value: "hotel_manager", label: t('Roles.hotelManager') },
+        { value: "staff", label: t('Roles.staff') },
+        { value: "spa_manager", label: t('Roles.spaManager') }];
     const [selectedRole, setSelectedRole] = useState<string>(roles[0].value);
     const [selectedUser, setSelectedUser] = useState<string>('');
     const [users, setUsers] = useState<HotelManagerMapping>({
@@ -553,7 +556,7 @@ export default function PropertyPage() {
                     <div className="flex justify-between items-start mb-6">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                {creationDetails?._translations?creationDetails._translations.name:creationDetails.name}
+                                {creationDetails?._translations ? creationDetails._translations.name : creationDetails.name}
                             </h1>
                             <div className="flex items-center space-x-3">
                                 <p className="text-sm text-gray-600">
@@ -660,7 +663,7 @@ export default function PropertyPage() {
                                                 <SelectContent>
                                                     {roles.map((role, index) => (
                                                         <SelectItem key={index} value={role.value}>
-                                                            {role.value === "hotel_manager" ? t('Roles.hotelManager') : t('Roles.staff')}
+                                                            {role.value === "hotel_manager" ? t('Roles.hotelManager') : role.value==="staff"?t('Roles.staff'):t('Roles.spaManager')}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -833,7 +836,7 @@ export default function PropertyPage() {
                         </p>
                         <p className={`text-sm ${isCreationCompleted && isDrafted ? 'text-green-700' : 'text-yellow-700'}`}>
                             {isCreationCompleted && isDrafted
-                               ? t('Property.propertyReadyForBookings')
+                                ? t('Property.propertyReadyForBookings')
                                 : t('Property.completePropertySetupToStart')
                             }
                         </p>
@@ -914,7 +917,7 @@ export default function PropertyPage() {
                     {/* Language picker panel */}
                     {isLangPanelOpen && (
                         <div className="mb-5 border border-dashed border-gray-200 rounded-lg p-4 bg-gray-50">
-                            
+
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                 {languages.map((lang) => {
                                     const isEn = lang.code === 'en';
