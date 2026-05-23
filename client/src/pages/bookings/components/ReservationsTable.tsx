@@ -312,7 +312,7 @@ export default function ReservationsTable({
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
                         <VenetianMask className="w-4 h-4 mr-3" />
-                        Add Spa / Activity
+                        {t('Bookings.table.addSpa')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDownloadVoucher(reservation.bookingCode)} className="cursor-pointer">
                         <FileText className="w-4 h-4 mr-3" />

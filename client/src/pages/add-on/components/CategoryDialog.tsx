@@ -11,6 +11,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import type { IAddonCategory, IAddonCategoryCreate } from "../interface";
+import { useTranslation } from "react-i18next";
 
 interface CategoryDialogProps {
     open: boolean;
@@ -20,24 +21,26 @@ interface CategoryDialogProps {
     mode: "create" | "edit";
 }
 
-export default function CategoryDialog({ 
-    open, 
-    onOpenChange, 
-    onSave, 
-    category, 
-    mode 
+export default function CategoryDialog({
+    open,
+    onOpenChange,
+    onSave,
+    category,
+    mode
 }: CategoryDialogProps) {
+    const { t } = useTranslation();
+
     const [formData, setFormData] = useState<IAddonCategoryCreate>({
         name: category?.name || "",
     });
 
     const handleSave = async () => {
         await onSave(formData);
-        setFormData({ name: ""});
+        setFormData({ name: "" });
     };
 
     const handleClose = () => {
-        setFormData({ name: ""});
+        setFormData({ name: "" });
         onOpenChange(false);
     };
 
@@ -46,31 +49,33 @@ export default function CategoryDialog({
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>
-                        {mode === "create" ? "Create New Category" : "Edit Category"}
+                        {mode === "create" ? t("Addon.categoryDialog.createTitle") : t("Addon.categoryDialog.editTitle")}
                     </DialogTitle>
                     <DialogDescription>
-                        {mode === "create" 
-                            ? "Add a new add-on category" 
-                            : "Update category details"}
+                        {mode === "create"
+                            ? t("Addon.categoryDialog.createDescription")
+                            : t("Addon.categoryDialog.editDescription")}
                     </DialogDescription>
                 </DialogHeader>
+
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="category-name">Category Name *</Label>
+                        <Label htmlFor="category-name">{t("Addon.categoryDialog.form.categoryNameLabel")}</Label>
                         <Input
                             id="category-name"
-                            placeholder="e.g., Transportation, Food & Beverage"
+                            placeholder={t("Addon.categoryDialog.form.categoryNamePlaceholder")}
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
                     </div>
                 </div>
+
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose}>
-                        Cancel
+                        {t("Addon.categoryDialog.buttons.cancel")}
                     </Button>
                     <Button onClick={handleSave} disabled={!formData.name.trim()}>
-                        {mode === "create" ? "Create" : "Update"}
+                        {mode === "create" ? t("Addon.categoryDialog.buttons.create") : t("Addon.categoryDialog.buttons.update")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

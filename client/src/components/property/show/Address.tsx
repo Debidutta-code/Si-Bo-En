@@ -187,15 +187,15 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
               <DropdownMenuTrigger asChild>
                 <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
                   <Globe className="h-4 w-4" />
-                  Translations
+                 {t( 'Property.translations')}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => setAddTranslationOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Translation
+                  <Plus className="h-4 w-4 mr-2" /> {t('Common.addTranslation')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setCheckTranslationsOpen(true)}>
-                  <Languages className="h-4 w-4 mr-2" /> Check Translations
+                  <Languages className="h-4 w-4 mr-2" /> {t('Common.checkTranslation')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

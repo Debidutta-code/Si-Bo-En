@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { languages } from "@/components/language/language";
 import { usePropertyContextSafe } from "@/contexts/PropertyContext";
 import { upsertRatePlanTranslationService } from "../services/ratePlan-language.service";
@@ -32,38 +33,41 @@ export default function AddRatePlanLanguageDialog({
   onOpenChange,
   ratePlanId,
 }: AddRatePlanLanguageDialogProps) {
+  const { t } = useTranslation("AddRatePlanLanguageDialog");
+
   const [selectedLang, setSelectedLang] = useState("");
   const [ratePlanName, setRatePlanName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const propertyCtx = usePropertyContextSafe();
-  const availableLanguages = propertyCtx?.languages && propertyCtx.languages.length > 0
-    ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))
-    : languages;
+  const availableLanguages =
+    propertyCtx?.languages && propertyCtx.languages.length > 0
+      ? languages.filter((l) =>
+          propertyCtx.languages.some((pl) => pl.language === l.code)
+        )
+      : languages;
 
   const handleSave = async () => {
     if (!selectedLang) {
-      toast.error("Please select a language.");
+      toast.error(t("RatePlan.AddRatePlanLanguageDialog.toast.selectLanguage"));
       return;
     }
     if (!ratePlanName.trim()) {
-      toast.error("Rate plan name is required.");
+      toast.error(t("RatePlan.AddRatePlanLanguageDialog.toast.nameRequired"));
       return;
     }
 
     setLoading(true);
-    const payload = {
-      [selectedLang]: { ratePlanName },
-    };
+    const payload = { [selectedLang]: { ratePlanName } };
 
     const res = await upsertRatePlanTranslationService(ratePlanId, payload);
     if (res.success) {
-      toast.success("Translation added successfully!");
+      toast.success(t("RatePlan.AddRatePlanLanguageDialog.toast.saveSuccess"));
       setRatePlanName("");
       setSelectedLang("");
       onOpenChange(false);
     } else {
-      toast.error(res.message || "Failed to add translation.");
+      toast.error(res.message || t("RatePlan.AddRatePlanLanguageDialog.toast.saveFailed"));
     }
     setLoading(false);
   };
@@ -72,14 +76,14 @@ export default function AddRatePlanLanguageDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Language Translation</DialogTitle>
+          <DialogTitle>{t("RatePlan.AddRatePlanLanguageDialog.title")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Language</Label>
+            <Label>{t("RatePlan.AddRatePlanLanguageDialog.form.languageLabel")}</Label>
             <Select value={selectedLang} onValueChange={setSelectedLang}>
               <SelectTrigger>
-                <SelectValue placeholder="Select Language" />
+                <SelectValue placeholder={t("RatePlan.AddRatePlanLanguageDialog.form.languagePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {availableLanguages.map((lang) => (
@@ -92,9 +96,9 @@ export default function AddRatePlanLanguageDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Translated Rate Plan Name</Label>
+            <Label>{t("RatePlan.AddRatePlanLanguageDialog.form.nameLabel")}</Label>
             <Input
-              placeholder="e.g., Tarifa Estándar"
+              placeholder={t("RatePlan.AddRatePlanLanguageDialog.form.namePlaceholder")}
               value={ratePlanName}
               onChange={(e) => setRatePlanName(e.target.value)}
             />
@@ -103,10 +107,10 @@ export default function AddRatePlanLanguageDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancel
+            {t("RatePlan.AddRatePlanLanguageDialog.form.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Save Translation"}
+            {loading ? t("RatePlan.AddRatePlanLanguageDialog.form.saving") : t("RatePlan.AddRatePlanLanguageDialog.form.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

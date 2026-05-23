@@ -23,9 +23,12 @@ import AddCreationLanguageDialog from "@/components/creation/AddCreationLanguage
 import CheckCreationLanguagesDialog from "@/components/creation/CheckCreationLanguagesDialog";
 import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
 import { upsertCreationTranslationService } from "../service/creation-lang.service";
+import { useTranslation } from 'react-i18next';
 
 
 export default function page() {
+        const { t } = useTranslation();
+
     const { creationId } = useParams<{ creationId: string }>();
     const [brandManagers, setBrandManagers] = useState<IBrandManagersMapping>({
         brandManagers: []
@@ -73,7 +76,7 @@ export default function page() {
                 setCreations(response.data.properties)
                 setBrandDetails(response.data.brandData)
             } else {
-                toast.error(response.message || "Failed to fetch")
+                toast.error(response.message || t('Toast.failedToFetch'));
             }
         } catch (error) {
             // console.log(error)
@@ -90,21 +93,21 @@ export default function page() {
                 const data = response.data;
                 setBrandManagers(data);
             } else {
-                toast.error(response.message || "Failed to fetch users");
+                toast.error(response.message || t('Toast.failedToFetchUsers'));
             }
         } catch (error) {
             console.error("Error fetching users:", error);
-            toast.error("Failed to fetch users");
+            toast.error(t('Toast.failedToFetchUsers'));
         }
     }
 
     const handleAddMember = async () => {
         if (!selectedUser) {
-            toast.error("Please select a user");
+            toast.error(t('Toast.pleaseSelectUser'));
             return;
         }
         if (!creationId) {
-            toast.error("Invalid Creation");
+            toast.error(t('Toast.creationIdMissing'));
             return;
         }
         setIsAssigningUser(true);
@@ -115,16 +118,16 @@ export default function page() {
                 role: "group_manager"
             });
             if (response.success) {
-                toast.success("User assigned successfully");
+                toast.success(t('Toast.userAssignedSuccessfully'));
                 // Reset form
                 setSelectedUser('');
                 // You might want to refresh the property data or user list here
             } else {
-                toast.error(response.message || "Failed to assign user");
+                toast.error(response.message || t('Toast.failedToAssignUser'));
             }
         } catch (error) {
             console.error("Error assigning user:", error);
-            toast.error("Failed to assign user");
+            toast.error(t('Toast.failedToAssignUser'));
         } finally {
             setIsAssigningUser(false);
         }
@@ -145,7 +148,7 @@ export default function page() {
             ...prev,
             images: [...prev.images, ...uploadedUrls]
         }));
-        toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+        toast.success(t('Toast.imagesUploadedSuccessfully', { count: uploadedUrls.length }));
     };
 
     const handleRemoveImage = (index: number) => {
@@ -157,20 +160,20 @@ export default function page() {
 
     const handleUpdateBrand = async () => {
         if (!creationId) {
-            toast.error('Invalid Brand ID');
+            toast.error(t('Toast.invalidBrandId'));
             return;
         }
         try {
             const response = await updateCreationService(creationId, updateBrandDetails.name, updateBrandDetails.images, updateBrandDetails.isActive);
             if (!response.success) {
-                toast.error(response.message || 'Failed to update brand');
+                toast.error(response.message || t('Toast.failedToUpdateBrand'));
                 return;
             }
-            toast.success('Brand updated successfully');
+            toast.success(t('Toast.brandUpdatedSuccessfully'));
             await fetchGroup();
             setIsUpdateDialogOpen(false);
         } catch (err: any) {
-            toast.error('Failed to update brand');
+            toast.error(t('Toast.failedToUpdateBrand'));
         }
     };
 
@@ -181,7 +184,7 @@ export default function page() {
 
     const getTabDisplayName = (tab: string): string => {
         const pluralMap: { [key: string]: string } = {
-            property: "properties"
+            property: t('Brand.properties')
         };
         return pluralMap[tab] || tab;
     };
@@ -189,7 +192,7 @@ export default function page() {
     if (isLoading) {
         return (
             <div className='min-h-screen w-full flex justify-center items-center'>
-                <Loader text={`Loading your Brands/Properties ...`} />
+                <Loader text={t('Brand.loadingYourBrands')} />
             </div>
         );
     }
@@ -221,7 +224,7 @@ export default function page() {
                                     ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
                                     : 'bg-red-100 text-red-700 ring-1 ring-red-200'
                                     }`}>
-                                    {brandDetails.isActive ? '● Active' : '● Inactive'}
+                                    {brandDetails.isActive ? `● ${t('Common.active')}` : `● ${t('Common.inactive')}`}
                                 </span>
                             </div>
                         </div>
@@ -232,7 +235,7 @@ export default function page() {
                         <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Total Properties</h3>
+                                    <h3 className="text-sm font-medium text-gray-500">{t('Brand.totalProperties')}</h3>
                                     <p className="text-3xl font-bold text-gray-900 mt-2">{creations?.length}</p>
                                 </div>
                                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -245,7 +248,7 @@ export default function page() {
                         <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Brand Managers</h3>
+                                    <h3 className="text-sm font-medium text-gray-500">{t('Brand.brandManagers')}</h3>
                                     <p className="text-3xl font-bold text-gray-900 mt-2">{brandDetails.users?.length}</p>
                                 </div>
                                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -260,7 +263,7 @@ export default function page() {
                         <div className="border-t border-gray-200 pt-5">
                             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                                 <User2Icon className="h-4 w-4 mr-2 text-gray-500" />
-                                Assigned Managers
+                                {t('Brand.assignedManagers')}
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {brandDetails.users.map((user) => (
@@ -284,9 +287,9 @@ export default function page() {
             {/* Actions Bar with Dropdown */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900">Manage Properties</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{t('Brand.title')}</h2>
                     <p className="text-sm text-gray-600 mt-1">
-                        View and manage all properties under this brand
+                        {t('Brand.subtitle')}
                     </p>
                 </div>
 
@@ -300,19 +303,19 @@ export default function page() {
                         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); openUpdateDialog(); }} className="cursor-pointer">
                             <Button variant={"secondary"}>
 
-                                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Brand
+                                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> {t('Brand.updateBrand')}
                             </Button>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setAddLanguageDialogOpen(true); }} className="cursor-pointer">
                             <Button variant={"secondary"}>
-                                <Plus className="h-4 w-4 mr-2 text-gray-600" /> Add Translation
+                                <Plus className="h-4 w-4 mr-2 text-gray-600" /> {t("Common.addTranslation")}
                             </Button>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCheckLanguagesDialogOpen(true); }} className="cursor-pointer">
                             <Button variant={"secondary"}>
-                                <Globe className="h-4 w-4 mr-2 text-gray-600" /> Check Translations
+                                <Globe className="h-4 w-4 mr-2 text-gray-600" /> {t("Common.checkTranslation")}
                             </Button>
                         </DropdownMenuItem>
 
@@ -321,23 +324,23 @@ export default function page() {
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
                                     <Button variant={"secondary"} onClick={() => { setAssignBrandManagerDialogOpen(true) }}>
 
-                                        <User2Icon className='h-4 w-4 mr-2' /> Assign Brand Manager
+                                        <User2Icon className='h-4 w-4 mr-2' /> {t('Brand.assignBrandManager')}
                                     </Button>
                                 </DropdownMenuItem>
                             </DialogTrigger>
                             <DialogContent className='sm:max-w-[425px]'>
                                 <DialogHeader>
-                                    <DialogTitle>Assign Brand Manager</DialogTitle>
+                                    <DialogTitle>{t('Brand.assignBrandManager')}</DialogTitle>
                                     <DialogDescription>
-                                        Assign a manager to your Brand.
+                                        {t('Brand.assignBrandManagerDescription')}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className='space-y-4 py-4'>
                                     <div className='space-y-2'>
-                                        <Label htmlFor='user'>User</Label>
+                                        <Label htmlFor='user'>{t('Common.name')}</Label>
                                         <Select value={selectedUser} onValueChange={setSelectedUser}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder='Select a user' />
+                                                <SelectValue placeholder={t('Brand.selectUser')} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {brandManagers?.brandManagers?.length > 0 ? (
@@ -348,7 +351,7 @@ export default function page() {
                                                     ))
                                                 ) : (
                                                     <SelectItem value="qq" disabled>
-                                                        No users available for this role
+                                                        {t('Brand.noUsersAvailable')}
                                                     </SelectItem>
                                                 )}
                                             </SelectContent>
@@ -360,7 +363,7 @@ export default function page() {
                                         onClick={handleAddMember}
                                         disabled={!selectedUser || isAssigningUser}
                                     >
-                                        {isAssigningUser ? 'Assigning...' : 'Assign User'}
+                                        {isAssigningUser ? t('Common.assigning') : t('Common.assignUser')}
                                     </Button>
                                 </DialogFooter>
                             </DialogContent>
@@ -381,13 +384,13 @@ export default function page() {
             <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Update Brand</DialogTitle>
-                        <DialogDescription>Update basic brand details.</DialogDescription>
+                        <DialogTitle>{t('Brand.updateBrand')}</DialogTitle>
+                        <DialogDescription>{t('Brand.assignBrandManagerDescription')}</DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-2">
                         <div>
-                            <Label className="text-sm font-medium">Name</Label>
+                            <Label className="text-sm font-medium">{t('Common.name')}</Label>
                             <Input
                                 value={updateBrandDetails.name}
                                 onChange={(e) => setUpdateBrandDetails({ ...updateBrandDetails, name: e.target.value })}
@@ -397,7 +400,7 @@ export default function page() {
 
                         {/* Images Section */}
                         <div className="space-y-2">
-                            <Label className="text-sm font-medium">Images</Label>
+                            <Label className="text-sm font-medium">{t('Property.images')}</Label>
                             <Button
                                 type="button"
                                 variant="outline"
@@ -405,7 +408,7 @@ export default function page() {
                                 className="w-full"
                             >
                                 <Upload className="mr-2 h-4 w-4" />
-                                Upload Images
+                                {t('Common.uploadImages')}
                             </Button>
 
                             {/* Image Preview Grid */}
@@ -438,7 +441,7 @@ export default function page() {
                                 checked={updateBrandDetails.isActive}
                                 onChange={(e) => setUpdateBrandDetails({ ...updateBrandDetails, isActive: e.target.checked })}
                             />
-                            <Label htmlFor="active" className="text-sm cursor-pointer">Active</Label>
+                            <Label htmlFor="active" className="text-sm cursor-pointer">{t('Common.active')}</Label>
                         </div>
                     </div>
 
@@ -451,8 +454,8 @@ export default function page() {
                     />
 
                     <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleUpdateBrand}>Save</Button>
+                        <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>{t('Common.cancel')}</Button>
+                        <Button onClick={handleUpdateBrand}>{t('Common.save')}</Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -474,10 +477,10 @@ export default function page() {
                             </svg>
                         </div>
                         <h3 className="mt-4 text-lg font-medium text-gray-900">
-                            No {getTabDisplayName(currentTab)} found
+                            {t('Brand.noFound', { item: getTabDisplayName(currentTab) })}
                         </h3>
                         <p className="mt-2 text-sm text-gray-500">
-                            Get started by creating your first {currentTab}.
+                            {t('Brand.getStarted', { item: currentTab })}
                         </p>
                     </div>
                 ) : (
@@ -506,7 +509,7 @@ export default function page() {
                                                 navigate(`/property/${item.property?.id}`)
                                         }}
                                     >
-                                        View Details
+                                        {t('Common.viewDetails')}
                                     </Button>
                                     {
                                         item.type == "property" && (
@@ -520,7 +523,7 @@ export default function page() {
                                                 <Settings className="h-4 w-4" />
                                                 {!item.property?.isDraft &&
 
-                                                    <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
+                                                    <span className="ml-2">{!item.property?.isDraft && t('Common.completeSetup')}</span>
                                                 }
 
                                             </Button>

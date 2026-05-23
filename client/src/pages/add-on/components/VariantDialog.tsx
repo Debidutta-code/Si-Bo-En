@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,11 +18,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { 
-    IAddonVariant, 
-    IAddonVariantCreate, 
+import type {
+    IAddonVariant,
+    IAddonVariantCreate,
     IAddonCategory,
-    IAddonSubCategory 
+    IAddonSubCategory,
 } from "../interface";
 
 interface VariantDialogProps {
@@ -34,15 +35,17 @@ interface VariantDialogProps {
     mode: "create" | "edit";
 }
 
-export default function VariantDialog({ 
-    open, 
-    onOpenChange, 
-    onSave, 
-    variant, 
+export default function VariantDialog({
+    open,
+    onOpenChange,
+    onSave,
+    variant,
     categories,
     subCategories,
-    mode 
+    mode,
 }: VariantDialogProps) {
+    const { t } = useTranslation();
+
     const [formData, setFormData] = useState<IAddonVariantCreate>({
         name: "",
         subcategoryId: "",
@@ -91,17 +94,15 @@ export default function VariantDialog({
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>
-                        {mode === "create" ? "Create New Variant" : "Edit Variant"}
+                        {mode === "create" ? t("Addon.VariantDialog.title.create") : t("Addon.VariantDialog.title.edit")}
                     </DialogTitle>
                     <DialogDescription>
-                        {mode === "create" 
-                            ? "Add a new variant" 
-                            : "Update variant details"}
+                        {mode === "create" ? t("Addon.VariantDialog.description.create") : t("Addon.VariantDialog.description.edit")}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="variant-category">Category *</Label>
+                        <Label htmlFor="variant-category">{t("Addon.VariantDialog.form.categoryLabel")}</Label>
                         <Select
                             value={selectedCategoryId}
                             onValueChange={(value) => {
@@ -110,7 +111,7 @@ export default function VariantDialog({
                             }}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select category" />
+                                <SelectValue placeholder={t("Addon.VariantDialog.form.categoryPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {categories.map((cat) => (
@@ -122,14 +123,14 @@ export default function VariantDialog({
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="variant-subcategory">Subcategory *</Label>
+                        <Label htmlFor="variant-subcategory">{t("Addon.VariantDialog.form.subcategoryLabel")}</Label>
                         <Select
                             value={formData.subcategoryId}
                             onValueChange={(value) => setFormData({ ...formData, subcategoryId: value })}
                             disabled={!selectedCategoryId}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select subcategory" />
+                                <SelectValue placeholder={t("Addon.VariantDialog.form.subcategoryPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {filteredSubCategories.map((sub) => (
@@ -141,10 +142,10 @@ export default function VariantDialog({
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="variant-name">Variant Name *</Label>
+                        <Label htmlFor="variant-name">{t("Addon.VariantDialog.form.nameLabel")}</Label>
                         <Input
                             id="variant-name"
-                            placeholder="e.g., Standard, Premium, Deluxe"
+                            placeholder={t("Addon.VariantDialog.form.namePlaceholder")}
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
@@ -152,13 +153,13 @@ export default function VariantDialog({
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose}>
-                        Cancel
+                        {t("Addon.VariantDialog.form.cancel")}
                     </Button>
-                    <Button 
-                        onClick={handleSave} 
+                    <Button
+                        onClick={handleSave}
                         disabled={!formData.name.trim() || !formData.subcategoryId}
                     >
-                        {mode === "create" ? "Create" : "Update"}
+                        {mode === "create" ? t("Addon.VariantDialog.form.create") : t("Addon.VariantDialog.form.update")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

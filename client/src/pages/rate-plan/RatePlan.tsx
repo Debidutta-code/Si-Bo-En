@@ -445,7 +445,7 @@ export default function RatePlan() {
                           className="cursor-pointer"
                         >
                           <Plus className="mr-2 h-4 w-4" />
-                          <span>{t("RatePlanManagement.addLanguage")}</span>
+                          <span>{t("Common.addTranslation")}</span>
                         </DropdownMenuItem>
                         
                         <DropdownMenuItem
@@ -453,7 +453,7 @@ export default function RatePlan() {
                           className="cursor-pointer"
                         >
                           <Globe className="mr-2 h-4 w-4" />
-                          <span>{t("RatePlanManagement.checkLanguages")}</span>
+                          <span>{t("Common.checkTranslation")}</span>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem
@@ -736,9 +736,9 @@ export default function RatePlan() {
           entityId={editLanguageDialog.ratePlanId}
           locale={editLanguageDialog.locale}
           initialData={editLanguageDialog.data}
-          title="Edit Rate Plan Translation"
+          title={t("RatePlan.editTrans")}
           fields={[
-            { key: "ratePlanName", label: "Rate Plan Name", placeholder: "e.g., Plan Estándar" },
+            { key: "ratePlanName", label: t('RatePlan.planName'), placeholder: "e.g., Plan Estándar" },
           ]}
           onSave={async (id, locale, data) => upsertRatePlanTranslationService(id, { [locale]: data })}
         />

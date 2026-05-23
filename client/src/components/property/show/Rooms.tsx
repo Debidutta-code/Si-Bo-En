@@ -537,7 +537,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                         >
                           <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal">
                             <Plus className="h-4 w-4 mr-2" />
-                            Add Translation
+                            {t('Common.addTranslation')}
                           </Button>
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -550,7 +550,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                         >
                           <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal">
                             <Languages className="h-4 w-4 mr-2" />
-                            Check Translations
+                            {t('Common.checkTranslation')}
                           </Button>
                         </DropdownMenuItem>
 

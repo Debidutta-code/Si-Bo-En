@@ -52,7 +52,12 @@
     "wednesdayShort": "Wed",
     "thursdayShort": "Thu",
     "fridayShort": "Fri",
-    "saturdayShort": "Sat"
+    "saturdayShort": "Sat",
+    "addTranslation": "Add Translation",
+    "checkTranslation": "Check Translation",
+    "addPromotion":"Add Promotion Translation",
+    "promotionName":"Promotion Name",
+    "editTranslation":"Edit Promotion Translation"
   },
   "Navigation": {
     "dashboard": "Dashboard",
@@ -118,7 +123,11 @@
     "address": "Address",
     "amenities": "Amenities",
     "rooms": "Rooms",
-    "paymentSetup": "Payment Setup"
+    "paymentSetup": "Payment Setup",
+    "spa": "Spas & Activities",
+    "spaConfiguration": "Spa Configuration",
+    "mySpa": "My Spa",
+    "reports": "Reports"
   },
   "Auth": {
     "login": "Login",
@@ -448,7 +457,7 @@
     "failedToUpdateAddress": "Failed to update property address",
     "amenitiesUpdated": "Property amenities updated successfully",
     "failedToUpdateAmenities": "Failed to update amenities",
-      "videoUploadSuccess": "Video uploaded successfully",
+    "videoUploadSuccess": "Video uploaded successfully",
     "videoUploadFailed": "Failed to upload video",
     "videoSaveSuccess": "Video uploaded and saved successfully",
     "videoSaveFailed": "Failed to save video",
@@ -462,6 +471,10 @@
     "editProperty": "Edit Property",
     "propertyName": "Property Name",
     "propertyType": "Property Type",
+    "addLanguage": "Add Language",
+    "assignedMembers": "Assigned Members",
+    "propertyLanguages": "Property Languages",
+    "propertyLanguagesDecs": "Languages available to guests on this property's portal",
     "address": "Address",
     "contact": "Contact",
     "amenities": "Amenities",
@@ -497,7 +510,9 @@
     "activeStatus": "Active",
     "setupRequiredStatus": "Setup Required",
     "manageYourHotelProperty": "Manage your hotel property and its performance",
-    "completeYourPropertySetup": "Complete your property setup to start managing"
+    "completeYourPropertySetup": "Complete your property setup to start managing",
+    "propertyConfiguration": "Property Configuration",
+    "translations": "Translations"
   },
   "PropertySuper": {
     "title": "Hotels & Properties",
@@ -821,7 +836,43 @@
     "baseRate": "Base Rate",
     "mealPlan": "Meal Plan",
     "cancellationPolicy": "Cancellation Policy",
-    "specialOffers": "Special Offers"
+    "specialOffers": "Special Offers",
+    "editTrans": "Edit Rate Plan Translation",
+    "AddRatePlanLanguageDialog": {
+      "title": "Add Language Translation",
+      "form": {
+        "languageLabel": "Language",
+        "languagePlaceholder": "Select Language",
+        "nameLabel": "Translated Rate Plan Name",
+        "namePlaceholder": "e.g., Tarifa Estándar",
+        "cancel": "Cancel",
+        "save": "Save Translation",
+        "saving": "Saving..."
+      },
+      "toast": {
+        "selectLanguage": "Please select a language.",
+        "nameRequired": "Rate plan name is required.",
+        "saveSuccess": "Translation added successfully!",
+        "saveFailed": "Failed to add translation."
+      }
+    },
+    "CheckRatePlanLanguagesDialog": {
+      "title": "Available Translations",
+      "loader": {
+        "fetching": "Fetching translations..."
+      },
+      "empty": "No translations found.",
+      "fields": {
+        "name": "Name:"
+      },
+      "tooltips": {
+        "edit": "Edit translation"
+      },
+      "toast": {
+        "deleteSuccess": "Translation deleted successfully!",
+        "deleteFailed": "Failed to delete translation."
+      }
+    }
   },
   "RatePlanManagement": {
     "title": "Rate Plans",
@@ -1212,7 +1263,8 @@
       "downloadVoucher": "Download Voucher",
       "amend": "Amend",
       "noShow": "No Show",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "addSpa": "Add Spa / Activity"
     },
     "cancelConfirm": {
       "title": "Cancel Reservation",
@@ -1338,6 +1390,42 @@
       "reservationMarkedAsNoShow": "Reservation marked as no show",
       "failedToMarkAsNoShow": "Failed to mark as no show",
       "failedToDownloadVoucher": "Failed to download voucher"
+    },
+    "SpaBookingDialog": {
+      "title": "Add Spa / Activity for {{firstName}}",
+      "confirmPanel": {
+        "heading": "Confirm Booking",
+        "guestNameLabel": "Guest Name",
+        "guestNamePlaceholder": "Enter guest name…",
+        "confirmButton": "Confirm Booking",
+        "confirmingButton": "Booking…",
+        "cancelButton": "Cancel"
+      },
+      "cancelPanel": {
+        "heading": "Cancel Spa Booking",
+        "confirmButton": "Yes, Cancel Booking",
+        "confirmingButton": "Cancelling…",
+        "keepButton": "Keep Booking"
+      },
+      "slots": {
+        "yourBooking": "Your Booking",
+        "booked": "Booked",
+        "selected": "Selected ✓",
+        "available": "Available"
+      },
+      "empty": {
+        "noSpas": "No spas or activities available for these dates.",
+        "noSlots": "No slots available for this date.",
+        "noDates": "No dates configured for this spa."
+      },
+      "toast": {
+        "fetchFailed": "Failed to fetch spas",
+        "guestNameRequired": "Please enter a guest name",
+        "bookSuccess": "Spa slot booked successfully!",
+        "bookFailed": "Failed to book spa slot",
+        "cancelSuccess": "Spa booking cancelled successfully!",
+        "cancelFailed": "Failed to cancel booking"
+      }
     }
   },
   "BookingFilters": {
@@ -2326,7 +2414,12 @@
     "policyUpdated": "Policy updated successfully",
     "failedToUpdatePolicy": "Failed to update policy",
     "errorUpdatingPolicy": "Error updating policy",
-    "noDescription": "No description provided."
+    "noDescription": "No description provided.",
+    "addTranslationDesc": "Add a translation for this policy.",
+    "availableTranslations": "Available Translations",
+    "allSavedTranslations": "All saved translations for this policy.",
+    "name": "Name",
+    "decs": "Desc"
   },
   "PromoCode": {
     "title": "Promo Codes",
@@ -2404,7 +2497,10 @@
     "areYouSure": "Are you sure?",
     "deletePromoCodeDescription": "This will permanently delete this promo code. This action cannot be undone.",
     "edit": "Edit",
-    "delete": "Delete"
+    "delete": "Delete",
+    "addTranslation": "Add Promo Code Translation",
+    "transName": "Promo Name",
+    "transDecs": "Description"
   },
   "Addon": {
     "loadingAddonsData": "Loading add-ons data...",
@@ -2492,7 +2588,244 @@
     "noDescriptionProvided": "No description provided",
     "created": "Created",
     "areYouSure": "Are you sure?",
-    "deleteAddonDescription": "This will permanently delete the add-on \"{{name}}\". This action cannot be undone."
+    "deleteAddonDescription": "This will permanently delete the add-on \"{{name}}\". This action cannot be undone.",
+    "name": "Add-On Name",
+    "decs": "Description",
+    "availability": {
+      "createTitle": "Create Availability",
+      "createDescription": "Set pricing and availability for an add-on across a date range.",
+      "addonLabel": "Add-On *",
+      "addonPlaceholder": "Select an add-on",
+      "fromDate": "From Date *",
+      "toDate": "To Date *",
+      "pickDate": "Pick a date",
+      "price": "Price *",
+      "pricePlaceholder": "Enter price",
+      "currencyCode": "Currency Code",
+      "availableForBooking": "Available for Booking",
+      "cancel": "Cancel",
+      "createButton": "Create Availability"
+    },
+    "availabilityTable": {
+      "cardTitle": "Availability & Pricing for {{name}}",
+      "cardDescription": "Manage daily pricing and availability for this add-on",
+      "addDates": "Add Dates",
+      "addAvailability": "Add Availability",
+      "noAvailabilityTitle": "No Availability Set",
+      "noAvailabilityDescription": "Set pricing and availability to start selling this add-on",
+      "table": {
+        "date": "Date",
+        "price": "Price",
+        "currency": "Currency",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "available": "Available",
+        "unavailable": "Unavailable"
+      },
+      "buttons": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      },
+      "deleteDialog": {
+        "description": "This will permanently delete the availability for {{date}}. This action cannot be undone."
+      }
+    },
+    "dialog": {
+      "createTitle": "Create New Add-On",
+      "editTitle": "Edit Add-On",
+      "createDescription": "Add a new service or amenity to your property",
+      "editDescription": "Update the add-on details",
+      "form": {
+        "categoryLabel": "Category *",
+        "categoryPlaceholder": "Select category",
+        "subcategoryLabel": "Subcategory *",
+        "subcategoryPlaceholder": "Select subcategory",
+        "variantLabel": "Variant *",
+        "variantPlaceholder": "Select variant",
+        "postingRhythmLabel": "Posting Rhythm *",
+        "descriptionPlaceholder": "Describe the add-on service...",
+        "imagesLabel": "Images",
+        "uploadImages": "Upload Images",
+        "activeStatus": "Active Status",
+        "addonNamePlaceholder": "e.g., Airport Transfer",
+        "addonNameLabel": "Add-On Name *"
+      },
+      "postingRhythm": {
+        "perStay": "Per Stay",
+        "perNight": "Per Night",
+        "perPersonPerNight": "Per Person Per Night",
+        "perRoomPerNight": "Per Room Per Night",
+        "perPersonPerStay": "Per Person Per Stay",
+        "perPersonPerRoom": "Per Person Per Room",
+        "perRoom": "Per Room"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "create": "Create Add-On",
+        "update": "Update Add-On"
+      }
+    },
+    "categoryDialog": {
+      "createTitle": "Create New Category",
+      "editTitle": "Edit Category",
+      "createDescription": "Add a new add-on category",
+      "editDescription": "Update category details",
+      "form": {
+        "categoryNameLabel": "Category Name *",
+        "categoryNamePlaceholder": "e.g., Transportation, Food & Beverage"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "create": "Create",
+        "update": "Update"
+      }
+    },
+    "childAddonDialog": {
+      "title": "Children Catalog",
+      "description": "Manage age-based pricing for children. Define age ranges and optional discounts.",
+      "loader": {
+        "loading": "Loading children catalog..."
+      },
+      "list": {
+        "existingAgeGroups": "Existing Age Groups ({{count}})",
+        "ageRange": "Age {{min}} – {{max}} years",
+        "noDiscount": "No Discount"
+      },
+      "form": {
+        "editAgeGroup": "Edit Age Group",
+        "addAgeGroup": "Add New Age Group",
+        "cancelEdit": "Cancel Edit",
+        "minAge": "Minimum Age *",
+        "minAgePlaceholder": "e.g., 0",
+        "maxAge": "Maximum Age *",
+        "maxAgePlaceholder": "e.g., 12",
+        "ageValidationError": "Minimum age must be less than maximum age.",
+        "customPricingLabel": "Custom Pricing Rules",
+        "customPricingDescription": "Apply discounts or make this age group free of charge",
+        "discountType": "Discount Type *",
+        "discountTypePlaceholder": "Select discount type",
+        "discountTypePercentage": "Percentage",
+        "discountTypeFlat": "Flat Amount",
+        "discountAmount": "Discount Amount *",
+        "discountAmountRange": "(0-100)",
+        "discountAmountPlaceholder": "e.g., 25",
+        "currencyCode": "Currency Code"
+      },
+      "buttons": {
+        "close": "Close",
+        "update": "Update",
+        "addAgeGroup": "Add Age Group",
+        "cancel": "Cancel",
+        "delete": "Delete"
+      },
+      "deleteDialog": {
+        "title": "Delete Age Group",
+        "description": "Are you sure you want to delete this children's age group? This action cannot be undone."
+      }
+    },
+    "ManagementTabs": {
+      "tabs": {
+        "categories": "Categories ({{count}})",
+        "subcategories": "Subcategories ({{count}})",
+        "variants": "Variants ({{count}})"
+      },
+      "common": {
+        "unknown": "Unknown"
+      },
+      "actions": {
+        "edit": "Edit",
+        "addTranslation": "Add Translation",
+        "checkTranslations": "Check Translations",
+        "delete": "Delete"
+      },
+      "categories": {
+        "description": "Manage add-on categories",
+        "newButton": "New Category",
+        "subcategoryCount": "{{count}} subcategories"
+      },
+      "subcategories": {
+        "description": "Manage add-on subcategories",
+        "newButton": "New Subcategory",
+        "variantCount": "{{count}} variants"
+      },
+      "variants": {
+        "description": "Manage add-on variants",
+        "newButton": "New Variant"
+      },
+      "deleteDialog": {
+        "title": "Are you sure?",
+        "description": "This will permanently delete the {{type}} \"{{name}}\". This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
+      "translationDialogs": {
+        "fieldName": "Name",
+        "category": {
+          "addTitle": "Add Category Translation",
+          "checkTitle": "Category Translations",
+          "editTitle": "Edit Category Translation",
+          "fieldLabel": "Category Name",
+          "fieldPlaceholder": "e.g. Comida..."
+        },
+        "subcategory": {
+          "addTitle": "Add Subcategory Translation",
+          "checkTitle": "Subcategory Translations",
+          "editTitle": "Edit Subcategory Translation",
+          "fieldLabel": "Subcategory Name",
+          "fieldPlaceholder": "e.g. Desayuno..."
+        },
+        "variant": {
+          "addTitle": "Add Variant Translation",
+          "checkTitle": "Variant Translations",
+          "editTitle": "Edit Variant Translation",
+          "fieldLabel": "Variant Name",
+          "fieldPlaceholder": "e.g. Grande..."
+        }
+      }
+    },
+    "SubCategoryDialog": {
+      "title": {
+        "create": "Create New Subcategory",
+        "edit": "Edit Subcategory"
+      },
+      "description": {
+        "create": "Add a new subcategory",
+        "edit": "Update subcategory details"
+      },
+      "form": {
+        "categoryLabel": "Category *",
+        "categoryPlaceholder": "Select category",
+        "nameLabel": "Subcategory Name *",
+        "namePlaceholder": "e.g., Airport Transfer, Room Service",
+        "cancel": "Cancel",
+        "create": "Create",
+        "update": "Update"
+      }
+    },
+    "VariantDialog": {
+      "title": {
+        "create": "Create New Variant",
+        "edit": "Edit Variant"
+      },
+      "description": {
+        "create": "Add a new variant",
+        "edit": "Update variant details"
+      },
+      "form": {
+        "categoryLabel": "Category *",
+        "categoryPlaceholder": "Select category",
+        "subcategoryLabel": "Subcategory *",
+        "subcategoryPlaceholder": "Select subcategory",
+        "nameLabel": "Variant Name *",
+        "namePlaceholder": "e.g., Standard, Premium, Deluxe",
+        "cancel": "Cancel",
+        "create": "Create",
+        "update": "Update"
+      }
+    }
   },
   "TaxSystem": {
     "loadingTaxSystemData": "Loading tax system data...",
@@ -3574,5 +3907,404 @@
     "deleteVideoTitle": "Are you sure you want to delete this video?",
     "deleteVideoDescription": "This action cannot be undone. This will permanently delete the property video from the system.",
     "uploadPropertyVideo": "Upload Property Video"
+  },
+  "Report": {
+    "title": "Reports Dashboard",
+    "subtitle": "Generate and export detailed analytical insights for your properties.",
+    "reportSettings": {
+      "title": "Report Settings",
+      "description": "Select the type of data and date range you want to analyze.",
+      "reportType": "Report Type",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "selectReportType": "Select report type"
+    },
+    "portfolioFilters": {
+      "title": "Portfolio Filters",
+      "description": "Filter data by specific properties or groups.",
+      "loadingPortfolio": "Loading portfolio data...",
+      "noFiltersAvailable": "No portfolio filters available",
+      "group": "Group",
+      "allGroups": "All Groups",
+      "brand": "Brand",
+      "allBrands": "All Brands",
+      "property": "Property",
+      "allProperties": "All Properties"
+    },
+    "reportTypes": {
+      "comparison": "Comparison",
+      "reservationOverview": "Reservation Overview",
+      "revenueAnalytics": "Revenue Analytics",
+      "insights": "Insights",
+      "topProperties": "Top Properties",
+      "allReservations": "All Reservations",
+      "checkinCheckout": "Check-in/Check-out",
+      "statusBreakdown": "Status Breakdown",
+      "loyaltyGuests": "Loyalty Guests",
+      "paymentStatus": "Payment Status"
+    },
+    "actions": {
+      "generating": "Generating...",
+      "exportReport": "Export Report"
+    },
+    "toast": {
+      "selectReportType": "Please select a report type",
+      "downloadSuccess": "Report downloaded successfully",
+      "downloadFailed": "Failed to download report",
+      "errorOccurred": "An error occurred"
+    }
+  },
+  "Spa": {
+    "title": "Spas & Activities",
+    "loader": {
+      "loading": "Loading...",
+      "fetchingSpas": "Fetching Spas...",
+      "creating": "Creating...",
+      "updating": "Updating...",
+      "deleting": "Deleting...",
+      "assigningUser": "Assigning User...",
+      "loadingSpaDetails": "Loading Spa details..."
+    },
+    "table": {
+      "name": "Name",
+      "code": "Code",
+      "category": "Category",
+      "subCategory": "Sub-Category",
+      "time": "Time (mins)",
+      "location": "Location",
+      "createdAt": "Created At",
+      "createdBy": "Created By",
+      "status": "Status",
+      "actions": "Actions",
+      "noSpas": "No spas or activities found.",
+      "unknown": "Unknown",
+      "na": "N/A",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "addDateSlot": "Add Date/Slot",
+      "viewDetails": "View Details",
+      "addTranslation": "Add Translation",
+      "checkTranslations": "Check Translations",
+      "assignUser": "Assign User",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "createDialog": {
+      "trigger": "Create Spa/Activity",
+      "title": "Create New Spa/Activity",
+      "uploadImages": "Upload Images"
+    },
+    "editDialog": {
+      "title": "Edit Spa/Activity",
+      "uploadImages": "Upload Images"
+    },
+    "deleteDialog": {
+      "title": "Confirm Deletion",
+      "warning": "Are you sure you want to delete this Spa/Activity? Warning: Clicking delete will remove all associated slots and dates!",
+      "confirm": "Delete Permanently"
+    },
+    "form": {
+      "name": "Name",
+      "itemCode": "Item Code",
+      "description": "Description",
+      "category": "Category",
+      "selectCategory": "Select Category",
+      "subCategory": "Sub-Category",
+      "selectSubCategory": "Select Sub-Category",
+      "serviceTime": "Service Time (mins)",
+      "location": "Location",
+      "discountValue": "Discount Value",
+      "currencyCode": "Currency Code",
+      "selectCurrency": "Select Currency",
+      "isInclusive": "Is Inclusive",
+      "isActive": "Is Active",
+      "images": "Images",
+      "save": "Save",
+      "update": "Update",
+      "cancel": "Cancel"
+    },
+    "translation": {
+      "addTitle": "Add Spa Translation",
+      "checkTitle": "Spa Translations",
+      "editTitle": "Edit Spa Translation",
+      "fieldName": "Spa Name",
+      "fieldNamePlaceholder": "e.g. Masaje Relajante",
+      "fieldDescription": "Description",
+      "fieldDescriptionPlaceholder": "Enter translated description...",
+      "fieldLocation": "Location",
+      "fieldLocationPlaceholder": "Enter translated location..."
+    }
+  },
+  "MySpa": {
+    "title": "My Assigned Spas & Activities",
+    "subtitle": "Manage and view the schedule for the spas assigned to you.",
+    "loader": {
+      "loading": "Loading assigned spa information...",
+      "markingCompleted": "Marking slot as completed..."
+    },
+    "filter": {
+      "startDate": "Start Date",
+      "endDate": "End Date"
+    },
+    "card": {
+      "noDescription": "No description available.",
+      "minsSession": "mins session",
+      "code": "CODE:"
+    },
+    "badge": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "completed": "Completed",
+      "booked": "Booked",
+      "available": "Available"
+    },
+    "slots": {
+      "available": "slots available",
+      "noSlots": "No time slots configured for this date.",
+      "noDates": "No dates or schedule configured for this spa.",
+      "guest": "Guest:",
+      "code": "Code:",
+      "markCompleted": "Mark as Completed"
+    },
+    "empty": {
+      "title": "No Spas Assigned",
+      "subtitle": "You do not currently have any spas or activities assigned to your account."
+    },
+    "toast": {
+      "fetchError": "An error occurred while fetching spa information",
+      "markCompletedSuccess": "Slot marked as completed",
+      "markCompletedFailed": "Failed to mark slot as completed",
+      "markCompletedError": "An error occurred while marking slot as completed"
+    }
+  },
+  "SpaCalendar": {
+    "backToSpas": "Back to Spas",
+    "weekDays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "toast": {
+      "fetchFailed": "Failed to fetch spa dates",
+      "dateMarked": "Date marked for spa",
+      "dateMarkFailed": "Failed to mark date",
+      "dateRemoved": "Spa date removed",
+      "dateRemoveFailed": "Failed to remove date",
+      "slotsAdded": "Slots added successfully",
+      "slotsAddFailed": "Failed to add slots",
+      "slotDeleted": "Slot deleted",
+      "slotDeleteFailed": "Failed to delete slot"
+    },
+    "deleteDateAlert": {
+      "title": "Are you absolutely sure?",
+      "description": "This action cannot be undone. This will permanently delete the Spa Date and all of its associated slots.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+    "deleteSlotAlert": {
+      "title": "Delete this slot?",
+      "description": "This action cannot be undone. This will permanently remove the slot from the schedule.",
+      "cancel": "Cancel",
+      "confirm": "Delete Slot"
+    }
+  },
+  "SpaDateCell": {
+    "configure": "Configure",
+    "noSlots": "No slots",
+    "tooltips": {
+      "addSlots": "Add Slots",
+      "clearSpaDate": "Clear Spa Date",
+      "deleteSlot": "Delete Slot"
+    }
+  },
+  "SpaViewDialog": {
+    "title": "Spa/Activity Details",
+    "fields": {
+      "name": "Name",
+      "itemCode": "Item Code",
+      "description": "Description",
+      "category": "Category",
+      "subCategory": "Sub-Category",
+      "location": "Location",
+      "serviceTime": "Service Time",
+      "mins": "mins",
+      "discountValue": "Discount Value",
+      "currency": "Currency",
+      "status": "Status",
+      "isInclusive": "Is Inclusive",
+      "na": "N/A",
+      "none": "None",
+      "yes": "Yes",
+      "no": "No",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "assignedUsers": {
+      "label": "Assigned Users"
+    },
+    "removeUserDialog": {
+      "title": "Remove Assigned User",
+      "confirm": "Are you sure you want to remove this user from the spa?",
+      "warning": "The Spa Manager can no longer manage this spa once removed.",
+      "cancel": "Cancel",
+      "removing": "Removing...",
+      "remove": "Remove User"
+    },
+    "close": "Close",
+    "toast": {
+      "removeSuccess": "User removed from spa successfully",
+      "removeFailed": "Failed to remove user"
+    }
+  },
+  "SpaAssignUserDialog": {
+    "title": "Assign User to {{spaName}}",
+    "selectUser": "Select User",
+    "chooseUser": "-- Choose User --",
+    "currentlyAssigned": "Currently Assigned Users:",
+    "cancel": "Cancel",
+    "assign": "Assign"
+  },
+  "SpaSlotDialog": {
+    "title": "Add Slots for {{date}}",
+    "firstSlotStartTime": "First Slot Start Time (Required)",
+    "numberOfSlots": "Number of Consecutive Slots ({{serviceTime}} mins each)",
+    "preview": "This will generate {{count}} slot(s), auto-calculating {{serviceTime}} minute intervals ending at {{endTime}}.",
+    "cancel": "Cancel",
+    "addSlots": "Add Slots"
+  },
+  "goBack": "Go Back",
+  "AddCreationLanguageDialog": {
+    "title": "Add Name Translation",
+    "form": {
+      "languageLabel": "Language",
+      "languagePlaceholder": "Select Language",
+      "translatedNameLabel": "Translated Name",
+      "translatedNamePlaceholder": "e.g., Mi Grupo"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save Translation",
+      "saving": "Saving..."
+    },
+    "toast": {
+      "languageRequired": "Please select a language.",
+      "nameRequired": "Translated name is required.",
+      "saveSuccess": "Translation added successfully!",
+      "saveFailed": "Failed to add translation."
+    }
+  },
+  "CheckCreationLanguagesDialog": {
+    "title": "Available Translations",
+    "loader": {
+      "fetching": "Fetching translations..."
+    },
+    "empty": {
+      "noTranslations": "No translations found."
+    },
+    "fields": {
+      "name": "Name"
+    },
+    "tooltips": {
+      "edit": "Edit translation"
+    },
+    "toast": {
+      "deleteSuccess": "Translation deleted successfully!",
+      "deleteFailed": "Failed to delete translation."
+    }
+  },
+  "DeleteCreationDialog": {
+    "triggerButton": "Delete {{typeName}}",
+    "dialogTitle": "Delete {{name}}?",
+    "warning": "⚠️ This action cannot be undone!",
+    "confirmQuestion": "Are you sure you want to proceed with this deletion?",
+    "property": {
+      "description": "Deleting this property will permanently remove {{name}} and all associated data including:",
+      "items": {
+        "rooms": "All rooms and room configurations",
+        "ratePlans": "All rate plans and pricing",
+        "reservations": "All reservations and booking history",
+        "policies": "All policies, taxes, and add-ons",
+        "configurations": "All property configurations"
+      }
+    },
+    "brandRegion": {
+      "description": "Deleting this brand will permanently remove {{name}} and cascade delete:",
+      "items": {
+        "properties": "All properties under this {{type}}",
+        "rooms": "All rooms, rate plans, and reservations for each property",
+        "configurations": "All configurations, policies, and data associated with these properties"
+      },
+      "danger": "This will delete multiple properties and all their data!"
+    },
+    "group": {
+      "description": "Deleting this group will permanently remove {{name}} and cascade delete:",
+      "items": {
+        "brands": "All brands under this group",
+        "properties": "All properties under this group and its brands",
+        "rooms": "All rooms, rate plans, and reservations for all properties",
+        "configurations": "All configurations, policies, and data across the entire group"
+      },
+      "danger": "This will delete the entire group hierarchy and all associated data!"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "deleting": "Deleting..."
+    },
+    "toast": {
+      "deleteSuccess": "Property deleted successfully",
+      "deleteFailed": "Failed to delete property",
+      "deleteError": "An error occurred while deleting the property"
+    }
+  },
+  "AddPropertyAddressLangDialog": {
+    "title": "Add Address Translation",
+    "form": {
+      "languageLabel": "Language",
+      "languagePlaceholder": "Select Language",
+      "addressLine1": "Address Line 1",
+      "addressLine2": "Address Line 2",
+      "city": "City",
+      "state": "State",
+      "country": "Country",
+      "location": "Location",
+      "landmark": "Landmark"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving..."
+    },
+    "toast": {
+      "languageRequired": "Please select a language",
+      "saveSuccess": "Translation added successfully!",
+      "saveFailed": "Failed to add translation"
+    }
+  },
+  "CheckRoomLangDialog": {
+    "title": "Room Translations",
+    "loader": {
+      "fetching": "Fetching translations..."
+    },
+    "empty": {
+      "noTranslations": "No translations found."
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Description"
+    },
+    "tooltips": {
+      "edit": "Edit translation"
+    },
+    "toast": {
+      "deleteSuccess": "Translation deleted successfully!",
+      "deleteFailed": "Failed to delete translation"
+    }
   }
 }

@@ -1054,7 +1054,7 @@ export default function AddOns() {
                               }
                             >
                               <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
-                              Add Translation
+                              {t('Common.addTranslation')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -1062,7 +1062,7 @@ export default function AddOns() {
                               }
                             >
                               <Languages className="w-4 h-4 mr-2 text-green-600" />
-                              Check Translations
+                              {t('Common.checkTranslation')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -1226,8 +1226,8 @@ export default function AddOns() {
               entityId={translationDialog.addonId}
               title="Add Add-On Translation"
               fields={[
-                { key: "name", label: "Add-On Name", placeholder: "e.g. Desayuno Extra" },
-                { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                { key: "name", label: t("Addon.name"), placeholder: "e.g. Desayuno Extra" },
+                { key: "description", label: t("Addon.decs"), placeholder: "Enter translated description..." }
               ]}
               allowedLanguageCodes={activeLanguageCodes}
               onSave={async (id, locale, data) => {
@@ -1240,8 +1240,8 @@ export default function AddOns() {
               entityId={translationDialog.addonId}
               title="Add-On Translations"
               displayFields={[
-                { key: "name", label: "Name" },
-                { key: "description", label: "Description" }
+                { key: "name", label:  t("Addon.name") },
+                { key: "description", label: t("Addon.decs")}
               ]}
               onFetch={getAllAddonTranslations}
               onDelete={deleteAddonTranslationLocale}
@@ -1255,8 +1255,8 @@ export default function AddOns() {
               initialData={translationDialog.editingData}
               title="Edit Add-On Translation"
               fields={[
-                { key: "name", label: "Add-On Name", placeholder: "e.g. Desayuno Extra" },
-                { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                { key: "name", label: t("Addon.name"), placeholder: "e.g. Desayuno Extra" },
+                { key: "description", label: t("Addon.decs"), placeholder: "Enter translated description..." }
               ]}
               onSave={async (id, locale, data) => upsertAddonTranslation(id, { [locale]: data })}
             />

@@ -545,7 +545,7 @@ export default function PoliciesPage() {
                                                                     }}
                                                                     className="cursor-pointer text-sm"
                                                                 >
-                                                                    {t("Policies.addLanguage", "Add Language")}
+                                                                    {t("Common.addTranslation")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
                                                                     onClick={() => {
@@ -555,7 +555,7 @@ export default function PoliciesPage() {
                                                                     }}
                                                                     className="cursor-pointer text-sm"
                                                                 >
-                                                                    {t("Policies.checkLanguages", "Check Languages")}
+                                                                    {t("Common.checkTranslation")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuSeparator />
                                                                 <DropdownMenuItem
@@ -760,8 +760,8 @@ export default function PoliciesPage() {
                 <Dialog open={isAddLanguageOpen} onOpenChange={(open) => { setIsAddLanguageOpen(open); if (!open) { setSelectedLang(""); setLangForm({ policyName: "", description: "" }); } }}>
                     <DialogContent className="sm:max-w-[440px]">
                         <DialogHeader>
-                            <DialogTitle>{t("Policies.addTranslation", "Add Translation")}</DialogTitle>
-                            <DialogDescription>{t("Policies.addTranslationDesc", "Add a translation for this policy.")}</DialogDescription>
+                            <DialogTitle>{t("Common.addTranslation")}</DialogTitle>
+                            <DialogDescription>{t("Policies.addTranslationDesc")}</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
@@ -808,8 +808,8 @@ export default function PoliciesPage() {
                 <Dialog open={isCheckLanguagesOpen} onOpenChange={setIsCheckLanguagesOpen}>
                     <DialogContent className="sm:max-w-[480px]">
                         <DialogHeader>
-                            <DialogTitle>{t("Policies.availableTranslations", "Available Translations")}</DialogTitle>
-                            <DialogDescription>{t("Policies.allSavedTranslations", "All saved translations for this policy.")}</DialogDescription>
+                            <DialogTitle>{t("Policies.availableTranslations")}</DialogTitle>
+                            <DialogDescription>{t("Policies.allSavedTranslations")}</DialogDescription>
                         </DialogHeader>
                         <div className="py-2 space-y-3 max-h-[360px] overflow-y-auto">
                             {langLoading ? (
@@ -821,8 +821,8 @@ export default function PoliciesPage() {
                                     <div key={locale} className="flex items-start justify-between border border-[#e2e8f0] rounded-lg p-3 gap-3">
                                         <div className="space-y-0.5">
                                             <p className="text-sm font-semibold text-[#0f172a]">{getLangName(locale)}</p>
-                                            {data.policyName && <p className="text-xs text-[#475569]">{t("Policies.name", "Name")}: {data.policyName}</p>}
-                                            {data.description && <p className="text-xs text-[#94a3b8] line-clamp-2">{t("Policies.desc", "Desc")}: {data.description}</p>}
+                                            {data.policyName && <p className="text-xs text-[#475569]">{t("Policies.name")}: {data.policyName}</p>}
+                                            {data.description && <p className="text-xs text-[#94a3b8] line-clamp-2">{t("Policies.decs")}: {data.description}</p>}
                                         </div>
                                         <div className="flex items-center gap-1 shrink-0">
                                             <button

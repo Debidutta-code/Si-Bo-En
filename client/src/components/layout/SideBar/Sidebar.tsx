@@ -74,7 +74,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
     { name: t('Sidebar.manageMembers'), href: '/app/members', icon: Users, userLevels: [1, 2, 3, 4], priority: 2, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager'] },
     { name: t('Sidebar.accessControl'), href: '/app/access-control', icon: Shield, userLevels: [4], priority: 3, roles: ['super_admin'] },
     { name: t('Sidebar.utilsManagement'), href: '/app/utils-management', icon: Wrench, userLevels: [3, 4], priority: 3, roles: ['super_admin', 'regional_admin'] },
-    { name: 'Reports', href: '/app/reports', icon: Logs, userLevels: [0, 1, 2, 3, 4], priority: 3, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager'] },
+    { name: t('Sidebar.reports'), href: '/app/reports', icon: Logs, userLevels: [0, 1, 2, 3, 4], priority: 3, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager'] },
     {
       name: t('Sidebar.logs'), icon: Activity, userLevels: [4], priority: 3, children: [
         { name: 'Api Logs', href: '/app/logs', icon: Network, userLevels: [4], priority: 3, roles: ['super_admin',] },
@@ -184,10 +184,10 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
         ],
       });
       main.push({
-        name: "Spa & Activities", icon: Flower2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'],
+        name: t('Sidebar.spa'), icon: Flower2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'],
         children: [
-          { name: "Configure", href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'] },
-          { name: "My spa", href: `/property/spa/me/${pid}`, icon: Smile, userLevels: [0], priority: 1, roles: ['spa_manager'] },
+          { name: t('Sidebar.spaConfiguration'), href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'] },
+          { name: t('Sidebar.mySpa'), href: `/property/spa/me/${pid}`, icon: Smile, userLevels: [0], priority: 1, roles: ['spa_manager'] },
         ]
       })
       // Promotions

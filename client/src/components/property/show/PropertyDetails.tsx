@@ -293,11 +293,11 @@ _translations:data._translations
               {propertyDetails.propertyCategory?.masterCategory?.categoryName && (
                 <span className="px-3 py-1 bg-primary/10 text-primary-700 text-xs font-semibold rounded-full flex items-center gap-1">
                   <Tag className="h-3 w-3" />
-                  {propertyDetails.propertyCategory.masterCategory.categoryName}
+                  {propertyDetails.propertyCategory.masterCategory._translations?propertyDetails.propertyCategory.masterCategory._translations.categoryName:propertyDetails.propertyCategory.masterCategory.categoryName}
                 </span>
               )}
             </div>
-            <ExpandableDescription description={propertyDetails.description} />
+            <ExpandableDescription description={propertyDetails._translations?propertyDetails._translations.description:propertyDetails.description} />
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -341,22 +341,22 @@ _translations:data._translations
             onClick={() => navigate(`/app/property/property/${propertyDetails?.creationId}`)}
           >
             <Settings className="h-4 w-4 mr-2" />
-            Property Configuration
+            {t('Property.propertyConfiguration')}
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90">
                 <Globe className="h-4 w-4 mr-2" />
-                Translations
+            {t('Property.translations')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setAddTranslationOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Add Translation
+                <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setCheckTranslationsOpen(true)}>
-                <Languages className="h-4 w-4 mr-2" /> Check Translations
+                <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

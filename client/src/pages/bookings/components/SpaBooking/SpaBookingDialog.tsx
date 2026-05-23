@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserCheck, CalendarCheck } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface SpaBookingDialogProps {
   reservation: IReservation;
@@ -17,19 +18,19 @@ interface SpaBookingDialogProps {
 
 interface SelectedSlot {
   slotId: string;
-  label: string; // e.g. "10:00 AM – 11:00 AM"
-  dateLabel: string; // e.g. "Monday, Apr 28, 2026"
+  label: string;
+  dateLabel: string;
   spaName: string;
 }
 
 export default function SpaBookingDialog({ reservation, onClose }: SpaBookingDialogProps) {
+  const { t } = useTranslation();
+
   const [spas, setSpas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // The slot the user has tapped / clicked
   const [selected, setSelected] = useState<SelectedSlot | null>(null);
-  // The booked slot the user wants to cancel
   const [cancelSlot, setCancelSlot] = useState<SelectedSlot | null>(null);
   const [guestName, setGuestName] = useState(
     `${reservation.primaryGuest?.firstName ?? ""} ${reservation.primaryGuest?.lastName ?? ""}`.trim()
@@ -41,7 +42,6 @@ export default function SpaBookingDialog({ reservation, onClose }: SpaBookingDia
     fetchAvailableSpas();
   }, [reservation.bookingCode]);
 
-  // Auto-focus the name input whenever a slot is selected
   useEffect(() => {
     if (selected) {
       setTimeout(() => guestInputRef.current?.focus(), 50);
@@ -55,105 +55,75 @@ export default function SpaBookingDialog({ reservation, onClose }: SpaBookingDia
       if (res.success && res.data) {
         setSpas(res.data);
       } else {
-        toast.error(res.message || "Failed to fetch spas");
+        toast.error(res.message || t("Bookings.SpaBookingDialog.toast.fetchFailed"));
       }
     } catch {
-      toast.error("Failed to fetch spas");
+      toast.error(t("Bookings.SpaBookingDialog.toast.fetchFailed"));
     } finally {
       setLoading(false);
     }
   };
 
-  /** User taps a free slot → store it and show name input */
   const handleSelectSlot = (slot: any, spaDate: any, spaName: string) => {
-    const startLabel = formatInTimeZone(
-  slot.startTime,
-  "UTC",
-  "hh:mm a"
-);
+    const startLabel = formatInTimeZone(slot.startTime, "UTC", "hh:mm a");
+    const endLabel = slot.endTime
+      ? ` – ${formatInTimeZone(slot.endTime, "UTC", "hh:mm a")}`
+      : "";
+    const label = `${startLabel}${endLabel}`;
+    const dateLabel = formatInTimeZone(spaDate.date, "UTC", "EEEE, MMM do, yyyy");
 
-const endLabel = slot.endTime
-  ? ` – ${formatInTimeZone(
-      slot.endTime,
-      "UTC",
-      "hh:mm a"
-    )}`
-  : "";
-
-const label = `${startLabel}${endLabel}`;
-
-const dateLabel = formatInTimeZone(
-  spaDate.date,
-  "UTC",
-  "EEEE, MMM do, yyyy"
-);
     if (slot.isBooked) {
       if (slot.reservationId === reservation.id) {
-        setCancelSlot({
-          slotId: slot.id,
-          label,
-          dateLabel,
-          spaName,
-        });
+        setCancelSlot({ slotId: slot.id, label, dateLabel, spaName });
         setSelected(null);
       }
       return;
     }
 
     setCancelSlot(null);
-    setSelected({
-      slotId: slot.id,
-      label,
-      dateLabel,
-      spaName,
-    });
+    setSelected({ slotId: slot.id, label, dateLabel, spaName });
   };
 
-  /** Confirm booking with the entered guest name */
   const handleConfirmBooking = async () => {
     if (!selected) return;
     if (!guestName.trim()) {
-      toast.error("Please enter a guest name");
+      toast.error(t("Bookings.SpaBookingDialog.toast.guestNameRequired"));
       guestInputRef.current?.focus();
       return;
     }
 
     setSubmitting(true);
     try {
-      const payload = {
-        reservationId: reservation.id,
-        userName: guestName.trim(),
-      };
+      const payload = { reservationId: reservation.id, userName: guestName.trim() };
       const res = await markSlotAsBooked(selected.slotId, payload);
       if (res.success) {
-        toast.success("Spa slot booked successfully!");
+        toast.success(t("Bookings.SpaBookingDialog.toast.bookSuccess"));
         setSelected(null);
         fetchAvailableSpas();
       } else {
-        toast.error(res.message || "Failed to book spa slot");
+        toast.error(res.message || t("Bookings.SpaBookingDialog.toast.bookFailed"));
       }
     } catch {
-      toast.error("Failed to book spa slot");
+      toast.error(t("Bookings.SpaBookingDialog.toast.bookFailed"));
     } finally {
       setSubmitting(false);
     }
   };
 
-  /** Cancel (unbook) the slot */
   const handleCancelBooking = async () => {
     if (!cancelSlot) return;
     setSubmitting(true);
     try {
       const res = await markSlotAsAvailable(cancelSlot.slotId);
       if (res.success) {
-        toast.success("Spa booking cancelled successfully!");
+        toast.success(t("Bookings.SpaBookingDialog.toast.cancelSuccess"));
         setCancelSlot(null);
         fetchAvailableSpas();
       } else {
-        toast.error(res.message || "Failed to cancel booking");
+        toast.error(res.message || t("Bookings.SpaBookingDialog.toast.cancelFailed"));
       }
     } catch {
-      toast.error("Failed to cancel booking");
+      toast.error(t("Bookings.SpaBookingDialog.toast.cancelFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -164,16 +134,16 @@ const dateLabel = formatInTimeZone(
       <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Add Spa / Activity for {reservation.primaryGuest?.firstName}
+            {t("Bookings.SpaBookingDialog.title", { firstName: reservation.primaryGuest?.firstName })}
           </DialogTitle>
         </DialogHeader>
 
-        {/* ── Guest name confirmation panel (appears after slot selection) ── */}
+        {/* ── Guest name confirmation panel ── */}
         {selected && (
           <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex items-center gap-2 text-primary font-semibold">
               <CalendarCheck className="h-4 w-4" />
-              <span>Confirm Booking</span>
+              <span>{t("Bookings.SpaBookingDialog.confirmPanel.heading")}</span>
             </div>
 
             <div className="text-sm text-muted-foreground">
@@ -187,7 +157,7 @@ const dateLabel = formatInTimeZone(
             <div className="space-y-1.5">
               <Label htmlFor="spa-guest-name" className="flex items-center gap-1.5 text-sm">
                 <UserCheck className="h-3.5 w-3.5" />
-                Guest Name
+                {t("Bookings.SpaBookingDialog.confirmPanel.guestNameLabel")}
               </Label>
               <Input
                 id="spa-guest-name"
@@ -195,7 +165,7 @@ const dateLabel = formatInTimeZone(
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleConfirmBooking(); }}
-                placeholder="Enter guest name…"
+                placeholder={t("Bookings.SpaBookingDialog.confirmPanel.guestNamePlaceholder")}
                 className="h-9"
               />
             </div>
@@ -207,7 +177,7 @@ const dateLabel = formatInTimeZone(
                 disabled={submitting || !guestName.trim()}
                 className="flex-1"
               >
-                {submitting ? "Booking…" : "Confirm Booking"}
+                {submitting ? t("Bookings.SpaBookingDialog.confirmPanel.confirmingButton") : t("Bookings.SpaBookingDialog.confirmPanel.confirmButton")}
               </Button>
               <Button
                 size="sm"
@@ -215,7 +185,7 @@ const dateLabel = formatInTimeZone(
                 onClick={() => setSelected(null)}
                 disabled={submitting}
               >
-                Cancel
+                {t("Bookings.SpaBookingDialog.confirmPanel.cancelButton")}
               </Button>
             </div>
           </div>
@@ -226,7 +196,7 @@ const dateLabel = formatInTimeZone(
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="flex items-center gap-2 text-destructive font-semibold">
               <CalendarCheck className="h-4 w-4" />
-              <span>Cancel Spa Booking</span>
+              <span>{t("Bookings.SpaBookingDialog.cancelPanel.heading")}</span>
             </div>
 
             <div className="text-sm text-muted-foreground">
@@ -245,7 +215,7 @@ const dateLabel = formatInTimeZone(
                 disabled={submitting}
                 className="flex-1"
               >
-                {submitting ? "Cancelling…" : "Yes, Cancel Booking"}
+                {submitting ? t("Bookings.SpaBookingDialog.cancelPanel.confirmingButton") : t("Bookings.SpaBookingDialog.cancelPanel.confirmButton")}
               </Button>
               <Button
                 size="sm"
@@ -253,7 +223,7 @@ const dateLabel = formatInTimeZone(
                 onClick={() => setCancelSlot(null)}
                 disabled={submitting}
               >
-                Keep Booking
+                {t("Bookings.SpaBookingDialog.cancelPanel.keepButton")}
               </Button>
             </div>
           </div>
@@ -266,7 +236,7 @@ const dateLabel = formatInTimeZone(
           </div>
         ) : spas.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            No spas or activities available for these dates.
+            {t("Bookings.SpaBookingDialog.empty.noSpas")}
           </div>
         ) : (
           <div className="space-y-8">
@@ -286,12 +256,9 @@ const dateLabel = formatInTimeZone(
                       >
                         <div className="bg-muted px-4 py-2 border-b border-border font-medium flex justify-between items-center">
                           <span>
-                            {formatInTimeZone(
-                              spaDate.date,
-                              "UTC",
-                              "EEEE, MMM do, yyyy"
-                            )}
-                          </span>                        </div>
+                            {formatInTimeZone(spaDate.date, "UTC", "EEEE, MMM do, yyyy")}
+                          </span>
+                        </div>
 
                         <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                           {spaDate.Slots && spaDate.Slots.length > 0 ? (
@@ -318,29 +285,28 @@ const dateLabel = formatInTimeZone(
                                 >
                                   <span className="font-semibold block mb-1">
                                     {formatInTimeZone(slot.startTime, "UTC", "hh:mm a")}
-
                                     {slot.endTime &&
                                       ` – ${formatInTimeZone(slot.endTime, "UTC", "hh:mm a")}`}
                                   </span>
                                   {isMyBooking ? (
                                     <span className="text-[10px] text-green-700 font-medium">
-                                      Your Booking
+                                      {t("Bookings.SpaBookingDialog.slots.yourBooking")}
                                     </span>
                                   ) : slot.isBooked ? (
                                     <span className="text-[10px] text-red-500 font-medium">
-                                      {"Booked"}
+                                      {t("Bookings.SpaBookingDialog.slots.booked")}
                                     </span>
                                   ) : isSelected ? (
-                                    <span className="text-[10px] font-medium">Selected ✓</span>
+                                    <span className="text-[10px] font-medium">{t("Bookings.SpaBookingDialog.slots.selected")}</span>
                                   ) : (
-                                    <span className="text-[10px] opacity-80">Available</span>
+                                    <span className="text-[10px] opacity-80">{t("Bookings.SpaBookingDialog.slots.available")}</span>
                                   )}
                                 </button>
                               );
                             })
                           ) : (
                             <p className="col-span-full text-sm text-muted-foreground">
-                              No slots available for this date.
+                              {t("Bookings.SpaBookingDialog.empty.noSlots")}
                             </p>
                           )}
                         </div>
@@ -348,7 +314,7 @@ const dateLabel = formatInTimeZone(
                     ))
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      No dates configured for this spa.
+                      {t("Bookings.SpaBookingDialog.empty.noDates")}
                     </p>
                   )}
                 </div>

@@ -58,11 +58,11 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   const [editTranslationOpen, setEditTranslationOpen] = useState(false);
   const [editingLocale, setEditingLocale] = useState<string>("");
   const [editingData, setEditingData] = useState<Record<string, any>>({});
-        const { languages: propertyLanguages } = usePropertyContext();
-        const availableLanguages = propertyLanguages && propertyLanguages.length > 0
-            ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
-            : languages;
-    
+  const { languages: propertyLanguages } = usePropertyContext();
+  const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+    ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+    : languages;
+
   useEffect(() => {
     loadData();
   }, [propertyId]);
@@ -283,7 +283,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <BackButton/>
+      <BackButton />
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">{t("DeviceSpecific.deviceSpecificPromotions")}</h2>
@@ -300,7 +300,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       </div>
 
       <div className="bg-card rounded-lg border border-border overflow-hidden">
-        {isLoading.isLoading? (
+        {isLoading.isLoading ? (
           <div className="py-12">
             <Loader text={isLoading.message} />
           </div>
@@ -333,14 +333,14 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                     <TableCell>
                       <div>
                         <div className="font-medium text-foreground">
-                          {promotion.ratePlan._translations?promotion.ratePlan._translations.ratePlanName:promotion.ratePlan.ratePlanName}
+                          {promotion.ratePlan._translations ? promotion.ratePlan._translations.ratePlanName : promotion.ratePlan.ratePlanName}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {promotion.ratePlan.ratePlanCode}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{promotion._translations?promotion._translations.promotionName:promotion.promotionName}</TableCell>
+                    <TableCell className="font-medium">{promotion._translations ? promotion._translations.promotionName : promotion.promotionName}</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         {promotion.deviceType.map((device) => (
@@ -403,14 +403,14 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                             className="cursor-pointer"
                           >
                             <Plus className="w-4 h-4 mr-3 text-blue-500" />
-                            Add Translation
+                            {t('Common.addTranslation')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => { setTranslationEntityId(promotion.id); setCheckTranslationsOpen(true); }}
                             className="cursor-pointer"
                           >
                             <Languages className="w-4 h-4 mr-3 text-green-600" />
-                            Check Translations
+                            {t('Common.checkTranslation')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDeleteClick(promotion.id)}
@@ -469,12 +469,12 @@ export const DeviceSpecificPromotionList: React.FC = () => {
             open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
-            title="Add Promotion Translation"
-            fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Oferta Móvil" }]}
+            title={t('Common.addPromotion')}
+            fields={[{ key: "promotionName", label: t('Common.promotionName'), placeholder: "e.g. Oferta Móvil" }]}
             onSave={async (id, locale, data) => {
               return await upsertPromotionTranslationService(id, { [locale]: data });
             }}
-                        allowedLanguageCodes={availableLanguages.map((l) => l.code)}
+            allowedLanguageCodes={availableLanguages.map((l) => l.code)}
           />
           <CheckTranslationsDialog
             open={checkTranslationsOpen}
@@ -492,8 +492,8 @@ export const DeviceSpecificPromotionList: React.FC = () => {
             entityId={translationEntityId!}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Promotion Translation"
-            fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Oferta Móvil" }]}
+            title={t('Common.editTranslation')}
+            fields={[{ key: "promotionName", label: t('Common.promotionName'), placeholder: "e.g. Oferta Móvil" }]}
             onSave={async (id, locale, data) => upsertPromotionTranslationService(id, { [locale]: data })}
           />
         </>

@@ -52,7 +52,9 @@
     "wednesdayShort": "बुध",
     "thursdayShort": "गुरु",
     "fridayShort": "शुक्र",
-    "saturdayShort": "शनि"
+    "saturdayShort": "शनि",
+    "addTranslation": "अनुवाद जोड़ें",
+    "checkTranslation": "अनुवाद जाँचें"
   },
   "Navigation": {
     "dashboard": "डैशबोर्ड",
@@ -118,7 +120,16 @@
     "address": "पता",
     "amenities": "सुविधाएँ",
     "rooms": "कमरे",
-    "paymentSetup": "भुगतान सेटअप"
+    "paymentSetup": "भुगतान सेटअप",
+    "spa": "स्पा और गतिविधियाँ",
+    "spaConfiguration": "स्पा कॉन्फ़िगरेशन",
+    "mySpa": "मेरा स्पा",
+    "reports": "रिपोर्ट्स",
+    "addTranslation": "अनुवाद जोड़ें",
+    "checkTranslation": "अनुवाद जाँचें",
+    "addPromotion": "प्रमोशन अनुवाद जोड़ें",
+    "promotionName": "प्रमोशन नाम",
+    "editTranslation": "प्रमोशन अनुवाद संपादित करें"
   },
   "Auth": {
     "login": "लॉगिन करें",
@@ -462,6 +473,10 @@
     "editProperty": "संपत्ति संपादित करें",
     "propertyName": "संपत्ति का नाम",
     "propertyType": "संपत्ति प्रकार",
+    "addLanguage": "भाषा जोड़ें",
+    "assignedMembers": "असाइन किए गए सदस्य",
+    "propertyLanguages": "प्रॉपर्टी भाषाएँ",
+    "propertyLanguagesDecs": "इस प्रॉपर्टी के पोर्टल पर अतिथियों के लिए उपलब्ध भाषाएँ",
     "address": "पता",
     "contact": "संपर्क",
     "amenities": "सुविधाएँ",
@@ -497,7 +512,9 @@
     "activeStatus": "सक्रिय",
     "setupRequiredStatus": "सेटअप आवश्यक",
     "manageYourHotelProperty": "अपनी होटल संपत्ति और उसके प्रदर्शन का प्रबंधन करें",
-    "completeYourPropertySetup": "प्रबंधन शुरू करने के लिए अपना संपत्ति सेटअप पूरा करें"
+    "completeYourPropertySetup": "प्रबंधन शुरू करने के लिए अपना संपत्ति सेटअप पूरा करें",
+    "propertyConfiguration": "प्रॉपर्टी कॉन्फ़िगरेशन",
+    "translations": "अनुवाद"
   },
   "PropertySuper": {
     "title": "होटल और संपत्तियाँ",
@@ -821,7 +838,43 @@
     "baseRate": "आधार दर",
     "mealPlan": "भोजन योजना",
     "cancellationPolicy": "रद्दीकरण नीति",
-    "specialOffers": "विशेष ऑफर"
+    "specialOffers": "विशेष ऑफर",
+    "editTrans": "रेट प्लान अनुवाद संपादित करें",
+    "AddRatePlanLanguageDialog": {
+      "title": "भाषा अनुवाद जोड़ें",
+      "form": {
+        "languageLabel": "भाषा",
+        "languagePlaceholder": "भाषा चुनें",
+        "nameLabel": "अनुवादित रेट प्लान नाम",
+        "namePlaceholder": "उदाहरण: Tarifa Estándar",
+        "cancel": "रद्द करें",
+        "save": "अनुवाद सहेजें",
+        "saving": "सहेजा जा रहा है..."
+      },
+      "toast": {
+        "selectLanguage": "कृपया एक भाषा चुनें।",
+        "nameRequired": "रेट प्लान का नाम आवश्यक है।",
+        "saveSuccess": "अनुवाद सफलतापूर्वक जोड़ा गया!",
+        "saveFailed": "अनुवाद जोड़ने में विफल।"
+      }
+    },
+    "CheckRatePlanLanguagesDialog": {
+      "title": "उपलब्ध अनुवाद",
+      "loader": {
+        "fetching": "अनुवाद प्राप्त किए जा रहे हैं..."
+      },
+      "empty": "कोई अनुवाद नहीं मिला।",
+      "fields": {
+        "name": "नाम:"
+      },
+      "tooltips": {
+        "edit": "अनुवाद संपादित करें"
+      },
+      "toast": {
+        "deleteSuccess": "अनुवाद सफलतापूर्वक हटाया गया!",
+        "deleteFailed": "अनुवाद हटाने में विफल।"
+      }
+    }
   },
   "RatePlanManagement": {
     "title": "दर योजनाएँ",
@@ -1212,7 +1265,8 @@
       "downloadVoucher": "वाउचर डाउनलोड करें",
       "amend": "संशोधित करें",
       "noShow": "नो-शो",
-      "cancel": "रद्द करें"
+      "cancel": "रद्द करें",
+      "addSpa": "स्पा / गतिविधि जोड़ें"
     },
     "cancelConfirm": {
       "title": "आरक्षण रद्द करें",
@@ -1338,6 +1392,42 @@
       "reservationMarkedAsNoShow": "आरक्षण नो-शो के रूप में चिह्नित हो गया",
       "failedToMarkAsNoShow": "नो-शो के रूप में चिह्नित करने में विफल",
       "failedToDownloadVoucher": "वाउचर डाउनलोड करने में विफल"
+    },
+    "SpaBookingDialog": {
+      "title": "{{firstName}} के लिए स्पा / गतिविधि जोड़ें",
+      "confirmPanel": {
+        "heading": "बुकिंग की पुष्टि करें",
+        "guestNameLabel": "अतिथि का नाम",
+        "guestNamePlaceholder": "अतिथि का नाम दर्ज करें…",
+        "confirmButton": "बुकिंग की पुष्टि करें",
+        "confirmingButton": "बुकिंग हो रही है…",
+        "cancelButton": "रद्द करें"
+      },
+      "cancelPanel": {
+        "heading": "स्पा बुकिंग रद्द करें",
+        "confirmButton": "हाँ, बुकिंग रद्द करें",
+        "confirmingButton": "रद्द किया जा रहा है…",
+        "keepButton": "बुकिंग बनाए रखें"
+      },
+      "slots": {
+        "yourBooking": "आपकी बुकिंग",
+        "booked": "बुक किया गया",
+        "selected": "चयनित ✓",
+        "available": "उपलब्ध"
+      },
+      "empty": {
+        "noSpas": "इन तिथियों के लिए कोई स्पा या गतिविधियाँ उपलब्ध नहीं हैं।",
+        "noSlots": "इस तिथि के लिए कोई स्लॉट उपलब्ध नहीं है।",
+        "noDates": "इस स्पा के लिए कोई तिथियाँ कॉन्फ़िगर नहीं की गई हैं।"
+      },
+      "toast": {
+        "fetchFailed": "स्पा प्राप्त करने में विफल",
+        "guestNameRequired": "कृपया अतिथि का नाम दर्ज करें",
+        "bookSuccess": "स्पा स्लॉट सफलतापूर्वक बुक किया गया!",
+        "bookFailed": "स्पा स्लॉट बुक करने में विफल",
+        "cancelSuccess": "स्पा बुकिंग सफलतापूर्वक रद्द की गई!",
+        "cancelFailed": "बुकिंग रद्द करने में विफल"
+      }
     }
   },
   "BookingFilters": {
@@ -2326,7 +2416,12 @@
     "policyUpdated": "नीति सफलतापूर्वक अपडेट हो गई",
     "failedToUpdatePolicy": "नीति अपडेट करने में विफल",
     "errorUpdatingPolicy": "नीति अपडेट करने में त्रुटि",
-    "noDescription": "कोई विवरण प्रदान नहीं किया गया।"
+    "noDescription": "कोई विवरण प्रदान नहीं किया गया।",
+    "addTranslationDesc": "इस नीति के लिए एक अनुवाद जोड़ें।",
+    "availableTranslations": "उपलब्ध अनुवाद",
+    "allSavedTranslations": "इस नीति के लिए सभी सहेजे गए अनुवाद।",
+    "name": "नाम",
+    "decs": "विवरण"
   },
   "PromoCode": {
     "title": "प्रोमो कोड",
@@ -2404,7 +2499,10 @@
     "areYouSure": "क्या आप सुनिश्चित हैं?",
     "deletePromoCodeDescription": "यह इस प्रोमो कोड को स्थायी रूप से हटा देगा। यह क्रिया पूर्ववत नहीं की जा सकती।",
     "edit": "संपादित करें",
-    "delete": "हटाएं"
+    "delete": "हटाएं",
+    "addTranslation": "प्रोमो कोड अनुवाद जोड़ें",
+    "transName": "प्रोमो नाम",
+    "transDecs": "विवरण"
   },
   "Addon": {
     "loadingAddonsData": "ऐड-ऑन डेटा लोड हो रहा है...",
@@ -2492,7 +2590,244 @@
     "noDescriptionProvided": "कोई विवरण प्रदान नहीं किया गया",
     "created": "बनाया गया",
     "areYouSure": "क्या आप सुनिश्चित हैं?",
-    "deleteAddonDescription": "यह ऐड-ऑन \"{{name}}\" को स्थायी रूप से हटा देगा। यह क्रिया पूर्ववत नहीं की जा सकती।"
+    "deleteAddonDescription": "यह ऐड-ऑन \"{{name}}\" को स्थायी रूप से हटा देगा। यह क्रिया पूर्ववत नहीं की जा सकती।",
+    "name": "ऐड-ऑन नाम",
+    "decs": "विवरण",
+    "availability": {
+      "createTitle": "उपलब्धता बनाएँ",
+      "createDescription": "किसी ऐड-ऑन के लिए एक तिथि सीमा में मूल्य और उपलब्धता निर्धारित करें।",
+      "addonLabel": "ऐड-ऑन *",
+      "addonPlaceholder": "एक ऐड-ऑन चुनें",
+      "fromDate": "प्रारंभ तिथि *",
+      "toDate": "समाप्ति तिथि *",
+      "pickDate": "एक तिथि चुनें",
+      "price": "मूल्य *",
+      "pricePlaceholder": "मूल्य दर्ज करें",
+      "currencyCode": "मुद्रा कोड",
+      "availableForBooking": "बुकिंग के लिए उपलब्ध",
+      "cancel": "रद्द करें",
+      "createButton": "उपलब्धता बनाएँ"
+    },
+    "availabilityTable": {
+      "cardTitle": "{{name}} के लिए उपलब्धता और मूल्य निर्धारण",
+      "cardDescription": "इस ऐड-ऑन के लिए दैनिक मूल्य और उपलब्धता प्रबंधित करें",
+      "addDates": "तिथियाँ जोड़ें",
+      "addAvailability": "उपलब्धता जोड़ें",
+      "noAvailabilityTitle": "कोई उपलब्धता निर्धारित नहीं है",
+      "noAvailabilityDescription": "इस ऐड-ऑन को बेचना शुरू करने के लिए मूल्य और उपलब्धता निर्धारित करें",
+      "table": {
+        "date": "तिथि",
+        "price": "मूल्य",
+        "currency": "मुद्रा",
+        "status": "स्थिति",
+        "actions": "क्रियाएँ"
+      },
+      "status": {
+        "available": "उपलब्ध",
+        "unavailable": "अनुपलब्ध"
+      },
+      "buttons": {
+        "save": "सहेजें",
+        "cancel": "रद्द करें",
+        "delete": "हटाएँ"
+      },
+      "deleteDialog": {
+        "description": "यह {{date}} की उपलब्धता को स्थायी रूप से हटा देगा। इस क्रिया को पूर्ववत नहीं किया जा सकता।"
+      }
+    },
+    "dialog": {
+      "createTitle": "नया ऐड-ऑन बनाएँ",
+      "editTitle": "ऐड-ऑन संपादित करें",
+      "createDescription": "अपनी प्रॉपर्टी में नई सेवा या सुविधा जोड़ें",
+      "editDescription": "ऐड-ऑन विवरण अपडेट करें",
+      "form": {
+        "categoryLabel": "श्रेणी *",
+        "categoryPlaceholder": "श्रेणी चुनें",
+        "subcategoryLabel": "उप-श्रेणी *",
+        "subcategoryPlaceholder": "उप-श्रेणी चुनें",
+        "variantLabel": "वैरिएंट *",
+        "variantPlaceholder": "वैरिएंट चुनें",
+        "postingRhythmLabel": "पोस्टिंग रिदम *",
+        "descriptionPlaceholder": "ऐड-ऑन सेवा का विवरण दें...",
+        "imagesLabel": "चित्र",
+        "uploadImages": "चित्र अपलोड करें",
+        "activeStatus": "सक्रिय स्थिति",
+        "addonNamePlaceholder": "उदाहरण: एयरपोर्ट ट्रांसफर",
+        "addonNameLabel": "ऐड-ऑन नाम *"
+      },
+      "postingRhythm": {
+        "perStay": "प्रति प्रवास",
+        "perNight": "प्रति रात",
+        "perPersonPerNight": "प्रति व्यक्ति प्रति रात",
+        "perRoomPerNight": "प्रति कमरा प्रति रात",
+        "perPersonPerStay": "प्रति व्यक्ति प्रति प्रवास",
+        "perPersonPerRoom": "प्रति व्यक्ति प्रति कमरा",
+        "perRoom": "प्रति कमरा"
+      },
+      "buttons": {
+        "cancel": "रद्द करें",
+        "create": "ऐड-ऑन बनाएँ",
+        "update": "ऐड-ऑन अपडेट करें"
+      }
+    },
+    "categoryDialog": {
+      "createTitle": "नई श्रेणी बनाएँ",
+      "editTitle": "श्रेणी संपादित करें",
+      "createDescription": "नई ऐड-ऑन श्रेणी जोड़ें",
+      "editDescription": "श्रेणी विवरण अपडेट करें",
+      "form": {
+        "categoryNameLabel": "श्रेणी नाम *",
+        "categoryNamePlaceholder": "उदाहरण: परिवहन, भोजन और पेय"
+      },
+      "buttons": {
+        "cancel": "रद्द करें",
+        "create": "बनाएँ",
+        "update": "अपडेट करें"
+      }
+    },
+    "childAddonDialog": {
+      "title": "बच्चों की कैटलॉग",
+      "description": "बच्चों के लिए आयु-आधारित मूल्य निर्धारण प्रबंधित करें। आयु सीमा और वैकल्पिक छूट निर्धारित करें।",
+      "loader": {
+        "loading": "बच्चों की कैटलॉग लोड हो रही है..."
+      },
+      "list": {
+        "existingAgeGroups": "मौजूदा आयु समूह ({{count}})",
+        "ageRange": "आयु {{min}} – {{max}} वर्ष",
+        "noDiscount": "कोई छूट नहीं"
+      },
+      "form": {
+        "editAgeGroup": "आयु समूह संपादित करें",
+        "addAgeGroup": "नया आयु समूह जोड़ें",
+        "cancelEdit": "संपादन रद्द करें",
+        "minAge": "न्यूनतम आयु *",
+        "minAgePlaceholder": "उदाहरण: 0",
+        "maxAge": "अधिकतम आयु *",
+        "maxAgePlaceholder": "उदाहरण: 12",
+        "ageValidationError": "न्यूनतम आयु अधिकतम आयु से कम होनी चाहिए।",
+        "customPricingLabel": "कस्टम मूल्य निर्धारण नियम",
+        "customPricingDescription": "छूट लागू करें या इस आयु समूह को निःशुल्क बनाएं",
+        "discountType": "छूट प्रकार *",
+        "discountTypePlaceholder": "छूट प्रकार चुनें",
+        "discountTypePercentage": "प्रतिशत",
+        "discountTypeFlat": "निश्चित राशि",
+        "discountAmount": "छूट राशि *",
+        "discountAmountRange": "(0-100)",
+        "discountAmountPlaceholder": "उदाहरण: 25",
+        "currencyCode": "मुद्रा कोड"
+      },
+      "buttons": {
+        "close": "बंद करें",
+        "update": "अपडेट करें",
+        "addAgeGroup": "आयु समूह जोड़ें",
+        "cancel": "रद्द करें",
+        "delete": "हटाएँ"
+      },
+      "deleteDialog": {
+        "title": "आयु समूह हटाएँ",
+        "description": "क्या आप वाकई इस बच्चों के आयु समूह को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।"
+      }
+    },
+    "ManagementTabs": {
+      "tabs": {
+        "categories": "श्रेणियाँ ({{count}})",
+        "subcategories": "उप-श्रेणियाँ ({{count}})",
+        "variants": "वैरिएंट्स ({{count}})"
+      },
+      "common": {
+        "unknown": "अज्ञात"
+      },
+      "actions": {
+        "edit": "संपादित करें",
+        "addTranslation": "अनुवाद जोड़ें",
+        "checkTranslations": "अनुवाद जाँचें",
+        "delete": "हटाएँ"
+      },
+      "categories": {
+        "description": "ऐड-ऑन श्रेणियाँ प्रबंधित करें",
+        "newButton": "नई श्रेणी",
+        "subcategoryCount": "{{count}} उप-श्रेणियाँ"
+      },
+      "subcategories": {
+        "description": "ऐड-ऑन उप-श्रेणियाँ प्रबंधित करें",
+        "newButton": "नई उप-श्रेणी",
+        "variantCount": "{{count}} वैरिएंट्स"
+      },
+      "variants": {
+        "description": "ऐड-ऑन वैरिएंट्स प्रबंधित करें",
+        "newButton": "नया वैरिएंट"
+      },
+      "deleteDialog": {
+        "title": "क्या आप सुनिश्चित हैं?",
+        "description": "यह {{type}} \"{{name}}\" को स्थायी रूप से हटा देगा। इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+        "cancel": "रद्द करें",
+        "confirm": "हटाएँ"
+      },
+      "translationDialogs": {
+        "fieldName": "नाम",
+        "category": {
+          "addTitle": "श्रेणी अनुवाद जोड़ें",
+          "checkTitle": "श्रेणी अनुवाद",
+          "editTitle": "श्रेणी अनुवाद संपादित करें",
+          "fieldLabel": "श्रेणी नाम",
+          "fieldPlaceholder": "उदाहरण: Comida..."
+        },
+        "subcategory": {
+          "addTitle": "उप-श्रेणी अनुवाद जोड़ें",
+          "checkTitle": "उप-श्रेणी अनुवाद",
+          "editTitle": "उप-श्रेणी अनुवाद संपादित करें",
+          "fieldLabel": "उप-श्रेणी नाम",
+          "fieldPlaceholder": "उदाहरण: Desayuno..."
+        },
+        "variant": {
+          "addTitle": "वैरिएंट अनुवाद जोड़ें",
+          "checkTitle": "वैरिएंट अनुवाद",
+          "editTitle": "वैरिएंट अनुवाद संपादित करें",
+          "fieldLabel": "वैरिएंट नाम",
+          "fieldPlaceholder": "उदाहरण: Grande..."
+        }
+      }
+    },
+    "SubCategoryDialog": {
+      "title": {
+        "create": "नई उप-श्रेणी बनाएँ",
+        "edit": "उप-श्रेणी संपादित करें"
+      },
+      "description": {
+        "create": "नई उप-श्रेणी जोड़ें",
+        "edit": "उप-श्रेणी विवरण अपडेट करें"
+      },
+      "form": {
+        "categoryLabel": "श्रेणी *",
+        "categoryPlaceholder": "श्रेणी चुनें",
+        "nameLabel": "उप-श्रेणी नाम *",
+        "namePlaceholder": "उदाहरण: एयरपोर्ट ट्रांसफर, रूम सर्विस",
+        "cancel": "रद्द करें",
+        "create": "बनाएँ",
+        "update": "अपडेट करें"
+      }
+    },
+    "VariantDialog": {
+      "title": {
+        "create": "नया वैरिएंट बनाएँ",
+        "edit": "वैरिएंट संपादित करें"
+      },
+      "description": {
+        "create": "नया वैरिएंट जोड़ें",
+        "edit": "वैरिएंट विवरण अपडेट करें"
+      },
+      "form": {
+        "categoryLabel": "श्रेणी *",
+        "categoryPlaceholder": "श्रेणी चुनें",
+        "subcategoryLabel": "उप-श्रेणी *",
+        "subcategoryPlaceholder": "उप-श्रेणी चुनें",
+        "nameLabel": "वैरिएंट नाम *",
+        "namePlaceholder": "उदाहरण: स्टैंडर्ड, प्रीमियम, डीलक्स",
+        "cancel": "रद्द करें",
+        "create": "बनाएँ",
+        "update": "अपडेट करें"
+      }
+    }
   },
   "TaxSystem": {
     "loadingTaxSystemData": "कर प्रणाली डेटा लोड हो रहा है...",
@@ -3574,5 +3909,404 @@
     "deleteVideoTitle": "क्या आप वाकई इस वीडियो को हटाना चाहते हैं?",
     "deleteVideoDescription": "यह क्रिया पूर्ववत नहीं की जा सकती। यह सिस्टम से संपत्ति वीडियो को स्थायी रूप से हटा देगा।",
     "uploadPropertyVideo": "संपत्ति वीडियो अपलोड करें"
+  },
+  "Report": {
+    "title": "रिपोर्ट डैशबोर्ड",
+    "subtitle": "अपनी प्रॉपर्टीज़ के लिए विस्तृत विश्लेषणात्मक जानकारी उत्पन्न और एक्सपोर्ट करें।",
+    "reportSettings": {
+      "title": "रिपोर्ट सेटिंग्स",
+      "description": "जिस डेटा और तारीख सीमा का विश्लेषण करना चाहते हैं, उसे चुनें।",
+      "reportType": "रिपोर्ट प्रकार",
+      "startDate": "प्रारंभ तिथि",
+      "endDate": "समाप्ति तिथि",
+      "selectReportType": "रिपोर्ट प्रकार चुनें"
+    },
+    "portfolioFilters": {
+      "title": "पोर्टफोलियो फ़िल्टर",
+      "description": "विशिष्ट प्रॉपर्टीज़ या समूहों के अनुसार डेटा फ़िल्टर करें।",
+      "loadingPortfolio": "पोर्टफोलियो डेटा लोड हो रहा है...",
+      "noFiltersAvailable": "कोई पोर्टफोलियो फ़िल्टर उपलब्ध नहीं है",
+      "group": "समूह",
+      "allGroups": "सभी समूह",
+      "brand": "ब्रांड",
+      "allBrands": "सभी ब्रांड",
+      "property": "प्रॉपर्टी",
+      "allProperties": "सभी प्रॉपर्टीज़"
+    },
+    "reportTypes": {
+      "comparison": "तुलना",
+      "reservationOverview": "आरक्षण अवलोकन",
+      "revenueAnalytics": "राजस्व विश्लेषण",
+      "insights": "जानकारियाँ",
+      "topProperties": "शीर्ष प्रॉपर्टीज़",
+      "allReservations": "सभी आरक्षण",
+      "checkinCheckout": "चेक-इन/चेक-आउट",
+      "statusBreakdown": "स्थिति विवरण",
+      "loyaltyGuests": "वफादार मेहमान",
+      "paymentStatus": "भुगतान स्थिति"
+    },
+    "actions": {
+      "generating": "उत्पन्न किया जा रहा है...",
+      "exportReport": "रिपोर्ट एक्सपोर्ट करें"
+    },
+    "toast": {
+      "selectReportType": "कृपया एक रिपोर्ट प्रकार चुनें",
+      "downloadSuccess": "रिपोर्ट सफलतापूर्वक डाउनलोड हो गई",
+      "downloadFailed": "रिपोर्ट डाउनलोड करने में विफल",
+      "errorOccurred": "एक त्रुटि हुई"
+    }
+  },
+  "Spa": {
+    "title": "स्पा और गतिविधियाँ",
+    "loader": {
+      "loading": "लोड हो रहा है...",
+      "fetchingSpas": "स्पा प्राप्त किए जा रहे हैं...",
+      "creating": "बनाया जा रहा है...",
+      "updating": "अपडेट किया जा रहा है...",
+      "deleting": "हटाया जा रहा है...",
+      "assigningUser": "उपयोगकर्ता असाइन किया जा रहा है...",
+      "loadingSpaDetails": "स्पा विवरण लोड हो रहे हैं..."
+    },
+    "table": {
+      "name": "नाम",
+      "code": "कोड",
+      "category": "श्रेणी",
+      "subCategory": "उप-श्रेणी",
+      "time": "समय (मिनट)",
+      "location": "स्थान",
+      "createdAt": "बनाने की तिथि",
+      "createdBy": "द्वारा बनाया गया",
+      "status": "स्थिति",
+      "actions": "क्रियाएँ",
+      "noSpas": "कोई स्पा या गतिविधियाँ नहीं मिलीं।",
+      "unknown": "अज्ञात",
+      "na": "उपलब्ध नहीं",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "actions": {
+      "addDateSlot": "तारीख/स्लॉट जोड़ें",
+      "viewDetails": "विवरण देखें",
+      "addTranslation": "अनुवाद जोड़ें",
+      "checkTranslations": "अनुवाद जाँचें",
+      "assignUser": "उपयोगकर्ता असाइन करें",
+      "edit": "संपादित करें",
+      "delete": "हटाएँ"
+    },
+    "createDialog": {
+      "trigger": "स्पा/गतिविधि बनाएँ",
+      "title": "नई स्पा/गतिविधि बनाएँ",
+      "uploadImages": "चित्र अपलोड करें"
+    },
+    "editDialog": {
+      "title": "स्पा/गतिविधि संपादित करें",
+      "uploadImages": "चित्र अपलोड करें"
+    },
+    "deleteDialog": {
+      "title": "हटाने की पुष्टि करें",
+      "warning": "क्या आप वाकई इस स्पा/गतिविधि को हटाना चाहते हैं? चेतावनी: हटाने पर सभी संबंधित स्लॉट और तिथियाँ भी हट जाएँगी!",
+      "confirm": "स्थायी रूप से हटाएँ"
+    },
+    "form": {
+      "name": "नाम",
+      "itemCode": "आइटम कोड",
+      "description": "विवरण",
+      "category": "श्रेणी",
+      "selectCategory": "श्रेणी चुनें",
+      "subCategory": "उप-श्रेणी",
+      "selectSubCategory": "उप-श्रेणी चुनें",
+      "serviceTime": "सेवा समय (मिनट)",
+      "location": "स्थान",
+      "discountValue": "छूट मूल्य",
+      "currencyCode": "मुद्रा कोड",
+      "selectCurrency": "मुद्रा चुनें",
+      "isInclusive": "क्या शामिल है",
+      "isActive": "क्या सक्रिय है",
+      "images": "चित्र",
+      "save": "सहेजें",
+      "update": "अपडेट करें",
+      "cancel": "रद्द करें"
+    },
+    "translation": {
+      "addTitle": "स्पा अनुवाद जोड़ें",
+      "checkTitle": "स्पा अनुवाद",
+      "editTitle": "स्पा अनुवाद संपादित करें",
+      "fieldName": "स्पा नाम",
+      "fieldNamePlaceholder": "उदाहरण: रिलैक्सिंग मसाज",
+      "fieldDescription": "विवरण",
+      "fieldDescriptionPlaceholder": "अनुवादित विवरण दर्ज करें...",
+      "fieldLocation": "स्थान",
+      "fieldLocationPlaceholder": "अनुवादित स्थान दर्ज करें..."
+    }
+  },
+  "MySpa": {
+    "title": "मेरे असाइन किए गए स्पा और गतिविधियाँ",
+    "subtitle": "आपको असाइन किए गए स्पा की समय-सारणी प्रबंधित और देखें।",
+    "loader": {
+      "loading": "असाइन किए गए स्पा की जानकारी लोड हो रही है...",
+      "markingCompleted": "स्लॉट को पूर्ण के रूप में चिह्नित किया जा रहा है..."
+    },
+    "filter": {
+      "startDate": "प्रारंभ तिथि",
+      "endDate": "समाप्ति तिथि"
+    },
+    "card": {
+      "noDescription": "कोई विवरण उपलब्ध नहीं है।",
+      "minsSession": "मिनट सत्र",
+      "code": "कोड:"
+    },
+    "badge": {
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "completed": "पूर्ण",
+      "booked": "बुक किया गया",
+      "available": "उपलब्ध"
+    },
+    "slots": {
+      "available": "स्लॉट उपलब्ध",
+      "noSlots": "इस तिथि के लिए कोई समय स्लॉट कॉन्फ़िगर नहीं किया गया है।",
+      "noDates": "इस स्पा के लिए कोई तिथि या समय-सारणी कॉन्फ़िगर नहीं की गई है।",
+      "guest": "अतिथि:",
+      "code": "कोड:",
+      "markCompleted": "पूर्ण के रूप में चिह्नित करें"
+    },
+    "empty": {
+      "title": "कोई स्पा असाइन नहीं है",
+      "subtitle": "वर्तमान में आपके खाते में कोई स्पा या गतिविधि असाइन नहीं की गई है।"
+    },
+    "toast": {
+      "fetchError": "स्पा जानकारी प्राप्त करते समय त्रुटि हुई",
+      "markCompletedSuccess": "स्लॉट को पूर्ण के रूप में चिह्नित किया गया",
+      "markCompletedFailed": "स्लॉट को पूर्ण के रूप में चिह्नित करने में विफल",
+      "markCompletedError": "स्लॉट को पूर्ण के रूप में चिह्नित करते समय त्रुटि हुई"
+    }
+  },
+  "SpaCalendar": {
+    "backToSpas": "स्पा पर वापस जाएँ",
+    "weekDays": {
+      "sun": "रवि",
+      "mon": "सोम",
+      "tue": "मंगल",
+      "wed": "बुध",
+      "thu": "गुरु",
+      "fri": "शुक्र",
+      "sat": "शनि"
+    },
+    "toast": {
+      "fetchFailed": "स्पा तिथियाँ प्राप्त करने में विफल",
+      "dateMarked": "स्पा के लिए तिथि चिह्नित की गई",
+      "dateMarkFailed": "तिथि चिह्नित करने में विफल",
+      "dateRemoved": "स्पा तिथि हटाई गई",
+      "dateRemoveFailed": "स्पा तिथि हटाने में विफल",
+      "slotsAdded": "स्लॉट सफलतापूर्वक जोड़े गए",
+      "slotsAddFailed": "स्लॉट जोड़ने में विफल",
+      "slotDeleted": "स्लॉट हटाया गया",
+      "slotDeleteFailed": "स्लॉट हटाने में विफल"
+    },
+    "deleteDateAlert": {
+      "title": "क्या आप पूरी तरह सुनिश्चित हैं?",
+      "description": "इस क्रिया को पूर्ववत नहीं किया जा सकता। इससे स्पा तिथि और उसके सभी संबंधित स्लॉट स्थायी रूप से हट जाएँगे।",
+      "cancel": "रद्द करें",
+      "confirm": "हटाएँ"
+    },
+    "deleteSlotAlert": {
+      "title": "क्या इस स्लॉट को हटाना है?",
+      "description": "इस क्रिया को पूर्ववत नहीं किया जा सकता। इससे स्लॉट समय-सारणी से स्थायी रूप से हट जाएगा।",
+      "cancel": "रद्द करें",
+      "confirm": "स्लॉट हटाएँ"
+    }
+  },
+  "SpaDateCell": {
+    "configure": "कॉन्फ़िगर करें",
+    "noSlots": "कोई स्लॉट नहीं",
+    "tooltips": {
+      "addSlots": "स्लॉट जोड़ें",
+      "clearSpaDate": "स्पा तिथि साफ़ करें",
+      "deleteSlot": "स्लॉट हटाएँ"
+    }
+  },
+  "SpaViewDialog": {
+    "title": "स्पा/गतिविधि विवरण",
+    "fields": {
+      "name": "नाम",
+      "itemCode": "आइटम कोड",
+      "description": "विवरण",
+      "category": "श्रेणी",
+      "subCategory": "उप-श्रेणी",
+      "location": "स्थान",
+      "serviceTime": "सेवा समय",
+      "mins": "मिनट",
+      "discountValue": "छूट मूल्य",
+      "currency": "मुद्रा",
+      "status": "स्थिति",
+      "isInclusive": "क्या शामिल है",
+      "na": "उपलब्ध नहीं",
+      "none": "कोई नहीं",
+      "yes": "हाँ",
+      "no": "नहीं",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "assignedUsers": {
+      "label": "असाइन किए गए उपयोगकर्ता"
+    },
+    "removeUserDialog": {
+      "title": "असाइन किए गए उपयोगकर्ता को हटाएँ",
+      "confirm": "क्या आप वाकई इस उपयोगकर्ता को स्पा से हटाना चाहते हैं?",
+      "warning": "हटाने के बाद स्पा प्रबंधक इस स्पा का प्रबंधन नहीं कर पाएगा।",
+      "cancel": "रद्द करें",
+      "removing": "हटाया जा रहा है...",
+      "remove": "उपयोगकर्ता हटाएँ"
+    },
+    "close": "बंद करें",
+    "toast": {
+      "removeSuccess": "उपयोगकर्ता को स्पा से सफलतापूर्वक हटाया गया",
+      "removeFailed": "उपयोगकर्ता हटाने में विफल"
+    }
+  },
+  "SpaAssignUserDialog": {
+    "title": "{{spaName}} को उपयोगकर्ता असाइन करें",
+    "selectUser": "उपयोगकर्ता चुनें",
+    "chooseUser": "-- उपयोगकर्ता चुनें --",
+    "currentlyAssigned": "वर्तमान में असाइन किए गए उपयोगकर्ता:",
+    "cancel": "रद्द करें",
+    "assign": "असाइन करें"
+  },
+  "SpaSlotDialog": {
+    "title": "{{date}} के लिए स्लॉट जोड़ें",
+    "firstSlotStartTime": "पहले स्लॉट का प्रारंभ समय (आवश्यक)",
+    "numberOfSlots": "लगातार स्लॉट्स की संख्या (प्रत्येक {{serviceTime}} मिनट)",
+    "preview": "यह {{count}} स्लॉट बनाएगा, {{serviceTime}} मिनट के अंतराल की स्वतः गणना करते हुए {{endTime}} पर समाप्त होगा।",
+    "cancel": "रद्द करें",
+    "addSlots": "स्लॉट जोड़ें"
+  },
+  "goBack": "वापस जाएँ",
+  "AddCreationLanguageDialog": {
+    "title": "नाम अनुवाद जोड़ें",
+    "form": {
+      "languageLabel": "भाषा",
+      "languagePlaceholder": "भाषा चुनें",
+      "translatedNameLabel": "अनुवादित नाम",
+      "translatedNamePlaceholder": "उदाहरण: Mi Grupo"
+    },
+    "buttons": {
+      "cancel": "रद्द करें",
+      "save": "अनुवाद सहेजें",
+      "saving": "सहेजा जा रहा है..."
+    },
+    "toast": {
+      "languageRequired": "कृपया एक भाषा चुनें।",
+      "nameRequired": "अनुवादित नाम आवश्यक है।",
+      "saveSuccess": "अनुवाद सफलतापूर्वक जोड़ा गया!",
+      "saveFailed": "अनुवाद जोड़ने में विफल।"
+    }
+  },
+  "CheckCreationLanguagesDialog": {
+    "title": "उपलब्ध अनुवाद",
+    "loader": {
+      "fetching": "अनुवाद प्राप्त किए जा रहे हैं..."
+    },
+    "empty": {
+      "noTranslations": "कोई अनुवाद नहीं मिला।"
+    },
+    "fields": {
+      "name": "नाम"
+    },
+    "tooltips": {
+      "edit": "अनुवाद संपादित करें"
+    },
+    "toast": {
+      "deleteSuccess": "अनुवाद सफलतापूर्वक हटाया गया!",
+      "deleteFailed": "अनुवाद हटाने में विफल।"
+    }
+  },
+  "DeleteCreationDialog": {
+    "triggerButton": "{{typeName}} हटाएँ",
+    "dialogTitle": "{{name}} हटाएँ?",
+    "warning": "⚠️ इस क्रिया को पूर्ववत नहीं किया जा सकता!",
+    "confirmQuestion": "क्या आप वाकई इस हटाने की प्रक्रिया को जारी रखना चाहते हैं?",
+    "property": {
+      "description": "{{name}} को हटाने से यह प्रॉपर्टी और इससे संबंधित सभी डेटा स्थायी रूप से हट जाएगा, जिसमें शामिल हैं:",
+      "items": {
+        "rooms": "सभी कमरे और कमरे की कॉन्फ़िगरेशन",
+        "ratePlans": "सभी रेट प्लान और मूल्य निर्धारण",
+        "reservations": "सभी आरक्षण और बुकिंग इतिहास",
+        "policies": "सभी नीतियाँ, कर और ऐड-ऑन",
+        "configurations": "सभी प्रॉपर्टी कॉन्फ़िगरेशन"
+      }
+    },
+    "brandRegion": {
+      "description": "इस ब्रांड को हटाने से {{name}} और इसके अंतर्गत आने वाला निम्न डेटा स्थायी रूप से हट जाएगा:",
+      "items": {
+        "properties": "इस {{type}} के अंतर्गत सभी प्रॉपर्टीज़",
+        "rooms": "प्रत्येक प्रॉपर्टी के सभी कमरे, रेट प्लान और आरक्षण",
+        "configurations": "इन प्रॉपर्टीज़ से संबंधित सभी कॉन्फ़िगरेशन, नीतियाँ और डेटा"
+      },
+      "danger": "इससे कई प्रॉपर्टीज़ और उनका पूरा डेटा हट जाएगा!"
+    },
+    "group": {
+      "description": "इस समूह को हटाने से {{name}} और इसके अंतर्गत आने वाला निम्न डेटा स्थायी रूप से हट जाएगा:",
+      "items": {
+        "brands": "इस समूह के अंतर्गत सभी ब्रांड",
+        "properties": "इस समूह और इसके ब्रांड्स के अंतर्गत सभी प्रॉपर्टीज़",
+        "rooms": "सभी प्रॉपर्टीज़ के सभी कमरे, रेट प्लान और आरक्षण",
+        "configurations": "पूरे समूह की सभी कॉन्फ़िगरेशन, नीतियाँ और डेटा"
+      },
+      "danger": "इससे पूरा समूह ढाँचा और उससे संबंधित सभी डेटा हट जाएगा!"
+    },
+    "buttons": {
+      "cancel": "रद्द करें",
+      "delete": "हटाएँ",
+      "deleting": "हटाया जा रहा है..."
+    },
+    "toast": {
+      "deleteSuccess": "प्रॉपर्टी सफलतापूर्वक हटाई गई",
+      "deleteFailed": "प्रॉपर्टी हटाने में विफल",
+      "deleteError": "प्रॉपर्टी हटाते समय एक त्रुटि हुई"
+    }
+  },
+  "AddPropertyAddressLangDialog": {
+    "title": "पता अनुवाद जोड़ें",
+    "form": {
+      "languageLabel": "भाषा",
+      "languagePlaceholder": "भाषा चुनें",
+      "addressLine1": "पता पंक्ति 1",
+      "addressLine2": "पता पंक्ति 2",
+      "city": "शहर",
+      "state": "राज्य",
+      "country": "देश",
+      "location": "स्थान",
+      "landmark": "लैंडमार्क"
+    },
+    "buttons": {
+      "cancel": "रद्द करें",
+      "save": "सहेजें",
+      "saving": "सहेजा जा रहा है..."
+    },
+    "toast": {
+      "languageRequired": "कृपया एक भाषा चुनें",
+      "saveSuccess": "अनुवाद सफलतापूर्वक जोड़ा गया!",
+      "saveFailed": "अनुवाद जोड़ने में विफल"
+    }
+  },
+  "CheckRoomLangDialog": {
+    "title": "कमरा अनुवाद",
+    "loader": {
+      "fetching": "अनुवाद प्राप्त किए जा रहे हैं..."
+    },
+    "empty": {
+      "noTranslations": "कोई अनुवाद नहीं मिला।"
+    },
+    "fields": {
+      "name": "नाम",
+      "description": "विवरण"
+    },
+    "tooltips": {
+      "edit": "अनुवाद संपादित करें"
+    },
+    "toast": {
+      "deleteSuccess": "अनुवाद सफलतापूर्वक हटाया गया!",
+      "deleteFailed": "अनुवाद हटाने में विफल"
+    }
   }
 }
