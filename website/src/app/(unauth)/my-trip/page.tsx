@@ -83,9 +83,9 @@ export default function MyTripPage() {
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Booking not found");
-      setBookingData(data.data); // ✅ local state
-      dispatch(setBookingViewData(data.data)); // ✅ global redux state
-      // toast.success("Booking found!");
+      setBookingData(data.data);
+      dispatch(setBookingViewData(data.data));
+      await fetchAvailableSpas(bookingCode.trim());  // ← ADD THIS
     } catch (err: any) {
       toast.error(err.message || t("MyTrip.errorFetching"));
     } finally {
@@ -330,7 +330,7 @@ export default function MyTripPage() {
           );
         });
       }
-      addPaymentRow("Net Discount:", `-${bookingData.currencyCode} ${bookingData.finalPrice?.totalPromotionAmount?.toFixed(2) || 0}`); 
+      addPaymentRow("Net Discount:", `-${bookingData.currencyCode} ${bookingData.finalPrice?.totalPromotionAmount?.toFixed(2) || 0}`);
       // Handle Translated Taxes
       if (bookingData.finalPrice?.taxBrakeDown?.length > 0) {
         bookingData.finalPrice.taxBrakeDown.forEach((tax: any) => {
