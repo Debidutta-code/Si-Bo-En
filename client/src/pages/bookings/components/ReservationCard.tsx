@@ -224,7 +224,7 @@ export default function ReservationCard({
             <div>
               <p className="text-sm text-gray-600">{t('Bookings.reservationCard.totalAmount')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {reservation.currencyCode} {reservation.amount.toFixed(2)}
+                {reservation.currencyCode} {((reservation.amount) + (reservation.PricingBrakeDown?.totalSpa || 0)).toFixed(2)}
               </p>
               {reservation.paidAmount > 0 && (
                 <p className="text-sm text-green-600 mt-1">
@@ -261,16 +261,13 @@ export default function ReservationCard({
             {(() => {
               const pb = reservation.PricingBrakeDown;
               if (!pb) return null;
-
               const dailyRows = pb?.DailyPriceBrakeDown ?? [];
               const addonRows = pb?.AddonBrakeDowns ?? [];
               const taxRows = pb?.taxBrakeDown ?? [];
               const promoRows = pb?.promotionBrakeDown ?? [];
-
-              const totalAmount = pb?.totalAmount ?? 0;
+              const totalAmount = (pb?.totalAmount ?? 0) + (pb?.totalSpa ?? 0);
               const amountBeforeTax = pb?.amountBeforeTax ?? 0;
               const taxedAmount = pb?.taxedAmount ?? 0;
-              const currentChargeable = pb?.currentChargeableAmount ?? 0;
               const laterPayable = pb?.latterpayableAmount ?? 0;
               const currency = pb?.currencyCode ?? reservation.currencyCode;
 
@@ -300,7 +297,7 @@ export default function ReservationCard({
                                 {new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                                 {day.guestDistribution && ` (${formatGuests(day.guestDistribution)})`}
                               </span>
-                              <span className="text-gray-900">{currency} {day.baseChargesAmount?.toFixed(2)}</span>
+                              <span className="text-gray-900">{currency} {day.totalAmount?.toFixed(2)}</span>
                             </div>
                           ))}
                         </div>
@@ -332,29 +329,30 @@ export default function ReservationCard({
                     )}
 
                     {/* Discounts */}
-                    {promoRows.length > 0 && (
-                      <div className="p-4 border-b border-gray-100">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Discounts applied</p>
-                        <div className="space-y-2">
-                          {promoRows.map((promo: any, i: number) => {
-                            const isPayLater = promo.restrictionType === "payLater";
-                            return (
-                              <div key={i} className="flex justify-between">
-                                <span className={isPayLater ? "text-gray-500" : "text-green-700"}>
-                                  {promo.name} ({promo.discountValue}%)
-                                  {isPayLater && (
-                                    <span className="ml-1 text-xs text-gray-400">pay later</span>
-                                  )}
-                                </span>
-                                <span className={isPayLater ? "text-gray-500" : "text-green-700"}>
-                                  {isPayLater ? "+" : "-"} {currency} {promo.discountAmount?.toFixed(2)}
-                                </span>
-                              </div>
-                            );
-                          })}
+                    {promoRows.filter((promo: any) => promo.restrictionType !== "payLater")
+                      .length > 0 && (
+                        <div className="p-4 border-b border-gray-100">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                            Discounts applied
+                          </p>
+
+                          <div className="space-y-2">
+                            {promoRows
+                              .filter((promo: any) => promo.restrictionType !== "payLater")
+                              .map((promo: any, i: number) => (
+                                <div key={i} className="flex justify-between">
+                                  <span className="text-green-700">
+                                    {promo.name} ({promo.discountValue}%)
+                                  </span>
+
+                                  <span className="text-green-700">
+                                    - {currency} {promo.discountAmount?.toFixed(2)}
+                                  </span>
+                                </div>
+                              ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Tax */}
                     {taxRows.length > 0 && (
@@ -371,22 +369,6 @@ export default function ReservationCard({
                       </div>
                     )}
 
-                    {/* Spa Charges */}
-                    {(pb.SpaPricingBrakeDowns && pb.SpaPricingBrakeDowns.length > 0) && (
-                      <div className="p-4 border-b border-gray-100">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Spa Charges</p>
-                        <div className="space-y-2">
-                          {pb.SpaPricingBrakeDowns.map((spa: any, i: number) => (
-                            <div key={i} className="flex justify-between items-start gap-2">
-                              <span className="text-gray-600">
-                                Spa Booking {spa.spaSlotId ? `(Slot ${spa.spaSlotId.slice(-4)})` : ''}
-                              </span>
-                              <span className="text-gray-900 whitespace-nowrap">{currency} {spa.price?.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
 
                     {/* Loyalty & Promo discounts */}
                     {((pb?.loyalityDiscount ?? 0) > 0 || (pb?.promoCodeDiscount ?? 0) > 0) && (
@@ -418,20 +400,36 @@ export default function ReservationCard({
                       </div>
                       <div className="flex justify-between font-medium text-gray-900 pt-2 border-t border-gray-200">
                       <span>{t('Bookings.reservationCard.totalInclTax')}:</span>
-                        <span>{currency} {totalAmount.toFixed(2)}</span>
+                        <span>{currency} {(amountBeforeTax + taxedAmount).toFixed(2)}</span>
                       </div>
                       {laterPayable > 0 && (
                         <>
-                          <div className="flex justify-between text-gray-600 pt-1">
-                            <span>Pay now</span>
-                            <span>{currency} {currentChargeable.toFixed(2)}</span>
-                          </div>
                           <div className="flex justify-between text-gray-600">
                             <span>Pay at hotel</span>
                             <span>{currency} {laterPayable.toFixed(2)}</span>
                           </div>
                         </>
                       )}
+                      {/* Spa Charges */}
+                      {pb.totalSpa > 0 && (
+                        <div className="border-b border-gray-100">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-start gap-2">
+                              <span className="text-gray-600">
+                                Total Activity Charges
+                              </span>
+
+                              <span className="text-gray-900 whitespace-nowrap">
+                                {currency} {pb.totalSpa?.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-medium text-gray-900 pt-2 border-t border-gray-200">
+                        <span>Total (incl. tax)</span>
+                        <span>{currency} {(totalAmount).toFixed(2)}</span>
+                      </div>
                     </div>
 
                   </div>

@@ -8,10 +8,8 @@ model PropertyEmails {
 }
 
 model PropertyConfigs {
-  id         String   @id @default(uuid())
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId String   @unique @map("property_id")
-
+  id                              String       @id @default(uuid())
+  propertyId                      String       @unique @map("property_id")
   pmsIntegrationActive            Boolean      @default(true) @map("pms_integration_active")
   channelManagerIntegrationActive Boolean      @default(true) @map("channel_manager_integration_active")
   selfAriActive                   Boolean      @default(true) @map("self_ari_active")
@@ -27,6 +25,7 @@ model PropertyConfigs {
 
   createdAt                       DateTime     @default(now())
   updatedAt                       DateTime     @updatedAt
+  property                        Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("property_configs")
 }
@@ -43,7 +42,6 @@ model PropertyActiveLanguages {
 
 model BookingEngineConfigurations {
   id              String   @id @default(uuid())
-  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId      String   @unique @map("property_id")
   primaryColor    String   @map("primary_color")
   secondaryColor  String   @map("secondary_color")
@@ -52,6 +50,7 @@ model BookingEngineConfigurations {
   bannerImage     String?  @map("banner_image")
   logo            String
   url             String?  @map("website_url")
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("booking_engine_configurations")
 }

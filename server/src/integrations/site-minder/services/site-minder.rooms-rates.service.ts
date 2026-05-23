@@ -94,7 +94,6 @@ export class SiteMinderRoomsRatesService {
             }> = [];
 
             for (const roomRate of mappingData.roomRates) {
-                if (roomRate.status !== 'Active') continue;
                 const room = mappingData.roomTypes.find(
                     (r: any) => r.roomTypeCode === roomRate.roomTypeCode
                 );

@@ -171,7 +171,7 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
          </div>
 
          {/* Grid */}
-         <div className="flex-1 grid grid-cols-7 auto-rows-fr bg-gray-100 border-x border-b gap-px overflow-y-auto" style={{ minHeight: '600px' }}>
+         <div className="flex-1 grid grid-cols-7 auto-rows-fr bg-gray-100 border-x border-b gap-px overflow-y-auto"style={{ gridAutoRows: 'minmax(120px, auto)' }}>
              {dayIntervals.map((day, i) => {
                  const spaDate = spaDates.find(sd => {
                      const d = new Date(sd.date);

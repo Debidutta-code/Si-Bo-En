@@ -133,7 +133,15 @@ export const fetchReservationByCode = async (bookingCode: string) => {
 
 export const cancelReservation = async (reservationId: string) => {
   try {
-    const response = await axiosInstance.put(`/reservations/cancel/${reservationId}`);
+    const response = await axiosInstance.put(
+      '/reservations/cancel',
+      {},
+      {
+        headers: {
+          'reservation-id': reservationId,
+        },
+      }
+    );
     return response.data;
   } catch (error: any) {
     if (error?.response?.data) {

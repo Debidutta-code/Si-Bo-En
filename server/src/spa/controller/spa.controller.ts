@@ -95,6 +95,34 @@ export class SpaController {
                 );
         }
     }
+    public async getSpaForPropertyCode(
+        req: Request,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const propertyCode = req.params.propertyCode;
+            const response =
+                await this.spaService.getSpaForPropertyCode(propertyCode);
+                
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse('Failed to retrieve spa', error.message)
+                    );
+            }
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to retrieve spa',
+                        'Internal Server Error'
+                    )
+                );
+        }
+    }
     public async updateSpa(
         req: CustomRequest,
         res: Response
@@ -216,6 +244,121 @@ export class SpaController {
                 .json(
                     errorResponse(
                         'Failed to retrieve available spas',
+                        'Internal Server Error'
+                    )
+                );
+        }
+    }
+    public async createSpaReservation(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const bookingData = req.body;
+            // Optionally, assign userId/userEmail if the user or customer is authenticated and we want to link it
+            if (req.user) {
+                bookingData.userId = req.user.id;
+            } else if (req.customer) {
+                bookingData.userId = req.customer.id;
+                bookingData.userEmail = req.customer.email;
+            }
+
+            if (!bookingData.userEmail || !bookingData.userContactNumber || !bookingData.slots || bookingData.slots.length === 0) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Missing required fields',
+                            'userEmail, userContactNumber and slots are required'
+                        )
+                    );
+            }
+
+            const response = await this.spaService.createSpaReservation(bookingData);
+            return res.status(response.success ? 201 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to create spa reservation', error.message));
+            }
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to create spa reservation',
+                        'Internal Server Error'
+                    )
+                );
+        }
+    }
+    public async cancelSpaReservation(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const bookingId = req.params.bookingId;
+            const { spaSlotId } = req.body;
+            if (!bookingId) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Missing required fields',
+                            'bookingId is required'
+                        )
+                    );
+            }
+
+            const customerId = req.customer?.id || req.user?.id;
+            const response = await this.spaService.cancelSpaReservation(bookingId, customerId, spaSlotId);
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to cancel spa reservation', error.message));
+            }
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to cancel spa reservation',
+                        'Internal Server Error'
+                    )
+                );
+        }
+    }
+    public async getCustomerSpaBookings(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const customerId = req.customer?.id || req.user?.id;
+            if (!customerId) {
+                return res
+                    .status(401)
+                    .json(
+                        errorResponse(
+                            'Unauthorized User',
+                            'Complete Authentication to view bookings'
+                        )
+                    );
+            }
+
+            const response = await this.spaService.getCustomerSpaBookings(customerId);
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(errorResponse('Failed to retrieve customer spa bookings', error.message));
+            }
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to retrieve customer spa bookings',
                         'Internal Server Error'
                     )
                 );

@@ -1,41 +1,40 @@
 model Room {
-  id                  String        @id @default(uuid())
-  roomName            String        @map("room_name")
-  roomType            String        @map("room_type")
-  totalRoom           Int           @map("total_room")
+  id                  String                 @id @default(uuid())
+  roomName            String                 @map("room_name")
+  roomType            String                 @map("room_type")
+  totalRoom           Int                    @map("total_room")
   floor               Int
-  roomView            RoomView      @default(others) @map("room_view") //this is not being used RoomViews this is being used from now onwads
-  roomSize            Float         @map("room_size")
-  roomUnit            RoomUnit      @default(sqft) @map("room_unit")
-  smokingPolicy       SmokingPolicy @default(non_smoking) @map("smoking_policy")
-  maxOccupancy        Int           @map("max_occupancy")
-  maxNumberOfAdults   Int           @map("max_number_of_adults")
-  maxNumberOfChildren Int           @map("max_number_of_children")
-  numberOfBedrooms    Int           @default(1) @map("number_of_bedrooms")
-  numberOfBeds        Int           @default(1) @map("number_of_beds")
-  numberOfLivingRoom  Int           @default(0) @map("number_of_living_room")
-  extraBed            Int           @default(0) @map("extra_bed")
+  roomView            RoomView               @default(others) @map("room_view")
+  roomSize            Float                  @map("room_size")
+  roomUnit            RoomUnit               @default(sqft) @map("room_unit")
+  smokingPolicy       SmokingPolicy          @default(non_smoking) @map("smoking_policy")
+  maxOccupancy        Int                    @map("max_occupancy")
+  maxNumberOfAdults   Int                    @map("max_number_of_adults")
+  maxNumberOfChildren Int                    @map("max_number_of_children")
+  numberOfBedrooms    Int                    @default(1) @map("number_of_bedrooms")
+  numberOfBeds        Int                    @default(1) @map("number_of_beds")
+  numberOfLivingRoom  Int                    @default(0) @map("number_of_living_room")
+  extraBed            Int                    @default(0) @map("extra_bed")
   description         String?
-  priority            Int           @default(0) @map("priority")
-  view360Link         String?       @map("360_view_link")
+  priority            Int                    @default(0) @map("priority")
+  view360Link         String?                @map("360_view_link")
   image               String[]
-  available           Boolean       @default(true)
-  isDeleted           Boolean       @default(false) @map("is_deleted")
+  available           Boolean                @default(true)
+  isDeleted           Boolean                @default(false) @map("is_deleted")
+  propertyId          String                 @map("property_id")
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
   RoomViews           MRoomView?
-  property            Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId          String        @map("property_id")
+  agenticRooms        AgenticRoom[]
+  customizableDeals   CustomizableDeal[]
+  geoRatePlans        GeoRatePlan[]
+  promotions          Promotion[]
+  roomAmenities       RoomAmenitySelection[]
+  roomVideos          RoomVideo?
+  RoomWishList        RoomWishList[]
+  property            Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  TouristTaxs         TouristTaxes?
 
-  roomAmenities RoomAmenitySelection[]
-  roomVideos    RoomVideo?
-  agenticRooms  AgenticRoom[]
-  geoRatePlans  GeoRatePlan[]
-  promotions    Promotion[]
-
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  customizableDeals CustomizableDeal[]
-  TouristTaxs       TouristTaxes[]
-  RoomWishList      RoomWishList[]
   @@unique([propertyId, roomType])
   @@unique([propertyId, roomName])
   @@index([propertyId])

@@ -197,7 +197,7 @@ export class PricingService {
                 endDate
             );
             const touristTaxClass = new TouristTaxClass(
-                selectedRoom.TouristTaxs,
+                (selectedRoom as any).TouristTaxs || [],
                 selectedRoom,
                 rooms,
                 priceBrakedowns,
@@ -342,10 +342,15 @@ class BasePriceClass {
     }
     public calculateTotalPrice(): PriceBrakeDown {
         const diffInDays = this.differenceReservationDays(
-            this.startDate,
-            this.endDate
+            toUTC(this.startDate),
+            toUTC(this.endDate)
         );
-        if (diffInDays + 1 != this.charges.length) {
+        console.log("differnt", {
+            diffInDays,
+            charges: this.charges,
+            len: this.charges.length
+        })
+        if (diffInDays != this.charges.length) {
             throw new Error('Charges not found for the given date range');
         }
 
@@ -389,9 +394,7 @@ class BasePriceClass {
         const checkOutDateCharge = this.charges.find(
             charge => charge.date.getTime() === this.endDate.getTime()
         );
-        if (!checkOutDateCharge) {
-            throw new Error('Check-out date charge not found');
-        }
+        if (!checkOutDateCharge) return;
         if (checkOutDateCharge.isClosedToDeparture) {
             throw new Error('Check-out date is closed for booking');
         }
@@ -412,7 +415,7 @@ class BasePriceClass {
         const dailyPriceBrakeDown: DailyPriceBrakeDown[] = [];
 
         this.charges.sort((a, b) => a.date.getTime() - b.date.getTime());
-        this.charges.pop();
+        // this.charges.pop();
 
         this.guestDistributions.forEach((guestDistribution, index) => {
             const { adults, children } = guestDistribution;
@@ -916,9 +919,21 @@ class PromotionClass {
         }, 0);
 
         const totalDiscountedAmount = visibleDiscountAmount + geoDiscountAmount;
-
+        const updatedDailyPriceBrakeDown = (this.priceBrakeDown.dailyPriceBrakeDown ?? []).map(day => {
+            if (geoDiscountAmount === 0) return day;
+            const dayWeight = day.totalAmount / this.priceBrakeDown.amountBeforeTax;
+            const dayGeoDiscount = geoDiscountAmount * dayWeight;
+            const restrictionType = geoPriceBrakedown[0]?.restrictionType; // 'increase' or 'decrease'
+            return {
+                ...day,
+                totalAmount: restrictionType === 'increase'
+                    ? day.totalAmount + dayGeoDiscount
+                    : day.totalAmount - dayGeoDiscount,
+            };
+        });
         return {
             ...this.priceBrakeDown,
+            dailyPriceBrakeDown: updatedDailyPriceBrakeDown, // ✅
             totalPromotionAmount: visibleDiscountAmount,
             amountBeforeTax:
                 this.priceBrakeDown.amountBeforeTax - geoDiscountAmount,
@@ -1244,13 +1259,17 @@ class TouristTaxClass {
     noOfDays: number;
     noOfBedrooms: number;
     constructor(
-        touristTax: ITouristTax[],
+        touristTax: ITouristTax[] | ITouristTax,
         room: IRoom,
         noOfRooms: number,
         priceBrakeDown: PriceBrakeDown,
         noOfDays: number
     ) {
-        this.touristTax = touristTax;
+        this.touristTax = Array.isArray(touristTax)
+            ? touristTax
+            : touristTax
+                ? [touristTax]
+                : [];
         this.room = room;
         this.noOfRooms = noOfRooms;
         this.priceBrakedown = priceBrakeDown;
@@ -1259,7 +1278,6 @@ class TouristTaxClass {
     }
     public findTouristTax(): PriceBrakeDown {
         let touristTaxes: PromotionBrakeDown[] = [];
-
         this.touristTax.map(tax => {
             touristTaxes.push(this.calculateTouristTaxvalue(tax));
         });

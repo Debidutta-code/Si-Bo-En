@@ -43,6 +43,7 @@ import {
     IReservationPromotionCreate,
     IUReservation,
 } from '../types';
+import { IntegrationDispatcher } from '../../integrations/dispatcher/integration-dispatcher.service';
 export class NewReservationService {
     private reservationRepository: ReservationRepository;
     private promoCodeRepository: PromoCodeRepository;
@@ -229,29 +230,17 @@ export class NewReservationService {
                     paidAmount = finalPrice.currentChargeableAmount;
                 }
             }
-            if (activeIntegration && activeIntegration.name === 'Rate Tiger') {
-                const rtConfig = await RTIntegrationDao.getRTConfig(
-                    propertyDetails.id,
-                    activeIntegration.type
-                );
-
-                if (!rtConfig) {
-                    return errorResponse(
-                        'Rate Tiger integration config not found for this property'
-                    );
-                }
-
-                const rtResult = await RTReservationPushService.pushCommit(
+            if (activeIntegration) {
+                console.log("activeIntegration1",activeIntegration)
+                const result = await IntegrationDispatcher.pushCommit(
                     payload,
+                    propertyDetails.id,
                     countryCode,
                     bookingCode,
-                    rtConfig
+                    activeIntegration
                 );
-
-                if (!rtResult.success) {
-                    return errorResponse(
-                        `Rate Tiger sync failed: ${rtResult.message}`
-                    );
+                if (!result.success) {
+                    return errorResponse(`Integration sync failed: ${result.message}`);
                 }
             }
             const reservation =
@@ -305,10 +294,6 @@ export class NewReservationService {
                     );
                 }
             }
-            await this.reservationRepository.createReservationGuests(
-                reservation.id,
-                guestDetails
-            );
             const ngeniusOrderRef = payload?.ngeniusOrderRef;
             if (ngeniusOrderRef) {
                 const count =
@@ -338,7 +323,7 @@ export class NewReservationService {
                     priceBreakdownPayload,
                     finalPrice.dailyPriceBrakeDown || [],
                     finalPrice.taxBrakeDown || [],
-                    finalPrice.addonBrakeDown || [],
+                    finalPrice.addonBrakeDowns || [],
                     finalPrice.promotionBrakeDown || []
                 ),
                 await this.reservationRepository.createReservationGuests(
@@ -366,11 +351,11 @@ export class NewReservationService {
                 });
             }
             if (
-                finalPrice.addonBrakeDown &&
-                finalPrice.addonBrakeDown.length > 0
+                finalPrice.addonBrakeDowns &&
+                finalPrice.addonBrakeDowns.length > 0
             ) {
                 const addonPayloads: IBookingAddonCreate[] =
-                    finalPrice.addonBrakeDown
+                    finalPrice.addonBrakeDowns
                         .filter((addon: IAddonBreakdown) => addon.addonId)
                         .map((addon: IAddonBreakdown) => ({
                             reservationId: reservation.id,
@@ -955,33 +940,32 @@ export class NewReservationService {
                         ? 'pms'
                         : null;
 
-            if (activeIntegrationTypeU) {
-                const rtConfig = await RTIntegrationDao.getRTConfig(
+            const activeIntegrationU = activeIntegrationTypeU
+                ? await this.ariManupulationRepo.getActiveIntegration(
                     existingReservation.propertyId,
-                    activeIntegrationTypeU
-                );
-
-                if (!rtConfig) {
-                    return errorResponse(
-                        'Rate Tiger integration config not found for this property'
-                    );
-                }
-
-                const rtResult = await RTReservationPushService.pushModify(
+                    {
+                        selfAriActive: selfAriActiveU,
+                        pmsIntegrationActive: updatePropConfig?.pmsIntegrationActive ?? false,
+                        channelManagerIntegrationActive: updatePropConfig?.channelManagerIntegrationActive ?? false,
+                    }
+                )
+                : null;
+            if (activeIntegrationTypeU) {
+                const result = await IntegrationDispatcher.pushModify(
                     existingReservation as any,
                     {
                         checkInDate: startDate,
                         checkOutDate: endDate,
                         amount: newAmount,
                         finalPrice: updatePayload.finalPrice,
+                        rooms: updatePayload.rooms,
+                        requestedRooms: updatePayload.requestedRooms
                     },
-                    rtConfig
+                    existingReservation.propertyId,
+                    { name: activeIntegrationU?.name ?? 'Rate Tiger', type: activeIntegrationTypeU, integrationId: '' }
                 );
-
-                if (!rtResult.success) {
-                    return errorResponse(
-                        `Rate Tiger sync failed: ${rtResult.message}`
-                    );
+                if (!result.success) {
+                    return errorResponse(`Integration sync failed: ${result.message}`);
                 }
             }
             if (selfAriActiveU && !activeIntegrationTypeU) {
@@ -1050,7 +1034,7 @@ export class NewReservationService {
                 )
             );
             const addonBrakeDown =
-                updatePayload.finalPrice.addonBrakeDown || [];
+                updatePayload.finalPrice.addonBrakeDowns || [];
             const addonPayloads: IBookingAddonCreate[] = addonBrakeDown
                 .filter((addon: IAddonBreakdown) => addon.addonId)
                 .map((addon: IAddonBreakdown) => ({
@@ -1125,7 +1109,7 @@ export class NewReservationService {
                 updateBreakdownHeader,
                 updatePayload.finalPrice.dailyPriceBrakeDown || [],
                 updatePayload.finalPrice.taxBrakeDown || [],
-                updatePayload.finalPrice.addonBrakeDown || [],
+                updatePayload.finalPrice.addonBrakeDowns || [],
                 updatePayload.finalPrice.promotionBrakeDown || []
             );
 
@@ -1398,27 +1382,24 @@ export class NewReservationService {
                         ? 'pms'
                         : null;
 
-            if (activeIntegrationTypeD) {
-                const rtConfig = await RTIntegrationDao.getRTConfig(
+            const activeIntegrationD = activeIntegrationTypeD
+                ? await this.ariManupulationRepo.getActiveIntegration(
                     reservation.propertyId,
-                    activeIntegrationTypeD
-                );
-
-                if (!rtConfig) {
-                    return errorResponse(
-                        'Rate Tiger integration config not found'
-                    );
-                }
-
-                const rtResult = await RTReservationPushService.pushCancel(
+                    {
+                        selfAriActive: selfAriActiveD,
+                        pmsIntegrationActive: delPropConfig?.pmsIntegrationActive ?? false,
+                        channelManagerIntegrationActive: delPropConfig?.channelManagerIntegrationActive ?? false,
+                    }
+                )
+                : null;
+             if (activeIntegrationTypeD) {
+                const result = await IntegrationDispatcher.pushCancel(
                     reservation as any,
-                    rtConfig
+                    reservation.propertyId,
+                    { name: activeIntegrationD?.name ?? 'Rate Tiger', type: activeIntegrationTypeD, integrationId: '' }
                 );
-
-                if (!rtResult.success) {
-                    return errorResponse(
-                        `Rate Tiger cancel failed: ${rtResult.message}`
-                    );
+                if (!result.success) {
+                    return errorResponse(`Integration sync failed: ${result.message}`);
                 }
             }
 

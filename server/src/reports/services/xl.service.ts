@@ -180,14 +180,16 @@ export class ReportsV2ExcelService {
         return Buffer.from(await wb.xlsx.writeBuffer());
     }
 
-    // ── Report 2: Reservation Overview ───────────────────────────────────────
+
+    // ─── GENERATOR ───────────────────────────────────────────────────────────────
     public async generateReservationOverview(
         reservations: any[],
         propertyNames: Map<string, string>
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('Reservation Overview');
-        const cols = 12;
+        const cols = 17;
+
         this.addTitle(
             ws,
             'Reservation Overview Report',
@@ -206,32 +208,53 @@ export class ReportsV2ExcelService {
             'Check-In',
             'Check-Out',
             'Nights',
-            'Amount',
+            'Currency',
+            'Amount Before Tax',
+            'Tax Amount',
+            'AmountAfterTax',
+            'Total Amount',
+            'Chargeable Amount',
+            'Later Payable',
             'Status',
         ]);
         this.styleHeader(hdr, cols);
         ws.columns = [
+            { width: 16 },  //  1 Booking Code
+            { width: 22 },  //  2 Property
+            { width: 20 },  //  3 Guest Name
+            { width: 24 },  //  4 Email
+            { width: 15 },  //  5 Phone
+            { width: 14 },  //  6 Room Type
+            { width: 16 },  //  7 Rate Plan
+            { width: 12 },  //  8 Check-In
+            { width: 12 },  //  9 Check-Out
+            { width: 8 },  // 10 Nights
+            { width: 10 },  // 11 Currency
             { width: 16 },
-            { width: 22 },
-            { width: 20 },
-            { width: 24 },
-            { width: 15 },
-            { width: 14 },
-            { width: 16 },
-            { width: 12 },
-            { width: 12 },
-            { width: 8 },
-            { width: 12 },
-            { width: 14 },
+            { width: 16 },// 12 Amount Before Tax
+            { width: 14 },  // 13 Tax Amount
+            { width: 14 },  // 14 Total Amount
+            { width: 16 },  // 15 Chargeable Amount
+            { width: 14 },  // 16 Later Payable
+            { width: 14 },  // 17 Status
         ];
+
         const startRow = ws.lastRow!.number + 1;
 
         for (const r of reservations) {
+            const pb = r.PricingBrakeDown;
+if(!pb) continue;
+            const amountBeforeTax = Number(pb?.amountBeforeTax ?? 0);
+            const taxedAmount = Number(pb?.taxedAmount ?? 0);
+            const totalAmount = Number( r.amount ?? 0);
+            const chargeableAmount = Number(pb?.currentChargeableAmount ?? 0);
+            const laterPayable = Number(pb?.latterpayableAmount ?? 0);
+
             ws.addRow([
-                r.bookingCode,
+                r.bookingCode?.split('-').slice(1).join('-') ?? r.bookingCode,
                 propertyNames.get(r.propertyId) || r.hotelName,
                 r.primaryGuest
-                    ? `${r.primaryGuest.firstName} ${r.primaryGuest.lastName}`
+                    ? `${r.primaryGuest.firstName ?? ''} ${r.primaryGuest.lastName ?? ''}`.trim()
                     : 'N/A',
                 r.primaryGuest?.email || 'N/A',
                 r.primaryGuest?.phoneNumber || 'N/A',
@@ -240,8 +263,14 @@ export class ReportsV2ExcelService {
                 this.fmtDate(r.reservationStartDate),
                 this.fmtDate(r.reservationEndDate),
                 this.roomNights(r.reservationStartDate, r.reservationEndDate),
-                this.fmtNum(r.amount),
-                r.bookingStatus,
+                r.currencyCode || pb?.currencyCode || 'N/A',
+                this.fmtNum(amountBeforeTax),
+                this.fmtNum(taxedAmount),
+                this.fmtNum(amountBeforeTax+taxedAmount),
+                this.fmtNum(totalAmount),
+                this.fmtNum(chargeableAmount),
+                this.fmtNum(laterPayable),
+                (r.bookingStatus ?? 'N/A').replace(/_/g, ' '),
             ]);
         }
 
@@ -553,14 +582,14 @@ export class ReportsV2ExcelService {
         return Buffer.from(await wb.xlsx.writeBuffer());
     }
 
-    // ── Report 6: All Reservations ────────────────────────────────────────────
     public async generateAllReservations(
         reservations: any[],
         propertyNames: Map<string, string>
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('All Reservations');
-        const cols = 16;
+        const cols = 21;
+
         this.addTitle(
             ws,
             'All Reservations Report',
@@ -579,36 +608,58 @@ export class ReportsV2ExcelService {
             'Check-In',
             'Check-Out',
             'Nights',
-            'Amount',
-            'Paid',
-            'Outstanding',
+            'Currency',
+            'Amount Before Tax',
+            'Tax Amount',
+            "Amount after Tax",
+            'Later Payable',
+            'Total Amount',
             'Status',
+            'Payment Method',
             'Source',
+            'Agency',
             'Booked At',
         ]);
         this.styleHeader(hdr, cols);
-        ws.columns = Array(cols).fill({ width: 15 });
+        ws.columns = Array(cols).fill({ width: 22 });
+
         const startRow = ws.lastRow!.number + 1;
 
         for (const r of reservations) {
+            const pb = r.PricingBrakeDown;
+        if(!pb) continue; 
+
+            const nights = this.roomNights(r.reservationStartDate, r.reservationEndDate);
+
+            const amountBeforeTax = Number(pb?.amountBeforeTax ?? 0);
+            const taxedAmount = Number(pb?.taxedAmount ?? 0);
+            const totalAmount = Number(pb?.totalAmount ?? r.amount ?? 0);
+            const chargeableAmount = Number(pb?.currentChargeableAmount ?? 0);
+            const laterPayable = Number(pb?.latterpayableAmount ?? r.extraAmountToPay ?? 0);
+            const amountAfterTax = amountBeforeTax + taxedAmount;
             ws.addRow([
-                r.bookingCode,
+                r.bookingCode?.split('-').slice(1).join('-') ?? r.bookingCode,
                 propertyNames.get(r.propertyId) || r.hotelName,
                 r.primaryGuest
-                    ? `${r.primaryGuest.firstName} ${r.primaryGuest.lastName}`
+                    ? `${r.primaryGuest.firstName ?? ''} ${r.primaryGuest.lastName ?? ''}`.trim()
                     : 'N/A',
-                r.primaryGuest?.email || 'N/A',
-                r.primaryGuest?.phoneNumber || 'N/A',
+                r.primaryGuest?.email || r.bookingUserEmail || 'N/A',
+                r.primaryGuest?.phoneNumber || r.bookingUserPhone || 'N/A',
                 r.roomTypeCode || 'N/A',
                 r.ratePlanName || r.ratePlanCode || 'N/A',
                 this.fmtDate(r.reservationStartDate),
                 this.fmtDate(r.reservationEndDate),
-                this.roomNights(r.reservationStartDate, r.reservationEndDate),
-                this.fmtNum(r.amount),
-                this.fmtNum(r.paidAmount),
-                this.fmtNum(r.extraAmountToPay),
-                r.bookingStatus,
-                r.bookingSource,
+                nights,
+                r.currencyCode || pb?.currencyCode || 'N/A',
+                this.fmtNum(amountBeforeTax),
+                this.fmtNum(taxedAmount),
+                this.fmtNum(amountAfterTax),
+                this.fmtNum(laterPayable),
+                this.fmtNum(totalAmount),
+                (r.bookingStatus ?? 'N/A').replace(/_/g, ' '),
+                (r.paymentMethod ?? 'N/A').replace(/_/g, ' '),
+                (r.bookingSource ?? 'N/A').replace(/_/g, ' '),
+                r.agency?.agencyName || 'N/A',
                 this.fmtDate(r.bookedAt),
             ]);
         }
@@ -617,7 +668,6 @@ export class ReportsV2ExcelService {
         this.styleAltRows(ws, startRow, cols);
         return Buffer.from(await wb.xlsx.writeBuffer());
     }
-
     // ── Report 7: Check-In / Check-Out ───────────────────────────────────────
     public async generateCheckInOut(
         reservations: any[],

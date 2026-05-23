@@ -80,37 +80,6 @@ export class RateTigerDao {
                 },
             });
 
-            // 3. Get inventory to determine room-rate plan mappings
-            const inventories = await prisma.inventory.findMany({
-                where: {
-                    propertyCode: propertyCode,
-                    date: {
-                        gte: new Date(), // Only current/future inventory
-                    },
-                },
-                select: {
-                    roomTypeCode: true,
-                    ratePlans: true, // This is the String[] array
-                    date: true,
-                },
-            });
-
-            // 4. Build room-rate plan mappings from inventory
-            const roomRateMappings = new Map<string, Set<string>>();
-
-            inventories.forEach(inventory => {
-                const roomTypeCode = inventory.roomTypeCode;
-
-                if (!roomRateMappings.has(roomTypeCode)) {
-                    roomRateMappings.set(roomTypeCode, new Set());
-                }
-
-                // Add all rate plans from this inventory record
-                inventory.ratePlans.forEach(ratePlanCode => {
-                    roomRateMappings.get(roomTypeCode)!.add(ratePlanCode);
-                });
-            });
-
             // 5. Build roomRates array (the mapping!)
             const roomRates: Array<{
                 ratePlanCode: string;
@@ -125,18 +94,13 @@ export class RateTigerDao {
             // Create cross-reference for all combinations
             allRoomTypes.forEach(roomTypeCode => {
                 allRatePlanCodes.forEach(ratePlanCode => {
-                    const isActive =
-                        roomRateMappings.get(roomTypeCode)?.has(ratePlanCode) ||
-                        false;
-
                     roomRates.push({
                         ratePlanCode,
                         roomTypeCode,
-                        status: isActive ? 'Active' : 'inActive',
+                        status: 'Active',
                     });
                 });
             });
-
             const formattedRatePlans = ratePlans.map(rp => ({
                 ratePlanCode: rp.ratePlanCode,
                 ratePlanName: rp.ratePlanName,

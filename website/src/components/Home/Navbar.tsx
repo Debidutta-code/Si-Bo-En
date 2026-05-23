@@ -15,13 +15,15 @@ import { clearCustomer } from "@/src/store/customerSlice";
 const Navbar = () => {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
-  const propertyCode = searchParams.get("code");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dynamicLogo, setDynamicLogo] = useState<string | null>(null);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
   const isAgencyApplicationPage = pathname.includes("/agency-application");
   const isRoomsPage = pathname.includes("/Rooms");
+  const isMyTripPage = pathname.includes("/my-trip");
+  const isSpaPage = pathname.includes("/spa");
+  const propertyCode = isRoomsPage ? searchParams.get("code") : searchParams.get("propertyCode");
   const dispatch = useDispatch();
   const router = useRouter();
   const bookingContext = useSelector((state: RootState) => state.booking);
@@ -132,7 +134,10 @@ const Navbar = () => {
   const navBg = isHomePage
     ? "bg-white/80 backdrop-blur-md text-black shadow-sm"
     : "bg-white text-black shadow";
-
+  const storeRedirectAndLogin = () => {
+    sessionStorage.setItem("customerRedirectUrl", window.location.href);
+    router.push("/login");
+  };
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 ${navBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -214,7 +219,8 @@ const Navbar = () => {
               {t("Navbar.loyaltyGuestLogin")}
             </button> */}
             {/* My Booking */}
-            {!isHomePage && propertyCode && (
+            {!isHomePage &&!isMyTripPage && propertyCode && (
+
               <button
                 onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -228,12 +234,37 @@ const Navbar = () => {
                 {t("Navbar.myBooking")}
               </button>
             )}
+
+            {/* SPA */}
+            {propertyCode && !isSpaPage&& (
+              <button
+                onClick={() => {
+                  const target = `/spa?propertyCode=${propertyCode}`;
+                  router.push(target);
+                  // if (customer.isAuthenticated) {
+                  //   router.push(target);
+                  // } else {
+                  //   sessionStorage.setItem("customerRedirectUrl", target);
+                  //   router.push("/login");
+                  // }
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                    ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                    : "#F4EFE6",
+                  color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                }}
+              >
+                Spa
+              </button>
+            )}
             {/* Customer Login / User Dropdown */}
             <div className="relative" ref={customerDropdownRef}>
               <button
                 onClick={customer.isAuthenticated
                   ? () => setIsCustomerDropdownOpen(!isCustomerDropdownOpen)
-                  : () => { sessionStorage.setItem("customerRedirectUrl", pathname); router.push("/login"); }}
+                  : () => { storeRedirectAndLogin(); }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 style={{
                   backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
@@ -282,7 +313,7 @@ const Navbar = () => {
                       onClick={() => {
                         setIsCustomerDropdownOpen(false);
                         dispatch(clearCustomer());
-                        router.push("/");
+                        router.push(window.location.href); // stay on current page
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
                     >
@@ -313,164 +344,95 @@ const Navbar = () => {
         {isMenuOpen && (
           <div className="lg:hidden bg-white text-black rounded-md mt-2 py-4 px-4 space-y-3 text-sm shadow-lg">
 
-            {/* Language Switcher — top of mobile menu */}
             <div className="py-1">
               <LanguageSwitcher onLanguageChange={() => setIsMenuOpen(false)} />
             </div>
 
-            {/* Home Page Links */}
             {isHomePage && (
               <>
-                <button
-                  onClick={() => { setIsMenuOpen(false); handleHomeClick(); }}
-                  className="block w-full text-left hover:text-amber-500"
-                >
+                <button onClick={() => { setIsMenuOpen(false); handleHomeClick(); }} className="block w-full text-left hover:text-amber-500">
                   {t("Navbar.home")}
                 </button>
-                <p
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="cursor-pointer hover:text-[#1A98A6]"
-                >
+                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-[#1A98A6]">
                   {t("Navbar.services")}
                 </p>
-                <p
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    document.querySelector("#contact-us")?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="cursor-pointer hover:text-[#1A98A6]"
-                >
+                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#contact-us")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-[#1A98A6]">
                   {t("Navbar.contactUs")}
                 </p>
               </>
             )}
 
-            {isRoomsPage && (
+            {/* These show on ALL non-home pages, not just Rooms */}
+            {!isAgencyApplicationPage && (
+              <button
+                onClick={() => { setIsMenuOpen(false); router.push("/agency-application"); }}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
+                style={{ backgroundColor: bookingContext?.bookingEngineColor?.primaryColor ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6", color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F" }}
+              >
+                <Globe size={16} /> {t("Navbar.becomApartner")}
+              </button>
+            )}
+
+            <button
+              onClick={() => { setIsMenuOpen(false); window.open(agenturl, "_blank"); }}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
+              style={{ backgroundColor: bookingContext?.bookingEngineColor?.primaryColor ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6", color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F" }}
+            >
+              {t("Navbar.partnerLogin")}
+            </button>
+
+            {!isHomePage && !isMyTripPage && propertyCode && (
+              <button
+                onClick={() => { setIsMenuOpen(false); router.push(`/my-trip?propertyCode=${propertyCode}`); }}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
+                style={{ backgroundColor: bookingContext?.bookingEngineColor?.primaryColor ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6", color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F" }}
+              >
+                {t("Navbar.myBooking")}
+              </button>
+            )}
+
+            {propertyCode && !isSpaPage && (
+              <button
+                onClick={() => { setIsMenuOpen(false); router.push(`/spa?propertyCode=${propertyCode}`); }}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
+                style={{ backgroundColor: bookingContext?.bookingEngineColor?.primaryColor ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6", color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F" }}
+              >
+                Spa
+              </button>
+            )}
+
+            {/* Customer Login / Profile / Sign Out */}
+            {customer.isAuthenticated ? (
               <>
-                {
-                  !isAgencyApplicationPage && (
-                    <button
-                      onClick={() => router.push("/agency-application")}
-                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                      style={{
-                        backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                          ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                          : "#F4EFE6",
-                        color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                      }}
-                    >
-                      <Globe size={16} /> {t("Navbar.becomApartner")}
-                    </button>
-                  )
-                }
-                {/* <button
-                  onClick={() => { setIsMenuOpen(false); router.push(`/loyalty-login`); }}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                      : "#F4EFE6",
-                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  {t("Navbar.loyaltyGuestLogin")}
-                </button> */}
-
-                {customer.isAuthenticated ? (
-                  <>
-                    <div className="px-4 py-2">
-                      <p className="font-medium text-sm">{customer.customer?.firstName} {customer.customer?.lastName}</p>
-                      <p className="text-xs text-gray-500">{customer.customer?.email}</p>
-                    </div>
-                    <button
-                      onClick={() => { setIsMenuOpen(false); router.push("/profile"); }}
-                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                      style={{
-                        backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                          ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                          : "#F4EFE6",
-                        color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                      }}
-                    >
-                      {t("Navbar.profile")}
-                    </button>
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        dispatch(clearCustomer());
-                        router.push("/");
-                      }}
-                      className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                      style={{
-                        backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                          ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                          : "#F4EFE6",
-                        color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                      }}
-                    >
-                      {t("Navbar.signOut")}
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => { sessionStorage.setItem("customerRedirectUrl", pathname); setIsMenuOpen(false); router.push("/login"); }}
-                    className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                        ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                        : "#F4EFE6",
-                      color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                      <circle cx="12" cy="7" r="4" />
-                    </svg>
-                    {t("Navbar.customerLogin")}
-                  </button>
-                )}
-
+                <div className="px-4 py-2">
+                  <p className="font-medium text-sm">{customer.customer?.firstName} {customer.customer?.lastName}</p>
+                  <p className="text-xs text-gray-500">{customer.customer?.email}</p>
+                </div>
                 <button
-                  onClick={() => { setIsMenuOpen(false); window.open(agenturl, "_blank"); }}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                      : "#F4EFE6",
-                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                  }}
+                  onClick={() => { setIsMenuOpen(false); router.push("/profile"); }}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
+                  style={{ backgroundColor: bookingContext?.bookingEngineColor?.primaryColor ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6", color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F" }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                  {t("Navbar.partnerLogin")}
+                  {t("Navbar.profile")}
                 </button>
                 <button
-                  onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                      : "#F4EFE6",
-                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                  }}
+                  onClick={() => { setIsMenuOpen(false); dispatch(clearCustomer()); router.push(window.location.href); }}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium text-red-500"
+                  style={{ backgroundColor: "#FEF2F2" }}
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-                    <rect x="9" y="3" width="6" height="4" rx="1" />
-                  </svg>
-                  {t("Navbar.myBooking")}
+                  {t("Navbar.signOut")}
                 </button>
               </>
+            ) : (
+              <button
+                onClick={() => { setIsMenuOpen(false); storeRedirectAndLogin(); }}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
+                style={{ backgroundColor: bookingContext?.bookingEngineColor?.primaryColor ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6", color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F" }}
+              >
+                {t("Navbar.customerLogin")}
+              </button>
             )}
+
           </div>
         )}
       </div>

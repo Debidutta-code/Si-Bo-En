@@ -42,3 +42,10 @@ export interface ITaxBrakeDown {
     taxedAmount: number;
     pricingBrakeDownId: string;
 }
+
+export interface ISpaBookingRequest {
+    userEmail: string;
+    userContactNumber: string;
+    userId?: string;
+    slots: { spaId: string; spaSlotId: string }[];
+}

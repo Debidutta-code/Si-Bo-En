@@ -6,16 +6,16 @@ export interface ICPropertyLoyaltyConfig {
     propertyCode: string;
     propertyName: string;
     loyalityConfigLogo: string | null;
-     
+
 }
 export interface IPropertyLoyaltyConfig extends ICPropertyLoyaltyConfig {
     id: string;
     isActive: boolean;
-  _translations: {
-                fieldName: string;
-            }
+    _translations: {
+        fieldName: string;
+    }
 
 }
-export interface IPropertyLoyalityWithLoyality{
-    CreationLoyaltyConfig:ICreationLoyality;
+export interface IPropertyLoyalityWithLoyality {
+    CreationLoyaltyConfig: ICreationLoyality;
 }

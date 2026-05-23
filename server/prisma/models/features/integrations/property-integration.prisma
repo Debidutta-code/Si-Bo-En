@@ -1,13 +1,12 @@
 model PropertyIntegrations {
   id                         String                       @id @default(uuid())
   propertyId                 String                       @map("property_id")
-  Property                   Property                     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   masterIntegrationId        String                       @map("master_integration_id")
-  MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id])
   isActive                   Boolean                      @map("is_active")
+  createdAt                  DateTime                     @default(now()) @map("created_at")
   propertyIntegrationSecrets PropertyInregrationSecrets[]
-
-  createdAt DateTime @default(now()) @map("created_at")
+  MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id])
+  Property                   Property                     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@unique([propertyId, masterIntegrationId])
   @@index([propertyId])
@@ -20,10 +19,9 @@ model PropertyInregrationSecrets {
   propertyIntegrationId String                          @map("property_integration_id")
   requiredFieldId       String                          @map("required_field_id")
   value                 String
+  createdAt             DateTime                        @default(now()) @map("created_at")
   PropertyIntegration   PropertyIntegrations            @relation(fields: [propertyIntegrationId], references: [id], onDelete: Cascade)
   RequiredField         MasterIntegrationRequiredFields @relation(fields: [requiredFieldId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([propertyIntegrationId, requiredFieldId])
   @@index([propertyIntegrationId])

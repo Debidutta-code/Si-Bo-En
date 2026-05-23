@@ -249,9 +249,8 @@ const AgencyApplicationsPage: React.FC = () => {
               ) : (
                 filteredApplications.map((application) => (
                   <TableRow key={application.id}>
+                    <TableCell>{application.id}</TableCell>
                     <TableCell>{application.applicantName}</TableCell>
-                    <TableCell>{application.applicationNoForThisUser}</TableCell>
-
                     <TableCell>{application.agencyName}</TableCell>
                     <TableCell>{application.applicantEmail}</TableCell>
                     <TableCell>{application.applicantPhone}</TableCell>

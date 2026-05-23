@@ -1,16 +1,15 @@
 model AgenticProperty {
   id           String        @id @default(uuid())
   agencyId     String        @map("agency_id")
-  agency       Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   propertyId   String        @map("property_id")
   propertyCode String        @map("property_code")
   propertyName String        @map("property_name")
+  isActive     Boolean       @default(true) @map("is_active")
+  isDeleted    Boolean       @default(false) @map("is_deleted")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  agency       Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   Property     Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   AgenticRooms AgenticRoom[]
-
-  isActive  Boolean  @default(true) @map("is_active")
-  isDeleted Boolean  @default(false) @map("is_deleted")
-  createdAt DateTime @default(now()) @map("created_at")
 
   @@unique([agencyId, propertyId])
   @@index([agencyId])

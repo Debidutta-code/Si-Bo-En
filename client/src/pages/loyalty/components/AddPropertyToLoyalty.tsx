@@ -245,7 +245,7 @@ export default function AddPropertyToLoyalty({
                 <div className="flex items-start justify-between p-4 pb-2">
                   <div className="flex flex-col gap-1 pr-4">
                     <h3 className="text-base font-semibold leading-none tracking-tight">
-                      {property._translations?.propertyName || property.propertyName}
+                      {property._translations?.fieldName || property.propertyName}
                     </h3>
                     {/* {property.creationLoyaltyConfig.discountPercentage != null && (
                       <span className="text-sm font-medium text-muted-foreground">

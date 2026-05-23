@@ -80,18 +80,15 @@ export class SpaPricingRepository {
     public async updatePricingForPaidAndCancelled({
         reservationId,
         refundableAmount,
-        extraAmountToPay,
     }: {
         reservationId: string;
         refundableAmount: number;
-        extraAmountToPay: number;
     }): Promise<ISpaReservation> {
         try {
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: {
                     refundAmount: refundableAmount,
-                    extraAmountToPay: extraAmountToPay,
                 },
             });
         } catch (error) {
@@ -111,23 +108,17 @@ export class SpaPricingRepository {
     }
     public async updatePriceBrakeDown({
         priceBrakeDownId,
-        amountBeforeTax,
         newTotalAmount,
         totalSpaAmount,
-        taxedAmount,
     }: {
         priceBrakeDownId: string;
-        amountBeforeTax: number;
         newTotalAmount: number;
         totalSpaAmount: number;
-        taxedAmount: number;
     }): Promise<IPricingBreakDown> {
         try {
             return await prisma.pricingBreakdown.update({
                 where: { id: priceBrakeDownId },
                 data: {
-                    amountBeforeTax,
-                    taxedAmount,
                     totalAmount: newTotalAmount,
                     totalSpa: totalSpaAmount,
                 },

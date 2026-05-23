@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,  
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogFooter,
   AlertDialogHeader,
@@ -62,14 +62,14 @@ export default function BankDetails({ propertyId }: PropertyId) {
       const response = await getBankDetailsByPropertyId(propertyId);
       if (response.success) {
         const data: BankDetailsResponse = response.data;
-        
+
         setPayAtHotel(data.payAtHotel);
         setPaymentGateway(data.paymentGateway);
-        
+
         // Store full integration details for display
         const integrationDetails = data.selectedPaymentIntegrations || [];
         setPaymentIntegrationDetails(integrationDetails);
-        
+
         // Find the active payment integration ID
         const activeIntegration = integrationDetails.find(int => int.isActive);
         if (activeIntegration) {
@@ -105,7 +105,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
         selectedPaymentIntegration: selectedPaymentData?.integrationId || null,
         outletId: selectedPaymentData?.outletId || null
       };
-      
+
       const res = await updatePaymentMethod(propertyId, payload);
       if (res.success) {
         toast.success(t("BankDetails.paymentMethodsUpdated"));
@@ -199,7 +199,13 @@ export default function BankDetails({ propertyId }: PropertyId) {
                 </h3>
               </div>
               {canEdit && (
-                <AlertDialog>
+                <AlertDialog onOpenChange={(open) => {
+                  if (!open) {
+                    // Reset to original fetched values when modal is cancelled
+                    fetchBankDetails(propertyId);
+                    setSelectedPaymentData(null);
+                  }
+                }}>
                   <AlertDialogTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2 text-primary-600 hover:text-primary-700">
                       <PenTool className="h-3.5 w-3.5" />
@@ -221,7 +227,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                           <X className="h-4 w-4" />
                         </AlertDialogCancel>
                       </div>
-                      
+
                       {/* Payment Method Toggles */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <button
@@ -295,7 +301,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                           onSelectionChange={handleSelectionChange}
                         />
                       )}
-                      
+
                       {!payAtHotel && !paymentGateway && (
                         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                           <p className="text-sm text-yellow-700 font-medium">
@@ -323,17 +329,15 @@ export default function BankDetails({ propertyId }: PropertyId) {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div
-                className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${
-                  paymentGateway
+                className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${paymentGateway
                     ? "bg-green-50 border-green-200"
                     : "bg-gray-50 border-gray-200"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                      paymentGateway ? "bg-green-500" : "bg-gray-400"
-                    }`}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${paymentGateway ? "bg-green-500" : "bg-gray-400"
+                      }`}
                   >
                     {paymentGateway ? (
                       <Check className="h-3.5 w-3.5 text-white" />
@@ -344,28 +348,25 @@ export default function BankDetails({ propertyId }: PropertyId) {
                   <span className="font-medium text-gray-900">{t("BankDetails.onlineGateway")}</span>
                 </div>
                 <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    paymentGateway
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${paymentGateway
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-200 text-gray-600"
-                  }`}
+                    }`}
                 >
 {paymentGateway ? t("BankDetails.active") : t("BankDetails.inactive")}
                 </span>
               </div>
 
               <div
-                className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${
-                  payAtHotel
+                className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${payAtHotel
                     ? "bg-green-50 border-green-200"
                     : "bg-gray-50 border-gray-200"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                      payAtHotel ? "bg-green-500" : "bg-gray-400"
-                    }`}
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${payAtHotel ? "bg-green-500" : "bg-gray-400"
+                      }`}
                   >
                     {payAtHotel ? (
                       <Check className="h-3.5 w-3.5 text-white" />
@@ -376,11 +377,10 @@ export default function BankDetails({ propertyId }: PropertyId) {
                   <span className="font-medium text-gray-900">{t("BankDetails.payAtHotel")}</span>
                 </div>
                 <span
-                  className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    payAtHotel
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${payAtHotel
                       ? "bg-green-100 text-green-700"
                       : "bg-gray-200 text-gray-600"
-                  }`}
+                    }`}
                 >
                   {payAtHotel ? t("BankDetails.active") : t("BankDetails.inactive")}
                 </span>
@@ -400,12 +400,12 @@ export default function BankDetails({ propertyId }: PropertyId) {
                       className="px-3 py-2 bg-white border border-blue-200 rounded-lg shadow-sm"
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${integration.isActive?"bg-green-500":"bg-gray-500"}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${integration.isActive ? "bg-green-500" : "bg-gray-500"}`}></div>
                         <span className="text-sm font-medium text-gray-900">
                           {formatPaymentIntegrationName(integration.paymentIntegration.name)}
                         </span>
                       </div>
-                     
+
                     </div>
                   ))}
                 </div>

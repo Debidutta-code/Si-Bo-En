@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import { config } from '../../config';
 export async function sendEmail(
     to: string,
-    cc: string[],
+    bcc: string[],
     subject: string,
     htmlContent: string
 ): Promise<boolean> {
@@ -19,7 +19,7 @@ export async function sendEmail(
     const mailOptions = {
         from: `${config.senderEmail}`,
         to,
-        cc,
+        bcc,
         subject,
         html: htmlContent,
     };

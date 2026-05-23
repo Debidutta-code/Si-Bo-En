@@ -447,7 +447,7 @@ export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 export interface IFinalPrice {
     additionalGuestCharges: number;
     amountBeforeTax: number;
-    addonBrakeDown: IAddonBreakdown[];
+    addonBrakeDowns: IAddonBreakdown[];
     amountAfterTax: number;
     baseRatePerNight: number;
     currencyCode: CurrencyCode;

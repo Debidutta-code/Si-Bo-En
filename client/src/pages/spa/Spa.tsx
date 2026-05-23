@@ -32,6 +32,7 @@ import SpaAssignUserDialog from './components/SpaAssignUserDialog';
 import BackButton from '@/components/shared/BackButton';
 import { usePropertyContext } from '@/contexts/PropertyContext';
 import { languages } from '@/components/language/language';
+import toast from 'react-hot-toast';
 
 export default function Spa() {
   const { t } = useTranslation();
@@ -64,8 +65,7 @@ export default function Spa() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isImageUploadOpen, setIsImageUploadOpen] = useState(false);
   const [selectedSpa, setSelectedSpa] = useState<ISpa | null>(null);
-  const [editIsActive, setEditIsActive] = useState(false);
-
+const [editIsActive,setEditIsActive]=useState(false)
   // Form State
   const initialFormState: ICSpaC = {
     name: '',
@@ -81,7 +81,8 @@ export default function Spa() {
     currencyCode: null,
     categoryId: '',
     subCategoryId: '',
-    propertyId: propertyId || ''
+    propertyId: propertyId || '',
+    isActive: true,
   };
   const [formData, setFormData] = useState<ICSpaC>(initialFormState);
 
@@ -138,14 +139,22 @@ export default function Spa() {
       currencyCode: formData.currencyCode,
       categoryId: formData.categoryId,
       subCategoryId: formData.subCategoryId,
-      isActive: editIsActive
+      isActive: formData.isActive
     };
-    const res = await updateSpaService((selectedSpa as any).id, updateData);
-    if (res.success) {
-      setIsEditOpen(false);
-      fetchData();
+    try {
+      const res = await updateSpaService((selectedSpa as any).id, updateData);
+      if (res.success) {
+        setIsEditOpen(false);
+        fetchData();
+        toast.success('Spa/Activity updated successfully');
+      } else {
+        toast.error(res.message || 'Failed to update Spa/Activity');
+      }
+    } catch (e) {
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setLoader({ isLoading: false, message: '' });
     }
-    setLoader({ isLoading: false, message: '' });
   };
 
   const handleDelete = async () => {
@@ -172,7 +181,6 @@ export default function Spa() {
 
   const openEdit = (spa: ISpa) => {
     setSelectedSpa(spa);
-    setEditIsActive(spa.isActive);
     setFormData({
       name: spa.name,
       itemCode: spa.itemCode,
@@ -187,7 +195,8 @@ export default function Spa() {
       currencyCode: spa.currencyCode,
       categoryId: spa.categoryId,
       subCategoryId: spa.subCategoryId,
-      propertyId: spa.propertyId
+      propertyId: spa.propertyId,
+      isActive: spa.isActive
     });
     setIsEditOpen(true);
   };
@@ -226,11 +235,13 @@ export default function Spa() {
     const spaDetails = spas.find(s => s.id === spaId);
     return (
       <div className="p-4 h-[calc(100vh-4rem)] bg-gray-50/50">
+      <div className="p-4 h-[calc(100vh-4rem)] bg-gray-50/50">
         {spaDetails ? (
           <SpaCalendar spaId={spaId} propertyId={propertyId || ''} spaDetails={spaDetails} />
         ) : (
           <Loader text={t('Spa.loader.loadingSpaDetails')} />
         )}
+      </div>
       </div>
     );
   }
@@ -460,21 +471,21 @@ export default function Spa() {
       </Dialog>
 
       {/* View Details Dialog */}
-      <SpaViewDialog 
-        isOpen={isViewOpen} 
-        onClose={() => setIsViewOpen(false)} 
-        selectedSpa={selectedSpa} 
+      <SpaViewDialog
+        isOpen={isViewOpen}
+        onClose={() => setIsViewOpen(false)}
+        selectedSpa={selectedSpa}
         onUpdate={() => {
           fetchData();
           setIsViewOpen(false);
         }}
       />
-      
+
       {/* Assign User Dialog */}
-      <SpaAssignUserDialog 
-        isOpen={isAssignOpen} 
-        onClose={() => setIsAssignOpen(false)} 
-        selectedSpa={selectedSpa} 
+      <SpaAssignUserDialog
+        isOpen={isAssignOpen}
+        onClose={() => setIsAssignOpen(false)}
+        selectedSpa={selectedSpa}
         spaUsers={spaUsers}
         selectedUserForAssign={selectedUserForAssign}
         setSelectedUserForAssign={setSelectedUserForAssign}

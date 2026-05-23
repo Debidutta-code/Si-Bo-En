@@ -194,7 +194,7 @@ export class EmailQueue {
 
         const ok = await sendEmail(
             data.to,
-            data.cc ?? [],
+            data.bcc ?? [],
             data.subject,
             data.htmlContent
         );
@@ -252,7 +252,7 @@ export class EmailQueue {
 
         const ok = await sendEmail(
             data.to,
-            data.cc ?? [],
+            data.bcc ?? [],
             data.subject,
             data.htmlContent
         );

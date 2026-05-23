@@ -1,0 +1,57 @@
+export interface ISpaApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  data?: T;
+}
+
+export interface ISpaCategory {
+  name?: string;
+}
+
+export interface ISpaSlotReservation {
+  id?: string;
+  bookingCode: string;
+}
+
+export interface ISpaSlot {
+  id: string;
+  startTime: string;
+  endTime?: string | null;
+  isBooked: boolean;
+  reservationId?: string | null;
+  SlotBooking?: {
+    spaBookingId: string;
+  } | null;
+  Reservation?: ISpaSlotReservation | null;
+}
+
+export interface ISpaDate {
+  id: string;
+  date: string;
+  Slots?: ISpaSlot[];
+}
+
+export interface ISpa {
+  id: string;
+  name: string;
+  description?: string | null;
+  location?: string | null;
+  Category?: ISpaCategory | null;
+  isInclusive?: boolean;
+  discountValue?: number | null;
+  currencyCode?: string | null;
+  serviceTime?: number | null;
+  SpaDates?: ISpaDate[];
+}
+
+export interface ICreateSpaReservationSlot {
+  spaId: string;
+  spaSlotId: string;
+  amount: number;
+}
+
+export interface ICreateSpaReservationRequest {
+  userEmail: string;
+  userContactNumber: string;
+  slots: ICreateSpaReservationSlot[];
+}

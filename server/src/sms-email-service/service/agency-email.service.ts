@@ -14,7 +14,7 @@ export class AgencyEmailService {
             const htmlContent = templateApplicationSubmitted(data);
             await emailQueue.enqueueEmail({
                 to: data.agencyEmail,
-                cc: [],
+                bcc: [],
                 subject: `Application Received – ${data.agencyName} | RevChill Tech`,
                 htmlContent,
                 priority: 'high',
@@ -51,7 +51,7 @@ export class AgencyEmailService {
             });
             await emailQueue.enqueueEmail({
                 to: application.agencyEmail,
-                cc: [],
+                bcc: [],
                 subject: `Partnership Approved – Welcome to RevChill Tech, ${application.agencyName}!`,
                 htmlContent,
                 priority: 'critical',
@@ -84,7 +84,7 @@ export class AgencyEmailService {
             });
             await emailQueue.enqueueEmail({
                 to: application.agencyEmail,
-                cc: [],
+                bcc: [],
                 subject: `Application Status Update – ${application.agencyName} | RevChill Tech`,
                 htmlContent,
                 priority: 'high',
@@ -125,7 +125,7 @@ export class AgencyEmailService {
             });
             await emailQueue.enqueueEmail({
                 to: agentEmail,
-                cc: [],
+                bcc: [],
                 subject: `Your Agent Account is Ready – ${agencyName} | RevChill Tech`,
                 htmlContent,
                 priority: 'high',
@@ -161,7 +161,7 @@ export class AgencyEmailService {
             });
             await emailQueue.enqueueEmail({
                 to: agentEmail,
-                cc: [],
+                bcc: [],
                 subject: `Account Removed – ${agencyName} | RevChill Tech`,
                 htmlContent,
                 priority: 'normal',

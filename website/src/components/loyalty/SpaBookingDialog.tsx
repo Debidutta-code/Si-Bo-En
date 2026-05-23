@@ -40,7 +40,7 @@ export default function SpaBookingDialog({
   const [submitting, setSubmitting] = useState(false);
 
   const [activeSpa, setActiveSpa] = useState<any | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
+  const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
   const [cancelSlot, setCancelSlot] = useState<SelectedSlot | null>(null);
   const [userName, setUserName] = useState(guestName || "");
   const [searchQuery, setSearchQuery] = useState("");
@@ -90,13 +90,14 @@ export default function SpaBookingDialog({
 
   const handleSpaClick = (spa: any) => {
     setActiveSpa(spa);
-    setSelectedSlot(null);
     setCancelSlot(null);
     setConfirmOpen(false);
   };
 
   const handleSlotClick = (slot: any, spaDate: any, spa: any) => {
     const dateLabel = format(new Date(spaDate.date.split("T")[0] + "T00:00:00"), "EEEE, dd MMM yyyy");
+
+    // If it's already booked by me => show cancel confirm
     if (slot.isBooked) {
       if (slot.reservationId === reservationId) {
         setCancelSlot({
@@ -107,46 +108,65 @@ export default function SpaBookingDialog({
           spaName: spa.name,
           spaId: spa.id,
         });
-        setSelectedSlot(null);
         setConfirmOpen(true);
       }
       return;
     }
+
+    // Toggle selection for multi-booking (only for free slots)
     setCancelSlot(null);
-    setSelectedSlot({
-      slotId: slot.id,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
-      dateLabel,
-      spaName: spa.name,
-      spaId: spa.id,
+    setConfirmOpen(false);
+
+    setSelectedSlots((prev) => {
+      const exists = prev.some((s) => s.slotId === slot.id);
+      if (exists) {
+        return prev.filter((s) => s.slotId !== slot.id);
+      }
+      return [
+        ...prev,
+        {
+          slotId: slot.id,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          dateLabel,
+          spaName: spa.name,
+          spaId: spa.id,
+        },
+      ];
     });
-    setConfirmOpen(true);
   };
 
   const handleConfirmBooking = async () => {
-    if (!selectedSlot) return;
+    if (selectedSlots.length === 0) return;
     if (!userName.trim()) {
       toast.error("Please enter a guest name");
       nameInputRef.current?.focus();
       return;
     }
+
     setSubmitting(true);
     try {
-      const res = await markSlotAsBookedApi(selectedSlot.slotId, {
-        reservationId,
-        userName: userName.trim(),
-      });
-      if (res.success) {
-        toast.success("Spa slot booked!");
-        setSelectedSlot(null);
-        setConfirmOpen(false);
-        fetchAvailableSpas();
-      } else {
-        toast.error(res.message || "Failed to book");
+      const results = await Promise.all(
+        selectedSlots.map((s) =>
+          markSlotAsBookedApi(s.slotId, {
+            reservationId,
+            userName: userName.trim(),
+          })
+        )
+      );
+
+      const failed = results.find((r) => !r.success);
+      if (failed) {
+        toast.error(failed.message || "Failed to book one or more activities");
+        return;
       }
+
+      toast.success("Activities included in your stay");
+      setSelectedSlots([]);
+      setConfirmOpen(false);
+      fetchAvailableSpas();
     } catch {
-      toast.error("Failed to book spa slot");
+      toast.error("Failed to book activities");
     } finally {
       setSubmitting(false);
     }
@@ -158,15 +178,15 @@ export default function SpaBookingDialog({
     try {
       const res = await markSlotAsAvailableApi(cancelSlot.slotId);
       if (res.success) {
-        toast.success("Booking cancelled.");
+        toast.success("Activity removed from your stay.");
         setCancelSlot(null);
         setConfirmOpen(false);
         fetchAvailableSpas();
       } else {
-        toast.error(res.message || "Failed to cancel");
+        toast.error(res.message || "Failed to remove activity");
       }
     } catch {
-      toast.error("Failed to cancel booking");
+      toast.error("Failed to remove activity");
     } finally {
       setSubmitting(false);
     }
@@ -250,17 +270,14 @@ export default function SpaBookingDialog({
                           )}
                         </div>
                       )}
-                      {activeSpa.discountValue && (
-                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      {/* Charge — only shown when not inclusive */}
+                      {activeSpa.discountValue && !activeSpa.isInclusive && (
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                           <Tag className="h-3 w-3 flex-shrink-0" />
-                          {activeSpa.discountValue}% off · {activeSpa.currencyCode}
-                          {activeSpa.isInclusive && (
-                            <span className="ml-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 text-[10px] font-medium">Inclusive</span>
-                          )}
+                          Charges: {activeSpa.discountValue} {activeSpa.currencyCode}
                         </div>
                       )}
                     </div>
-
                     {activeSpa.description && (
                       <p className="text-xs text-gray-500 leading-relaxed">
                         <span className="font-medium text-gray-700">Description: </span>
@@ -279,7 +296,9 @@ export default function SpaBookingDialog({
                             <div className="flex flex-wrap gap-2">
                               {spaDate.Slots?.map((slot: any) => {
                                 const isMyBooking = slot.isBooked && slot.reservationId === reservationId;
-                                const isSelected = selectedSlot?.slotId === slot.id || cancelSlot?.slotId === slot.id;
+                                const isSelected =
+                                  selectedSlots.some((s) => s.slotId === slot.id) ||
+                                  cancelSlot?.slotId === slot.id;
 
                                 return (
                                   <button
@@ -310,12 +329,12 @@ export default function SpaBookingDialog({
                       </div>
                     )}
 
-                    {/* Confirm / Cancel panel */}
-                    {confirmOpen && selectedSlot && (
+                    {/* Confirm panel */}
+                    {confirmOpen && cancelSlot == null && selectedSlots.length > 0 && (
+
                       <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-2">
                         <p className="text-xs font-medium text-gray-700">
-                          {selectedSlot.dateLabel} · {formatTime(selectedSlot.startTime)}
-                          {selectedSlot.endTime && ` – ${formatTime(selectedSlot.endTime)}`}
+                          {selectedSlots.length} activity(ies) selected
                         </p>
                         <div>
                           <label className="text-[11px] text-gray-500 mb-1 block">Guest name</label>
@@ -324,7 +343,9 @@ export default function SpaBookingDialog({
                             type="text"
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
-                            onKeyDown={(e) => { if (e.key === "Enter") handleConfirmBooking(); }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleConfirmBooking();
+                            }}
                             placeholder="Enter guest name…"
                             className="w-full h-8 px-2.5 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-teal-400"
                           />
@@ -337,10 +358,13 @@ export default function SpaBookingDialog({
                             style={{ background: TEAL }}
                           >
                             <Check className="h-3 w-3" />
-                            {submitting ? "Booking…" : "BOOK"}
+                            {submitting ? "Booking…" : "BOOK ALL"}
                           </button>
                           <button
-                            onClick={() => { setConfirmOpen(false); setSelectedSlot(null); }}
+                            onClick={() => {
+                              setConfirmOpen(false);
+                              setSelectedSlots([]);
+                            }}
                             disabled={submitting}
                             className="px-3 h-8 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50"
                           >
@@ -349,6 +373,7 @@ export default function SpaBookingDialog({
                         </div>
                       </div>
                     )}
+
 
                     {confirmOpen && cancelSlot && (
                       <div className="mt-2 rounded-xl border border-red-100 bg-red-50/50 p-3 space-y-2">

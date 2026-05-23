@@ -1,49 +1,41 @@
 model PropertyCategory {
   id               String                 @id @default(uuid())
-  masterCategory   MasterPropertyCategory @relation(fields: [masterCategoryId], references: [id])
   masterCategoryId String                 @map("master_category_id")
-
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId String   @unique @map("property_id")
+  propertyId       String                 @unique @map("property_id")
+  masterCategory   MasterPropertyCategory @relation(fields: [masterCategoryId], references: [id])
+  property         Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("property_categories")
 }
 
 model PropertyType {
   id                   String             @id @default(uuid())
-  masterPropertyType   MasterPropertyType @relation(fields: [masterPropertyTypeId], references: [id])
   masterPropertyTypeId String             @map("master_property_type_id")
-
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId String   @unique @map("property_id")
+  propertyId           String             @unique @map("property_id")
+  masterPropertyType   MasterPropertyType @relation(fields: [masterPropertyTypeId], references: [id])
+  property             Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("property_types")
 }
 
 model PropertyAmenitySelection {
-  id String @id @default(uuid())
+  id         String        @id @default(uuid())
+  propertyId String        @map("property_id")
+  amenityId  String        @map("amenity_id")
+  amenity    MasterAmenity @relation(fields: [amenityId], references: [id])
+  property   Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId String   @map("property_id")
-
-  amenity   MasterAmenity @relation(fields: [amenityId], references: [id])
-  amenityId String        @map("amenity_id")
-
-  // Unique constraint to prevent duplicate selections
   @@unique([propertyId, amenityId])
   @@map("property_amenity_selections")
 }
 
 model RoomAmenitySelection {
-  id String @id @default(uuid())
-
-  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  roomId String @map("room_id")
-
-  amenity   MasterAmenity @relation(fields: [amenityId], references: [id])
+  id        String        @id @default(uuid())
+  roomId    String        @map("room_id")
   amenityId String        @map("amenity_id")
+  amenity   MasterAmenity @relation(fields: [amenityId], references: [id])
+  room      Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  // Unique constraint to prevent duplicate selections
   @@unique([roomId, amenityId])
   @@map("room_amenity_selections")
 }

@@ -293,10 +293,23 @@ export default function ReservationsTable({
                 <TableCell>{formatDate(reservation.reservationEndDate)}</TableCell>
                 <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
                 <TableCell className="uppercase text-[12px]">{reservation.bookingSource}</TableCell>
-                <TableCell>{reservation.PricingBrakeDown?.totalAmount?.toFixed(2) ?? reservation.amount?.toFixed(2) ?? "—"}</TableCell>
                 <TableCell>
-                  {((reservation.PricingBrakeDown?.totalAmount ?? reservation.amount ?? 0) - (reservation.PricingBrakeDown?.taxedAmount ?? 0)).toFixed(2)}
-                </TableCell>
+                  {(
+                    (reservation.amount ?? 0) +
+                    (reservation.PricingBrakeDown?.totalSpa ?? 0)
+                  ).toFixed(2)}
+                </TableCell>                <TableCell>
+                  {
+                    (
+                      (
+                        (reservation.PricingBrakeDown?.totalAmount ??
+                          reservation.amount ??
+                          0) +
+                        (reservation.PricingBrakeDown?.totalSpa ?? 0)
+                      ) -
+                      (reservation.PricingBrakeDown?.taxedAmount ?? 0)
+                    ).toFixed(2)
+                  }                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
 

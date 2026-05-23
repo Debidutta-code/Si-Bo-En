@@ -1,7 +1,6 @@
 model AddonAvailability {
   id           String   @id @default(uuid())
   addonId      String
-  // propertyId   String
   date         DateTime @db.Date
   price        Float
   currencyCode String   @default("INR") @db.VarChar(5)
