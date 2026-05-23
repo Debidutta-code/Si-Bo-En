@@ -10,6 +10,7 @@ import {
     IUAdvanceLoyaltyprogram,
     IULoyalityProgram,
 } from '../types';
+import { PropertyLoyalityProgramInterceptor } from '../../multi-language/interceptors/loyalty/property-loyalty-program.interceptor';
 
 export class LoyalityProgramController {
     private loyalityProgramService: LoyalityProgramService;
@@ -271,10 +272,18 @@ export class LoyalityProgramController {
                     );
             }
 
-            const result =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
+            let result =
                 await this.loyalityProgramService.getPropertyLoyalityProgramByCreationId(
                     creationLoyaltyConfigId
                 );
+
+            result = await PropertyLoyalityProgramInterceptor.intercept(
+                result,
+                locale
+            );
+
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {

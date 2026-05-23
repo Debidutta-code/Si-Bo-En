@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import {  Save, Plus } from "lucide-react";
+import { Save, Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
@@ -28,10 +28,9 @@ interface IFieldConfig {
 interface IMasterField {
   id: string;
   name: string;
-  apiCode: string;
   fieldType?: string;
   _translations?: { fieldName: string };
-}
+} 
 
 
 export default function LoyaltyForm() {
@@ -40,7 +39,7 @@ export default function LoyaltyForm() {
     isLoading: true,
     message: "Loading Registration Form Fields..."
   });
-  
+
   const [loyaltyProgramId, setLoyaltyProgramId] = useState<string>("");
   const [availableMasterFields, setAvailableMasterFields] = useState<IMasterField[]>([]);
   const [configuredFields, setConfiguredFields] = useState<IFieldConfig[]>([]);
@@ -59,31 +58,30 @@ export default function LoyaltyForm() {
         toast.error("Creation ID is missing");
         return;
       }
-      
+
       const creationLoyaltyResponse = await getLoyalityByCreationService(creationId);
-      
+
       if (!creationLoyaltyResponse.success || !creationLoyaltyResponse.data?.id) {
         toast.error("Loyalty program not found for this creation");
         return;
       }
-      
+
       const actualLoyaltyProgramId = creationLoyaltyResponse.data.id;
       setLoyaltyProgramId(actualLoyaltyProgramId);
-      
+
       const allFieldsResponse = await getAllFieldService();
       
+
       if (allFieldsResponse.success && allFieldsResponse.data) {
         const masterFields: IMasterField[] = allFieldsResponse.data.map((field: any) => ({
           id: field.id || field._id,
           name: field.fieldName || field.name,
-          apiCode: field.fieldName || field.apiCode || field.name,
-          fieldType: field.fieldType || field.type,
-_translations: field._translations
+          _translations: field._translations
         }));
         setAvailableMasterFields(masterFields);
-        
+
         const configuredResponse = await getFieldsService(actualLoyaltyProgramId);
-        
+
         if (configuredResponse.success && configuredResponse.data && Array.isArray(configuredResponse.data)) {
           const configured: IFieldConfig[] = configuredResponse.data.map((field: any) => ({
             fieldName: field.fieldName,
@@ -92,7 +90,7 @@ _translations: field._translations
             visibleInCustomerForm: field.visibleInCustomerForm ?? true,
             required: field.required ?? false,
             masterRegistrationFieldId: field.masterRegistrationFieldId || field.fieldName,
-_translations: field._translations
+            _translations: field._translations,
           }));
           setConfiguredFields(configured);
         } else {
@@ -141,7 +139,7 @@ _translations: field._translations
         return {
           loyaltyProgramId: loyaltyProgramId,
           masterRegistrationFieldId: fieldId,
-          fieldName: masterField?.apiCode || "",
+          fieldName: masterField?.name || "",
           visibleInRegistration: true,
           visibleInCustomerForm: true,
           required: false
@@ -149,7 +147,7 @@ _translations: field._translations
       });
 
       const response = await addFieldsService(fieldsToAdd);
-      
+
       if (response.success) {
         toast.success(`${fieldsToAdd.length} field(s) added successfully`);
         setSelectedFields(new Set());
@@ -190,7 +188,7 @@ _translations: field._translations
       updated.splice(index, 0, removed);
       return updated;
     });
-    
+
     setDraggedIndex(index);
   };
 
@@ -238,7 +236,7 @@ _translations: field._translations
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-2 ">
-          <BackButton/>
+      <BackButton />
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
@@ -262,7 +260,7 @@ _translations: field._translations
                     Select fields from the master list to add to your loyalty program registration form
                   </DialogDescription>
                 </DialogHeader>
-                
+
                 <div className="space-y-4 py-4">
                   {getAvailableFieldsToAdd().length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
@@ -281,14 +279,9 @@ _translations: field._translations
                             onCheckedChange={() => handleToggleFieldSelection(field.id)}
                           />
                           <div className="flex-1">
-                            <div className="font-medium">{field._translations?.fieldName ?? field.name}</div>
-                            <div className="text-sm text-muted-foreground">{field.apiCode}</div>
+                            <div className="font-medium">{field._translations?field._translations.fieldName:field.name}</div>
                           </div>
-                          {field.fieldType && (
-                            <span className="text-xs px-2 py-1 bg-muted rounded">
-                              {field.fieldType}
-                            </span>
-                          )}
+                          
                         </div>
                       ))}
                     </div>
@@ -302,7 +295,7 @@ _translations: field._translations
                   }}>
                     Cancel
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleAddFields}
                     disabled={selectedFields.size === 0}
                   >
@@ -333,16 +326,16 @@ _translations: field._translations
               <tbody>
                 {configuredFields.map((field, index) => (
                   <tr
-                    key={`${field.apiCode}-${index}`}
+                    key={`${field.masterRegistrationFieldId}-${index}`}
                     draggable
                     onDragStart={() => handleDragStart(index)}
                     onDragOver={(e) => handleDragOver(e, index)}
                     onDragEnd={handleDragEnd}
                     className="border-b hover:bg-muted/50 cursor-move transition-colors"
                   >
-                    
+
                     <td className="py-4 pr-4 font-medium">{field._translations?.fieldName ?? field.fieldName}
-</td>
+                    </td>
                     <td className="py-4 px-4 text-center">
                       <div className="flex justify-center">
                         <Checkbox
