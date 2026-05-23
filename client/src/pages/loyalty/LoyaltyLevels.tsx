@@ -106,7 +106,7 @@ export default function LoyaltyLevels() {
 
   const [loader, setLoader] = useState<ILoader>({
     isLoading: true,
-    message: t('Loyalty.levelsLoading'),
+    message: t('PropertyLoyalties.levelsLoading'),
   });
   const [submitting, setSubmitting] = useState(false);
   const [levels, setLevels] = useState<ILoyalityLevels[]>([]);
@@ -134,18 +134,18 @@ export default function LoyaltyLevels() {
   // Step 1: resolve the actual loyaltyProgramId (CreationLoyaltyConfig.id)
   const resolveProgramId = async () => {
     if (!creationId) return;
-    setLoader({ isLoading: true, message: t('Loyalty.configLoading') });
+    setLoader({ isLoading: true, message: t('PropertyLoyalties.configLoading') });
     try {
       const response = await getLoyalityByCreationService(creationId);
       if (response.success && response.data?.id) {
         setProgramId(response.data.id);
         await fetchLevels(response.data.id);
       } else {
-        toast.error(response.message || t('Loyalty.configNotFound'));
+        toast.error(response.message || t('PropertyLoyalties.configNotFound'));
         setLoader({ isLoading: false, message: "" });
       }
     } catch {
-      toast.error(t('Loyalty.failedToLoadConfig'));
+      toast.error(t('PropertyLoyalties.failedToLoadConfig'));
       setLoader({ isLoading: false, message: "" });
     }
   };
@@ -154,7 +154,7 @@ export default function LoyaltyLevels() {
   const fetchLevels = async (pid?: string) => {
     const id = pid ?? programId;
     if (!id) return;
-    setLoader({ isLoading: true, message: t('Loyalty.levelsLoading') });
+    setLoader({ isLoading: true, message: t('PropertyLoyalties.levelsLoading') });
     try {
       const response = await getLoyalityLevelsService(id);
       if (response.success) {
@@ -163,10 +163,10 @@ export default function LoyaltyLevels() {
         );
         setLevels(sorted);
       } else {
-        toast.error(response.message || t('Loyalty.failedToFetchLevels'));
+        toast.error(response.message || t('PropertyLoyalties.failedToFetchLevels'));
       }
     } catch {
-      toast.error(t('Loyalty.failedToFetchLevels'));
+      toast.error(t('PropertyLoyalties.failedToFetchLevels'));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -174,7 +174,7 @@ export default function LoyaltyLevels() {
 
   const openCreate = () => {
     if (!programId) {
-      toast.error(t('Loyalty.configNotLoaded'));
+      toast.error(t('PropertyLoyalties.configNotLoaded'));
       return;
     }
     const nextLevel =
@@ -200,11 +200,11 @@ export default function LoyaltyLevels() {
     if (!programId) return;
 
     if (form.level < 1) {
-      toast.error(t('Loyalty.levelMustBePositive'));
+      toast.error(t('PropertyLoyalties.levelMustBePositive'));
       return;
     }
     if (form.discountPercentage < 0 || form.discountPercentage > 100) {
-      toast.error(t('Loyalty.discountRange'));
+      toast.error(t('PropertyLoyalties.discountRange'));
       return;
     }
 
@@ -224,16 +224,16 @@ export default function LoyaltyLevels() {
       if (response.success) {
         toast.success(
           editingLevel
-            ? t('Loyalty.levelUpdated')
-            : t('Loyalty.levelCreated')
+            ? t('PropertyLoyalties.levelUpdated')
+            : t('PropertyLoyalties.levelCreated')
         );
         setIsFormOpen(false);
         await fetchLevels();
       } else {
-        toast.error(response.message || t('Loyalty.operationFailed'));
+        toast.error(response.message || t('PropertyLoyalties.operationFailed'));
       }
     } catch {
-      toast.error(t('Loyalty.unexpectedError'));
+      toast.error(t('PropertyLoyalties.unexpectedError'));
     } finally {
       setSubmitting(false);
     }
@@ -245,14 +245,14 @@ export default function LoyaltyLevels() {
     try {
       const response = await deleteLoyalityLevelService(deleteTarget.id);
       if (response.success) {
-        toast.success(t('Loyalty.levelDeleted'));
+        toast.success(t('PropertyLoyalties.levelDeleted'));
         setDeleteTarget(null);
         await fetchLevels();
       } else {
-        toast.error(response.message || t('Loyalty.failedToDeleteLevel'));
+        toast.error(response.message || t('PropertyLoyalties.failedToDeleteLevel'));
       }
     } catch {
-      toast.error(t('Loyalty.unexpectedError'));
+      toast.error(t('PropertyLoyalties.unexpectedError'));
     } finally {
       setSubmitting(false);
     }
@@ -276,7 +276,7 @@ export default function LoyaltyLevels() {
           className="mb-4 -ml-2"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
-          {t('Loyalty.back')}
+          {t('PropertyLoyalties.back')}
 
         </Button>
 
@@ -286,15 +286,15 @@ export default function LoyaltyLevels() {
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Layers className="w-6 h-6 text-primary" />
               </div>
-              {t('Loyalty.loyaltyLevels')}
+              {t('PropertyLoyalties.loyaltyLevels')}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm">
-              {t('Loyalty.levelsDescription')}
+              {t('PropertyLoyalties.levelsDescription')}
             </p>
           </div>
           <Button onClick={openCreate} className="shrink-0">
             <Plus className="w-4 h-4 mr-2" />
-            {t('Loyalty.addLevel')}
+            {t('PropertyLoyalties.addLevel')}
           </Button>
         </div>
       </div>
@@ -304,13 +304,13 @@ export default function LoyaltyLevels() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-1">{t('Loyalty.totalLevels')}</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('PropertyLoyalties.totalLevels')}</p>
               <p className="text-2xl font-bold">{levels.length}</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-1">{t('Loyalty.maxDiscount')}</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('PropertyLoyalties.maxDiscount')}</p>
               <p className="text-2xl font-bold text-green-700">
                 {Math.max(...levels.map((l) => l.discountPercentage))}%
               </p>
@@ -318,7 +318,7 @@ export default function LoyaltyLevels() {
           </Card>
           <Card className="bg-gradient-to-br from-blue-50 to-sky-50 border-blue-200">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-1">{t('Loyalty.minDiscount')}</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('PropertyLoyalties.minDiscount')}</p>
               <p className="text-2xl font-bold text-blue-700">
                 {Math.min(...levels.map((l) => l.discountPercentage))}%
               </p>
@@ -326,7 +326,7 @@ export default function LoyaltyLevels() {
           </Card>
           <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-1">{t('Loyalty.highestTier')}</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('PropertyLoyalties.highestTier')}</p>
               <p className="text-2xl font-bold text-violet-700">
                 {getTierLabel(Math.max(...levels.map((l) => l.level)))}
               </p>
@@ -342,13 +342,13 @@ export default function LoyaltyLevels() {
             <div className="p-4 bg-muted rounded-full mb-4">
               <Award className="w-10 h-10 text-muted-foreground opacity-50" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">{t('Loyalty.noLevelsTitle')}</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('PropertyLoyalties.noLevelsTitle')}</h3>
             <p className="text-muted-foreground text-sm max-w-sm mb-6">
-              {t('Loyalty.noLevelsDescription')}
+              {t('PropertyLoyalties.noLevelsDescription')}
             </p>
             <Button onClick={openCreate}>
               <Plus className="w-4 h-4 mr-2" />
-              {t('Loyalty.createFirstLevel')}
+              {t('PropertyLoyalties.createFirstLevel')}
             </Button>
           </CardContent>
         </Card>
@@ -393,7 +393,7 @@ export default function LoyaltyLevels() {
                       <Percent className="w-4 h-4 text-muted-foreground shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground leading-none mb-0.5">
-                          {t('Loyalty.discount')}
+                          {t('PropertyLoyalties.discount')}
                         </p>
                         <p className="text-xl font-bold leading-none">
                           {level.discountPercentage}%
@@ -421,7 +421,7 @@ export default function LoyaltyLevels() {
                       onClick={() => openEdit(level)}
                     >
                       <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                      {t('Loyalty.edit')}
+                      {t('PropertyLoyalties.edit')}
                     </Button>
                     <Button
                       size="sm"
@@ -430,7 +430,7 @@ export default function LoyaltyLevels() {
                       onClick={() => setDeleteTarget(level)}
                     >
                       <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                      {t('Loyalty.delete')}
+                      {t('PropertyLoyalties.delete')}
                     </Button>
                   </div>
                 </CardContent>
@@ -446,21 +446,21 @@ export default function LoyaltyLevels() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Award className="w-5 h-5 text-primary" />
-              {editingLevel ? t('Loyalty.editLoyaltyLevel') : t('Loyalty.createLoyaltyLevel')}
+              {editingLevel ? t('PropertyLoyalties.editLoyaltyLevel') : t('PropertyLoyalties.createLoyaltyLevel')}
             </DialogTitle>
             <DialogDescription>
               {editingLevel
-                ? t('Loyalty.updateTierDescription')
-                : t('Loyalty.createTierDescription')}
+                ? t('PropertyLoyalties.updateTierDescription')
+                : t('PropertyLoyalties.createTierDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="level-number">
-                {t('Loyalty.levelNumber')}{" "}
+                {t('PropertyLoyalties.levelNumber')}{" "}
                 <span className="text-muted-foreground font-normal text-xs">
-                  {t('Loyalty.lowestTier')}
+                  {t('PropertyLoyalties.lowestTier')}
                 </span>
               </Label>
               <Input
@@ -474,11 +474,11 @@ export default function LoyaltyLevels() {
                     level: parseInt(e.target.value) || 1,
                   }))
                 }
-                placeholder={t('Loyalty.placeholderLevel')}
+                placeholder={t('PropertyLoyalties.placeholderLevel')}
               />
               {form.level >= 1 && (
                 <p className="text-xs text-muted-foreground">
-                  {t('Loyalty.tierWillBe', { tier: getTierLabel(form.level) })}
+                  {t('PropertyLoyalties.tierWillBe', { tier: getTierLabel(form.level) })}
 
                 </p>
               )}
@@ -486,9 +486,9 @@ export default function LoyaltyLevels() {
 
             <div className="space-y-2">
               <Label htmlFor="discount-pct">
-                {t('Loyalty.discountPercentage')}{" "}
+                {t('PropertyLoyalties.discountPercentage')}{" "}
                 <span className="text-muted-foreground font-normal text-xs">
-                  {t('Loyalty.range01')}
+                  {t('PropertyLoyalties.range01')}
                 </span>
               </Label>
               <div className="relative">
@@ -505,7 +505,7 @@ export default function LoyaltyLevels() {
                       discountPercentage: parseFloat(e.target.value) || 0,
                     }))
                   }
-                  placeholder={t('Loyalty.placeholderDiscount')}
+                  placeholder={t('PropertyLoyalties.placeholderDiscount')}
                   className="pr-8"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
@@ -550,18 +550,18 @@ export default function LoyaltyLevels() {
               onClick={() => setIsFormOpen(false)}
               disabled={submitting}
             >
-              {t('Loyalty.cancel')}
+              {t('PropertyLoyalties.cancel')}
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
               {submitting ? (
                 <span className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {t('Loyalty.save')}
+                  {t('PropertyLoyalties.save')}
                 </span>
               ) : editingLevel ? (
-                t('Loyalty.updateLevel')
+                t('PropertyLoyalties.updateLevel')
               ) : (
-                t('Loyalty.createLevel')
+                t('PropertyLoyalties.createLevel')
               )}
             </Button>
           </DialogFooter>
@@ -577,20 +577,20 @@ export default function LoyaltyLevels() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-destructive" />
-              {t('Loyalty.deleteLevelConfirm', { tier: deleteTarget ? getTierLabel(deleteTarget.level) : '' })}
+              {t('PropertyLoyalties.deleteLevelConfirm', { tier: deleteTarget ? getTierLabel(deleteTarget.level) : '' })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('Loyalty.deleteLevelDescription', { level: deleteTarget?.level, discount: deleteTarget?.discountPercentage })}
+              {t('PropertyLoyalties.deleteLevelDescription', { level: deleteTarget?.level, discount: deleteTarget?.discountPercentage })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={submitting}>{t('Loyalty.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={submitting}>{t('PropertyLoyalties.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={submitting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {submitting ? t('Loyalty.deleteLevelButton') : t('Loyalty.deleteLevelBtn')}
+              {submitting ? t('PropertyLoyalties.deleteLevelButton') : t('PropertyLoyalties.deleteLevelBtn')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
