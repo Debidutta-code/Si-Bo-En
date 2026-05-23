@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import type { IUser } from '../../pages/members/types/types';
 import type { Dispatch, SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
-import toast from 'react-hot-toast';
 
 interface DeleteConfirmationDialogProps {
   user: IUser | null;
@@ -33,7 +32,6 @@ export default function DeleteConfirmationDialog({
 }: DeleteConfirmationDialogProps) {
   const { t } = useTranslation();
   if (!user) {
-        toast.error(t("ManageMembers.toast.userNotFound"));
 
     return;
   }

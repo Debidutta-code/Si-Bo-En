@@ -129,7 +129,9 @@
     "checkTranslation": "अनुवाद जाँचें",
     "addPromotion": "प्रमोशन अनुवाद जोड़ें",
     "promotionName": "प्रमोशन नाम",
-    "editTranslation": "प्रमोशन अनुवाद संपादित करें"
+    "editTranslation": "प्रमोशन अनुवाद संपादित करें",
+    "apiLogs": "एपीआई लॉग्स",
+    "serviceLogs": "सेवा लॉग्स"
   },
   "Auth": {
     "login": "लॉगिन करें",
@@ -1825,7 +1827,9 @@
     "policy": "नीति",
     "promoCode": "प्रोमो कोड",
     "addOn": "ऐड-ऑन",
-    "taxSystem": "कर प्रणाली"
+    "taxSystem": "कर प्रणाली",
+      "spa": "स्पा प्रकार"
+
   },
   "Loyalty": {
     "title": "लॉयल्टी कॉन्फ़िगरेशन",

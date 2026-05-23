@@ -55,9 +55,11 @@
     "saturdayShort": "Sat",
     "addTranslation": "Add Translation",
     "checkTranslation": "Check Translation",
-    "addPromotion":"Add Promotion Translation",
-    "promotionName":"Promotion Name",
-    "editTranslation":"Edit Promotion Translation"
+    "addPromotion": "Add Promotion Translation",
+    "promotionName": "Promotion Name",
+    "editTranslation": "Edit Promotion Translation",
+    "apiLogs": "Api Logs",
+    "serviceLogs": "Service logs"
   },
   "Navigation": {
     "dashboard": "Dashboard",
@@ -1823,7 +1825,8 @@
     "policy": "Policy",
     "promoCode": "Promo Code",
     "addOn": "Add On",
-    "taxSystem": "Tax System"
+    "taxSystem": "Tax System",
+    "spa":  "Spa Type"
   },
   "Loyalty": {
     "title": "Loyalty Configuration",

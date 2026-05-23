@@ -55,7 +55,7 @@ export default function ManagementPage() {
       { value: "loyalty-fields", label: t('Management.loyaltyFields'), icon: Users },
       { value: "payment-integrations", label: t('Management.paymentIntegrations'), icon: DollarSign },
       { value: "master-integrations", label: t('Management.masterIntegrations'), icon: Cable },
-    { value: "spa", label: "Spa Type", icon: Bubbles },
+    { value: "spa", label: t("Management.spa"), icon: Bubbles },
   ];
 
   const [loading, setLoading] = useState<ILoader> ({
