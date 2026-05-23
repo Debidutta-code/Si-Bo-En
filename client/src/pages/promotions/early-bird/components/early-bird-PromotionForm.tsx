@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { RatePlan } from "@/pages/rate-plan/interfaces";
 import type { RoomTypes } from "@/pages/inventory/types";
 import Loader from "@/components/Loader/Loader";
@@ -61,6 +62,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
   editData,
   isLoading,
 }) => {
+  const { t } = useTranslation();
   const [earlyBirdPromotion, setEarlyBirdPromotion] =
     useState<CreateEarlyBirdPromotion>(defaultPromotion(propertyId));
   const [hasEndDate, setHasEndDate] = useState<boolean>(false);
@@ -271,7 +273,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
     <div className="bg-card rounded-lg border border-border shadow-sm relative">
       {isLoading.isLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
-          <Loader text="Processing..." />
+          <Loader text={t("EarlyBirdForm.processing")} />
         </div>
       )}
 
@@ -279,10 +281,10 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
         {/* Header */}
         <div className="pb-4 border-b border-border">
           <h3 className="text-lg font-semibold text-foreground">
-            {editData ? "Edit" : "Create"} Early Bird Promotion
+            {editData ? t("EarlyBirdForm.editTitle") : t("EarlyBirdForm.createTitle")}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Secure your occupancy in advance with early booking discounts
+            {t("EarlyBirdForm.targetDescription")}
           </p>
         </div>
 
@@ -292,11 +294,10 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             <Calendar className="w-5 h-5 text-primary mt-0.5" />
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-foreground">
-                Advance booking days *
+                {t("EarlyBirdForm.advanceBookingDays")}
               </h4>
               <p className="text-xs text-muted-foreground mt-1">
-                How far do guests book in advance in order to use this
-                promotion?
+                {t("EarlyBirdForm.advanceDaysDescription")}
               </p>
             </div>
           </div>
@@ -317,18 +318,18 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
               className="w-24 px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
               required
             />
-            <span className="text-sm text-foreground">Day(s) or more</span>
+            <span className="text-sm text-foreground">{t("EarlyBirdForm.daysOrMore")}</span>
           </div>
 
           {earlyBirdPromotion.advanceBookingDays &&
             earlyBirdPromotion.advanceBookingDays > 0 && (
               <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  Guests must book at least{" "}
+                  {t("EarlyBirdForm.guestsMustBook")}{" "}
                   <span className="font-semibold">
-                    {earlyBirdPromotion.advanceBookingDays} day(s)
+                    {earlyBirdPromotion.advanceBookingDays} {t("EarlyBirdForm.daysOrMore")}
                   </span>{" "}
-                  before check-in to qualify for this promotion
+                  {t("EarlyBirdForm.beforeCheckin")}
                 </p>
               </div>
             )}
@@ -337,10 +338,10 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
         {/* Room Types and Rate Plans */}
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-foreground">
-            Room types and rate plans *
+            {t("EarlyBirdForm.roomTypesAndRatePlans")}
           </h4>
           <p className="text-xs text-muted-foreground">
-            Which room types and rate plans will this promotion apply to?
+            {t("EarlyBirdForm.roomTypesDescription")}
           </p>
 
           {/* Selection Mode */}
@@ -355,7 +356,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
-                  All room types and corresponding rate plans
+                  {t("EarlyBirdForm.allRooms")}
                 </span>
               </label>
             </div>
@@ -370,7 +371,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
-                  Select specific room types and rate plans
+                  {t("EarlyBirdForm.specificRooms")}
                 </span>
               </label>
             </div>
@@ -622,12 +623,12 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
         {/* Discount Configuration */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
           <h4 className="text-sm font-semibold text-foreground">
-            Discounts and Stay dates
+            {t("EarlyBirdForm.discountsAndStayDates")}
           </h4>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              How much of a discount do you want to give? *
+              {t("EarlyBirdForm.howMuchDiscount")}
             </label>
             <div className="flex items-center space-x-4">
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -643,7 +644,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
-                  Percentage discount
+                  {t("EarlyBirdForm.percentageDiscount")}
                 </span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -659,7 +660,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
-                  Fixed amount discount
+                  {t("EarlyBirdForm.fixedAmountDiscount")}
                 </span>
               </label>
             </div>
@@ -668,7 +669,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Discount Value *
+                {t("EarlyBirdForm.discountValue")}
               </label>
               <div className="relative">
                 <input
@@ -705,7 +706,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             {earlyBirdPromotion.discountType === "flat" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="currencyCode">Currency Code</Label>
+                    <Label htmlFor="currencyCode">{t("Common.currency")}</Label>
                     <Select
                       value={earlyBirdPromotion.currencyCode}
                       onValueChange={(value) => setEarlyBirdPromotion({ ...earlyBirdPromotion, currencyCode: value as CurrencyCode })}
@@ -728,7 +729,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
 
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
             <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
-              Discount Preview
+              {t("EarlyBirdForm.discountPreview")}
             </p>
             <p className="text-lg text-blue-700 dark:text-blue-300 mt-1 font-semibold">
               {getDiscountDisplayText()}
@@ -740,13 +741,13 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
           <div>
             <label className="block text-sm font-medium text-foreground mb-3">
-              What dates of stay does the promotion apply to? *
+              {t("EarlyBirdForm.stayDates")}
             </label>
 
             <div className="space-y-3">
               <div>
                 <label className="block text-xs text-muted-foreground mb-1">
-                  Valid continuously from start date *
+                  {t("EarlyBirdForm.validContinuously")}
                 </label>
                 <input
                   type="date"
@@ -781,14 +782,14 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   htmlFor="hasEndDate"
                   className="text-sm text-foreground cursor-pointer"
                 >
-                  Set end date (optional)
+                  {t("EarlyBirdForm.setEndDateOptional")}
                 </label>
               </div>
 
               {hasEndDate && (
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1">
-                    End Date
+                    {t("EarlyBirdForm.endDate")}
                   </label>
                   <input
                     type="date"
@@ -811,7 +812,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-medium text-foreground">
-                Which days would you like to include? *
+                {t("EarlyBirdForm.whichDaysInclude")}
               </label>
               <button
                 type="button"
@@ -819,8 +820,8 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                 className="text-xs text-primary hover:text-primary/80 font-medium"
               >
                 {Object.values(applicableDays).every((v) => v)
-                  ? "Deselect All"
-                  : "Select All"}
+                  ? t("EarlyBirdForm.deselectAll")
+                  : t("EarlyBirdForm.selectAll")}
               </button>
             </div>
 
@@ -846,15 +847,15 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             {Object.values(applicableDays).some((v) => v) && (
               <div className="mt-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  Promotion will be active on:
+                  {t("EarlyBirdForm.promotionWillBeActive")}
                 </p>
                 <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mt-1">
-                  {getDiscountDisplayText()}: Valid from{" "}
-                  {earlyBirdPromotion.validFrom || "start date"}
+                  {getDiscountDisplayText()}: {t("EarlyBirdForm.validFrom")}{" "}
+                  {earlyBirdPromotion.validFrom || t("EarlyBirdForm.startDate")}
                   {hasEndDate && earlyBirdPromotion.validTo
-                    ? ` to ${earlyBirdPromotion.validTo}`
-                    : " onwards"}
-                  , including {getActiveDaysSummary()}.
+                    ? ` ${t("EarlyBirdForm.endDate")} ${earlyBirdPromotion.validTo}`
+                    : ` ${t("EarlyBirdForm.onwards")}`}
+                  , {t("EarlyBirdForm.including")} {getActiveDaysSummary()}.
                 </p>
               </div>
             )}
@@ -864,13 +865,13 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
         {/* Promotion Name */}
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-foreground">
-            Promotion name *
+            {t("EarlyBirdForm.promotionNameField")}
           </label>
           <p className="text-xs text-muted-foreground">
-            What do you want to name this promotion?
+            {t("EarlyBirdForm.promotionNameDescription")}
           </p>
           <p className="text-xs text-muted-foreground italic">
-            This is just for you - users won't be able to see it
+            {t("EarlyBirdForm.promotionNameHint")}
           </p>
           <input
             type="text"
@@ -881,7 +882,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                 promotionName: e.target.value,
               })
             }
-            placeholder={`${getDiscountDisplayText()} - Early Bird - ${earlyBirdPromotion.validFrom || "Start Date"}`}
+            placeholder={`${getDiscountDisplayText()} - Early Bird - ${earlyBirdPromotion.validFrom || t("EarlyBirdForm.startDate")}`}
             className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
             required
           />
@@ -905,11 +906,11 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             htmlFor="isActive"
             className="text-sm font-medium text-foreground cursor-pointer flex-1"
           >
-            Active Status
+            {t("EarlyBirdForm.activeStatus")}
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
               {earlyBirdPromotion.isActive
-                ? "This promotion is currently active"
-                : "This promotion is currently inactive"}
+                ? t("EarlyBirdForm.activeDescription")
+                : t("EarlyBirdForm.inactiveDescription")}
             </span>
           </label>
         </div>
@@ -931,11 +932,11 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             htmlFor="isAutoApplied"
             className="text-sm font-medium text-foreground cursor-pointer flex-1"
           >
-            Auto Applied
+            {t("EarlyBirdForm.autoApplied")}
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
               {earlyBirdPromotion.isAutoApplied
-                ? "This promotion is currently auto-applied"
-                : "This promotion is currently not auto-applied"}
+                ? t("EarlyBirdForm.autoAppliedDesc")
+                : t("EarlyBirdForm.notAutoAppliedDesc")}
             </span>
           </label>
         </div>
@@ -947,7 +948,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
             disabled={isLoading.isLoading}
           >
-            Cancel
+            {t("EarlyBirdForm.cancel")}
           </button>
           <button
             type="submit"
@@ -961,7 +962,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
               !Object.values(applicableDays).some((v) => v)
             }
           >
-            {editData ? "Update Promotion" : "Create Promotion"}
+            {editData ? t("EarlyBirdForm.updatePromotion") : t("EarlyBirdForm.createPromotion")}
           </button>
         </div>
       </form>

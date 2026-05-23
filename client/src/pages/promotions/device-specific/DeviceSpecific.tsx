@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Table,
   TableBody,
@@ -38,6 +39,7 @@ import { usePropertyContext } from '@/contexts/PropertyContext';
 import { languages } from '@/components/language/language';
 
 export const DeviceSpecificPromotionList: React.FC = () => {
+  const { t } = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const [promotions, setPromotions] = useState<DeviceSpecificPromotionWithRatePlan[]>([]);
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
@@ -68,7 +70,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   const loadData = async () => {
     setIsLoading({
       isLoading: true,
-      message: 'Loading device-specific promotions...'
+      message: t("DeviceSpecific.loadingPromotions")
     });
     try {
       if (!propertyId) {
@@ -93,7 +95,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Failed to load device-specific promotions');
+      toast.error(t("DeviceSpecific.failedToLoadPromotions"));
     } finally {
       setIsLoading({
         isLoading: false,
@@ -105,19 +107,19 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   const handleCreate = async (payload: CreateDeviceSpecificPromotion) => {
     setIsLoading({
       isLoading: true,
-      message: 'Creating device-specific promotion...'
+      message: t("DeviceSpecific.creatingPromotion")
     });
     try {
       const result = await createDeviceSpecificPromotionService(payload);
       if (result.success) {
         setShowForm(false);
         loadData();
-        toast.success('Device-specific promotion created successfully!');
+        toast.success(t("DeviceSpecific.promotionCreatedSuccessfully"));
       } else {
-        toast.error(result.message || 'Failed to create device-specific promotion');
+        toast.error(result.message || t("DeviceSpecific.failedToCreatePromotion"));
       }
     } catch (error) {
-      toast.error('An error occurred while creating the device-specific promotion');
+      toast.error(t("DeviceSpecific.errorCreatingPromotion"));
     } finally {
       setIsLoading({
         isLoading: false,
@@ -131,7 +133,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
 
     setIsLoading({
       isLoading: true,
-      message: 'Updating device-specific promotion...'
+      message: t("DeviceSpecific.updatingPromotion")
     });
     try {
       const updatePayload = {
@@ -159,12 +161,12 @@ export const DeviceSpecificPromotionList: React.FC = () => {
         setShowForm(false);
         setEditData(null);
         loadData();
-        toast.success('Device-specific promotion updated successfully!');
+        toast.success(t("DeviceSpecific.promotionUpdatedSuccessfully"));
       } else {
-        toast.error(result.message || 'Failed to update device-specific promotion');
+        toast.error(result.message || t("DeviceSpecific.failedToUpdatePromotion"));
       }
     } catch (error) {
-      toast.error('An error occurred while updating the device-specific promotion');
+      toast.error(t("DeviceSpecific.errorUpdatingPromotion"));
     } finally {
       setIsLoading({
         isLoading: false,
@@ -183,18 +185,18 @@ export const DeviceSpecificPromotionList: React.FC = () => {
 
     setIsLoading({
       isLoading: true,
-      message: 'Deleting device-specific promotion...'
+      message: t("DeviceSpecific.deletingPromotion")
     });
     try {
       const result = await deleteDeviceSpecificPromotionService(promotionToDelete);
       if (result.success) {
         loadData();
-        toast.success('Device-specific promotion deleted successfully!');
+        toast.success(t("DeviceSpecific.promotionDeletedSuccessfully"));
       } else {
-        toast.error(result.message || 'Failed to delete device-specific promotion');
+        toast.error(result.message || t("DeviceSpecific.failedToDeletePromotion"));
       }
     } catch (error) {
-      toast.error('An error occurred while deleting the device-specific promotion');
+      toast.error(t("DeviceSpecific.errorDeletingPromotion"));
     } finally {
       setIsLoading({
         isLoading: false,
@@ -261,7 +263,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-foreground">
-            {editData ? 'Edit' : 'Create'} Device-Specific Promotion
+            {editData ? t("DeviceSpecific.edit") : t("DeviceSpecific.createPromotion")}
           </h2>
         </div>
         <DeviceSpecificPromotionForm
@@ -284,16 +286,16 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       <BackButton/>
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Device-Specific Promotions</h2>
+          <h2 className="text-2xl font-bold text-foreground">{t("DeviceSpecific.deviceSpecificPromotions")}</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Target specific devices with customized promotional offers
+            {t("DeviceSpecific.targetDevicesDescription")}
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
-          + Create Device Promotion
+          {t("DeviceSpecific.createDevicePromotion")}
         </button>
       </div>
 
@@ -306,23 +308,23 @@ export const DeviceSpecificPromotionList: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className='text-center'>Rate Plan</TableHead>
-                <TableHead className='text-center'>Promotion Name</TableHead>
-                <TableHead className='text-center'>Devices</TableHead>
-                <TableHead className='text-center'>Discount</TableHead>
-                <TableHead className='text-center'>Start Date</TableHead>
-                <TableHead className='text-center'>End Date</TableHead>
-                <TableHead className='text-center'>Active Days</TableHead>
-                <TableHead className='text-center'>Auto Applied</TableHead>
-                <TableHead className='text-center'>Status</TableHead>
-                <TableHead className='text-center'>Actions</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.ratePlan")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.promotionName")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.devices")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.discount")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.startDate")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.endDate")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.activeDays")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.autoApplied")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.status")}</TableHead>
+                <TableHead className='text-center'>{t("DeviceSpecific.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody className='text-center'>
               {promotions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                    No device-specific promotions found. Create one to get started!
+                    {t("DeviceSpecific.noPromotionsFound")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -378,7 +380,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                         ? 'bg-success/10 text-success'
                         : 'bg-muted text-muted-foreground'
                         }`}>
-                        {promotion.isActive ? 'Active' : 'Inactive'}
+                        {promotion.isActive ? t("DeviceSpecific.active") : t("DeviceSpecific.inactive")}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -394,7 +396,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                             className="cursor-pointer"
                           >
                             <Edit className="w-4 h-4 mr-3" />
-                            Edit
+                            {t("DeviceSpecific.edit")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => { setTranslationEntityId(promotion.id); setAddTranslationOpen(true); }}
@@ -415,7 +417,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                             className="cursor-pointer text-destructive focus:text-destructive"
                           >
                             <Trash2 className="w-4 h-4 mr-3" />
-                            Delete
+                            {t("DeviceSpecific.delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -434,9 +436,9 @@ export const DeviceSpecificPromotionList: React.FC = () => {
           <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Delete Device-Specific Promotion</h3>
+                <h3 className="text-lg font-semibold text-foreground">{t("DeviceSpecific.deletePromotion")}</h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Are you sure you want to delete this promotion? This action cannot be undone.
+                  {t("DeviceSpecific.deleteConfirmation")}
                 </p>
               </div>
 
@@ -446,14 +448,14 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                   className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                   disabled={isLoading.isLoading}
                 >
-                  Cancel
+                  {t("DeviceSpecific.cancel")}
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
                   disabled={isLoading.isLoading}
                 >
-                  {isLoading.isLoading ? 'Deleting...' : 'Delete'}
+                  {isLoading.isLoading ? t("DeviceSpecific.deleting") : t("DeviceSpecific.delete")}
                 </button>
               </div>
             </div>

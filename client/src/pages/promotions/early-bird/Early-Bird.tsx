@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Table,
     TableBody,
@@ -40,6 +41,7 @@ import { usePropertyContext } from '@/contexts/PropertyContext';
 import { languages } from '@/components/language/language';
 
 export const EarlyBirdPromotionList: React.FC = () => {
+    const { t } = useTranslation();
     const { propertyId } = useParams<{ propertyId: string }>();
     const [promotions, setPromotions] = useState<EarlyBirdPromotionWithRatePlan[]>([]);
     const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
@@ -69,7 +71,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
     }, [propertyId]);
 
     const loadData = async () => {
-    setIsLoading({isLoading: true, message: 'Loading early bird promotions...'});
+    setIsLoading({isLoading: true, message: t('EarlyBird.loadingPromotions')});
     try {
         if (!propertyId) {
             return;
@@ -118,7 +120,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
         }
     } catch (error) {
         console.error('Error loading data:', error);
-        toast.error('Failed to load early bird promotions');
+        toast.error(t('EarlyBird.failedToLoadPromotions'));
     } finally {
         setIsLoading({
             isLoading:false,
@@ -130,19 +132,19 @@ export const EarlyBirdPromotionList: React.FC = () => {
     const handleCreate = async (payload: CreateEarlyBirdPromotion) => {
         setIsLoading({
             isLoading:true,
-            message:'Creating early bird promotion...'
+            message: t('EarlyBird.creatingPromotion')
         });
         try {
             const result = await createEarlyBirdPromotionService(payload);
             if (result.success) {
                 setShowForm(false);
                 loadData();
-                toast.success('Early bird promotion created successfully!');
+                toast.success(t('EarlyBird.promotionCreatedSuccessfully'));
             } else {
-                toast.error(result.message || 'Failed to create early bird promotion');
+                toast.error(result.message || t('EarlyBird.failedToCreatePromotion'));
             }
         } catch (error) {
-            toast.error('An error occurred while creating the early bird promotion');
+            toast.error(t('EarlyBird.errorCreatingPromotion'));
         } finally {
             setIsLoading({
                 isLoading:false,
@@ -156,7 +158,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
 
         setIsLoading({
             isLoading:true,
-            message:'Updating early bird promotion...'
+            message: t('EarlyBird.updatingPromotion')
         });
         try {
             const updatePayload = {
@@ -184,12 +186,12 @@ export const EarlyBirdPromotionList: React.FC = () => {
                 setShowForm(false);
                 setEditData(null);
                 loadData();
-                toast.success('Early bird promotion updated successfully!');
+                toast.success(t('EarlyBird.promotionUpdatedSuccessfully'));
             } else {
-                toast.error(result.message || 'Failed to update early bird promotion');
+                toast.error(result.message || t('EarlyBird.failedToUpdatePromotion'));
             }
         } catch (error) {
-            toast.error('An error occurred while updating the early bird promotion');
+            toast.error(t('EarlyBird.errorUpdatingPromotion'));
         } finally {
             setIsLoading({
                 isLoading:false,
@@ -208,18 +210,18 @@ export const EarlyBirdPromotionList: React.FC = () => {
 
         setIsLoading({
             isLoading:true,
-            message:'Deleting early bird promotion...'
+            message: t('EarlyBird.deletingPromotion')
         });
         try {
             const result = await deleteEarlyBirdPromotionService(promotionToDelete);
             if (result.success) {
                 loadData();
-                toast.success('Early bird promotion deleted successfully!');
+                toast.success(t('EarlyBird.promotionDeletedSuccessfully'));
             } else {
-                toast.error(result.message || 'Failed to delete early bird promotion');
+                toast.error(result.message || t('EarlyBird.failedToDeletePromotion'));
             }
         } catch (error) {
-            toast.error('An error occurred while deleting the early bird promotion');
+            toast.error(t('EarlyBird.errorDeletingPromotion'));
         } finally {
             setIsLoading({
                 isLoading:false,
@@ -241,7 +243,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
     };
 
     const formatDate = (date: string | null | undefined) => {
-        if (!date) return 'N/A';
+        if (!date) return t('EarlyBird.notAvailable');
         return new Date(date).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -273,7 +275,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold text-foreground">
-                        {editData ? 'Edit' : 'Create'} Early Bird Promotion
+                        {editData ? t('EarlyBird.form.editTitle') : t('EarlyBird.form.createTitle')}
                     </h2>
                 </div>
                 <EarlyBirdPromotionForm
@@ -297,16 +299,16 @@ export const EarlyBirdPromotionList: React.FC = () => {
             <BackButton/>
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-foreground">Early Bird Promotions</h2>
+                    <h2 className="text-2xl font-bold text-foreground">{t('EarlyBird.earlyBirdPromotions')}</h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Secure your occupancy in advance with early booking discounts
+                        {t('EarlyBird.targetDescription')}
                     </p>
                 </div>
                 <button
                     onClick={() => setShowForm(true)}
                     className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                 >
-                    + Create Early Bird
+                    {t('EarlyBird.createButton')}
                 </button>
             </div>
 
@@ -319,23 +321,23 @@ export const EarlyBirdPromotionList: React.FC = () => {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Rate Plan(s)</TableHead>
-                                <TableHead>Promotion Name</TableHead>
-                                <TableHead>Advance Days</TableHead>
-                                <TableHead>Discount</TableHead>
-                                <TableHead>Start Date</TableHead>
-                                <TableHead>End Date</TableHead>
-                                <TableHead>Active Days</TableHead>
-                                <TableHead>Auto Applied</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Actions</TableHead>
+                                <TableHead>{t('EarlyBird.ratePlans')}</TableHead>
+                                <TableHead>{t('EarlyBird.promotionName')}</TableHead>
+                                <TableHead>{t('EarlyBird.advanceDays')}</TableHead>
+                                <TableHead>{t('EarlyBird.discount')}</TableHead>
+                                <TableHead>{t('EarlyBird.startDate')}</TableHead>
+                                <TableHead>{t('EarlyBird.endDate')}</TableHead>
+                                <TableHead>{t('EarlyBird.activeDays')}</TableHead>
+                                <TableHead>{t('EarlyBird.autoApplied')}</TableHead>
+                                <TableHead>{t('EarlyBird.status')}</TableHead>
+                                <TableHead>{t('EarlyBird.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {promotions.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                                        No early bird promotions found. Create one to get started!
+                                        {t('EarlyBird.noPromotionsFound')}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -344,7 +346,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                         <TableCell>
                                             <div>
                                                 <div className="font-medium text-foreground">
-                                                    {promotion.ratePlan?._translations?.ratePlanName || promotion.ratePlan?.ratePlanName || 'Multiple Plans'}
+                                                    {promotion.ratePlan?._translations?.ratePlanName || promotion.ratePlan?.ratePlanName || t('EarlyBird.multiplePlans')}
                                                 </div>
                                                 <div className="text-xs text-muted-foreground">
                                                     {promotion.ratePlan?.ratePlanCode || promotion.ratePlanCode}
@@ -355,7 +357,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                         <TableCell>
                                             <div className="flex items-center gap-1 text-xs">
                                                 <Clock className="w-3 h-3 text-muted-foreground" />
-                                                <span>{promotion.advanceBookingDays} days</span>
+                                                <span>{promotion.advanceBookingDays} {t('EarlyBird.days')}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>
@@ -393,7 +395,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                                     ? 'bg-success/10 text-success'
                                                     : 'bg-muted text-muted-foreground'
                                                 }`}>
-                                                {promotion.isActive ? 'Active' : 'Inactive'}
+                                                {promotion.isActive ? t('EarlyBird.active') : t('EarlyBird.inactive')}
                                             </span>
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -409,7 +411,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                                         className="cursor-pointer"
                                                     >
                                                         <Edit className="w-4 h-4 mr-3" />
-                                                        Edit
+                                                        {t('EarlyBird.edit')}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => { setTranslationEntityId(promotion.id); setAddTranslationOpen(true); }}
@@ -430,7 +432,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                                         className="cursor-pointer text-destructive focus:text-destructive"
                                                     >
                                                         <Trash2 className="w-4 h-4 mr-3" />
-                                                        Delete
+                                                        {t('EarlyBird.delete')}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -449,9 +451,9 @@ export const EarlyBirdPromotionList: React.FC = () => {
                     <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
                         <div className="space-y-4">
                             <div>
-                                <h3 className="text-lg font-semibold text-foreground">Delete Early Bird Promotion</h3>
+                                <h3 className="text-lg font-semibold text-foreground">{t('EarlyBird.deletePromotion')}</h3>
                                 <p className="text-sm text-muted-foreground mt-2">
-                                    Are you sure you want to delete this promotion? This action cannot be undone.
+                                    {t('EarlyBird.deleteConfirmation')}
                                 </p>
                             </div>
 
@@ -461,14 +463,14 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                     className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                                     disabled={isLoading.isLoading}
                                 >
-                                    Cancel
+                                    {t('EarlyBird.cancel')}
                                 </button>
                                 <button
                                     onClick={handleDeleteConfirm}
                                     className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
                                     disabled={isLoading.isLoading}
                                 >
-                                    {isLoading.isLoading ? 'Deleting...' : 'Delete'}
+                                    {isLoading.isLoading ? t('EarlyBird.deleting') : t('EarlyBird.delete')}
                                 </button>
                             </div>
                         </div>

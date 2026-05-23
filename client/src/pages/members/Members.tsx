@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import DataTable from '@/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ import EditMemberDialog from '@/components/manageMembers/updateUserDialog';
 import DeleteConfirmationDialog from '@/components/manageMembers/DeleteUserDialog';
 
 export default function MembersPage() {
+  const { t } = useTranslation();
 
   const [users, setUsers] = useState<IUser[]>([])
   const [errors, setErrors] = useState<z.ZodIssue[]>([]);
@@ -36,7 +38,7 @@ export default function MembersPage() {
       const res = await getUsers(1);
       setUsers(res.data)
     } catch (error) {
-      toast.error("Failed to fetch members")
+      toast.error(t('Toast.failedToFetchMembers'))
     } finally {
       setLoading(false)
     }
@@ -47,7 +49,7 @@ export default function MembersPage() {
       const res = await getRoles();
       setRoles(res.data)
     } catch (error) {
-      toast.error("Failed to fetch roles")
+      toast.error(t('Toast.failedToFetchRoles'))
     }
   }
 
@@ -63,27 +65,27 @@ export default function MembersPage() {
 
     try {
       const finalSchema = z.object({
-        firstName: z.string().min(1, 'First name is required.').max(50, 'First name must be at most 50 characters.').trim(),
-        lastName: z.string().min(1, 'Last name is required.').max(50, 'Last name must be at most 50 characters.').trim(),
-        email: z.string().email({ message: "Invalid email address" }),
+        firstName: z.string().min(1, t('Validation.firstNameRequired')).max(50, t('Validation.firstNameMaxLength')).trim(),
+        lastName: z.string().min(1, t('Validation.lastNameRequired')).max(50, t('Validation.lastNameMaxLength')).trim(),
+        email: z.string().email({ message: t('Validation.invalidEmail') }),
         password: z
           .string()
-          .min(6, { message: "Password must be at least 6 characters long." })
-          .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
-          .regex(/[@$&]/, { message: "Password must contain one of the special characters: @, $, &." })
-          .regex(/[0-9]/, { message: "Password must contain at least one number." }),
+          .min(6, { message: t('Validation.passwordMinLength') })
+          .regex(/[A-Z]/, { message: t('Validation.passwordUppercase') })
+          .regex(/[@$&]/, { message: t('Validation.passwordSpecialChar') })
+          .regex(/[0-9]/, { message: t('Validation.passwordNumber') }),
         confirmPassword: z
           .string()
-          .min(6, { message: "Password must be at least 6 characters long." })
-          .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
-          .regex(/[@$&]/, { message: "Password must contain one of the special characters: @, $, &." })
-          .regex(/[0-9]/, { message: "Password must contain at least one number." }),
-        role: z.string().min(1, 'Role is required.'),
+          .min(6, { message: t('Validation.passwordMinLength') })
+          .regex(/[A-Z]/, { message: t('Validation.passwordUppercase') })
+          .regex(/[@$&]/, { message: t('Validation.passwordSpecialChar') })
+          .regex(/[0-9]/, { message: t('Validation.passwordNumber') }),
+        role: z.string().min(1, t('Validation.roleRequired')),
         level: z.number()
       }).refine(
         (data) => data.password === data.confirmPassword,
         {
-          message: "Passwords don't match.",
+          message: t('Validation.passwordsDoNotMatch'),
           path: ['confirmPassword'],
         }
       );
@@ -99,15 +101,15 @@ export default function MembersPage() {
       const res = await createUser(validation.data);
       // console.log('Create user response:', res);
       if (res.success) {
-        toast.success("User created successfully");
+        toast.success(t('Toast.userCreatedSuccessfully'));
         setIsCreateDialogOpen(false);
         fetchUsers();
       } else {
-        toast.error(res.message || "Failed to create user");
+        toast.error(res.message || t('Toast.failedToCreateUser'));
       }
     } catch (error: any) {
       console.error('Unexpected error:', error);
-      toast.error("An unexpected error occurred.");
+      toast.error(t('Toast.unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -119,18 +121,18 @@ export default function MembersPage() {
     setErrors([]);
     setLoading(true);
     const finalSchema = z.object({
-      firstName: z.string().min(1, 'First name is required.').max(50, 'First name must be at most 50 characters.').trim(),
-      lastName: z.string().min(1, 'Last name is required.').max(50, 'Last name must be at most 50 characters.').trim(),
-      email: z.string().email({ message: "Invalid email address" }),
+      firstName: z.string().min(1, t('Validation.firstNameRequired')).max(50, t('Validation.firstNameMaxLength')).trim(),
+      lastName: z.string().min(1, t('Validation.lastNameRequired')).max(50, t('Validation.lastNameMaxLength')).trim(),
+      email: z.string().email({ message: t('Validation.invalidEmail') }),
       password: z
         .string()
         .optional()
-        .refine((val) => !val || val.length >= 6, { message: "Password must be at least 6 characters long." })
-        .refine((val) => !val || /[A-Z]/.test(val), { message: "Password must contain at least one uppercase letter." })
-        .refine((val) => !val || /[@$&]/.test(val), { message: "Password must contain one of the special characters: @, $, &." })
-        .refine((val) => !val || /[0-9]/.test(val), { message: "Password must contain at least one number." }),
+        .refine((val) => !val || val.length >= 6, { message: t('Validation.passwordMinLength') })
+        .refine((val) => !val || /[A-Z]/.test(val), { message: t('Validation.passwordUppercase') })
+        .refine((val) => !val || /[@$&]/.test(val), { message: t('Validation.passwordSpecialChar') })
+        .refine((val) => !val || /[0-9]/.test(val), { message: t('Validation.passwordNumber') }),
       confirmPassword: z.string().optional(),
-      role: z.string().min(1, 'Role is required.'),
+      role: z.string().min(1, t('Validation.roleRequired')),
       level: z.number()
     }).refine(
       (data) => {
@@ -140,7 +142,7 @@ export default function MembersPage() {
         return true;
       },
       {
-        message: "Passwords don't match.",
+        message: t('Validation.passwordsDoNotMatch'),
         path: ['confirmPassword'],
       }
     );

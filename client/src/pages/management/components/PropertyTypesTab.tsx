@@ -15,6 +15,7 @@ import {
   getAllMasterPropertyTypeTranslationsService,
   deleteMasterPropertyTypeTranslationLocaleService,
 } from "../services/multilanguage.services";
+import { useTranslation } from "react-i18next";
 
 interface PropertyTypesTabProps {
   propertyTypes: IPropertyType[];
@@ -22,6 +23,8 @@ interface PropertyTypesTabProps {
 }
 
 export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: PropertyTypesTabProps) {
+    const { t } = useTranslation();
+
   const [isPropertyTypeDialogOpen, setIsPropertyTypeDialogOpen] = useState<boolean>(false);
   const [propertyTypeForm, setPropertyTypeForm] = useState({ name: "", description: "" });
 
@@ -35,22 +38,22 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
   const handleCreatePropertyType = async () => {
     const response = await createPropertyTypeService(propertyTypeForm.name, propertyTypeForm.description);
     if (response.success) {
-      toast.success("Property type created successfully");
+      toast.success(t('Toast.propertyTypeCreatedSuccessfully'));
       setPropertyTypes([...propertyTypes, response.data]);
       setPropertyTypeForm({ name: "", description: "" });
       setIsPropertyTypeDialogOpen(false);
     } else {
-      toast.error(response.error || "Failed to create property type");
+      toast.error(response.error || t('Toast.failedToCreatePropertyType'));
     }
   };
 
   const handleDeletePropertyType = async (propertyTypeName: string) => {
     const response = await deletePropertyTypeService(propertyTypeName);
     if (response.success) {
-      toast.success("Property type deleted successfully");
+      toast.success(t('Toast.propertyTypeDeletedSuccessfully'));
       setPropertyTypes(propertyTypes.filter((type) => type.propertyTypeName !== propertyTypeName));
     } else {
-      toast.error(response.error || "Failed to delete property type");
+      toast.error(response.error || t('Toast.failedToDeletePropertyType'));
     }
   };
 
@@ -62,24 +65,24 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Property Types</CardTitle>
-            <CardDescription>Manage property types</CardDescription>
+            <CardTitle>{t('Management.propertyTypesTitle')}</CardTitle>
+            <CardDescription>{t('Management.managePropertyTypes')}</CardDescription>
           </div>
           <Dialog open={isPropertyTypeDialogOpen} onOpenChange={setIsPropertyTypeDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Property Type
+                {t('Management.addPropertyType')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Property Type</DialogTitle>
-                <DialogDescription>Add a new property type</DialogDescription>
+                <DialogTitle>{t('Management.createNewPropertyType')}</DialogTitle>
+                <DialogDescription>{t('Management.addNewPropertyTypeDescription')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="propertyTypeName">Property Type Name</Label>
+                  <Label htmlFor="propertyTypeName">{t('Management.propertyTypeName')}</Label>
                   <Input
                     id="propertyTypeName"
                     value={propertyTypeForm.name}
@@ -88,7 +91,7 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
                   />
                 </div>
                 <div>
-                  <Label htmlFor="propertyTypeDescription">Description</Label>
+                  <Label htmlFor="propertyTypeDescription">{t('Management.description')}</Label>
                   <Input
                     id="propertyTypeDescription"
                     value={propertyTypeForm.description}
@@ -98,8 +101,9 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsPropertyTypeDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleCreatePropertyType}>Create</Button>
+                <Button variant="outline" onClick={() => setIsPropertyTypeDialogOpen(false)}>                  {t('Common.cancel')}
+</Button>
+                <Button onClick={handleCreatePropertyType}>{t('Common.create')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -139,7 +143,7 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
           ))}
           {propertyTypes.length === 0 && (
             <div className="col-span-3 text-center py-12 text-gray-500">
-              No property types found. Create your first property type to get started.
+              {t('Management.noPropertyTypesFound')}
             </div>
           )}
         </div>

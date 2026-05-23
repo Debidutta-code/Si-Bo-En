@@ -15,6 +15,7 @@ import {
   getAllMasterPropertyCategoryTranslationsService,
   deleteMasterPropertyCategoryTranslationLocaleService,
 } from "../services/multilanguage.services";
+import { useTranslation } from "react-i18next";
 
 interface CategoriesTabProps {
   categories: ICategory[];
@@ -22,6 +23,8 @@ interface CategoriesTabProps {
 }
 
 export default function CategoriesTab({ categories, setCategories }: CategoriesTabProps) {
+    const { t } = useTranslation();
+
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState<boolean>(false);
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
 
@@ -35,22 +38,22 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
   const handleCreateCategory = async () => {
     const response = await createCategoryService(categoryForm.name, categoryForm.description);
     if (response.success) {
-      toast.success("Category created successfully");
+      toast.success(t('Toast.categoryCreatedSuccessfully'));
       setCategories([...categories, response.data]);
       setCategoryForm({ name: "", description: "" });
       setIsCategoryDialogOpen(false);
     } else {
-      toast.error(response.error || "Failed to create category");
+      toast.error(response.error || t('Toast.failedToCreateCategory'));
     }
   };
 
   const handleDeleteCategory = async (categoryName: string) => {
     const response = await deleteCategoryService(categoryName);
     if (response.success) {
-      toast.success("Category deleted successfully");
+      toast.success(t('Toast.categoryDeletedSuccessfully'));
       setCategories(categories.filter((cat) => cat.categoryName !== categoryName));
     } else {
-      toast.error(response.error || "Failed to delete category");
+      toast.error(response.error || t('Toast.failedToDeleteCategory'));
     }
   };
 
@@ -62,24 +65,24 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Property Categories</CardTitle>
-            <CardDescription>Manage property categories</CardDescription>
+            <CardTitle>{t('Management.propertyCategories')}</CardTitle>
+            <CardDescription>{t('Management.managePropertyCategories')}</CardDescription>
           </div>
           <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Category
+                {t('Management.addCategory')}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Category</DialogTitle>
-                <DialogDescription>Add a new property category</DialogDescription>
+                <DialogTitle>{t('Management.createNewCategory')}</DialogTitle>
+                <DialogDescription>{t('Management.addNewPropertyCategory')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="categoryName">Category Name</Label>
+                  <Label htmlFor="categoryName">{t('Management.categoryName')}</Label>
                   <Input
                     id="categoryName"
                     value={categoryForm.name}
@@ -88,7 +91,7 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
                   />
                 </div>
                 <div>
-                  <Label htmlFor="categoryDescription">Description</Label>
+                  <Label htmlFor="categoryDescription">{t('Common.description')}</Label>
                   <Input
                     id="categoryDescription"
                     value={categoryForm.description}
@@ -98,8 +101,9 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleCreateCategory}>Create</Button>
+                <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>                  {t('Common.cancel')}
+</Button>
+                <Button onClick={handleCreateCategory}>{t('Common.create')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -139,7 +143,7 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
           ))}
           {categories.length === 0 && (
             <div className="col-span-3 text-center py-12 text-gray-500">
-              No categories found. Create your first category to get started.
+              {t('Management.noCategoriesFound')}
             </div>
           )}
         </div>

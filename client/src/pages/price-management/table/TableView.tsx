@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,7 @@ import {
 } from '@/components/ui/select';
 
 export default function TableView() {
+  const { t } = useTranslation('PriceManagement');
   const { propertyId } = useParams();
   const [selectedMonth, setSelectedMonth] = useState('December 2025');
   const [selectedRate, setSelectedRate] = useState('');
@@ -21,24 +23,24 @@ export default function TableView() {
       <div className="container mx-auto px-4">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <Link to="/app" className="hover:text-gray-900">Home</Link>
+          <Link to="/app" className="hover:text-gray-900">{t('home')}</Link>
           <span>/</span>
-          <span>Prices</span>
+          <span>{t('prices')}</span>
           <span>/</span>
           <Link to={`/property/price-management/seasons/${propertyId}`} className="hover:text-gray-900">
-            Seasons management
+            {t('seasons.title')}
           </Link>
           <span>/</span>
-          <span className="text-gray-900 font-medium">Table</span>
+          <span className="text-gray-900 font-medium">{t('table.title')}</span>
         </div>
 
         <Card className="max-w-2xl mx-auto">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-semibold">Data selection</CardTitle>
+            <CardTitle className="text-2xl font-semibold">{t('table.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <Label htmlFor="month" className="text-base font-medium">Choose a month</Label>
+              <Label htmlFor="month" className="text-base font-medium">{t('table.chooseMonth')}</Label>
               <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                 <SelectTrigger id="month" className="mt-2">
                   <SelectValue />
@@ -54,10 +56,10 @@ export default function TableView() {
             </div>
 
             <div>
-              <Label htmlFor="rate" className="text-base font-medium">Choose a rate</Label>
+              <Label htmlFor="rate" className="text-base font-medium">{t('table.chooseRate')}</Label>
               <Select value={selectedRate} onValueChange={setSelectedRate}>
                 <SelectTrigger id="rate" className="mt-2">
-                  <SelectValue placeholder="Select an Option" />
+                  <SelectValue placeholder={t('table.selectOption')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="standard">Standard Rate</SelectItem>
@@ -69,10 +71,10 @@ export default function TableView() {
             </div>
 
             <div>
-              <Label htmlFor="rooms" className="text-base font-medium">Choose one or several rooms</Label>
+              <Label htmlFor="rooms" className="text-base font-medium">{t('table.chooseRooms')}</Label>
               <Select>
                 <SelectTrigger id="rooms" className="mt-2">
-                  <SelectValue placeholder="Select Some Options" />
+                  <SelectValue placeholder={t('table.selectOptions')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="single">Single Room</SelectItem>
@@ -84,10 +86,10 @@ export default function TableView() {
             </div>
 
             <div>
-              <Label htmlFor="boards" className="text-base font-medium">Choose one or several boards</Label>
+              <Label htmlFor="boards" className="text-base font-medium">{t('table.chooseBoards')}</Label>
               <Select>
                 <SelectTrigger id="boards" className="mt-2">
-                  <SelectValue placeholder="Select Some Options" />
+                  <SelectValue placeholder={t('table.selectOptions')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ro">Room Only</SelectItem>
@@ -101,7 +103,7 @@ export default function TableView() {
 
             <div className="flex justify-center pt-6">
               <Button className="bg-primary hover:bg-primary/90 text-white px-12 py-2 text-base">
-                SEE CHART
+                {t('table.viewTable')}
               </Button>
             </div>
           </CardContent>

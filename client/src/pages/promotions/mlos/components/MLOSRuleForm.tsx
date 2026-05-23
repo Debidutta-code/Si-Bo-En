@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { RatePlan } from "@/pages/rate-plan/interfaces";
 import Loader from "@/components/Loader/Loader";
 import {
@@ -37,6 +38,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
   editData,
   isLoading,
 }) => {
+  const { t } = useTranslation();
   const [mlos, setMlos] = useState<IMLOScu>({
     selectedRatePlan: "",
     startDate: "",
@@ -92,7 +94,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
 
   if (isLoading.isLoading) {
     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
-      <Loader text="Processing..." />
+      <Loader text={t("MLOSRuleForm.processing")} />
     </div>;
   }
   return (
@@ -102,7 +104,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
           {/* Rate Plan Selection */}
           <div className="space-y-2">
             <label className="block text-sm font-semibold text-foreground">
-              Rate Plan *
+              {t("MLOSRuleForm.ratePlanLabel")}
             </label>
             {editData ? (
               <div className="px-4 py-2 bg-muted/30 border border-border rounded-md">
@@ -119,12 +121,12 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                 onValueChange={(value) => setMlos({ ...mlos, selectedRatePlan: value })}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a rate plan" />
+                  <SelectValue placeholder={t("MLOSRuleForm.selectRatePlan")} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableRatePlans.length === 0 ? (
                     <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                      No available rate plans
+                      {t("MLOSRuleForm.noAvailableRatePlans")}
                     </div>
                   ) : (
                     availableRatePlans.map((plan) => (
@@ -137,20 +139,20 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
               </Select>
             )}
             <p className="text-xs text-muted-foreground">
-              Only rate plans without existing MLOS rules are shown
+              {t("MLOSRuleForm.ratePlanHint")}
             </p>
           </div>
 
           {/* Date Range */}
           <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
             <h3 className="text-sm font-semibold text-foreground">
-              Date Range (Optional)
+              {t("MLOSRuleForm.dateRange")}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Start Date
+                  {t("MLOSRuleForm.startDate")}
                 </label>
                 <input
                   type="date"
@@ -162,7 +164,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  End Date
+                  {t("MLOSRuleForm.endDate")}
                 </label>
                 <input
                   type="date"
@@ -178,13 +180,13 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
           {/* Length of Stay */}
           <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
             <h3 className="text-sm font-semibold text-foreground">
-              Length of Stay Requirements
+              {t("MLOSRuleForm.lengthOfStayRequirements")}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Minimum LOS (nights) *
+                  {t("MLOSRuleForm.minimumLos")}
                 </label>
                 <input
                   type="number"
@@ -198,18 +200,18 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Maximum LOS (nights)
+                  {t("MLOSRuleForm.maximumLos")}
                 </label>
                 <input
                   type="number"
                   value={mlos.maxLos}
                   onChange={(e) => setMlos({ ...mlos, maxLos: e.target.value })}
                   min={mlos.minLos}
-                  placeholder="No limit"
+                  placeholder={t("MLOSRuleForm.noLimit")}
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Leave empty for no maximum limit
+                  {t("MLOSRuleForm.maximumLosHint")}
                 </p>
               </div>
             </div>
@@ -218,13 +220,13 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
           {/* Discount Configuration */}
           <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
             <h3 className="text-sm font-semibold text-foreground">
-              Discount Configuration (Optional)
+              {t("MLOSRuleForm.discountConfiguration")}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Discount Type
+                  {t("MLOSRuleForm.discountType")}
                 </label>
                 <Select
                   value={mlos.discountType || "none"}
@@ -236,14 +238,14 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                   }}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select discount type" />
+                    <SelectValue placeholder={t("MLOSRuleForm.selectDiscountType")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No Discount</SelectItem>
+                    <SelectItem value="none">{t("MLOSRuleForm.noDiscount")}</SelectItem>
                     <SelectItem value="percentage">
-                      Percentage Discount
+                      {t("MLOSRuleForm.percentageDiscount")}
                     </SelectItem>
-                    <SelectItem value="flat">Flat Amount Discount</SelectItem>
+                    <SelectItem value="flat">{t("MLOSRuleForm.flatAmountDiscount")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -252,8 +254,8 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     {mlos.discountType === "percentage"
-                      ? "Percentage Value"
-                      : "Amount"}
+                      ? t("MLOSRuleForm.percentageValue")
+                      : t("MLOSRuleForm.amountLabel")}
                   </label>
                   <div className="relative">
                     <input
@@ -280,7 +282,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
               {mlos.discountType === "flat" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="currencyCode">Currency Code</Label>
+                    <Label htmlFor="currencyCode">{t("MLOSRuleForm.currencyCode")}</Label>
                     <Select
                       value={mlos.currencyCode}
                       onValueChange={(value) => setMlos({ ...mlos, currencyCode: value as CurrencyCode })}
@@ -313,11 +315,11 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
               htmlFor="isAutoApplied"
               className="text-sm font-medium text-foreground cursor-pointer flex-1"
             >
-              Auto Applied
+              {t("MLOSRuleForm.autoApplied")}
               <span className="block text-xs text-muted-foreground font-normal mt-0.5">
                 {mlos.isAutoApplied
-                  ? "This MLOS rule is auto applied to reservations"
-                  : "This MLOS rule is not auto applied"}
+                  ? t("MLOSRuleForm.autoAppliedActive")
+                  : t("MLOSRuleForm.autoAppliedInactive")}
               </span>
             </label>
           </div>
@@ -334,11 +336,11 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
               htmlFor="isActive"
               className="text-sm font-medium text-foreground cursor-pointer flex-1"
             >
-              Active Status
+              {t("MLOSRuleForm.activeStatus")}
               <span className="block text-xs text-muted-foreground font-normal mt-0.5">
                 {mlos.isActive
-                  ? "This MLOS rule is currently active"
-                  : "This MLOS rule is currently inactive"}
+                  ? t("MLOSRuleForm.activeActive")
+                  : t("MLOSRuleForm.activeInactive")}
               </span>
             </label>
           </div>
@@ -351,14 +353,14 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
               className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
               disabled={isLoading.isLoading}
             >
-              Cancel
+              {t("MLOSRuleForm.cancel")}
             </button>
             <button
               type="submit"
               className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
               disabled={isLoading.isLoading || !mlos.selectedRatePlan}
             >
-              {editData ? "✓ Update" : "+ Create"} MLOS Rule
+              {editData ? t("MLOSRuleForm.update") : t("MLOSRuleForm.create")} {t("MLOSRuleForm.mlosRule")}
             </button>
           </div>
         </form>

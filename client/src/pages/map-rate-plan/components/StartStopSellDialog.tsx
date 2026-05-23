@@ -22,6 +22,7 @@ import { CalendarIcon, Ban, PlayCircle } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import type { ICStartStopSell } from "../types";
 import type { RatePlan } from "../../rate-plan/interfaces/ratePlan.type";
 
@@ -47,6 +48,7 @@ export default function StartStopSellDialog({
     ratePlans,
     roomTypes,
 }: StartStopSellDialogProps) {
+    const { t } = useTranslation();
     const [fromDateOpen, setFromDateOpen] = useState(false);
     const [toDateOpen, setToDateOpen] = useState(false);
     const [formData, setFormData] = useState<ICStartStopSell & { isSellStop: boolean }>({
@@ -61,15 +63,15 @@ export default function StartStopSellDialog({
     const handleSubmit = async () => {
         // Validation
         if (!formData.ratePlanCode && !formData.roomTypeCode) {
-            toast.error("Please select at least one: Rate Plan or Room Type");
+            toast.error(t("MapRatePlan.startStopSell.selectAtLeastOne"));
             return;
         }
         if (!formData.from || !formData.to) {
-            toast.error("Please select both from and to dates");
+            toast.error(t("MapRatePlan.startStopSell.selectBothDates"));
             return;
         }
         if (formData.to < formData.from) {
-            toast.error("To date cannot be earlier than From date");
+            toast.error(t("MapRatePlan.startStopSell.toDateBeforeFrom"))
             return;
         }
 
@@ -91,7 +93,7 @@ export default function StartStopSellDialog({
 
             const response = await onSave(dataToSend as any);
             if (response.success) {
-                toast.success(response.message || `Sale ${formData.isSellStop ? 'stopped' : 'started'} successfully`);
+                toast.success(response.message || (formData.isSellStop ? t("MapRatePlan.startStopSell.saleStoppedSuccess") : t("MapRatePlan.startStopSell.saleStartedSuccess")));
                 // Reset form
                 setFormData({
                     from: new Date(),
@@ -102,10 +104,10 @@ export default function StartStopSellDialog({
                 });
                 onOpenChange(false);
             } else {
-                toast.error(response.message || "Failed to update sell status");
+                toast.error(response.message || t("MapRatePlan.startStopSell.failedToUpdate"));
             }
         } catch (error) {
-            toast.error("An error occurred while updating sell status");
+            toast.error(t("MapRatePlan.startStopSell.errorOccurred"));
         } finally {
             setIsSubmitting(false);
         }
@@ -119,26 +121,26 @@ export default function StartStopSellDialog({
                         {formData.isSellStop ? (
                             <>
                                 <Ban className="w-5 h-5 text-red-600" />
-                                Stop Sales
+                                {t("MapRatePlan.startStopSell.stopSales")}
                             </>
                         ) : (
                             <>
                                 <PlayCircle className="w-5 h-5 text-green-600" />
-                                Start Sales
+                                {t("MapRatePlan.startStopSell.startSales")}
                             </>
                         )}
                     </DialogTitle>
                     <DialogDescription>
                         {formData.isSellStop 
-                            ? "Block sales for specific rate plans and/or room types during selected dates. Select at least one."
-                            : "Enable sales for specific rate plans and/or room types during selected dates. Select at least one."}
+                            ? t("MapRatePlan.startStopSell.stopSalesDesc")
+                            : t("MapRatePlan.startStopSell.startSalesDesc")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid gap-4 py-4">
                     {/* Action Type */}
                     <div className="grid gap-2">
-                        <Label>Action</Label>
+                        <Label>{t("MapRatePlan.startStopSell.action")}</Label>
                         <Select
                             value={formData.isSellStop ? "stop" : "start"}
                             onValueChange={(value) =>
@@ -152,13 +154,13 @@ export default function StartStopSellDialog({
                                 <SelectItem value="stop">
                                     <div className="flex items-center gap-2">
                                         <Ban className="w-4 h-4 text-red-600" />
-                                        Stop Sales
+                                        {t("MapRatePlan.startStopSell.stopSales")}
                                     </div>
                                 </SelectItem>
                                 <SelectItem value="start">
                                     <div className="flex items-center gap-2">
                                         <PlayCircle className="w-4 h-4 text-green-600" />
-                                        Start Sales
+                                        {t("MapRatePlan.startStopSell.startSales")}
                                     </div>
                                 </SelectItem>
                             </SelectContent>
@@ -167,7 +169,7 @@ export default function StartStopSellDialog({
 
                     {/* Rate Plan Selection */}
                     <div className="grid gap-2">
-                        <Label>Rate Plan (Optional)</Label>
+                        <Label>{t("MapRatePlan.startStopSell.ratePlanOptional")}</Label>
                         <Select
                             value={formData.ratePlanCode}
                             onValueChange={(value) =>
@@ -175,7 +177,7 @@ export default function StartStopSellDialog({
                             }
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select rate plan (optional)" />
+                                <SelectValue placeholder={t("MapRatePlan.startStopSell.ratePlanOptional")} />
                             </SelectTrigger>
                             <SelectContent>
                                {ratePlans.map((plan) => (
@@ -189,7 +191,7 @@ export default function StartStopSellDialog({
 
                     {/* Room Type Selection */}
                     <div className="grid gap-2">
-                        <Label>Room Type (Optional)</Label>
+                        <Label>{t("MapRatePlan.startStopSell.roomTypeOptional")}</Label>
                         <Select
                             value={formData.roomTypeCode}
                             onValueChange={(value) =>
@@ -197,7 +199,7 @@ export default function StartStopSellDialog({
                             }
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select room type (optional)" />
+                                <SelectValue placeholder={t("MapRatePlan.startStopSell.roomTypeOptional")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {roomTypes.map((room) => (
@@ -212,7 +214,7 @@ export default function StartStopSellDialog({
                     {/* Date Range */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label>From Date *</Label>
+                            <Label>{t("MapRatePlan.startStopSell.fromDate")} *</Label>
                             <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -223,7 +225,7 @@ export default function StartStopSellDialog({
                                         )}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4 p-2" />
-                                        {formData.from ? format(formData.from, "PPP") : "Pick a date"}
+                                        {formData.from ? format(formData.from, "PPP") : t("MapRatePlan.startStopSell.pickDate")}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
@@ -241,7 +243,7 @@ export default function StartStopSellDialog({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>To Date *</Label>
+                            <Label>{t("MapRatePlan.startStopSell.toDate")} *</Label>
                             <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -252,7 +254,7 @@ export default function StartStopSellDialog({
                                         )}
                                     >
                                         <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {formData.to ? format(formData.to, "PPP") : "Pick a date"}
+                                        {formData.to ? format(formData.to, "PPP") : t("MapRatePlan.startStopSell.pickDate")}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0">
@@ -278,14 +280,14 @@ export default function StartStopSellDialog({
                         onClick={() => onOpenChange(false)}
                         disabled={isSubmitting}
                     >
-                        Cancel
+                        {t("MapRatePlan.startStopSell.cancel")}
                     </Button>
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
                         className={formData.isSellStop ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
                     >
-                        {isSubmitting ? "Processing..." : formData.isSellStop ? "Stop Sales" : "Start Sales"}
+                        {isSubmitting ? t("MapRatePlan.startStopSell.processing") : formData.isSellStop ? t("MapRatePlan.startStopSell.stopSales") : t("MapRatePlan.startStopSell.startSales")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

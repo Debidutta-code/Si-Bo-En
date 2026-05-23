@@ -26,8 +26,10 @@ import type { IAddon } from "@/pages/add-on/interface";
 import type { ILoader } from "@/pages/dashboard/interface";
 import { format } from "date-fns";
 import BackButton from "@/components/shared/BackButton";
+import { useTranslation } from "react-i18next";
 
 export const CustomizableDealList: React.FC = () => {
+  const { t } = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const [deals, setDeals] = useState<CustomizableDeal[]>([]);
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
@@ -42,9 +44,9 @@ export const CustomizableDealList: React.FC = () => {
   useEffect(() => { loadData(); }, [propertyId]);
 
   const loadData = async () => {
-    setIsLoading({ isLoading: true, message: "Loading customizable deals..." });
+    setIsLoading({ isLoading: true, message: t("CustomizableDeals.loadingDeals") });
     try {
-      if (!propertyId) { toast.error("Property not found"); return; }
+      if (!propertyId) { toast.error(t("CustomizableDeals.propertyNotFound")); return; }
       const [dealsRes, plansRes, roomsRes, addonsRes] = await Promise.all([
         getCustomizableDealsByPropertyService(propertyId),
         fetchRatePlansService(propertyId),
@@ -56,7 +58,7 @@ export const CustomizableDealList: React.FC = () => {
       if (roomsRes.success) setRoomTypes(roomsRes.data || []);
       if (addonsRes.success) setAddons(addonsRes.data || []);
     } catch {
-      toast.error("Failed to load customizable deals");
+      toast.error(t("CustomizableDeals.failedToLoadDeals"));
     } finally {
       setIsLoading({ isLoading: false, message: "" });
     }
@@ -64,18 +66,18 @@ export const CustomizableDealList: React.FC = () => {
 
   const handleCreate = async (payload: CreateCustomizableDeal) => {
     if (!propertyId) return;
-    setIsLoading({ isLoading: true, message: "Creating customizable deal..." });
+    setIsLoading({ isLoading: true, message: t("CustomizableDeals.creatingDeal") });
     try {
       const result = await createCustomizableDealService(payload, propertyId);
       if (result.success) {
         setShowForm(false);
         loadData();
-        toast.success("Customizable deal created successfully!");
+        toast.success(t("CustomizableDeals.dealCreatedSuccessfully"));
       } else {
-        toast.error(result.message || "Failed to create customizable deal");
+        toast.error(result.message || t("CustomizableDeals.failedToCreateDeal"));
       }
     } catch {
-      toast.error("An error occurred while creating the deal");
+      toast.error(t("CustomizableDeals.errorCreatingDeal"));
     } finally {
       setIsLoading({ isLoading: false, message: "" });
     }
@@ -83,19 +85,19 @@ export const CustomizableDealList: React.FC = () => {
 
   const handleUpdate = async (payload: CreateCustomizableDeal) => {
     if (!editData || !propertyId) return;
-    setIsLoading({ isLoading: true, message: "Updating customizable deal..." });
+    setIsLoading({ isLoading: true, message: t("CustomizableDeals.updatingDeal") });
     try {
       const result = await updateCustomizableDealService(editData.id, payload, propertyId);
       if (result.success) {
         setShowForm(false);
         setEditData(null);
         loadData();
-        toast.success("Customizable deal updated successfully!");
+        toast.success(t("CustomizableDeals.dealUpdatedSuccessfully"));
       } else {
-        toast.error(result.message || "Failed to update customizable deal");
+        toast.error(result.message || t("CustomizableDeals.failedToUpdateDeal"));
       }
     } catch {
-      toast.error("An error occurred while updating the deal");
+      toast.error(t("CustomizableDeals.errorUpdatingDeal"));
     } finally {
       setIsLoading({ isLoading: false, message: "" });
     }
@@ -103,17 +105,17 @@ export const CustomizableDealList: React.FC = () => {
 
   const handleDeleteConfirm = async () => {
     if (!dealToDelete || !propertyId) return;
-    setIsLoading({ isLoading: true, message: "Deleting customizable deal..." });
+    setIsLoading({ isLoading: true, message: t("CustomizableDeals.deletingDeal") });
     try {
       const result = await deleteCustomizableDealService(dealToDelete, propertyId);
       if (result.success) {
         loadData();
-        toast.success("Customizable deal deleted successfully!");
+        toast.success(t("CustomizableDeals.dealDeletedSuccessfully"));
       } else {
-        toast.error(result.message || "Failed to delete customizable deal");
+        toast.error(result.message || t("CustomizableDeals.failedToDeleteDeal"));
       }
     } catch {
-      toast.error("An error occurred while deleting the deal");
+      toast.error(t("CustomizableDeals.errorDeletingDeal"));
     } finally {
       setIsLoading({ isLoading: false, message: "" });
       setDeleteDialogOpen(false);
@@ -135,7 +137,7 @@ export const CustomizableDealList: React.FC = () => {
     return (
       <div className="space-y-4">
         <h2 className="text-2xl font-bold text-foreground">
-          {editData ? "Edit" : "Create"} Customizable Deal
+          {editData ? t("CustomizableDeals.editTitle") : t("CustomizableDeals.createTitle")}
         </h2>
         <CustomizableDealForm
           ratePlans={ratePlans}
@@ -156,16 +158,16 @@ export const CustomizableDealList: React.FC = () => {
       
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Customizable Deals</h2>
+          <h2 className="text-2xl font-bold text-foreground">{t("CustomizableDeals.customizableDeals")}</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Create flexible deals by combining a room, rate plan, and date range
+            {t("CustomizableDeals.targetDescription")}
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
-          + Create Deal
+          + {t("CustomizableDeals.createDeal")}
         </button>
       </div>
 
@@ -176,21 +178,21 @@ export const CustomizableDealList: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Discount</TableHead>
-                <TableHead>Room</TableHead>
-                <TableHead>Rate Plan</TableHead>
-                <TableHead>Period</TableHead>
-                <TableHead>Add-ons</TableHead>
-                <TableHead className="text-center">Auto Apply</TableHead>
-                <TableHead className="text-center">Active</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("CustomizableDeals.discount")}</TableHead>
+                <TableHead>{t("CustomizableDeals.room")}</TableHead>
+                <TableHead>{t("CustomizableDeals.ratePlan")}</TableHead>
+                <TableHead>{t("CustomizableDeals.period")}</TableHead>
+                <TableHead>{t("CustomizableDeals.addons")}</TableHead>
+                <TableHead className="text-center">{t("CustomizableDeals.autoApply")}</TableHead>
+                <TableHead className="text-center">{t("CustomizableDeals.active")}</TableHead>
+                <TableHead>{t("CustomizableDeals.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {deals.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                    No customizable deals found. Create one to get started!
+                    {t("CustomizableDeals.noDealsFound")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -228,11 +230,11 @@ export const CustomizableDealList: React.FC = () => {
 
                     <TableCell>
                       {deal.CustomizableDealsApplicableAddons.length === 0 ? (
-                        <span className="text-xs text-muted-foreground">None</span>
+                        <span className="text-xs text-muted-foreground">-</span>
                       ) : (
                         <div className="flex items-center gap-2">
                           <Tag className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-sm">{deal.CustomizableDealsApplicableAddons.length} add-on(s)</span>
+                          <span className="text-sm">{deal.CustomizableDealsApplicableAddons.length} {t("CustomizableDeals.addons")}</span>
                         </div>
                       )}
                     </TableCell>
@@ -258,13 +260,13 @@ export const CustomizableDealList: React.FC = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
                           <DropdownMenuItem onClick={() => { setEditData(deal); setShowForm(true); }} className="cursor-pointer">
-                            <Edit className="w-4 h-4 mr-3" /> Edit
+                            <Edit className="w-4 h-4 mr-3" /> {t("Common.edit")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => { setDealToDelete(deal.id); setDeleteDialogOpen(true); }}
                             className="cursor-pointer text-destructive focus:text-destructive"
                           >
-                            <Trash2 className="w-4 h-4 mr-3" /> Delete
+                            <Trash2 className="w-4 h-4 mr-3" /> {t("Common.delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -281,9 +283,9 @@ export const CustomizableDealList: React.FC = () => {
       {deleteDialogOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-foreground">Delete Customizable Deal</h3>
+            <h3 className="text-lg font-semibold text-foreground">{t("CustomizableDeals.deleteDeal")}</h3>
             <p className="text-sm text-muted-foreground mt-2">
-              Are you sure you want to delete this deal? This action cannot be undone.
+              {t("CustomizableDeals.deleteConfirmation")}
             </p>
             <div className="flex justify-end space-x-3 pt-4 mt-4 border-t border-border">
               <button
@@ -291,14 +293,14 @@ export const CustomizableDealList: React.FC = () => {
                 className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                 disabled={isLoading.isLoading}
               >
-                Cancel
+                {t("CustomizableDeals.cancel")}
               </button>
               <button
                 onClick={handleDeleteConfirm}
                 className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
                 disabled={isLoading.isLoading}
               >
-                {isLoading.isLoading ? "Deleting..." : "Delete"}
+                {isLoading.isLoading ? t("CustomizableDeals.deleting") : t("CustomizableDeals.delete")}
               </button>
             </div>
           </div>

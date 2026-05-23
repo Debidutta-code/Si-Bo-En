@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { RatePlan } from "@/pages/rate-plan/interfaces";
 import Loader from "@/components/Loader/Loader";
 import {
@@ -57,6 +58,7 @@ const defaultPromotion = (
 const DeviceSpecificPromotionForm: React.FC<
   DeviceSpecificPromotionFormProps
 > = ({ ratePlans, propertyId, onSubmit, onCancel, editData, isLoading }) => {
+  const { t } = useTranslation();
   const [devicePromotion, setDevicePromotion] =
     useState<CreateDeviceSpecificPromotion>(defaultPromotion(propertyId));
   const [hasEndDate, setHasEndDate] = useState<boolean>(false);
@@ -230,7 +232,7 @@ const DeviceSpecificPromotionForm: React.FC<
     <div className="bg-card rounded-lg border border-border shadow-sm relative">
       {isLoading.isLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
-          <Loader text="Processing..." />
+          <Loader text={t("DeviceSpecific.form.processing")} />
         </div>
       )}
 
@@ -238,21 +240,20 @@ const DeviceSpecificPromotionForm: React.FC<
         {/* Header */}
         <div className="pb-4 border-b border-border">
           <h3 className="text-lg font-semibold text-foreground">
-            {editData ? "Edit" : "Create"} Device-Specific Promotion
+            {editData ? t("DeviceSpecific.form.editTitle") : t("DeviceSpecific.form.createTitle")}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Target specific devices with customized promotions (mobile, tablet,
-            or desktop users)
+            {t("DeviceSpecific.form.targetDevicesDescription")}
           </p>
         </div>
 
         {/* Device Selection */}
         <div className="space-y-3 p-4 bg-muted/20 rounded-lg border border-border">
           <h4 className="text-sm font-semibold text-foreground">
-            Device Type Selection *
+            {t("DeviceSpecific.form.deviceTypeSelection")}
           </h4>
           <p className="text-xs text-muted-foreground">
-            Select which devices this promotion will be available on
+            {t("DeviceSpecific.form.deviceTypeSelectionDescription")}
           </p>
 
           <div className="grid grid-cols-3 gap-3">
@@ -269,10 +270,10 @@ const DeviceSpecificPromotionForm: React.FC<
               >
                 {getDeviceIcons(device)}
                 <span className="text-sm font-medium mt-2 capitalize">
-                  {device}
+                  {t(`DeviceSpecific.form.${device}`)}
                 </span>
                 {devicePromotion.deviceType.includes(device) && (
-                  <span className="text-xs mt-1">Selected</span>
+                  <span className="text-xs mt-1">{t("DeviceSpecific.form.selected")}</span>
                 )}
               </button>
             ))}
@@ -281,10 +282,10 @@ const DeviceSpecificPromotionForm: React.FC<
           {devicePromotion.deviceType.length > 0 && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Active on:{" "}
+                {t("DeviceSpecific.form.activeOn")}{" "}
                 <span className="font-medium">
                   {devicePromotion.deviceType
-                    .map((d) => d.charAt(0).toUpperCase() + d.slice(1))
+                    .map((d) => t(`DeviceSpecific.form.${d}`))
                     .join(", ")}
                 </span>
               </p>
@@ -295,12 +296,12 @@ const DeviceSpecificPromotionForm: React.FC<
         {/* Rate Plan Selection */}
         <div className="space-y-3">
           <h4 className="text-sm font-semibold text-foreground">
-            Room types and rate plans
+            {t("DeviceSpecific.form.roomTypesAndRatePlans")}
           </h4>
 
           <div className="space-y-2">
             <label className="block text-sm font-medium text-foreground">
-              Which rate plan can be added to this promotion? *
+              {t("DeviceSpecific.form.whichRatePlan")}
             </label>
             {editData ? (
               <div className="px-4 py-2 bg-muted/30 border border-border rounded-md">
@@ -329,7 +330,7 @@ const DeviceSpecificPromotionForm: React.FC<
                       className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                     />
                     <span className="text-sm text-foreground">
-                      B2C rate plan
+                      {t("DeviceSpecific.form.b2cRatePlan")}
                     </span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
@@ -347,7 +348,7 @@ const DeviceSpecificPromotionForm: React.FC<
                       className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                     />
                     <span className="text-sm text-foreground">
-                      B2B rate plan
+                      {t("DeviceSpecific.form.b2bRatePlan")}
                     </span>
                   </label>
                 </div>
@@ -356,12 +357,12 @@ const DeviceSpecificPromotionForm: React.FC<
                   onValueChange={handleRatePlanChange}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a rate plan" />
+                    <SelectValue placeholder={t("DeviceSpecific.form.selectRatePlan")} />
                   </SelectTrigger>
                   <SelectContent>
                     {filteredRatePlans.length === 0 ? (
                       <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                        No available {ratePlanType.toUpperCase()} rate plans
+                        {t("DeviceSpecific.form.noAvailableRatePlans", { type: ratePlanType.toUpperCase() })}
                       </div>
                     ) : (
                       filteredRatePlans.map((plan) => (
@@ -380,13 +381,13 @@ const DeviceSpecificPromotionForm: React.FC<
         {/* Discount Configuration */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
           <h4 className="text-sm font-semibold text-foreground">
-            Discount Configuration
+            {t("DeviceSpecific.form.discountConfiguration")}
           </h4>
 
           {/* Discount Type */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Discount Type *
+              {t("DeviceSpecific.form.discountType")}
             </label>
             <div className="flex items-center space-x-4">
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -401,7 +402,7 @@ const DeviceSpecificPromotionForm: React.FC<
                   }
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm text-foreground">Percentage (%)</span>
+                <span className="text-sm text-foreground">{t("DeviceSpecific.form.percentage")}</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
@@ -415,7 +416,7 @@ const DeviceSpecificPromotionForm: React.FC<
                   }
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm text-foreground">Flat Amount</span>
+                <span className="text-sm text-foreground">{t("DeviceSpecific.form.flatAmount")}</span>
               </label>
             </div>
           </div>
@@ -424,7 +425,7 @@ const DeviceSpecificPromotionForm: React.FC<
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Discount Value *
+                {t("DeviceSpecific.form.discountValue")}
               </label>
               <div className="relative">
                 <input
@@ -460,7 +461,7 @@ const DeviceSpecificPromotionForm: React.FC<
             {devicePromotion.discountType === "flat" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="currencyCode">Currency Code</Label>
+                    <Label htmlFor="currencyCode">{t("Common.currency")}</Label>
                     <Select
                       value={devicePromotion.currencyCode}
                       onValueChange={(value) => setDevicePromotion({ ...devicePromotion, currencyCode: value as CurrencyCode })}
@@ -483,7 +484,7 @@ const DeviceSpecificPromotionForm: React.FC<
 
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
             <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
-              Preview
+              {t("DeviceSpecific.form.preview")}
             </p>
             <p className="text-lg text-blue-700 dark:text-blue-300 mt-1 font-semibold">
               {getDiscountDisplayText()}
@@ -495,14 +496,14 @@ const DeviceSpecificPromotionForm: React.FC<
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
           <div>
             <label className="block text-sm font-medium text-foreground mb-3">
-              Promotion Validity Period *
+              {t("DeviceSpecific.form.promotionValidityPeriod")}
             </label>
 
             <div className="space-y-3">
               {/* Start Date */}
               <div>
                 <label className="block text-xs text-muted-foreground mb-1">
-                  Start Date *
+                  {t("DeviceSpecific.form.startDate")}
                 </label>
                 <input
                   type="date"
@@ -535,14 +536,14 @@ const DeviceSpecificPromotionForm: React.FC<
                   htmlFor="hasEndDate"
                   className="text-sm text-foreground cursor-pointer"
                 >
-                  Set end date (optional)
+                  {t("DeviceSpecific.form.setEndDateOptional")}
                 </label>
               </div>
 
               {hasEndDate && (
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1">
-                    End Date
+                    {t("DeviceSpecific.form.endDate")}
                   </label>
                   <input
                     type="date"
@@ -565,7 +566,7 @@ const DeviceSpecificPromotionForm: React.FC<
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-medium text-foreground">
-                Which days would you like to include? *
+                {t("DeviceSpecific.form.whichDaysInclude")}
               </label>
               <button
                 type="button"
@@ -573,8 +574,8 @@ const DeviceSpecificPromotionForm: React.FC<
                 className="text-xs text-primary hover:text-primary/80 font-medium"
               >
                 {Object.values(applicableDays).every((v) => v)
-                  ? "Deselect All"
-                  : "Select All"}
+                  ? t("DeviceSpecific.form.deselectAll")
+                  : t("DeviceSpecific.form.selectAll")}
               </button>
             </div>
 
@@ -600,15 +601,15 @@ const DeviceSpecificPromotionForm: React.FC<
             {Object.values(applicableDays).some((v) => v) && (
               <div className="mt-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  Promotion will be active on:
+                  {t("DeviceSpecific.form.promotionWillBeActiveOn")}
                 </p>
                 <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mt-1">
-                  {getDiscountDisplayText()}: Valid from{" "}
-                  {devicePromotion.validFrom || "start date"}
+                  {getDiscountDisplayText()}: {t("DeviceSpecific.form.validFrom")}{" "}
+                  {devicePromotion.validFrom || t("DeviceSpecific.form.startDateLower")}
                   {hasEndDate && devicePromotion.validTo
-                    ? ` to ${devicePromotion.validTo}`
-                    : " onwards"}
-                  , including {getActiveDaysSummary()}.
+                    ? ` ${t("DeviceSpecific.form.to")} ${devicePromotion.validTo}`
+                    : ` ${t("DeviceSpecific.form.onwards")}`}
+                  , {t("DeviceSpecific.form.including")} {getActiveDaysSummary()}.
                 </p>
               </div>
             )}
@@ -618,13 +619,13 @@ const DeviceSpecificPromotionForm: React.FC<
         {/* Promotion Name */}
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-foreground">
-            Promotion name *
+            {t("DeviceSpecific.form.promotionName")}
           </label>
           <p className="text-xs text-muted-foreground">
-            What do you want to name this promotion?
+            {t("DeviceSpecific.form.promotionNameDescription")}
           </p>
           <p className="text-xs text-muted-foreground italic">
-            This is just for you - users won't be able to see it
+            {t("DeviceSpecific.form.promotionNameHint")}
           </p>
           <input
             type="text"
@@ -635,7 +636,7 @@ const DeviceSpecificPromotionForm: React.FC<
                 promotionName: e.target.value,
               })
             }
-            placeholder={`${getDiscountDisplayText()} - ${devicePromotion.deviceType.map((d) => d.charAt(0).toUpperCase() + d.slice(1)).join("/")} - ${devicePromotion.validFrom || "Start Date"}`}
+            placeholder={`${getDiscountDisplayText()} - ${devicePromotion.deviceType.map((d) => t(`DeviceSpecific.form.${d}`)).join("/")} - ${devicePromotion.validFrom || t("DeviceSpecific.form.startDate")}`}
             className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
             required
           />
@@ -658,11 +659,11 @@ const DeviceSpecificPromotionForm: React.FC<
             htmlFor="isAutoApplied"
             className="text-sm font-medium text-foreground cursor-pointer flex-1"
           >
-            Auto Apply
+            {t("DeviceSpecific.form.autoApply")}
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
               {devicePromotion.isAutoApplied
-                ? "This promotion is currently auto applied to the reservation"
-                : "This promotion is currently not auto applied"}
+                ? t("DeviceSpecific.form.autoAppliedDescription")
+                : t("DeviceSpecific.form.notAutoAppliedDescription")}
             </span>
           </label>
         </div>
@@ -685,11 +686,11 @@ const DeviceSpecificPromotionForm: React.FC<
             htmlFor="isActive"
             className="text-sm font-medium text-foreground cursor-pointer flex-1"
           >
-            Active Status
+            {t("DeviceSpecific.form.activeStatus")}
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
               {devicePromotion.isActive
-                ? "This promotion is currently active"
-                : "This promotion is currently inactive"}
+                ? t("DeviceSpecific.form.activeDescription")
+                : t("DeviceSpecific.form.inactiveDescription")}
             </span>
           </label>
         </div>
@@ -702,7 +703,7 @@ const DeviceSpecificPromotionForm: React.FC<
             className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
             disabled={isLoading.isLoading}
           >
-            Cancel
+            {t("DeviceSpecific.form.cancel")}
           </button>
           <button
             type="submit"
@@ -716,7 +717,7 @@ const DeviceSpecificPromotionForm: React.FC<
               !Object.values(applicableDays).some((v) => v)
             }
           >
-            {editData ? "Update Promotion" : "Create Promotion"}
+            {editData ? t("DeviceSpecific.form.updatePromotion") : t("DeviceSpecific.form.createPromotion")}
           </button>
         </div>
       </form>

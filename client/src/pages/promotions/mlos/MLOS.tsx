@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Table,
   TableBody,
@@ -31,6 +32,7 @@ interface RatePlanRuleWithRatePlan extends RatePlanRule {
 }
 
 export const MLOSRuleList: React.FC = () => {
+  const { t } = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const [mlosRules, setMlosRules] = useState<RatePlanRuleWithRatePlan[]>([]);
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
@@ -50,7 +52,7 @@ export const MLOSRuleList: React.FC = () => {
   const loadData = async () => {
     setIsLoading({
       isLoading: true,
-      message: 'Loading MLOS rules...'
+      message: t("MLOS.loadingMlosRules")
     });
     try {
       if (!propertyId) {
@@ -70,7 +72,7 @@ export const MLOSRuleList: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Failed to load MLOS rules');
+      toast.error(t("MLOS.failedToLoadMlosRules"));
     } finally {
       setIsLoading({
         isLoading: false,
@@ -82,19 +84,19 @@ export const MLOSRuleList: React.FC = () => {
   const handleCreate = async (payload: ICRatePlanRule) => {
     setIsLoading({
       isLoading: true,
-      message: 'Creating MLOS rule...'
+      message: t("MLOS.creatingMlosRule")
     });
     try {
       const result = await createRatePlanRuleService(payload);
       if (result.success) {
         setShowForm(false);
         loadData();
-        toast.success('MLOS rule created successfully!');
+        toast.success(t("MLOS.mlosRuleCreatedSuccessfully"));
       } else {
-        toast.error(result.message || 'Failed to create MLOS rule');
+        toast.error(result.message || t("MLOS.failedToCreateMlosRule"));
       }
     } catch (error) {
-      toast.error('An error occurred while creating the MLOS rule');
+      toast.error(t("MLOS.errorCreatingMlosRule"));
     } finally {
       setIsLoading({
         isLoading: false,
@@ -108,7 +110,7 @@ export const MLOSRuleList: React.FC = () => {
 
     setIsLoading({
       isLoading: true,
-      message: 'Updating MLOS rule...'
+      message: t("MLOS.updatingMlosRule")
     });
     try {
       const result = await updateRatePlanRuleService(editData.ratePlanId, payload);
@@ -117,12 +119,12 @@ export const MLOSRuleList: React.FC = () => {
         setShowForm(false);
         setEditData(null);
         loadData();
-        toast.success('MLOS rule updated successfully!');
+        toast.success(t("MLOS.mlosRuleUpdatedSuccessfully"));
       } else {
-        toast.error(result.message || 'Failed to update MLOS rule');
+        toast.error(result.message || t("MLOS.failedToUpdateMlosRule"));
       }
     } catch (error) {
-      toast.error('An error occurred while updating the MLOS rule');
+      toast.error(t("MLOS.errorUpdatingMlosRule"));
     } finally {
       setIsLoading({
         isLoading: false,
@@ -141,18 +143,18 @@ export const MLOSRuleList: React.FC = () => {
 
     setIsLoading({
       isLoading: true,
-      message: 'Deleting MLOS rule...'
+      message: t("MLOS.deletingMlosRule")
     });
     try {
       const result = await deleteRatePlanRule(ruleToDelete);
       if (result.success) {
         loadData();
-        toast.success('MLOS rule deleted successfully!');
+        toast.success(t("MLOS.mlosRuleDeletedSuccessfully"));
       } else {
-        toast.error(result.message || 'Failed to delete MLOS rule');
+        toast.error(result.message || t("MLOS.failedToDeleteMlosRule"));
       }
     } catch (error) {
-      toast.error('An error occurred while deleting the MLOS rule');
+      toast.error(t("MLOS.errorDeletingMlosRule"));
     } finally {
       setIsLoading({
         isLoading: false,
@@ -183,7 +185,7 @@ export const MLOSRuleList: React.FC = () => {
   };
 
   const formatDiscount = (type: string | null, value: number | null) => {
-    if (!type || !value) return 'No discount';
+    if (!type || !value) return t("MLOS.noDiscount");
     return type === 'percentage' ? `${value}%` : ` ${value}`;
   };
 
@@ -192,7 +194,7 @@ export const MLOSRuleList: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-foreground">
-            {editData ? 'Edit' : 'Create'} MLOS Rule
+            {editData ? t("MLOS.edit") : t("MLOS.createMlosRule")}
           </h2>
         </div>
         <MLOSRuleForm
@@ -214,15 +216,15 @@ export const MLOSRuleList: React.FC = () => {
     <div className="space-y-4">
         <BackButton/>
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">MLOS Rules</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t("MLOS.mlosRules")}</h2>
         <button
           onClick={() => {
             setShowForm(true);
           }}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          title={'Create a new MLOS rule'}
+          title={t("MLOS.createMlosRule")}
         >
-          + Create MLOS Rule
+          + {t("MLOS.createMlosRule")}
         </button>
       </div>
 
@@ -235,22 +237,22 @@ export const MLOSRuleList: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Rate Plan</TableHead>
-                <TableHead>Date Range</TableHead>
-                <TableHead>Min LOS</TableHead>
-                <TableHead>Max LOS</TableHead>
-                <TableHead>Discount</TableHead>
-                <TableHead className='text-center'>Auto Applied</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>{t("MLOS.ratePlan")}</TableHead>
+                <TableHead>{t("MLOS.dateRange")}</TableHead>
+                <TableHead>{t("MLOS.minLos")}</TableHead>
+                <TableHead>{t("MLOS.maxLos")}</TableHead>
+                <TableHead>{t("MLOS.discount")}</TableHead>
+                <TableHead className='text-center'>{t("MLOS.autoApplied")}</TableHead>
+                <TableHead>{t("MLOS.status")}</TableHead>
 
-                <TableHead>Actions</TableHead>
+                <TableHead>{t("MLOS.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {mlosRules.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                    No MLOS rules found. Create one to get started!
+                    {t("MLOS.noMlosRulesFound")}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -275,16 +277,16 @@ export const MLOSRuleList: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
-                        {rule.minLos} nights
+                        {rule.minLos} {t("MLOS.nights")}
                       </span>
                     </TableCell>
                     <TableCell>
                       {rule.maxLos ? (
                         <span className="px-2 py-1 bg-secondary/10 text-secondary-foreground rounded text-xs font-medium">
-                          {rule.maxLos} nights
+                          {rule.maxLos} {t("MLOS.nights")}
                         </span>
                       ) : (
-                        <span className="text-xs text-muted-foreground">No limit</span>
+                        <span className="text-xs text-muted-foreground">{t("MLOS.noLimit")}</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -308,7 +310,7 @@ export const MLOSRuleList: React.FC = () => {
                         ? 'bg-success/10 text-success'
                         : 'bg-muted text-muted-foreground'
                         }`}>
-                        {rule.isActive ? 'Active' : 'Inactive'}
+                        {rule.isActive ? t("Common.active") : t("Common.inactive")}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
@@ -324,14 +326,14 @@ export const MLOSRuleList: React.FC = () => {
                             className="cursor-pointer"
                           >
                             <Edit className="w-4 h-4 mr-3" />
-                            Edit
+                            {t("MLOS.edit")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDeleteClick(rule.ratePlanId)}
                             className="cursor-pointer text-destructive focus:text-destructive"
                           >
                             <Trash2 className="w-4 h-4 mr-3" />
-                            Delete
+                            {t("Common.delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -350,9 +352,9 @@ export const MLOSRuleList: React.FC = () => {
           <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Delete MLOS Rule</h3>
+                <h3 className="text-lg font-semibold text-foreground">{t("MLOS.deleteMlosRule")}</h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Are you sure you want to delete this MLOS rule? This action cannot be undone.
+                  {t("MLOS.deleteMlosRuleConfirmation")}
                 </p>
               </div>
 
@@ -362,14 +364,14 @@ export const MLOSRuleList: React.FC = () => {
                   className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
                   disabled={isLoading.isLoading}
                 >
-                  Cancel
+                  {t("MLOS.cancel")}
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
                   disabled={isLoading.isLoading}
                 >
-                  {isLoading.isLoading ? 'Deleting...' : 'Delete'}
+                  {isLoading.isLoading ? t("MLOS.deleting") : t("Common.delete")}
                 </button>
               </div>
             </div>

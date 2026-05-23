@@ -38,6 +38,7 @@ import {
 import { Pagination } from "@/components/ui/pagination";
 import Loader from "@/components/Loader/Loader";
 import type { Charges, RatePlan, RoomTypes } from "../types";
+import { useTranslation } from "react-i18next";
 
 interface MappingsTableProps {
     mappings: Charges[];
@@ -66,26 +67,28 @@ export default function MappingsTable({
 }: MappingsTableProps) {
     const [viewPriceDetails, setViewPriceDetails] = useState<Charges | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<Charges | null>(null);
+    const { t } = useTranslation();
 
     return (
         <>
+        
             <Card className="shadow-lg">
                 <CardHeader className="border-b bg-white">
                     <CardTitle className="text-xl flex items-center gap-2">
                         <MapPin className="w-5 h-5" />
-                        Mapped Rate Plans
+                        {t("MapRatePlan.mappedRatePlans")}
                     </CardTitle>
                     <CardDescription>
                         {totalItems > 0
-                            ?   `${totalItems} total mapping(s)`
-                            : "No mappings found. Search to view existing mappings."}
+                            ?   t("MapRatePlan.totalMappings", { count: totalItems })
+                            : t("MapRatePlan.noMappingsFound")}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                     {/* Show loader when fetching data */}
                     {isLoading ? (
                         <div className="flex justify-center items-center py-20">
-                            <Loader text="Loading rate plan mappings..." />
+                            <Loader text={t("MapRatePlan.loadingMappings")} />
                         </div>
                     ) : mappings.length > 0 ? (
                         <>
@@ -93,14 +96,14 @@ export default function MappingsTable({
                                 <Table>
                                     <TableHeader>
                                         <TableRow className="bg-gray-50">
-                                            <TableHead className="font-semibold">Date</TableHead>
-                                            <TableHead className="font-semibold">Room Type</TableHead>
-                                            <TableHead className="font-semibold">Rate Plan</TableHead>
-                                            <TableHead className="font-semibold">Price</TableHead>
-                                            <TableHead className="font-semibold">Available Rooms</TableHead>
-                                            <TableHead className="font-semibold">Sell Stopped</TableHead>
+                                            <TableHead className="font-semibold">{t("MapRatePlan.date")}</TableHead>
+                                            <TableHead className="font-semibold">{t("MapRatePlan.roomType")}</TableHead>
+                                            <TableHead className="font-semibold">{t("MapRatePlan.ratePlan")}</TableHead>
+                                            <TableHead className="font-semibold">{t("MapRatePlan.price")}</TableHead>
+                                            <TableHead className="font-semibold">{t("MapRatePlan.availableRooms")}</TableHead>
+                                            <TableHead className="font-semibold">{t("MapRatePlan.sellStopped")}</TableHead>
 
-                                            <TableHead className="font-semibold text-right">Actions</TableHead>
+                                            <TableHead className="font-semibold text-right">{t("MapRatePlan.actions")}</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -198,9 +201,9 @@ export default function MappingsTable({
                     ) : (
                         <div className="text-center py-12">
                             <MapPin className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-700 mb-2">No Mappings Yet</h3>
+                            <h3 className="text-lg font-semibold text-gray-700 mb-2">{t("MapRatePlan.noMappingsYet")}</h3>
                             <p className="text-gray-500 max-w-md mx-auto">
-                                Select filters and click "Search Mappings" to view existing mappings.
+                                {t("MapRatePlan.selectFiltersSearch")}
                             </p>
                         </div>
                     )}
@@ -211,9 +214,9 @@ export default function MappingsTable({
             <Dialog open={!!viewPriceDetails} onOpenChange={() => setViewPriceDetails(null)}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle className="text-xl">Price Details</DialogTitle>
+                        <DialogTitle className="text-xl">{t("MapRatePlan.priceDetails.title")}</DialogTitle>
                         <DialogDescription>
-                            Viewing detailed pricing information for {viewPriceDetails?.ratePlanCode}
+                            {t("MapRatePlan.priceDetails.viewingPricing", { ratePlan: viewPriceDetails?.ratePlanCode })}
                         </DialogDescription>
                     </DialogHeader>
                     {viewPriceDetails && (
@@ -221,27 +224,27 @@ export default function MappingsTable({
                             {/* Basic Info */}
                             <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                                 <div>
-                                    <p className="text-sm text-gray-500">Rate Plan</p>
+                                    <p className="text-sm text-gray-500">{t("MapRatePlan.priceDetails.ratePlan")}</p>
                                     <p className="font-semibold">{viewPriceDetails.ratePlanName}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Room Type</p>
+                                    <p className="text-sm text-gray-500">{t("MapRatePlan.priceDetails.roomType")}</p>
                                     <p className="font-semibold">{viewPriceDetails.roomTypeName}</p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Date</p>
+                                    <p className="text-sm text-gray-500">{t("MapRatePlan.priceDetails.date")}</p>
                                     <p className="font-semibold">
                                         {format(new Date(viewPriceDetails.date), "MMM dd, yyyy")}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Base amount for first guest</p>
+                                    <p className="text-sm text-gray-500">{t("MapRatePlan.priceDetails.baseAmountFirstGuest")}</p>
                                     <p className="font-semibold text-green-600">
                                         {Number(viewPriceDetails.baseGuestAmounts[0]?.amountBeforeTax || 0).toFixed(2)}  {viewPriceDetails.currencyCode}
                                     </p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Sale Stopped</p>
+                                    <p className="text-sm text-gray-500">{t("MapRatePlan.priceDetails.saleStopped")}</p>
                                     <p className="font-semibold text-green-600">
                                         {viewPriceDetails.isSaleStopped ? "Yes" : "No"}
                                     </p>
@@ -253,20 +256,20 @@ export default function MappingsTable({
                                 <div>
                                     <h4 className="font-semibold mb-3 flex items-center gap-2">
                                         <span className="w-2 h-2 bg-primary rounded-full"></span>
-                                        Base Guest Amounts
+                                        {t("MapRatePlan.priceDetails.baseGuestAmounts")}
                                     </h4>
                                     <div className="rounded-md border">
                                         <Table>
                                             <TableHeader>
                                                 <TableRow className="bg-gray-50">
-                                                    <TableHead className="font-semibold">Number of Guests</TableHead>
-                                                    <TableHead className="font-semibold text-right">Amount</TableHead>
+                                                    <TableHead className="font-semibold">{t("MapRatePlan.priceDetails.numberOfGuests")}</TableHead>
+                                                    <TableHead className="font-semibold text-right">{t("MapRatePlan.price")}</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
                                                 {viewPriceDetails.baseGuestAmounts.map((guest, index) => (
                                                     <TableRow key={index}>
-                                                        <TableCell className="font-medium">{guest.ageQualifyingCode==="10"?`Base amount for ${guest.numberOfGuests} Adult `:`Base amount for ${guest.numberOfGuests} Children `}</TableCell>
+                                                        <TableCell className="font-medium">{guest.ageQualifyingCode==="10"?`${t("MapRatePlan.priceDetails.adult")} ${guest.numberOfGuests}` : `${t("MapRatePlan.priceDetails.child")} ${guest.numberOfGuests}`}</TableCell>
                                                         <TableCell className="text-right font-semibold text-green-600">
                                                             {Number(guest.amountBeforeTax).toFixed(2)} {viewPriceDetails.currencyCode}
                                                         </TableCell>
@@ -283,21 +286,21 @@ export default function MappingsTable({
                                 <div>
                                     <h4 className="font-semibold mb-3 flex items-center gap-2">
                                         <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                                        Additional Guest Charges
+                                        {t("MapRatePlan.priceDetails.additionalGuestCharges")}
                                     </h4>
                                     <div className="rounded-md border">
                                         <Table>
                                             <TableHeader>
                                                 <TableRow className="bg-gray-50">
-                                                    <TableHead className="font-semibold">Age Code</TableHead>
-                                                    <TableHead className="font-semibold text-right">Amount</TableHead>
+                                                    <TableHead className="font-semibold">{t("MapRatePlan.priceDetails.ageCode")}</TableHead>
+                                                    <TableHead className="font-semibold text-right">{t("MapRatePlan.price")}</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
                                                 {viewPriceDetails.additionalGuestAmounts.map((guest, index) => (
                                                     <TableRow key={index}>
                                                         <TableCell className="font-medium">
-                                                            {guest.ageQualifyingCode === "10" ? "Additional Charge for Adults" : "Additional Charge for Children"}
+                                                            {guest.ageQualifyingCode === "10" ? t("MapRatePlan.priceDetails.additionalChargeAdults") : t("MapRatePlan.priceDetails.additionalChargeChildren")}
                                                         </TableCell>
                                                         <TableCell className="text-right font-semibold text-purple-600">
                                                             {Number(guest.amount).toFixed(2)} {viewPriceDetails.currencyCode}
@@ -312,7 +315,7 @@ export default function MappingsTable({
 
                             {!viewPriceDetails.baseGuestAmounts?.length && !viewPriceDetails.additionalGuestAmounts?.length && (
                                 <div className="text-center py-8 text-gray-500">
-                                    No additional pricing details available.
+                                    {t("MapRatePlan.priceDetails.noAdditionalPricing")}
                                 </div>
                             )}
                         </div>
@@ -324,18 +327,16 @@ export default function MappingsTable({
             <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("MapRatePlan.deleteConfirm.title")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete the rate plan mapping for{" "}
-                            <span className="font-semibold">{deleteConfirm?.ratePlanCode}</span> on{" "}
-                            <span className="font-semibold">
-                                {deleteConfirm?.date && format(new Date(deleteConfirm.date), "MMM dd, yyyy")}
-                            </span>
-                            . This action cannot be undone.
+                            {t("MapRatePlan.deleteConfirm.message", { 
+                                ratePlan: deleteConfirm?.ratePlanCode, 
+                                date: deleteConfirm?.date && format(new Date(deleteConfirm.date), "MMM dd, yyyy") 
+                            })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("MapRatePlan.deleteConfirm.cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => {
                                 if (deleteConfirm) {
@@ -345,7 +346,7 @@ export default function MappingsTable({
                             }}
                             className="bg-red-600 hover:bg-red-700"
                         >
-                            Delete
+                            {t("MapRatePlan.deleteConfirm.delete")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

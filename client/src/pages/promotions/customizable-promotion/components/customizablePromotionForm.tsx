@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { currencies } from "@/components/currency-code/cuurency";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { useTranslation } from "react-i18next";
 
 interface CustomizableDealFormProps {
   ratePlans: RatePlan[];
@@ -49,6 +50,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
   editData,
   isLoading,
 }) => {
+  const { t } = useTranslation();
   const [customizableDeal, setCustomizableDeal] = useState<ICCustomizableDeals>({
     discountType: "percentage",
     discountValue: 0,
@@ -86,31 +88,31 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
     e.preventDefault();
 
     if (customizableDeal.discountValue <= 0) {
-      toast.error("Please enter a valid discount value greater than 0");
+      toast.error(t("CustomizableDeals.validation.invalidDiscountValue"));
       return;
     }
     if (customizableDeal.discountType === "percentage" && customizableDeal.discountValue > 100) {
-      toast.error("Percentage discount cannot exceed 100");
+      toast.error(t("CustomizableDeals.validation.percentageExceeds100"));
       return;
     }
     if (!customizableDeal.roomId) {
-      toast.error("Please select a room");
+      toast.error(t("CustomizableDeals.validation.selectRoom"));
       return;
     }
     if (!customizableDeal.ratePlanId) {
-      toast.error("Please select a rate plan");
+      toast.error(t("CustomizableDeals.validation.selectRatePlan"));
       return;
     }
     if (!customizableDeal.startDate) {
-      toast.error("Please select a start date");
+      toast.error(t("CustomizableDeals.validation.selectStartDate"));
       return;
     }
     if (!customizableDeal.endDate) {
-      toast.error("Please select an end date");
+      toast.error(t("CustomizableDeals.validation.selectEndDate"));
       return;
     }
     if (new Date(customizableDeal.startDate) >= new Date(customizableDeal.endDate)) {
-      toast.error("Start date must be before end date");
+      toast.error(t("CustomizableDeals.validation.startDateBeforeEndDate"));
       return;
     }
 
@@ -149,20 +151,20 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
         {/* Header */}
         <div className="pb-4 border-b border-border">
           <h3 className="text-lg font-semibold text-foreground">
-            {editData ? "Edit" : "Create"} Customizable Deal
+            {editData ? t("CustomizableDeals.editTitle") : t("CustomizableDeals.createTitle")}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Create a flexible deal by selecting a room, rate plan, and date range
+            {t("CustomizableDeals.form.formDescription")}
           </p>
         </div>
 
         {/* Discount Configuration */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <h4 className="text-sm font-semibold text-foreground">Discount Configuration</h4>
+          <h4 className="text-sm font-semibold text-foreground">{t("CustomizableDeals.form.discountConfiguration")}</h4>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              Discount Type *
+              {t("CustomizableDeals.form.discountType")}
             </label>
             <div className="flex items-center space-x-4">
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -172,7 +174,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                   onChange={() => setCustomizableDeal({ ...customizableDeal, discountType: "percentage" })}
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm text-foreground">Percentage discount</span>
+                <span className="text-sm text-foreground">{t("CustomizableDeals.form.percentageDiscount")}</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
@@ -181,7 +183,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                   onChange={() => setCustomizableDeal({ ...customizableDeal, discountType: "flat" })}
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm text-foreground">Fixed amount discount</span>
+                <span className="text-sm text-foreground">{t("CustomizableDeals.form.fixedAmountDiscount")}</span>
               </label>
             </div>
           </div>
@@ -189,7 +191,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Discount Value *
+                {t("CustomizableDeals.form.discountValue")}
               </label>
               <div className="relative">
                 <input
@@ -202,7 +204,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                     if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
                   }}
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-16"
-                  placeholder={customizableDeal.discountType === "percentage" ? "Enter percentage (1-100)" : "Enter amount"}
+                  placeholder={customizableDeal.discountType === "percentage" ? t("CustomizableDeals.form.discountValuePlaceholderPercentage") : t("CustomizableDeals.form.discountValuePlaceholderAmount")}
                   required
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
@@ -210,14 +212,14 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                 </span>
               </div>
               {customizableDeal.discountType === "percentage" && customizableDeal.discountValue > 100 && (
-                <p className="text-xs text-destructive mt-1">Percentage cannot exceed 100</p>
+                <p className="text-xs text-destructive mt-1">{t("CustomizableDeals.form.percentageCannotExceed100")}</p>
               )}
             </div>
 
             {customizableDeal.discountType === "flat" && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="currencyCode">Currency Code</Label>
+                  <Label htmlFor="currencyCode">{t("CustomizableDeals.form.currencyCode")}</Label>
                   <Select
                     value={customizableDeal.currencyCode}
                     onValueChange={(value) => setCustomizableDeal({ ...customizableDeal, currencyCode: value as CurrencyCode })}
@@ -239,7 +241,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">Discount Preview</p>
+            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">{t("CustomizableDeals.form.discountPreview")}</p>
             <p className="text-lg text-blue-700 dark:text-blue-300 mt-1 font-semibold">
               {getDiscountDisplayText()}
             </p>
@@ -248,11 +250,11 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
 
         {/* Date Range */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <h4 className="text-sm font-semibold text-foreground">Deal Period *</h4>
+          <h4 className="text-sm font-semibold text-foreground">{t("CustomizableDeals.form.dealPeriod")}</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Start Date */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Start Date *</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t("CustomizableDeals.form.startDate")}</label>
               <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -264,7 +266,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                   >
                     {customizableDeal.startDate
                       ? format(new Date(customizableDeal.startDate), "PPP")
-                      : "Pick a start date"}
+                      : t("CustomizableDeals.form.pickStartDate")}
                     <CalendarIcon className="w-4 h-4 ml-2 text-muted-foreground" />
                   </button>
                 </PopoverTrigger>
@@ -286,7 +288,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
 
             {/* End Date */}
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">End Date *</label>
+              <label className="block text-sm font-medium text-foreground mb-2">{t("CustomizableDeals.form.endDate")}</label>
               <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -298,7 +300,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                   >
                     {customizableDeal.endDate
                       ? format(new Date(customizableDeal.endDate), "PPP")
-                      : "Pick an end date"}
+                      : t("CustomizableDeals.form.pickEndDate")}
                     <CalendarIcon className="w-4 h-4 ml-2 text-muted-foreground" />
                   </button>
                 </PopoverTrigger>
@@ -325,17 +327,17 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
 
         {/* Room Selection */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <h4 className="text-sm font-semibold text-foreground">Applicable Room *</h4>
+          <h4 className="text-sm font-semibold text-foreground">{t("CustomizableDeals.form.applicableRoom")}</h4>
           <Select
             value={customizableDeal.roomId}
             onValueChange={(value) => setCustomizableDeal({ ...customizableDeal, roomId: value })}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a room" />
+              <SelectValue placeholder={t("CustomizableDeals.form.selectRoom")} />
             </SelectTrigger>
             <SelectContent>
               {roomTypes.length === 0 ? (
-                <SelectItem value="none" disabled>No rooms available</SelectItem>
+                <SelectItem value="none" disabled>{t("CustomizableDeals.form.noRoomsAvailable")}</SelectItem>
               ) : (
                 roomTypes.map((room) => (
                   <SelectItem key={room.id} value={room.id}>
@@ -352,7 +354,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
           {customizableDeal.roomId && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Selected: <span className="font-semibold">
+                {t("CustomizableDeals.form.selected")} <span className="font-semibold">
                   {roomTypes.find(r => r.id === customizableDeal.roomId)?._translations?.roomName || roomTypes.find(r => r.id === customizableDeal.roomId)?.roomName}
                 </span>
               </p>
@@ -362,17 +364,17 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
 
         {/* Rate Plan Selection */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <h4 className="text-sm font-semibold text-foreground">Applicable Rate Plan *</h4>
+          <h4 className="text-sm font-semibold text-foreground">{t("CustomizableDeals.form.applicableRatePlan")}</h4>
           <Select
             value={customizableDeal.ratePlanId}
             onValueChange={(value) => setCustomizableDeal({ ...customizableDeal, ratePlanId: value })}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a rate plan" />
+              <SelectValue placeholder={t("CustomizableDeals.form.selectRatePlan")} />
             </SelectTrigger>
             <SelectContent>
               {ratePlans.length === 0 ? (
-                <SelectItem value="none" disabled>No rate plans available</SelectItem>
+                <SelectItem value="none" disabled>{t("CustomizableDeals.form.noRatePlansAvailable")}</SelectItem>
               ) : (
                 ratePlans.map((plan) => (
                   <SelectItem key={plan.id} value={plan.id}>
@@ -389,7 +391,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
           {customizableDeal.ratePlanId && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Selected: <span className="font-semibold">
+                {t("CustomizableDeals.form.selected")} <span className="font-semibold">
                   {(() => { const p = ratePlans.find(r => r.id === customizableDeal.ratePlanId); return p?._translations?.ratePlanName || p?.ratePlanName; })()}
                 </span>
               </p>
@@ -403,8 +405,8 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
             <div className="flex items-center space-x-2">
               <Tag className="w-4 h-4 text-primary" />
               <div>
-                <h4 className="text-sm font-semibold text-foreground">Applicable Add-ons</h4>
-                <p className="text-xs text-muted-foreground mt-1">Optional</p>
+                <h4 className="text-sm font-semibold text-foreground">{t("CustomizableDeals.form.applicableAddons")}</h4>
+                <p className="text-xs text-muted-foreground mt-1">{t("CustomizableDeals.form.optional")}</p>
               </div>
             </div>
             {addons.length > 0 && (
@@ -419,13 +421,13 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                 }}
                 className="text-xs text-primary hover:text-primary/80 font-medium"
               >
-                {customizableDeal.applicableAddons.length === addons.length ? "Deselect All" : "Select All"}
+                {customizableDeal.applicableAddons.length === addons.length ? t("CustomizableDeals.form.deselectAll") : t("CustomizableDeals.form.selectAll")}
               </button>
             )}
           </div>
 
           {addons.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No add-ons available</p>
+            <p className="text-sm text-muted-foreground">{t("CustomizableDeals.form.noAddonsAvailable")}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-border rounded-lg p-4 bg-background">
               {addons.map((addon) => (
@@ -458,7 +460,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
           {customizableDeal.applicableAddons.length > 0 && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Selected <span className="font-semibold">{customizableDeal.applicableAddons.length}</span> add-on(s)
+                {t("CustomizableDeals.form.selectedAddons", { count: customizableDeal.applicableAddons.length })}
               </p>
             </div>
           )}
@@ -475,11 +477,11 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
               className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
             />
             <label htmlFor="isAutoApplied" className="text-sm font-medium text-foreground cursor-pointer flex-1">
-              Auto Apply
+              {t("CustomizableDeals.form.autoApply")}
               <span className="block text-xs text-muted-foreground font-normal mt-0.5">
                 {customizableDeal.isAutoApplied
-                  ? "This deal is auto applied to reservations"
-                  : "This deal is not auto applied"}
+                  ? t("CustomizableDeals.form.autoApplyDeal")
+                  : t("CustomizableDeals.form.notAutoApplied")}
               </span>
             </label>
           </div>
@@ -493,9 +495,9 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
               className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
             />
             <label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer flex-1">
-              Active
+              {t("CustomizableDeals.form.active")}
               <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-                {customizableDeal.isActive ? "This deal is currently active" : "This deal is currently inactive"}
+                {customizableDeal.isActive ? t("CustomizableDeals.form.dealActive") : t("CustomizableDeals.form.dealInactive")}
               </span>
             </label>
           </div>
@@ -509,7 +511,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
             className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
             disabled={isLoading.isLoading}
           >
-            Cancel
+            {t("CustomizableDeals.form.cancel")}
           </button>
           <button
             type="submit"
@@ -522,7 +524,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
               !customizableDeal.endDate
             }
           >
-            {editData ? "Update Deal" : "Create Deal"}
+            {editData ? t("CustomizableDeals.form.updateDeal") : t("CustomizableDeals.form.createDeal")}
           </button>
         </div>
       </form>

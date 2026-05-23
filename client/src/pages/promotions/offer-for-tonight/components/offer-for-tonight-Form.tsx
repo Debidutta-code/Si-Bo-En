@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { RatePlan } from "@/pages/rate-plan/interfaces";
 import type { RoomTypes } from "@/pages/inventory/types";
 import Loader from "@/components/Loader/Loader";
@@ -60,6 +61,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
   editData,
   isLoading,
 }) => {
+  const { t } = useTranslation();
   const [offerForTonight, setOfferForTonight] = useState<CreateOfferForTonight>(
     defaultPromotion(propertyId),
   );
@@ -328,10 +330,10 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         {/* Header */}
         <div className="pb-4 border-b border-border">
           <h3 className="text-lg font-semibold text-foreground">
-            {editData ? "Edit" : "Create"} Offer For Tonight
+            {editData ? t("OfferForTonightForm.editTitle") : t("OfferForTonightForm.createTitle")}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Stand out among search results of the same-day bookings
+            {t("OfferForTonightForm.targetDescription")}
           </p>
         </div>
 
@@ -341,10 +343,10 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             <Clock className="w-5 h-5 text-primary mt-0.5" />
             <div className="flex-1">
               <h4 className="text-sm font-semibold text-foreground">
-                Available booking time
+                {t("OfferForTonightForm.availableBookingTime")}
               </h4>
               <p className="text-xs text-muted-foreground mt-1">
-                Based on the property's local time zone
+                {t("OfferForTonightForm.availableBookingTimeDescription")}
               </p>
             </div>
           </div>
@@ -352,7 +354,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
               <label className="block text-xs text-muted-foreground mb-2">
-                From *
+                {t("OfferForTonightForm.from")}
               </label>
               <Select
                 value={bookingTimeFrom}
@@ -372,12 +374,12 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             </div>
 
             <div className="flex items-center justify-center pb-2">
-              <span className="text-sm text-muted-foreground">to</span>
+              <span className="text-sm text-muted-foreground">{t("OfferForTonightForm.toLabel")}</span>
             </div>
 
             <div>
               <label className="block text-xs text-muted-foreground mb-2">
-                To *
+                {t("OfferForTonightForm.toLabel")}
               </label>
               <Select value={bookingTimeTo} onValueChange={setBookingTimeTo}>
                 <SelectTrigger className="w-full">
@@ -396,10 +398,9 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
 
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
             <p className="text-xs text-blue-700 dark:text-blue-300">
-              Guests can book between{" "}
-              <span className="font-semibold">{bookingTimeFrom}</span> and{" "}
-              <span className="font-semibold">{bookingTimeTo}</span> for
-              same-day check-in
+              {t("OfferForTonightForm.guestsCanBook")}{" "}
+              <span className="font-semibold">{bookingTimeFrom}</span> {t("OfferForTonightForm.to")}{" "}
+              <span className="font-semibold">{bookingTimeTo}</span> {t("OfferForTonightForm.forSameDay")}
             </p>
           </div>
         </div>
@@ -407,10 +408,10 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         {/* Room Types and Rate Plans */}
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-foreground">
-            Room types and rate plans *
+            {t("OfferForTonightForm.roomTypesAndRatePlans")}
           </h4>
           <p className="text-xs text-muted-foreground">
-            Which room types and rate plans will this promotion apply to?
+            {t("OfferForTonightForm.roomTypesDescription")}
           </p>
 
           {/* Selection Mode */}
@@ -425,7 +426,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
-                  All room types and corresponding rate plans
+                  {t("OfferForTonightForm.allRooms")}
                 </span>
               </label>
             </div>
@@ -440,7 +441,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
-                  Select specific room types and rate plans
+                  {t("OfferForTonightForm.specificRooms")}
                 </span>
               </label>
             </div>
@@ -453,7 +454,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-foreground">
-                    Room Types
+                    {t("OfferForTonightForm.roomTypes")}
                   </label>
                   {!editData && (
                     <button
@@ -462,8 +463,8 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                       className="text-xs text-primary hover:text-primary/80 font-medium"
                     >
                       {selectedRooms.length === roomTypes.length
-                        ? "Deselect All"
-                        : "Select All"}
+                        ? t("OfferForTonightForm.deselectAll")
+                        : t("OfferForTonightForm.selectAll")}
                     </button>
                   )}
                 </div>
@@ -481,7 +482,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                         editData.roomRatePlans?.find(
                           (rp) => rp.roomId === roomId,
                         )?.roomType ||
-                        "Unknown Room";
+                        t("OfferForTonightForm.unknownRoom");
 
                       return (
                         <div
@@ -504,7 +505,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-border rounded-lg p-4 bg-background">
                     {roomTypes.length === 0 ? (
                       <p className="text-sm text-muted-foreground text-center py-4 col-span-full">
-                        No rooms available
+                        {t("OfferForTonightForm.noRoomsAvailable")}
                       </p>
                     ) : (
                       roomTypes.map((room) => (
@@ -540,7 +541,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
 
                 {!editData && selectedRooms.length === 0 && (
                   <p className="text-xs text-muted-foreground italic">
-                    Leave empty to apply to all room types
+                    {t("OfferForTonightForm.leaveEmptyAllRooms")}
                   </p>
                 )}
               </div>
@@ -549,7 +550,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-foreground">
-                    Rate Plans *
+                    {t("OfferForTonightForm.ratePlans")}
                   </label>
                   {!editData && (
                     <button
@@ -558,8 +559,8 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                       className="text-xs text-primary hover:text-primary/80 font-medium"
                     >
                       {selectedRatePlans.length === ratePlans.length
-                        ? "Deselect All"
-                        : "Select All"}
+                        ? t("OfferForTonightForm.deselectAll")
+                        : t("OfferForTonightForm.selectAll")}
                     </button>
                   )}
                 </div>
@@ -577,7 +578,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                       const planName =
                         ratePlan?.ratePlanName ||
                         editData.ratePlan?.ratePlanName ||
-                        "Unknown Rate Plan";
+                        t("OfferForTonightForm.unknownRatePlan");
                       const planCode =
                         ratePlan?.ratePlanCode ||
                         editData.roomRatePlans?.find(
@@ -604,7 +605,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-border rounded-lg p-4 bg-background">
                     {ratePlans.length === 0 ? (
                       <p className="text-sm text-muted-foreground text-center py-4 col-span-full">
-                        No rate plans available
+                        {t("OfferForTonightForm.noRatePlansAvailable")}
                       </p>
                     ) : (
                       ratePlans.map((plan) => (
@@ -645,26 +646,26 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                     {selectedRooms.length === 0 &&
                       selectedRatePlans.length > 0 && (
                         <>
-                          Selected rate plans will apply to{" "}
-                          <span className="font-semibold">all room types</span>
+                          {t("OfferForTonightForm.selectedRatePlansInfo")}{" "}
+                          <span className="font-semibold">{t("EarlyBirdForm.allRooms")}</span>
                         </>
                       )}
                     {selectedRooms.length > 0 &&
                       selectedRatePlans.length > 0 && (
                         <>
-                          Promotion will apply to{" "}
+                          {t("OfferForTonightForm.promotionWillApply")}{" "}
                           <span className="font-semibold">
-                            {selectedRooms.length} room type(s)
+                            {selectedRooms.length} {t("OfferForTonightForm.roomTypeWith")}
                           </span>{" "}
                           with{" "}
                           <span className="font-semibold">
-                            {selectedRatePlans.length} rate plan(s)
+                            {selectedRatePlans.length} {t("OfferForTonightForm.ratePlanWith")}
                           </span>
                         </>
                       )}
                     {selectedRatePlans.length === 0 && (
                       <span className="text-destructive font-medium">
-                        Please select at least one rate plan
+                        {t("OfferForTonightForm.selectAtLeastOne")}
                       </span>
                     )}
                   </p>
@@ -676,13 +677,13 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
           {selectionMode === "all" && !editData && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                This promotion will be applied to{" "}
+                {t("OfferForTonightForm.willBeAppliedTo")}{" "}
                 <span className="font-semibold">
-                  all {roomTypes.length} room type(s)
+                  {roomTypes.length} {t("OfferForTonightForm.roomTypeWith")}
                 </span>{" "}
-                with{" "}
+                {t("EarlyBirdForm.allRooms")}{" "}
                 <span className="font-semibold">
-                  all {ratePlans.length} rate plan(s)
+                  {ratePlans.length} {t("OfferForTonightForm.ratePlanWith")}
                 </span>
               </p>
             </div>
@@ -692,12 +693,12 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         {/* Discount Configuration */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
           <h4 className="text-sm font-semibold text-foreground">
-            Discounts and Stay dates
+            {t("OfferForTonightForm.discountsAndStayDates")}
           </h4>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              How much of a discount do you want to give? *
+              {t("OfferForTonightForm.howMuchDiscount")}
             </label>
             <div className="flex items-center space-x-4">
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -713,7 +714,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
-                  Percentage discount
+                  {t("OfferForTonightForm.percentageDiscount")}
                 </span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
@@ -729,7 +730,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
-                  Fixed amount discount
+                  {t("OfferForTonightForm.fixedAmountDiscount")}
                 </span>
               </label>
             </div>
@@ -738,7 +739,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Discount Value *
+                {t("OfferForTonightForm.discountValue")}
               </label>
               <div className="relative">
                 <input
@@ -773,7 +774,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             {offerForTonight.discountType === "flat" && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="currencyCode">Currency Code</Label>
+                  <Label htmlFor="currencyCode">{t("Common.currency")}</Label>
                   <Select
                     value={offerForTonight.currencyCode}
                     onValueChange={(value) => setOfferForTonight({ ...offerForTonight, currencyCode: value as CurrencyCode })}
@@ -796,7 +797,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
 
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
             <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
-              Discount Preview
+              {t("OfferForTonightForm.discountPreview")}
             </p>
             <p className="text-lg text-blue-700 dark:text-blue-300 mt-1 font-semibold">
               {getDiscountDisplayText()}
@@ -808,13 +809,13 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
           <div>
             <label className="block text-sm font-medium text-foreground mb-3">
-              What dates of stay does the promotion apply to? *
+              {t("OfferForTonightForm.stayDates")}
             </label>
 
             <div className="space-y-3">
               <div>
                 <label className="block text-xs text-muted-foreground mb-1">
-                  Start date *
+                  {t("OfferForTonightForm.startDateLabel")}
                 </label>
                 <input
                   type="date"
@@ -825,8 +826,8 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   required
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  By default, promotion applies only to this date (from{" "}
-                  {bookingTimeFrom} to {bookingTimeTo})
+                  {t("OfferForTonightForm.defaultPromotionApplies")}{" "}
+                  {bookingTimeFrom} {t("OfferForTonightForm.to")} {bookingTimeTo})
                 </p>
               </div>
 
@@ -845,14 +846,14 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   htmlFor="hasEndDate"
                   className="text-sm text-foreground cursor-pointer"
                 >
-                  Apply to multiple dates (set end date)
+                  {t("OfferForTonightForm.applyMultipleDates")}
                 </label>
               </div>
 
               {hasEndDate && (
                 <div>
                   <label className="block text-xs text-muted-foreground mb-1">
-                    End Date
+                    {t("OfferForTonightForm.endDate")}
                   </label>
                   <input
                     type="date"
@@ -862,8 +863,8 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                     className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Promotion will apply from {startDate} to{" "}
-                    {endDate || "end date"}
+                    {t("OfferForTonightForm.promotionWillApplyFrom")} {startDate} {t("OfferForTonightForm.to")}{" "}
+                    {endDate || t("OfferForTonightForm.endDateLabel")}
                   </p>
                 </div>
               )}
@@ -874,7 +875,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-sm font-medium text-foreground">
-                Which days would you like to include? *
+                {t("OfferForTonightForm.whichDaysInclude")}
               </label>
               <button
                 type="button"
@@ -882,8 +883,8 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                 className="text-xs text-primary hover:text-primary/80 font-medium"
               >
                 {Object.values(applicableDays).every((v) => v)
-                  ? "Deselect All"
-                  : "Select All"}
+                  ? t("OfferForTonightForm.deselectAll")
+                  : t("OfferForTonightForm.selectAll")}
               </button>
             </div>
 
@@ -909,22 +910,22 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             {Object.values(applicableDays).some((v) => v) && (
               <div className="mt-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  Promotion will be active on:
+                  {t("OfferForTonightForm.promotionWillBeActive")}
                 </p>
                 <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mt-1">
                   {getDiscountDisplayText()}:
                   {hasEndDate && endDate ? (
                     <>
                       {" "}
-                      Valid from {startDate} to {endDate}
+                      {t("OfferForTonightForm.validFrom")} {startDate} {t("OfferForTonightForm.to")} {endDate}
                     </>
                   ) : (
                     <>
                       {" "}
-                      Valid on {startDate} ({bookingTimeFrom} - {bookingTimeTo})
+                      {t("OfferForTonightForm.validOn")} {startDate} ({bookingTimeFrom} - {bookingTimeTo})
                     </>
                   )}
-                  , including {getActiveDaysSummary()}.
+                  , {t("OfferForTonightForm.including")} {getActiveDaysSummary()}.
                 </p>
               </div>
             )}
@@ -934,13 +935,13 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         {/* Promotion Name */}
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-foreground">
-            Promotion name *
+            {t("OfferForTonightForm.promotionName")}
           </label>
           <p className="text-xs text-muted-foreground">
-            What do you want to name this promotion?
+            {t("OfferForTonightForm.promotionNameDescription")}
           </p>
           <p className="text-xs text-muted-foreground italic">
-            This is just for you - users won't be able to see it
+            {t("OfferForTonightForm.promotionNameHint")}
           </p>
           <input
             type="text"
@@ -951,7 +952,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                 promotionName: e.target.value,
               })
             }
-            placeholder={`${getDiscountDisplayText()} - Offer For Tonight - ${startDate || "Start Date"}`}
+            placeholder={`${getDiscountDisplayText()} - Offer For Tonight - ${startDate || t("OfferForTonightForm.startDateLabel")}`}
             className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
             required
           />
@@ -974,11 +975,11 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             htmlFor="isAutoApplied"
             className="text-sm font-medium text-foreground cursor-pointer flex-1"
           >
-            Auto Applied
+            {t("OfferForTonightForm.autoApplied")}
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
               {offerForTonight.isAutoApplied
-                ? "This promotion is currently auto applied"
-                : "This promotion is currently not auto applied"}
+                ? t("OfferForTonightForm.autoAppliedDesc")
+                : t("OfferForTonightForm.notAutoAppliedDesc")}
             </span>
           </label>
         </div>
@@ -1000,11 +1001,11 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             htmlFor="isActive"
             className="text-sm font-medium text-foreground cursor-pointer flex-1"
           >
-            Active Status
+            {t("OfferForTonightForm.activeStatus")}
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
               {editData?.isActive
-                ? "This promotion is currently active"
-                : "This promotion is currently inactive"}
+                ? t("OfferForTonightForm.activeDesc")
+                : t("OfferForTonightForm.inactiveDesc")}
             </span>
           </label>
         </div>
@@ -1017,7 +1018,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
             disabled={isLoading.isLoading}
           >
-            Cancel
+            {t("OfferForTonightForm.cancel")}
           </button>
           <button
             type="submit"
@@ -1031,7 +1032,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
               !Object.values(applicableDays).some((v) => v)
             }
           >
-            {editData ? "Update Promotion" : "Create Promotion"}
+            {editData ? t("OfferForTonightForm.updatePromotion") : t("OfferForTonightForm.createPromotion")}
           </button>
         </div>
       </form>
