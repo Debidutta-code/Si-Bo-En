@@ -1,3 +1,5 @@
+import { CurrencyCode } from "@/src/components/currencyCode/currency-code.type";
+
 export interface ISpaApiResponse<T = any> {
   success: boolean;
   message?: string;
@@ -53,5 +55,7 @@ export interface ICreateSpaReservationSlot {
 export interface ICreateSpaReservationRequest {
   userEmail: string;
   userContactNumber: string;
+  userName:string;
   slots: ICreateSpaReservationSlot[];
+  currencyCode:CurrencyCode;
 }

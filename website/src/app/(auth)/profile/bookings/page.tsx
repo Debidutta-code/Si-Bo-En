@@ -205,8 +205,7 @@ export default function MyBookingsPage() {
 
   // ─── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-6 relative">
-
+    <div className="space-y-6 relative pb-20 md:pb-6">
       <div className="space-y-4">
         <h3 className="text-[18px] font-bold text-[#1a1a1a]">My Reservations</h3>
         <p className="text-[12.5px] text-gray-500">
@@ -285,7 +284,7 @@ export default function MyBookingsPage() {
                 {/* Expanded details */}
                 {isOpen && (
                   <div className="p-6 border-t border-[#f0f0f0]">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                       {[
                         {
                           label: "Check-in",
@@ -324,14 +323,14 @@ export default function MyBookingsPage() {
                     </div>
                     {/* Action buttons */}
                     {(res.bookingStatus === "confirmed" || res.bookingStatus === "modified") && (
-                      <div className="pt-3 border-t border-[#f0f0f0] flex justify-end">
+                      <div className="pt-3 border-t border-[#f0f0f0] flex flex-col sm:flex-row justify-end gap-2">
                         <button
                           onClick={() => {
                             setActiveReservationId(res.bookingCode);
                             setIsCheckinDialogOpen(true);
                           }}
                           disabled={!isSameDay(res.reservationStartDate)}
-                          className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                          className="w-full sm:w-auto px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                           style={{
                             background: isSameDay(res.reservationStartDate) ? "#0d7a87" : "#e5e7eb",
                             color: isSameDay(res.reservationStartDate) ? "white" : "#9ca3af"
@@ -342,14 +341,14 @@ export default function MyBookingsPage() {
                       </div>
                     )}
                     {res.bookingStatus === "checked_in" && (
-                      <div className="pt-3 border-t border-[#f0f0f0] flex justify-end">
+                      <div className="pt-3 border-t border-[#f0f0f0] flex flex-col sm:flex-row justify-end gap-2">
                         <button
                           onClick={() => {
                             setActiveReservationId(res.bookingCode);
                             setIsCheckoutDialogOpen(true);
                           }}
                           disabled={!isSameDay(res.reservationEndDate)}
-                          className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                          className="w-full sm:w-auto px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                           style={{
                             background: isSameDay(res.reservationEndDate) ? "#e53e3e" : "#e5e7eb",
                             color: isSameDay(res.reservationEndDate) ? "white" : "#9ca3af"

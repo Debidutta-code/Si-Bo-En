@@ -45,6 +45,8 @@ export interface ITaxBrakeDown {
 
 export interface ISpaBookingRequest {
     userEmail: string;
+    userName:string;
+    currencyCode:CurrencyCode;
     userContactNumber: string;
     userId?: string;
     slots: { spaId: string; spaSlotId: string }[];

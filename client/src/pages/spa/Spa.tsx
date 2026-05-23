@@ -461,7 +461,7 @@ export default function Spa() {
             {!formData.isInclusive && (
               <>
                 <div className="space-y-2">
-                  <Label>Discount Value</Label>
+                  <Label>Price</Label>
                   <Input type="number" value={formData.discountValue || ''} onChange={(e) => setFormData({ ...formData, discountValue: e.target.value ? Number(e.target.value) : null })} />
                 </div>
                 <div className="space-y-2">

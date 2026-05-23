@@ -219,7 +219,7 @@ const Navbar = () => {
               {t("Navbar.loyaltyGuestLogin")}
             </button> */}
             {/* My Booking */}
-            {!isHomePage &&!isMyTripPage && propertyCode && (
+            {!isHomePage && !isMyTripPage && propertyCode && (
 
               <button
                 onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
@@ -236,7 +236,7 @@ const Navbar = () => {
             )}
 
             {/* SPA */}
-            {propertyCode && !isSpaPage&& (
+            {propertyCode && !isSpaPage && (
               <button
                 onClick={() => {
                   const target = `/spa?propertyCode=${propertyCode}`;
@@ -297,7 +297,11 @@ const Navbar = () => {
                   {/* Menu items */}
                   <div className="py-1">
                     <button
-                      onClick={() => { setIsCustomerDropdownOpen(false); router.push("/profile"); }}
+                      onClick={() => {
+                        setIsCustomerDropdownOpen(false);
+                        if (propertyCode) sessionStorage.setItem("lastPropertyCode", propertyCode);
+                        router.push("/profile");
+                      }}
                       className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2.5 transition-colors"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -409,7 +413,12 @@ const Navbar = () => {
                   <p className="text-xs text-gray-500">{customer.customer?.email}</p>
                 </div>
                 <button
-                  onClick={() => { setIsMenuOpen(false); router.push("/profile"); }}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    if (propertyCode) sessionStorage.setItem("lastPropertyCode", propertyCode);
+
+                    router.push("/profile");
+                  }}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium"
                   style={{ backgroundColor: bookingContext?.bookingEngineColor?.primaryColor ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6", color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F" }}
                 >

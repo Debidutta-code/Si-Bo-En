@@ -291,7 +291,7 @@ export class SpaController {
     ): Promise<Response> {
         try {
             const bookingId = req.params.bookingId;
-            const { spaSlotId } = req.body;
+            const { spaSlotsId } = req.body;
             if (!bookingId) {
                 return res
                     .status(400)
@@ -304,7 +304,7 @@ export class SpaController {
             }
 
             const customerId = req.customer?.id || req.user?.id;
-            const response = await this.spaService.cancelSpaReservation(bookingId, customerId, spaSlotId);
+            const response = await this.spaService.cancelSpaReservation(bookingId, customerId, spaSlotsId);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

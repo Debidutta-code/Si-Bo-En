@@ -13,6 +13,8 @@ import { getSpaByPropertyCodeApi, createSpaReservationApi, cancelSpaReservationA
 import { ISpa, ISpaDate, ISpaSlot } from "../interface";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../store/store";
+import { formatInTimeZone } from "date-fns-tz";
+import { CurrencyCode } from "@/src/components/currencyCode/currency-code.type";
 
 interface SelectedSlot {
   id: string;
@@ -31,7 +33,7 @@ interface SelectedSlot {
 export default function SpaClient() {
   const searchParams = useSearchParams();
   const propertyCode = searchParams.get("propertyCode") || searchParams.get("code") || "";
-  const spaId = searchParams.get("id")||"";
+  const spaId = searchParams.get("id") || "";
   const customer = useSelector((state: RootState) => (state as any).customer);
   const [spas, setSpas] = useState<ISpa[]>([]);
   const [loading, setLoading] = useState(false);
@@ -100,7 +102,7 @@ export default function SpaClient() {
         next.set(uniqueId, {
           id: uniqueId, spaId: spa.id || spaId as string, slotId: slot.id,
           spaDateId: spaDate.id, date: spaDate.date, spaName: spa.name,
-          dateLabel: format(new Date(spaDate.date), "EEEE, MMM dd, yyyy"),
+          dateLabel: formatInTimeZone(new Date(spaDate.date), "UTC", "EEEE, MMM dd, yyyy"),
           startTime: slot.startTime, endTime: slot.endTime || slot.startTime, amount,
         });
       }
@@ -170,6 +172,8 @@ export default function SpaClient() {
         userEmail: customerEmail.trim(),
         userContactNumber: customerPhone.trim(),
         slots: slotsData,
+        userName: customerName,
+        currencyCode: spa?.currencyCode as CurrencyCode || "AED",
       });
       if (response.success) {
         toast.success(`${selectedSlots.size} slot(s) booked!`);
@@ -260,9 +264,17 @@ export default function SpaClient() {
   //   }
   // };
 
-  const formatDate = (v: string) => { try { return format(new Date(v), "EEE, MMM d, yyyy"); } catch { return v; } };
-  const formatTime = (v: string) => { try { return format(new Date(v), "hh:mm a"); } catch { return v; } };
+  const formatDate = (v: string) => {
+    try {
+      return formatInTimeZone(new Date(v), "UTC", "EEE, MMM d, yyyy");
+    } catch { return v; }
+  };
 
+  const formatTime = (v: string) => {
+    try {
+      return formatInTimeZone(new Date(v), "UTC", "hh:mm a");
+    } catch { return v; }
+  };
   const spa = useMemo(() => spas.find(item => item.id === spaId), [spas, spaId]);
   const availableSlots = useMemo(
     () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.filter(sl => !sl.isBooked).length || 0) : 0), 0) || 0,
@@ -413,21 +425,14 @@ export default function SpaClient() {
                             {spaDate.Slots?.map((slot: ISpaSlot) => {
                               const isSelected = isSlotSelected(slot.id, spaDate.id);
                               const isCancellingThis = cancellingSlotId === slot.id;
-
                               const isInPast = (() => {
                                 try {
-                                  // Slot startTime is expected to be "HH:mm:ss" or similar.
-                                  // We combine spaDate.date + startTime to compare against now.
-                                  const datePart = spaDate.date;
-                                  if (!datePart || !slot.startTime) return false;
-
-                                  const start = new Date(`${datePart}T${String(slot.startTime)}`);
-                                  return Number.isFinite(start.getTime()) ? start.getTime() < Date.now() : false;
+                                  if (!slot.startTime) return false;
+                                  return new Date(slot.startTime).getTime() < Date.now();
                                 } catch {
                                   return false;
                                 }
                               })();
-
                               return (
                                 !slot.isBooked && (
                                   <div
