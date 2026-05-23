@@ -6,15 +6,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import { MapPin, Trash2, ShoppingBag, Loader2, X, CalendarDays, Clock, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { getSpaByPropertyCodeApi, cancelSpaReservationApi } from "./api/spa.api";
 import { ISpa, ISpaSlot } from "./interface";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { getCustomerSpaBookingsApi } from "../../(auth)/profile/api/spa.api";
 import { formatInTimeZone } from "date-fns-tz";
+
 type Tab = "all" | "booked";
 
 export default function SpaPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const customer = useSelector((state: RootState) => (state as any).customer);
   const searchParams = useSearchParams();
@@ -37,11 +40,11 @@ export default function SpaPage() {
 
   const hasPropertyCode = Boolean(propertyCode.trim());
 
-useEffect(() => {
-  if (!hasPropertyCode) return;
-  if (activeTab !== "all") return;   
-  void loadSpas(propertyCode.trim());
-}, [propertyCode, hasPropertyCode, activeTab]); 
+  useEffect(() => {
+    if (!hasPropertyCode) return;
+    if (activeTab !== "all") return;
+    void loadSpas(propertyCode.trim());
+  }, [propertyCode, hasPropertyCode, activeTab]);
 
   const loadSpas = async (code: string) => {
     setLoading(true);
@@ -51,10 +54,10 @@ useEffect(() => {
         setSpas(response.data || []);
       } else {
         setSpas([]);
-        toast.error(response.message || "Unable to load spa services");
+        toast.error(response.message || t("SpaPage.toast.loadFailed"));
       }
     } catch {
-      toast.error("Unable to load spa services");
+      toast.error(t("SpaPage.toast.loadFailed"));
       setSpas([]);
     } finally {
       setLoading(false);
@@ -73,14 +76,20 @@ useEffect(() => {
   };
 
   const getUpcomingSpaSlots = (spa: ISpa) => {
-    return spa.SpaDates?.reduce(
-      (sum, spaDate) => sum + (isUpcomingDate(spaDate.date) ? (spaDate.Slots?.filter((slot: ISpaSlot) => !slot.isBooked).length || 0) : 0),
-      0,
-    ) || 0;
+    return (
+      spa.SpaDates?.reduce(
+        (sum, spaDate) =>
+          sum +
+          (isUpcomingDate(spaDate.date)
+            ? spaDate.Slots?.filter((slot: ISpaSlot) => !slot.isBooked).length || 0
+            : 0),
+        0,
+      ) || 0
+    );
   };
 
   const upcomingSpas = useMemo(() => {
-    return spas.filter(spa => getUpcomingSpaSlots(spa) > 0);
+    return spas.filter((spa) => getUpcomingSpaSlots(spa) > 0);
   }, [spas]);
 
   const availableSpaCount = useMemo(
@@ -95,6 +104,7 @@ useEffect(() => {
       return dateValue;
     }
   };
+
   const formatTime = (dateValue: string) => {
     try {
       return formatInTimeZone(new Date(dateValue), "UTC", "hh:mm a");
@@ -102,6 +112,7 @@ useEffect(() => {
       return dateValue;
     }
   };
+
   const fetchBookedSpas = async () => {
     if (activeTab !== "booked") return;
     setBookedLoading(true);
@@ -109,7 +120,6 @@ useEffect(() => {
       const response = await getCustomerSpaBookingsApi();
       if (response.success && response.data) {
         const bookings = Array.isArray(response.data) ? response.data : response.data?.data || [];
-        // Use API response directly — cancelled data should not be re-added on refresh
         setBookedSpas(bookings);
       } else {
         setBookedSpas([]);
@@ -123,13 +133,13 @@ useEffect(() => {
 
   useEffect(() => {
     if (activeTab !== "booked") {
-      setBookedSpas([]); 
+      setBookedSpas([]);
       return;
     }
     if (!(customer as any)?.isAuthenticated) {
       const redirectUrl = `/spa?propertyCode=${encodeURIComponent(propertyCode)}`;
       sessionStorage.setItem("customerRedirectUrl", redirectUrl);
-      toast.error("Please login to view your spa bookings");
+      toast.error(t("SpaPage.toast.loginRequired"));
       router.push("/login");
       return;
     }
@@ -137,7 +147,7 @@ useEffect(() => {
   }, [activeTab]);
 
   const toggleExpanded = (bookingId: string) => {
-    setExpandedBookings(prev => {
+    setExpandedBookings((prev) => {
       const next = new Set(prev);
       next.has(bookingId) ? next.delete(bookingId) : next.add(bookingId);
       return next;
@@ -156,10 +166,9 @@ useEffect(() => {
     try {
       const response = await cancelSpaReservationApi(bookingId, spaSlotId);
       if (response?.success) {
-        toast.success(`Slot cancelled successfully`);
-        // Update local state to mark the specific slot as cancelled so the data remains visible
+        toast.success(t("SpaPage.toast.cancelSuccess"));
         if (spaSlotId) {
-          setBookedSpas(prev => {
+          setBookedSpas((prev) => {
             return prev.map((booking: any) => {
               const id = booking?.id || booking?.spaBookingId;
               if (!id || String(id) !== String(bookingId)) return booking;
@@ -168,11 +177,10 @@ useEffect(() => {
                 const spaSlotIdCurrent = sb?.spaSlotId || sb?.id;
                 if (!spaSlotIdCurrent) return sb;
                 if (String(spaSlotIdCurrent) === String(spaSlotId)) {
-                  return { ...sb, status: 'cancelled', isCancelled: true };
+                  return { ...sb, status: "cancelled", isCancelled: true };
                 }
                 return sb;
               });
-              // return booking with updated slots in whichever key exists
               if (booking.SlotBookings) return { ...booking, SlotBookings: newSlots };
               if (booking.slotBookings) return { ...booking, slotBookings: newSlots };
               if (booking.Slots) return { ...booking, Slots: newSlots };
@@ -181,18 +189,19 @@ useEffect(() => {
             });
           });
         } else {
-          // If no specific slot id, keep booking data but set booking status
-          setBookedSpas(prev => prev.map(b => {
-            const id = b?.id || b?.spaBookingId;
-            if (!id || String(id) !== String(bookingId)) return b;
-            return { ...b, status: 'cancelled' };
-          }));
+          setBookedSpas((prev) =>
+            prev.map((b) => {
+              const id = b?.id || b?.spaBookingId;
+              if (!id || String(id) !== String(bookingId)) return b;
+              return { ...b, status: "cancelled" };
+            }),
+          );
         }
       } else {
-        toast.error(response?.message || "Failed to cancel");
+        toast.error(response?.message || t("SpaPage.toast.cancelFailed"));
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to cancel");
+      toast.error(error?.message || t("SpaPage.toast.cancelFailed"));
     } finally {
       setCancellingId(null);
     }
@@ -211,7 +220,6 @@ useEffect(() => {
     return bookedSpas.filter((booking: any) => {
       const status = booking?.status?.toLowerCase();
       if (status === "cancelled") return false;
-
       const slots: any[] = booking?.SlotBookings || booking?.slotBookings || booking?.Slots || booking?.slots || [];
       return slots.some((sb: any) => sb?.status?.toLowerCase() !== "cancelled");
     });
@@ -227,22 +235,22 @@ useEffect(() => {
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50">
               <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900">Cancel this slot?</h3>
+            <h3 className="text-lg font-semibold text-slate-900">{t("SpaPage.modal.title")}</h3>
             <p className="mt-2 text-sm text-slate-500 leading-relaxed">
-              You're about to cancel the slot: "{confirmModal.label}". The rest of this booking will remain active.
+              {t("SpaPage.modal.description", { label: confirmModal.label })}
             </p>
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setConfirmModal(null)}
                 className="flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
               >
-                Keep it
+                {t("SpaPage.modal.keepIt")}
               </button>
               <button
                 onClick={handleConfirmCancel}
                 className="flex-1 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
               >
-                Yes, cancel
+                {t("SpaPage.modal.yesCancel")}
               </button>
             </div>
           </div>
@@ -253,24 +261,30 @@ useEffect(() => {
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-stone-900">Spa & Wellness</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-stone-900">{t("SpaPage.header.title")}</h1>
             <p className="mt-1.5 text-sm text-stone-500">
               {hasPropertyCode
-                ? `${availableSpaCount} slot${availableSpaCount === 1 ? "" : "s"} available across ${upcomingSpas.length} upcoming service${upcomingSpas.length === 1 ? "" : "s"}`
-                : "A property code is required to load spa services."}
+                ? t("SpaPage.header.subtitle", {
+                    slotCount: availableSpaCount,
+                    slotWord: availableSpaCount === 1 ? t("SpaPage.header.slot") : t("SpaPage.header.slots"),
+                    serviceCount: upcomingSpas.length,
+                    serviceWord: upcomingSpas.length === 1 ? t("SpaPage.header.service") : t("SpaPage.header.services"),
+                  })
+                : t("SpaPage.header.noPropertyCode")}
             </p>
           </div>
           <Link
             href={`/Rooms/?code=${encodeURIComponent(propertyCode)}`}
             className="inline-flex items-center rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50"
           >
-            ← Homepage
+            {t("SpaPage.header.homepage")}
           </Link>
         </div>
 
         {!hasPropertyCode ? (
           <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center text-stone-500">
-            Add <code className="rounded bg-stone-100 px-2 py-0.5 text-sm font-mono">?code=PROPERTY_CODE</code> to the URL to load spa services.
+            Add <code className="rounded bg-stone-100 px-2 py-0.5 text-sm font-mono">?code=PROPERTY_CODE</code>{" "}
+            to the URL to load spa services.
           </div>
         ) : (
           <div className="space-y-6">
@@ -281,15 +295,17 @@ useEffect(() => {
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`rounded-xl px-5 py-2 text-sm font-semibold transition-all ${activeTab === tab
-                    ? "bg-stone-900 text-white shadow"
-                    : "text-stone-500 hover:text-stone-800"
-                    }`}
+                  className={`rounded-xl px-5 py-2 text-sm font-semibold transition-all ${
+                    activeTab === tab ? "bg-stone-900 text-white shadow" : "text-stone-500 hover:text-stone-800"
+                  }`}
                 >
-                  {tab === "all" ? "All Services" : "My Bookings"}
+                  {tab === "all" ? t("SpaPage.tabs.allServices") : t("SpaPage.tabs.myBookings")}
                   {tab === "booked" && visibleBookedSpas.length > 0 && (
-                    <span className={`ml-2 rounded-full px-2 py-0.5 text-xs ${activeTab === "booked" ? "bg-white/20" : "bg-stone-100 text-stone-600"
-                      }`}>
+                    <span
+                      className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
+                        activeTab === "booked" ? "bg-white/20" : "bg-stone-100 text-stone-600"
+                      }`}
+                    >
                       {visibleBookedSpas.length}
                     </span>
                   )}
@@ -303,15 +319,15 @@ useEffect(() => {
                 {loading ? (
                   <div className="rounded-3xl border border-stone-200 bg-white p-16 text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-amber-600 mb-3" />
-                    <p className="text-sm text-stone-500">Loading spa services…</p>
+                    <p className="text-sm text-stone-500">{t("SpaPage.allTab.loading")}</p>
                   </div>
                 ) : spas.length === 0 ? (
                   <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-16 text-center text-stone-500">
-                    No spa services configured for this property.
+                    {t("SpaPage.allTab.noServices")}
                   </div>
                 ) : upcomingSpas.length === 0 ? (
                   <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-16 text-center text-stone-500">
-                    No upcoming spa services available at this time.
+                    {t("SpaPage.allTab.noUpcoming")}
                   </div>
                 ) : (
                   <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
@@ -345,7 +361,7 @@ useEffect(() => {
                             )}
                             <span className="absolute bottom-3 right-3 rounded-full bg-black/60 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white">
                               {spa.isInclusive
-                                ? "✓ Inclusive"
+                                ? t("SpaPage.allTab.inclusive")
                                 : spa.discountValue
                                   ? `${spa.currencyCode || "AED"} ${spa.discountValue}`
                                   : "—"}
@@ -359,7 +375,7 @@ useEffect(() => {
                                 {spa.name}
                               </h3>
                               <p className="mt-1 text-xs leading-relaxed text-stone-500 line-clamp-2">
-                                {spa.description || "No description available."}
+                                {spa.description || t("SpaPage.allTab.noDescription")}
                               </p>
                             </div>
 
@@ -373,7 +389,7 @@ useEffect(() => {
                               )}
                               <span className="flex items-center gap-1 text-stone-600 font-medium ml-auto shrink-0">
                                 <Clock className="h-3.5 w-3.5 text-amber-500" />
-                                {spa.serviceTime || "TBD"} min
+                                {spa.serviceTime || t("SpaPage.allTab.timeTbd")} min
                               </span>
                               <span className="flex items-center gap-1 text-emerald-700 font-semibold shrink-0">
                                 <CalendarDays className="h-3.5 w-3.5" />
@@ -385,7 +401,7 @@ useEffect(() => {
                               href={`/spa/spaid/?id=${encodeURIComponent(spa.id)}&propertyCode=${encodeURIComponent(propertyCode)}`}
                               className="mt-auto flex w-full items-center justify-center rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-700"
                             >
-                              View & Book
+                              {t("SpaPage.allTab.viewAndBook")}
                             </Link>
                           </div>
                         </div>
@@ -402,17 +418,17 @@ useEffect(() => {
                 {bookedLoading ? (
                   <div className="rounded-3xl border border-stone-200 bg-white p-16 text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto text-amber-600 mb-3" />
-                    <p className="text-sm text-stone-500">Loading your bookings…</p>
+                    <p className="text-sm text-stone-500">{t("SpaPage.bookedTab.loading")}</p>
                   </div>
                 ) : visibleBookedSpas.length === 0 ? (
                   <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-16 text-center">
                     <ShoppingBag className="h-12 w-12 mx-auto mb-4 text-stone-300" />
-                    <p className="text-stone-500">No bookings yet.</p>
+                    <p className="text-stone-500">{t("SpaPage.bookedTab.noBookings")}</p>
                     <button
                       onClick={() => setActiveTab("all")}
                       className="mt-4 rounded-2xl bg-stone-900 px-5 py-2 text-sm font-semibold text-white hover:bg-stone-700 transition"
                     >
-                      Browse services
+                      {t("SpaPage.bookedTab.browseServices")}
                     </button>
                   </div>
                 ) : (
@@ -421,10 +437,15 @@ useEffect(() => {
                       const bookingId = booking?.id || booking?.spaBookingId;
                       if (!bookingId) return null;
 
-                      const slots: any[] = (booking?.SlotBookings || booking?.slotBookings || booking?.Slots || booking?.slots || [])
-                        .filter((sb: any) => sb?.status?.toLowerCase() !== "cancelled");
+                      const slots: any[] = (
+                        booking?.SlotBookings ||
+                        booking?.slotBookings ||
+                        booking?.Slots ||
+                        booking?.slots ||
+                        []
+                      ).filter((sb: any) => sb?.status?.toLowerCase() !== "cancelled");
                       const firstSpa = slots[0]?.Spa || slots[0]?.spa;
-                      const spaName = firstSpa?.name || "Spa Service";
+                      const spaName = firstSpa?.name || t("SpaPage.bookedTab.spaServiceFallback");
                       const coverImage = firstSpa?.images?.[0];
                       const status = booking?.status || "unknown";
                       const isExpanded = expandedBookings.has(bookingId);
@@ -446,11 +467,13 @@ useEffect(() => {
                                 </span>
                               </div>
                               <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-stone-500">
-                                <span>{slots.length} slot{slots.length !== 1 ? "s" : ""}</span>
+                                <span>
+                                  {slots.length === 1 ? t("SpaPage.bookedTab.slot") : t("SpaPage.bookedTab.slots", { count: slots.length })}
+                                </span>
                                 <span className="font-semibold text-stone-700">
                                   {booking?.currencyCode || "AED"} {booking?.totalAmount ?? 0}
                                 </span>
-                                <span>Booked {format(new Date(booking.createdAt), "MMM d, yyyy")}</span>
+                                <span>{t("SpaPage.bookedTab.bookedOn", { date: format(new Date(booking.createdAt), "MMM d, yyyy") })}</span>
                               </div>
                             </div>
 
@@ -467,7 +490,9 @@ useEffect(() => {
                           {/* Slots */}
                           {isExpanded && slots.length > 0 && (
                             <div className="border-t border-stone-100 px-5 pb-5">
-                              <p className="py-3 text-xs font-semibold uppercase tracking-widest text-stone-400">Booked Slots</p>
+                              <p className="py-3 text-xs font-semibold uppercase tracking-widest text-stone-400">
+                                {t("SpaPage.bookedTab.bookedSlots")}
+                              </p>
                               <div className="space-y-2">
                                 {slots.map((sb: any, idx: number) => {
                                   const spaSlotId = sb?.spaSlotId || sb?.id;
@@ -482,10 +507,9 @@ useEffect(() => {
                                   return (
                                     <div
                                       key={sb?.id || idx}
-                                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${isSlotCancelled
-                                        ? "border-red-100 bg-red-50/50"
-                                        : "border-stone-100 bg-stone-50"
-                                        }`}
+                                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${
+                                        isSlotCancelled ? "border-red-100 bg-red-50/50" : "border-stone-100 bg-stone-50"
+                                      }`}
                                     >
                                       <div>
                                         {slotDate && (
@@ -506,7 +530,7 @@ useEffect(() => {
 
                                       {isSlotCancelled ? (
                                         <span className="rounded-xl bg-red-50 border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-500">
-                                          Cancelled
+                                          {t("SpaPage.bookedTab.cancelled")}
                                         </span>
                                       ) : spaSlotId ? (
                                         <button
@@ -521,7 +545,7 @@ useEffect(() => {
                                           ) : (
                                             <X className="h-3 w-3" />
                                           )}
-                                          Cancel Slot
+                                          {t("SpaPage.bookedTab.cancelSlot")}
                                         </button>
                                       ) : null}
                                     </div>

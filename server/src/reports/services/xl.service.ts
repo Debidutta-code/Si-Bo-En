@@ -371,7 +371,7 @@ if(!pb) continue;
 
         // Sheet 2: Detail
         const ws2 = wb.addWorksheet('Reservation Detail');
-        this.addTitle(ws2, 'Revenue Analytics – Detail', '', 9);
+        this.addTitle(ws2, 'Revenue Summary – Detail', '', 10);
         const h2 = ws2.addRow([
             'Booking Code',
             'Property',
@@ -379,11 +379,12 @@ if(!pb) continue;
             'Rate Plan',
             'Source',
             'Payment Method',
+            'Currency',
             'Amount',
             'Paid',
             'Refund',
         ]);
-        this.styleHeader(h2, 9);
+        this.styleHeader(h2, 10);
         ws2.columns = [
             { width: 16 },
             { width: 24 },
@@ -391,6 +392,7 @@ if(!pb) continue;
             { width: 16 },
             { width: 14 },
             { width: 18 },
+            { width: 10 },
             { width: 12 },
             { width: 12 },
             { width: 12 },
@@ -404,13 +406,14 @@ if(!pb) continue;
                 r.ratePlanName || r.ratePlanCode || 'N/A',
                 r.bookingSource,
                 r.paymentMethod,
+                r.PricingBrakeDown?.currencyCode || r.currencyCode || 'N/A',
                 this.fmtNum(r.amount),
                 this.fmtNum(r.paidAmount),
                 this.fmtNum(r.refundAmount),
             ]);
         }
-        this.addBorders(ws2, s2 - 1, ws2.lastRow!.number, 9);
-        this.styleAltRows(ws2, s2, 9);
+        this.addBorders(ws2, s2 - 1, ws2.lastRow!.number, 10);
+        this.styleAltRows(ws2, s2, 10);
 
         return Buffer.from(await wb.xlsx.writeBuffer());
     }
@@ -677,14 +680,14 @@ if(!pb) continue;
         const wb = new ExcelJS.Workbook();
         const label = mode === 'checkin' ? 'Check-In' : 'Check-Out';
         const ws = wb.addWorksheet(`${label} Report`);
-        const cols = 11;
         this.addTitle(
             ws,
             `${label} Report`,
             `Total: ${reservations.length}`,
-            cols
+            12
         );
 
+        const cols = 12;
         const hdr = ws.addRow([
             'Booking Code',
             'Property',
@@ -695,6 +698,7 @@ if(!pb) continue;
             'Check-In',
             'Check-Out',
             'Nights',
+            'Currency',
             'Amount',
             'Status',
         ]);
@@ -709,6 +713,7 @@ if(!pb) continue;
             { width: 12 },
             { width: 12 },
             { width: 8 },
+            { width: 10 },
             { width: 12 },
             { width: 14 },
         ];
@@ -727,6 +732,7 @@ if(!pb) continue;
                 this.fmtDate(r.checkInDate),
                 this.fmtDate(r.checkOutDate),
                 this.roomNights(r.reservationStartDate, r.reservationEndDate),
+                r.PricingBrakeDown?.currencyCode || r.currencyCode || 'N/A',
                 this.fmtNum(r.amount),
                 r.bookingStatus,
             ]);
@@ -744,7 +750,7 @@ if(!pb) continue;
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('Status Breakdown');
-        const cols = 5;
+        const cols = 6;
         this.addTitle(
             ws,
             'Reservation Status Breakdown',
@@ -752,18 +758,22 @@ if(!pb) continue;
             cols
         );
 
-        const statusMap = new Map<string, { count: number; amount: number }>();
+        // Group by status + currency
+        const statusMap = new Map<string, { count: number; amount: number; currencies: Set<string> }>();
         for (const r of reservations) {
             const s = r.bookingStatus;
-            if (!statusMap.has(s)) statusMap.set(s, { count: 0, amount: 0 });
+            if (!statusMap.has(s)) statusMap.set(s, { count: 0, amount: 0, currencies: new Set() });
             const e = statusMap.get(s)!;
             e.count++;
             e.amount += Number(r.amount);
+            const currency = r.PricingBrakeDown?.currencyCode || r.currencyCode;
+            if (currency) e.currencies.add(currency);
         }
 
         const hdr = ws.addRow([
             'Status',
             'Count',
+            'Currency',
             'Total Amount',
             '% of Bookings',
             'Avg. Amount',
@@ -771,6 +781,7 @@ if(!pb) continue;
         this.styleHeader(hdr, cols);
         ws.columns = [
             { width: 18 },
+            { width: 12 },
             { width: 12 },
             { width: 16 },
             { width: 16 },
@@ -783,6 +794,7 @@ if(!pb) continue;
             ws.addRow([
                 status,
                 e.count,
+                [...e.currencies].join('/') || 'N/A',
                 this.fmtNum(e.amount),
                 total > 0 ? ((e.count / total) * 100).toFixed(1) + '%' : '0%',
                 e.count > 0 ? this.fmtNum(e.amount / e.count) : '0.00',
@@ -908,7 +920,7 @@ if(!pb) continue;
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('Payment Status');
-        const cols = 10;
+        const cols = 15;
         this.addTitle(
             ws,
             'Payment Status Report',
@@ -920,54 +932,72 @@ if(!pb) continue;
             'Booking Code',
             'Property',
             'Guest Name',
-            'Amount',
+            'Currency',
+            'Amount Before Tax',
+            'Tax Amount',
+            'Amount After Tax',
+            'Total Amount',
+            'Chargeable Now',
+            'Later Payable',
             'Paid',
-            'Outstanding',
             'Refund',
             'Payment Method',
             'Payment Status',
-            'Agency Commission',
         ]);
         this.styleHeader(hdr, cols);
         ws.columns = [
-            { width: 16 },
-            { width: 24 },
-            { width: 20 },
-            { width: 12 },
-            { width: 12 },
-            { width: 14 },
-            { width: 12 },
-            { width: 18 },
-            { width: 18 },
-            { width: 20 },
+            { width: 16 },  //  1 Booking Code
+            { width: 24 },  //  2 Property
+            { width: 20 },  //  3 Guest Name
+            { width: 10 },  //  4 Currency
+            { width: 18 },  //  5 Amount Before Tax
+            { width: 14 },  //  6 Tax Amount
+            { width: 18 },  //  7 Amount After Tax
+            { width: 14 },  //  8 Total Amount
+            { width: 16 },  //  9 Chargeable Now
+            { width: 14 },  // 10 Later Payable
+            { width: 12 },  // 11 Paid
+            { width: 12 },  // 13 Refund
+            { width: 18 },  // 14 Payment Method
+            { width: 18 },  // 15 Payment Status
         ];
         const startRow = ws.lastRow!.number + 1;
 
         for (const r of reservations) {
-            const paid = Number(r.paidAmount);
-            const amount = Number(r.amount);
-            const outstanding = Number(r.extraAmountToPay);
-            const refund = Number(r.refundAmount);
+            const pb = r.PricingBrakeDown;
+
+            const amountBeforeTax  = Number(pb?.amountBeforeTax  ?? 0);
+            const taxedAmount      = Number(pb?.taxedAmount      ?? 0);
+            const amountAfterTax   = amountBeforeTax + taxedAmount;
+            const totalAmount      = Number(pb?.totalAmount      ?? r.amount      ?? 0);
+            const chargeableNow    = Number(pb?.currentChargeableAmount ?? 0);
+            const laterPayable     = Number(pb?.latterpayableAmount     ?? r.extraAmountToPay ?? 0);
+            const paid             = Number(r.paidAmount   ?? 0);
+            const refund           = Number(r.refundAmount  ?? 0);
+            const currency         = pb?.currencyCode || r.currencyCode || 'N/A';
+
             let payStatus = 'Unpaid';
-            if (refund > 0) payStatus = 'Refunded';
-            else if (paid >= amount) payStatus = 'Fully Paid';
-            else if (paid > 0) payStatus = 'Partially Paid';
+            if (refund > 0)                                payStatus = 'Refunded';
+            else if (paid >= totalAmount && totalAmount > 0) payStatus = 'Fully Paid';
+            else if (paid > 0)                             payStatus = 'Partially Paid';
 
             ws.addRow([
-                r.bookingCode,
+                r.bookingCode?.split('-').slice(1).join('-') ?? r.bookingCode,
                 propertyNames.get(r.propertyId) || r.hotelName,
                 r.primaryGuest
-                    ? `${r.primaryGuest.firstName} ${r.primaryGuest.lastName}`
+                    ? `${r.primaryGuest.firstName} ${r.primaryGuest.lastName}`.trim()
                     : 'N/A',
-                this.fmtNum(amount),
+                currency,
+                this.fmtNum(amountBeforeTax),
+                this.fmtNum(taxedAmount),
+                this.fmtNum(amountAfterTax),
+                this.fmtNum(totalAmount),
+                this.fmtNum(chargeableNow),
+                this.fmtNum(laterPayable),
                 this.fmtNum(paid),
-                this.fmtNum(outstanding),
                 this.fmtNum(refund),
                 r.paymentMethod || 'N/A',
                 payStatus,
-                r.AgencyCommission
-                    ? this.fmtNum(r.AgencyCommission.commissionAmount)
-                    : 'N/A',
             ]);
         }
 

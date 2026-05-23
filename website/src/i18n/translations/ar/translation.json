@@ -6,11 +6,12 @@
     "partnerLogin": "تسجيل دخول الشريك",
     "myBooking": "حجزي",
     "loyaltyGuestLogin": "تسجيل دخول ضيف الولاء",
-    "becomApartner":"كن شريكاً",
+    "becomApartner": "كن شريكاً",
     "customerLogin": "تسجيل الدخول",
     "myBookings": "حجوزاتي",
     "profile": "الملف الشخصي",
-    "signOut": "تسجيل الخروج"
+    "signOut": "تسجيل الخروج",
+    "spa": "السبا"
   },
   "Hero": {
     "title": "اعثر على مكانك القادم للزيارة",
@@ -620,5 +621,259 @@
     "successNoRefund": "تم إلغاء الحجز. تعذّر معالجة الاسترداد تلقائياً — سيتواصل معك الفندق.",
     "successCancelled": "تم إلغاء الحجز بنجاح!",
     "somethingWentWrong": "حدث خطأ ما"
+  },
+  "SpaPage": {
+    "header": {
+      "title": "السبا والعافية",
+      "subtitle": "{{slotCount}} {{slotWord}} متاحة عبر {{serviceCount}} {{serviceWord}} القادمة",
+      "slot": "موعد",
+      "slots": "مواعيد",
+      "service": "خدمة",
+      "services": "خدمات",
+      "noPropertyCode": "مطلوب رمز العقار لتحميل خدمات السبا.",
+      "homepage": "← الصفحة الرئيسية",
+      "codeHint": "أضف {{codeSnippet}} إلى الرابط لتحميل خدمات السبا."
+    },
+    "tabs": {
+      "allServices": "جميع الخدمات",
+      "myBookings": "حجوزاتي"
+    },
+    "allTab": {
+      "loading": "جارٍ تحميل خدمات السبا…",
+      "noServices": "لا توجد خدمات سبا مهيأة لهذه المنشأة.",
+      "noUpcoming": "لا توجد خدمات سبا قادمة متاحة حالياً.",
+      "noDescription": "لا يوجد وصف متاح.",
+      "inclusive": "✓ شامل",
+      "timeTbd": "سيتم التحديد لاحقاً",
+      "viewAndBook": "عرض وحجز"
+    },
+    "bookedTab": {
+      "loading": "جارٍ تحميل حجوزاتك…",
+      "noBookings": "لا توجد حجوزات بعد.",
+      "browseServices": "تصفح الخدمات",
+      "bookedSlots": "المواعيد المحجوزة",
+      "spaServiceFallback": "خدمة سبا",
+      "bookedOn": "تم الحجز {{date}}",
+      "slot": "موعد",
+      "slots": "مواعيد",
+      "cancelSlot": "إلغاء الموعد",
+      "cancelled": "تم الإلغاء"
+    },
+    "modal": {
+      "title": "إلغاء هذا الموعد؟",
+      "description": "أنت على وشك إلغاء الموعد: \"{{label}}\". سيبقى باقي هذا الحجز نشطاً.",
+      "keepIt": "الاحتفاظ به",
+      "yesCancel": "نعم، إلغاء"
+    },
+    "toast": {
+      "loadFailed": "تعذر تحميل خدمات السبا",
+      "loginRequired": "يرجى تسجيل الدخول لعرض حجوزات السبا الخاصة بك",
+      "cancelSuccess": "تم إلغاء الموعد بنجاح",
+      "cancelFailed": "فشل الإلغاء"
+    }
+  },
+  "SpaClient": {
+    "nav": {
+      "backToServices": "العودة إلى الخدمات"
+    },
+    "states": {
+      "noPropertyCode": "أضف ?code=PROPERTY_CODE إلى الرابط.",
+      "loading": "جارٍ التحميل…",
+      "spaNotFound": "لم يتم العثور على سبا لهذا الرمز الخاص بالعقار."
+    },
+    "hero": {
+      "noDescription": "لا يوجد وصف متاح.",
+      "detailsLabel": "التفاصيل",
+      "inclusive": "شامل",
+      "timeTbd": "سيتم التحديد لاحقاً",
+      "minSession": "دقيقة للجلسة",
+      "openSlots": "مواعيد متاحة"
+    },
+    "slots": {
+      "sectionTitle": "التواريخ والمواعيد المتاحة",
+      "clearSelection": "مسح ({{count}})",
+      "noDates": "لم يتم إعداد أي تواريخ لهذا السبا بعد.",
+      "openDot": "{{open}} متاح · {{total}} إجمالي",
+      "selectedBadge": "{{count}} محدد",
+      "slotOpen": "متاح",
+      "slotSelected": "محدد",
+      "toTime": "حتى {{time}}"
+    },
+    "bookingButton": "مراجعة وحجز ({{count}})",
+    "modal": {
+      "title": "أكمل الحجز الخاص بك",
+      "selectedSlotsLabel": "المواعيد المحددة",
+      "inclusive": "شامل",
+      "price": {
+        "slots": "المواعيد",
+        "total": "الإجمالي"
+      },
+      "yourDetails": "بياناتك",
+      "placeholders": {
+        "fullName": "الاسم الكامل *",
+        "email": "عنوان البريد الإلكتروني *",
+        "phone": "رقم الهاتف *"
+      },
+      "cancel": "إلغاء",
+      "bookSlot": "حجز {{count}} موعد",
+      "bookSlots": "حجز {{count}} مواعيد",
+      "booking": "جارٍ الحجز…",
+      "availableSlotsLabel": "المواعيد المتاحة"
+    },
+    "validation": {
+      "nameRequired": "الاسم الكامل مطلوب.",
+      "emailRequired": "عنوان البريد الإلكتروني مطلوب.",
+      "emailInvalid": "أدخل عنوان بريد إلكتروني صالح.",
+      "phoneRequired": "رقم الهاتف مطلوب.",
+      "phoneInvalid": "أدخل رقم هاتف صالح."
+    },
+    "toast": {
+      "loadFailed": "تعذر تحميل خدمات السبا",
+      "slotAlreadyBooked": "هذا الموعد محجوز بالفعل.",
+      "selectAtLeastOne": "يرجى تحديد موعد واحد على الأقل.",
+      "fixFields": "يرجى تصحيح الحقول المميزة.",
+      "loginRequired": "يرجى تسجيل الدخول لحجز مواعيد السبا",
+      "bookSuccess": "تم حجز {{count}} موعد بنجاح!",
+      "bookFailed": "فشل إنشاء الحجز.",
+      "cancelMissingId": "تعذر الإلغاء: معرف الحجز مفقود."
+    }
+  },
+  "ProfileHomePage": {
+    "loading": "جارٍ تحميل ملفك الشخصي…",
+    "header": {
+      "title": "ملفي الشخصي",
+      "homepage": "← الصفحة الرئيسية"
+    },
+    "memberCard": {
+      "guestAccount": "حساب الضيف",
+      "memberFallback": "عضو",
+      "programs": "البرامج",
+      "properties": "العقارات",
+      "wishlist": "قائمة الرغبات"
+    },
+    "loyalty": {
+      "sectionTitle": "برامج الولاء",
+      "programCount": "{{count}} برنامج",
+      "programCountPlural": "{{count}} برامج",
+      "fallbackName": "برنامج الولاء",
+      "headerPercentage": "خصم يصل إلى {{value}}%",
+      "headerCurrency": "خصم {{currency}} {{value}}",
+      "stats": {
+        "yourDiscount": "خصمك",
+        "discountValue": "خصم {{value}}",
+        "level": "المستوى",
+        "bookings": "الحجوزات"
+      },
+      "progress": {
+        "currentLevel": "المستوى {{level}} — خصم {{pct}}%",
+        "nextLevel": "المستوى {{level}} — خصم {{pct}}% ←",
+        "bookingsNeeded": "يلزم {{count}} حجز للوصول إلى المستوى {{level}}",
+        "bookingsNeededPlural": "يلزم {{count}} حجوزات للوصول إلى المستوى {{level}}"
+      },
+      "properties": {
+        "validAt": "صالح في {{count}} عقار",
+        "validAtPlural": "صالح في {{count}} عقارات"
+      },
+      "empty": {
+        "title": "لا توجد عضويات بعد",
+        "description": "لم يتم تسجيلك في أي برامج ولاء خاصة بالعقارات حتى الآن."
+      }
+    },
+    "wishlist": {
+      "sectionTitle": "قائمة الرغبات"
+    },
+    "toast": {
+      "loadFailed": "تعذر تحميل الملف الشخصي"
+    }
+  },
+  "ProfileSidebar": {
+    "nav": {
+      "myBodyHoliday": "ماي بودي هوليداي",
+      "reservations": "الحجوزات",
+      "ariaLabel": "التنقل الرئيسي"
+    },
+    "brand": {
+      "hotelLogoAlt": "شعار الفندق",
+      "logoAlt": "الشعار"
+    },
+    "actions": {
+      "openMenu": "فتح القائمة",
+      "closeMenu": "إغلاق القائمة",
+      "expandSidebar": "توسيع الشريط الجانبي",
+      "collapseSidebar": "طي الشريط الجانبي",
+      "signOut": "تسجيل الخروج"
+    },
+    "footer": {
+      "copyright": "© 2024 Revchill. جميع الحقوق محفوظة.",
+      "terms": "الشروط والأحكام"
+    }
+  },
+  "MyBookingsPage": {
+    "heading": "حجوزاتي",
+    "subtitle": "جميع الحجوزات المرتبطة بحسابك.",
+    "loading": "جارٍ تحميل حجوزاتك…",
+    "empty": {
+      "title": "لم يتم العثور على حجوزات",
+      "description": "عندما تقوم بالحجز سيظهر هنا."
+    },
+    "card": {
+      "propertyFallback": "العقار"
+    },
+    "details": {
+      "checkIn": "تسجيل الوصول",
+      "checkOut": "تسجيل المغادرة",
+      "roomType": "نوع الغرفة",
+      "ratePlan": "خطة الأسعار",
+      "total": "الإجمالي",
+      "primaryGuest": "الضيف الرئيسي"
+    },
+    "actions": {
+      "checkInNow": "تسجيل الوصول الآن",
+      "checkOutNow": "تسجيل المغادرة الآن"
+    },
+    "checkinDialog": {
+      "title": "تسجيل الوصول عبر الإنترنت",
+      "idTypeLabel": "نوع الهوية",
+      "idNumberLabel": "رقم الهوية",
+      "idNumberPlaceholder": "أدخل رقم الهوية",
+      "addressLabel": "العنوان",
+      "addressPlaceholder": "عنوان الشارع",
+      "cityLabel": "المدينة",
+      "stateLabel": "الولاية/المقاطعة",
+      "countryLabel": "الدولة",
+      "zipLabel": "الرمز البريدي",
+      "identityImageLabel": "صورة الهوية",
+      "identityImageAlt": "الهوية",
+      "uploadButton": "رفع",
+      "cancel": "إلغاء",
+      "submit": "إكمال تسجيل الوصول",
+      "processing": "جارٍ المعالجة…",
+      "idTypes": {
+        "nationalId": "الهوية الوطنية",
+        "passport": "جواز السفر",
+        "driversLicense": "رخصة القيادة",
+        "others": "أخرى"
+      }
+    },
+    "checkoutDialog": {
+      "title": "تأكيد تسجيل المغادرة",
+      "body": "هل أنت متأكد أنك تريد تسجيل المغادرة من هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد تسجيل المغادرة",
+      "processing": "جارٍ المعالجة…"
+    },
+    "toast": {
+      "noReservations": "ليس لديك أي حجوزات بعد",
+      "loadError": "حدث خطأ أثناء تحميل الحجوزات",
+      "loadFailed": "فشل تحميل الحجوزات",
+      "profileLoadFailed": "تعذر تحميل الملف الشخصي",
+      "identityImageRequired": "أضف صورة الهوية",
+      "checkinSuccess": "تم تسجيل الوصول بنجاح!",
+      "checkinError": "حدث خطأ أثناء تسجيل الوصول",
+      "checkinFailed": "فشل تسجيل الوصول",
+      "checkoutSuccess": "تم تسجيل المغادرة بنجاح!",
+      "checkoutError": "حدث خطأ أثناء تسجيل المغادرة",
+      "checkoutFailed": "فشل تسجيل المغادرة"
+    }
   }
 }

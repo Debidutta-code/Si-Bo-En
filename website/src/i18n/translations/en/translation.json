@@ -6,11 +6,12 @@
     "partnerLogin": "Partner Login",
     "myBooking": "My Booking",
     "loyaltyGuestLogin": "Loyalty Guest Login",
-    "becomApartner":"Become A Partner",
+    "becomApartner": "Become A Partner",
     "customerLogin": "Sign In",
     "myBookings": "My Bookings",
     "profile": "Profile",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "spa": "Spa"
   },
   "Hero": {
     "title": "Find Next Place To Visit",
@@ -620,5 +621,259 @@
     "successNoRefund": "Booking cancelled. Refund could not be processed automatically — the hotel will contact you.",
     "successCancelled": "Booking cancelled successfully!",
     "somethingWentWrong": "Something went wrong"
+  },
+  "SpaPage": {
+    "header": {
+      "title": "Spa & Activity",
+      "subtitle": "{{slotCount}} {{slotWord}} available across {{serviceCount}} upcoming {{serviceWord}}",
+      "slot": "slot",
+      "slots": "slots",
+      "service": "service",
+      "services": "services",
+      "noPropertyCode": "A property code is required to load spa services.",
+      "homepage": "← Homepage",
+      "codeHint": "Add {{codeSnippet}} to the URL to load spa services."
+    },
+    "tabs": {
+      "allServices": "All Services",
+      "myBookings": "My Bookings"
+    },
+    "allTab": {
+      "loading": "Loading spa services…",
+      "noServices": "No spa services configured for this property.",
+      "noUpcoming": "No upcoming spa services available at this time.",
+      "noDescription": "No description available.",
+      "inclusive": "✓ Inclusive",
+      "timeTbd": "TBD",
+      "viewAndBook": "View & Book"
+    },
+    "bookedTab": {
+      "loading": "Loading your bookings…",
+      "noBookings": "No bookings yet.",
+      "browseServices": "Browse services",
+      "bookedSlots": "Booked Slots",
+      "spaServiceFallback": "Spa Service",
+      "bookedOn": "Booked {{date}}",
+      "slot": "slot",
+      "slots": "slots",
+      "cancelSlot": "Cancel Slot",
+      "cancelled": "Cancelled"
+    },
+    "modal": {
+      "title": "Cancel this slot?",
+      "description": "You're about to cancel the slot: \"{{label}}\". The rest of this booking will remain active.",
+      "keepIt": "Keep it",
+      "yesCancel": "Yes, cancel"
+    },
+    "toast": {
+      "loadFailed": "Unable to load spa services",
+      "loginRequired": "Please login to view your spa bookings",
+      "cancelSuccess": "Slot cancelled successfully",
+      "cancelFailed": "Failed to cancel"
+    }
+  },
+  "SpaClient": {
+    "nav": {
+      "backToServices": "Back to services"
+    },
+    "states": {
+      "noPropertyCode": "Add ?code=PROPERTY_CODE to the URL.",
+      "loading": "Loading…",
+      "spaNotFound": "Spa not found for this property code."
+    },
+    "hero": {
+      "noDescription": "No description available.",
+      "detailsLabel": "Details",
+      "inclusive": "Inclusive",
+      "timeTbd": "TBD",
+      "minSession": "min session",
+      "openSlots": "open slots"
+    },
+    "slots": {
+      "sectionTitle": "Available Dates & Slots",
+      "clearSelection": "Clear ({{count}})",
+      "noDates": "No dates configured for this spa yet.",
+      "openDot": "{{open}} open · {{total}} total",
+      "selectedBadge": "{{count}} selected",
+      "slotOpen": "Open",
+      "slotSelected": "Selected",
+      "toTime": "to {{time}}"
+    },
+    "bookingButton": "Review & Book ({{count}})",
+    "modal": {
+      "title": "Complete Your Booking",
+      "selectedSlotsLabel": "Selected Slots",
+      "inclusive": "Inclusive",
+      "price": {
+        "slots": "Slots",
+        "total": "Total"
+      },
+      "yourDetails": "Your Details",
+      "placeholders": {
+        "fullName": "Full name *",
+        "email": "Email address *",
+        "phone": "Phone number *"
+      },
+      "cancel": "Cancel",
+      "bookSlot": "Book {{count}} Slot",
+      "bookSlots": "Book {{count}} Slots",
+      "booking": "Booking…",
+      "availableSlotsLabel": "Available Slots"
+    },
+    "validation": {
+      "nameRequired": "Full name is required.",
+      "emailRequired": "Email address is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "phoneRequired": "Phone number is required.",
+      "phoneInvalid": "Enter a valid phone number."
+    },
+    "toast": {
+      "loadFailed": "Unable to load spa services",
+      "slotAlreadyBooked": "This slot is already booked.",
+      "selectAtLeastOne": "Please select at least one slot.",
+      "fixFields": "Please fix the highlighted fields.",
+      "loginRequired": "Please login to book spa slots",
+      "bookSuccess": "{{count}} slot(s) booked!",
+      "bookFailed": "Failed to create booking.",
+      "cancelMissingId": "Unable to cancel: booking ID missing."
+    }
+  },
+  "ProfileHomePage": {
+    "loading": "Loading your profile…",
+    "header": {
+      "title": "My Profile",
+      "homepage": "← Homepage"
+    },
+    "memberCard": {
+      "guestAccount": "Guest Account",
+      "memberFallback": "Member",
+      "programs": "Programs",
+      "properties": "Properties",
+      "wishlist": "Wishlist"
+    },
+    "loyalty": {
+      "sectionTitle": "Loyalty Programs",
+      "programCount": "{{count}} program",
+      "programCountPlural": "{{count}} programs",
+      "fallbackName": "Loyalty Program",
+      "headerPercentage": "Up to {{value}}% off",
+      "headerCurrency": "{{currency}} {{value}} off",
+      "stats": {
+        "yourDiscount": "Your Discount",
+        "discountValue": "{{value}} off",
+        "level": "Level",
+        "bookings": "Bookings"
+      },
+      "progress": {
+        "currentLevel": "Level {{level}} — {{pct}}% off",
+        "nextLevel": "Level {{level}} — {{pct}}% off →",
+        "bookingsNeeded": "{{count}} booking needed to reach Level {{level}}",
+        "bookingsNeededPlural": "{{count}} bookings needed to reach Level {{level}}"
+      },
+      "properties": {
+        "validAt": "Valid at {{count}} property",
+        "validAtPlural": "Valid at {{count}} properties"
+      },
+      "empty": {
+        "title": "No memberships yet",
+        "description": "You haven't been enrolled in any property loyalty programs yet."
+      }
+    },
+    "wishlist": {
+      "sectionTitle": "Wishlist"
+    },
+    "toast": {
+      "loadFailed": "Could not load profile"
+    }
+  },
+  "ProfileSidebar": {
+    "nav": {
+      "myBodyHoliday": "My BodyHoliday",
+      "reservations": "Reservations",
+      "ariaLabel": "Main navigation"
+    },
+    "brand": {
+      "hotelLogoAlt": "Hotel Logo",
+      "logoAlt": "Logo"
+    },
+    "actions": {
+      "openMenu": "Open Menu",
+      "closeMenu": "Close Menu",
+      "expandSidebar": "Expand sidebar",
+      "collapseSidebar": "Collapse sidebar",
+      "signOut": "Sign out"
+    },
+    "footer": {
+      "copyright": "© 2024 Revchill. All Rights Reserved.",
+      "terms": "Terms and Conditions"
+    }
+  },
+  "MyBookingsPage": {
+    "heading": "My Reservations",
+    "subtitle": "All reservations associated with your account.",
+    "loading": "Loading your reservations…",
+    "empty": {
+      "title": "No reservations found",
+      "description": "When you make a reservation it will appear here."
+    },
+    "card": {
+      "propertyFallback": "Property"
+    },
+    "details": {
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "roomType": "Room type",
+      "ratePlan": "Rate plan",
+      "total": "Total",
+      "primaryGuest": "Primary Guest"
+    },
+    "actions": {
+      "checkInNow": "Check In Now",
+      "checkOutNow": "Check Out Now"
+    },
+    "checkinDialog": {
+      "title": "Online Check-In",
+      "idTypeLabel": "ID Type",
+      "idNumberLabel": "ID Number",
+      "idNumberPlaceholder": "Enter ID number",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Street address",
+      "cityLabel": "City",
+      "stateLabel": "State/Province",
+      "countryLabel": "Country",
+      "zipLabel": "Zip/Postal Code",
+      "identityImageLabel": "Identity Image",
+      "identityImageAlt": "Identity",
+      "uploadButton": "Upload",
+      "cancel": "Cancel",
+      "submit": "Complete Check-In",
+      "processing": "Processing…",
+      "idTypes": {
+        "nationalId": "National ID",
+        "passport": "Passport",
+        "driversLicense": "Driver's License",
+        "others": "Other"
+      }
+    },
+    "checkoutDialog": {
+      "title": "Confirm Check-Out",
+      "body": "Are you sure you want to check out of this reservation? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Confirm Check-Out",
+      "processing": "Processing…"
+    },
+    "toast": {
+      "noReservations": "You have no reservations yet",
+      "loadError": "Error loading reservations",
+      "loadFailed": "Failed to load reservations",
+      "profileLoadFailed": "Could not load profile",
+      "identityImageRequired": "Add Identity Image",
+      "checkinSuccess": "Successfully checked in!",
+      "checkinError": "An error occurred during check-in",
+      "checkinFailed": "Failed to check-in",
+      "checkoutSuccess": "Successfully checked out!",
+      "checkoutError": "An error occurred during check-out",
+      "checkoutFailed": "Failed to check-out"
+    }
   }
 }
