@@ -16,15 +16,15 @@ const Report = () => {
     const { t } = useTranslation();
 
     const REPORT_TYPES: { value: ReportType; label: string }[] = [
-        { value: 'comparison', label: t('Report.reportTypes.comparison') },
+        // { value: 'comparison', label: t('Report.reportTypes.comparison') },
         { value: 'reservation-overview', label: t('Report.reportTypes.reservationOverview') },
         { value: 'revenue-analytics', label: t('Report.reportTypes.revenueAnalytics') },
         { value: 'insights', label: t('Report.reportTypes.insights') },
-        { value: 'top-properties', label: t('Report.reportTypes.topProperties') },
+        // { value: 'top-properties', label: t('Report.reportTypes.topProperties') },
         { value: 'all-reservations', label: t('Report.reportTypes.allReservations') },
         { value: 'checkin-checkout', label: t('Report.reportTypes.checkinCheckout') },
-        { value: 'status-breakdown', label: t('Report.reportTypes.statusBreakdown') },
-        { value: 'loyalty-guests', label: t('Report.reportTypes.loyaltyGuests') },
+        // { value: 'status-breakdown', label: t('Report.reportTypes.statusBreakdown') },
+        // { value: 'loyalty-guests', label: t('Report.reportTypes.loyaltyGuests') },
         { value: 'payment-status', label: t('Report.reportTypes.paymentStatus') },
     ];
 
