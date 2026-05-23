@@ -1,13 +1,16 @@
 import { getCurrencyConverter } from '../../currency-maping/utils';
+import { SpaEmailService } from '../../sms-email-service/service/spa.email.service';
 import { IApiResponse, successResponse, errorResponse } from '../../utils';
 import { SpaRepository } from '../repository';
 import { ICSpaR, IUSpaR, ISpaBookingRequest } from '../types';
 
 export class SpaService {
     private spaRepository: SpaRepository;
+    private spaEmailService: SpaEmailService;
 
     constructor() {
         this.spaRepository = new SpaRepository();
+        this.spaEmailService = new SpaEmailService();
     }
     public async createSpa(data: ICSpaR): Promise<IApiResponse> {
         try {
@@ -168,38 +171,91 @@ export class SpaService {
         try {
             let totalAmount = 0;
             const processedSlots = [];
-            
+
             for (const slot of data.slots) {
                 const spa = await this.spaRepository.getById(slot.spaId);
                 if (!spa) {
                     return errorResponse(`Spa not found: ${slot.spaId}`);
                 }
-                
+
                 let slotAmount = 0;
                 if (!spa.isInclusive) {
-                    slotAmount = spa.discountValue || 0; 
+                    slotAmount = spa.discountValue || 0;
                 }
-                
+
                 totalAmount += slotAmount;
-                
+
                 processedSlots.push({
                     spaId: slot.spaId,
                     spaSlotId: slot.spaSlotId,
-                    amount: slotAmount
+                    amount: slotAmount,
                 });
             }
-            
+
             const booking = await this.spaRepository.createSpaBooking(
                 {
                     userEmail: data.userEmail,
+                    userName: data.userName,
                     userContactNumber: data.userContactNumber,
                     userId: data.userId,
                     totalAmount: totalAmount,
-                    currencyCode: 'AED' 
+                    currencyCode: data.currencyCode,
                 },
                 processedSlots
             );
-            
+
+            // ── Confirmation email ───────────────────────────────────────
+            try {
+                const firstSpaWithProperty = await this.spaRepository.getSpaWithProperty(
+                    processedSlots[0].spaId
+                );
+
+                const managerEmails: string[] = firstSpaWithProperty?.AssignedSpas
+                    ?.map((a: any) => a.User?.email)
+                    .filter(Boolean) ?? [];
+
+                const emailSlots = await Promise.all(
+                    processedSlots.map(async (ps) => {
+                        const spa = await this.spaRepository.getById(ps.spaId);
+                        const slot = await this.spaRepository.getSlotById(ps.spaSlotId);
+                        return {
+                            spaName: spa?.name ?? 'Spa Service',
+                            date: slot?.spaDate?.date
+                                ? new Date(slot.spaDate.date).toLocaleDateString('en-US', {
+                                    weekday: 'short', year: 'numeric',
+                                    month: 'short', day: 'numeric',
+                                })
+                                : '—',
+                            startTime: slot?.startTime
+                                ? new Date(slot.startTime).toLocaleTimeString('en-US', {
+                                    hour: '2-digit', minute: '2-digit', timeZone: 'UTC',
+                                })
+                                : '—',
+                            endTime: slot?.endTime
+                                ? new Date(slot.endTime).toLocaleTimeString('en-US', {
+                                    hour: '2-digit', minute: '2-digit', timeZone: 'UTC',
+                                })
+                                : null,
+                            amount: ps.amount,
+                            currencyCode: data.currencyCode,
+                        };
+                    })
+                );
+
+                await this.spaEmailService.bookingConfirmed({
+                    userName: data.userName,
+                    userEmail: data.userEmail,
+                    bookingId: booking.id,
+                    managerEmails,
+                    slots: emailSlots,
+                    totalAmount,
+                    currencyCode: data.currencyCode,
+                });
+            } catch (emailError) {
+                console.error('Spa confirmation email failed:', emailError);
+            }
+            // ────────────────────────────────────────────────────────────
+
             return successResponse('Spa booking created successfully', booking);
         } catch (error) {
             if (error instanceof Error) {
@@ -208,14 +264,101 @@ export class SpaService {
             return errorResponse('Failed to create spa booking');
         }
     }
-    public async cancelSpaReservation(bookingId: string, customerId?: string, spaSlotId?: string): Promise<IApiResponse> {
+    public async cancelSpaReservation(
+        bookingId: string,
+        customerId?: string,
+        spaSlotsId?: string
+    ): Promise<IApiResponse> {
         try {
-            const booking = await this.spaRepository.cancelSpaBooking(bookingId, customerId, spaSlotId);
-            return successResponse('Spa booking cancelled successfully', booking);
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse('Failed to cancel spa booking', error.message);
+            const cancelledBooking =
+                await this.spaRepository.getSpaBookingById(bookingId);
+            // CANCEL BOOKING
+            const result = await this.spaRepository.cancelSpaBooking(
+                bookingId,
+                customerId,
+                spaSlotsId
+            );
+            const cancelledSlot = result?.cancelledSlot;
+            const spa = cancelledSlot?.spa;
+            const spaSlot = cancelledSlot?.spaSlots;
+            const userName = spaSlot?.userName ?? 'Guest';
+
+            const cancellationData = {
+                spaName: spa?.name ?? 'Spa Service',
+
+                date: spaSlot?.spaDate?.date
+                    ? new Date(spaSlot.spaDate.date).toLocaleDateString(
+                        'en-US',
+                        {
+                            weekday: 'short',
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                        }
+                    )
+                    : '—',
+
+                startTime: spaSlot?.startTime
+                    ? new Date(spaSlot.startTime).toLocaleTimeString(
+                        'en-US',
+                        {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZone: 'UTC',
+                        }
+                    )
+                    : '—',
+
+                endTime: spaSlot?.endTime
+                    ? new Date(spaSlot.endTime).toLocaleTimeString(
+                        'en-US',
+                        {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZone: 'UTC',
+                        }
+                    )
+                    : null,
+            };
+
+            try {
+                const managerEmails: string[] =
+                    spa?.AssignedSpas?.map((a: any) => a.User?.email).filter(
+                        Boolean
+                    ) ?? [];
+
+
+                if (cancelledBooking?.userEmail) {
+                    await this.spaEmailService.bookingCancelled({
+                        userName,
+                        userEmail: cancelledBooking.userEmail,
+                        bookingId,
+                        managerEmails,
+                        cancelledSlot: cancellationData,
+                    });
+
+                }
+            } catch (emailError) {
+                console.error(
+                    'Spa cancellation email failed:',
+                    emailError
+                );
             }
+
+            return successResponse(
+                'Spa booking cancelled successfully',
+                result.booking
+            );
+        } catch (error) {
+            console.error('cancelSpaReservation error:', error);
+
+            if (error instanceof Error) {
+                return errorResponse(
+                    'Failed to cancel spa booking',
+                    error.message
+                );
+            }
+
             return errorResponse('Failed to cancel spa booking');
         }
     }

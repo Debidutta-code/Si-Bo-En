@@ -7,11 +7,11 @@ import { format } from "date-fns";
 import { MapPin, Trash2, ShoppingBag, Loader2, X, CalendarDays, Clock, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { getSpaByPropertyCodeApi, cancelSpaReservationApi } from "./api/spa.api";
-import { ISpa, ISpaDate, ISpaSlot } from "./interface";
+import { ISpa, ISpaSlot } from "./interface";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { getCustomerSpaBookingsApi } from "../../(auth)/profile/api/spa.api";
-
+import { formatInTimeZone } from "date-fns-tz";
 type Tab = "all" | "booked";
 
 export default function SpaPage() {
@@ -37,10 +37,11 @@ export default function SpaPage() {
 
   const hasPropertyCode = Boolean(propertyCode.trim());
 
-  useEffect(() => {
-    if (!hasPropertyCode) return;
-    void loadSpas(propertyCode.trim());
-  }, [propertyCode, hasPropertyCode]);
+useEffect(() => {
+  if (!hasPropertyCode) return;
+  if (activeTab !== "all") return;   
+  void loadSpas(propertyCode.trim());
+}, [propertyCode, hasPropertyCode, activeTab]); 
 
   const loadSpas = async (code: string) => {
     setLoading(true);
@@ -88,12 +89,19 @@ export default function SpaPage() {
   );
 
   const formatDate = (dateValue: string) => {
-    try { return format(new Date(dateValue), "EEE, MMM d, yyyy"); } catch { return dateValue; }
+    try {
+      return formatInTimeZone(new Date(dateValue), "UTC", "EEE, MMM d, yyyy");
+    } catch {
+      return dateValue;
+    }
   };
   const formatTime = (dateValue: string) => {
-    try { return format(new Date(dateValue), "hh:mm a"); } catch { return dateValue; }
+    try {
+      return formatInTimeZone(new Date(dateValue), "UTC", "hh:mm a");
+    } catch {
+      return dateValue;
+    }
   };
-
   const fetchBookedSpas = async () => {
     if (activeTab !== "booked") return;
     setBookedLoading(true);
@@ -114,7 +122,10 @@ export default function SpaPage() {
   };
 
   useEffect(() => {
-    if (activeTab !== "booked") return;
+    if (activeTab !== "booked") {
+      setBookedSpas([]); 
+      return;
+    }
     if (!(customer as any)?.isAuthenticated) {
       const redirectUrl = `/spa?propertyCode=${encodeURIComponent(propertyCode)}`;
       sessionStorage.setItem("customerRedirectUrl", redirectUrl);
@@ -123,7 +134,6 @@ export default function SpaPage() {
       return;
     }
     void fetchBookedSpas();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const toggleExpanded = (bookingId: string) => {
@@ -251,7 +261,7 @@ export default function SpaPage() {
             </p>
           </div>
           <Link
-            href="/"
+            href={`/Rooms/?code=${encodeURIComponent(propertyCode)}`}
             className="inline-flex items-center rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50"
           >
             ← Homepage
@@ -271,17 +281,15 @@ export default function SpaPage() {
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`rounded-xl px-5 py-2 text-sm font-semibold transition-all ${
-                    activeTab === tab
-                      ? "bg-stone-900 text-white shadow"
-                      : "text-stone-500 hover:text-stone-800"
-                  }`}
+                  className={`rounded-xl px-5 py-2 text-sm font-semibold transition-all ${activeTab === tab
+                    ? "bg-stone-900 text-white shadow"
+                    : "text-stone-500 hover:text-stone-800"
+                    }`}
                 >
                   {tab === "all" ? "All Services" : "My Bookings"}
                   {tab === "booked" && visibleBookedSpas.length > 0 && (
-                    <span className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
-                      activeTab === "booked" ? "bg-white/20" : "bg-stone-100 text-stone-600"
-                    }`}>
+                    <span className={`ml-2 rounded-full px-2 py-0.5 text-xs ${activeTab === "booked" ? "bg-white/20" : "bg-stone-100 text-stone-600"
+                      }`}>
                       {visibleBookedSpas.length}
                     </span>
                   )}
@@ -339,8 +347,8 @@ export default function SpaPage() {
                               {spa.isInclusive
                                 ? "✓ Inclusive"
                                 : spa.discountValue
-                                ? `${spa.currencyCode || "AED"} ${spa.discountValue}`
-                                : "—"}
+                                  ? `${spa.currencyCode || "AED"} ${spa.discountValue}`
+                                  : "—"}
                             </span>
                           </div>
 
@@ -474,11 +482,10 @@ export default function SpaPage() {
                                   return (
                                     <div
                                       key={sb?.id || idx}
-                                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${
-                                        isSlotCancelled
-                                          ? "border-red-100 bg-red-50/50"
-                                          : "border-stone-100 bg-stone-50"
-                                      }`}
+                                      className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${isSlotCancelled
+                                        ? "border-red-100 bg-red-50/50"
+                                        : "border-stone-100 bg-stone-50"
+                                        }`}
                                     >
                                       <div>
                                         {slotDate && (

@@ -120,8 +120,11 @@ export default function SpaBookingDialog({
     setSelectedSlots((prev) => {
       const exists = prev.some((s) => s.slotId === slot.id);
       if (exists) {
-        return prev.filter((s) => s.slotId !== slot.id);
+        const next = prev.filter((s) => s.slotId !== slot.id);
+        if (next.length === 0) setConfirmOpen(false);  // ← hide panel when empty
+        return next;
       }
+      setConfirmOpen(true);  // ← show panel when adding
       return [
         ...prev,
         {
@@ -334,8 +337,7 @@ export default function SpaBookingDialog({
 
                       <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-2">
                         <p className="text-xs font-medium text-gray-700">
-                          {selectedSlots.length} activity(ies) selected
-                        </p>
+                          {selectedSlots.length} {selectedSlots.length === 1 ? "activity" : "activities"} selected                        </p>
                         <div>
                           <label className="text-[11px] text-gray-500 mb-1 block">Guest name</label>
                           <input

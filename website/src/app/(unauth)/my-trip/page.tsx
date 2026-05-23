@@ -22,6 +22,7 @@ import { HiOutlineViewGridAdd } from "react-icons/hi";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
 import SpaBookingDialog from "@/src/components/loyalty/SpaBookingDialog";
 import { getAvailableSpasApi } from "../../(auth)/profile/api/profile.api";
+import ImageUploadModal from "@/src/components/ImageUploadModal";
 
 type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 
@@ -40,6 +41,7 @@ export default function MyTripPage() {
   const [isSpaDialogOpen, setIsSpaDialogOpen] = useState(false);
   const [availableSpas, setAvailableSpas] = useState<any[]>([]);
   const [spasLoading, setSpasLoading] = useState(false);
+  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
   const [checkinForm, setCheckinForm] = useState({
     userIdentityCardType: "national_id",
     identityCardNumber: "",
@@ -48,6 +50,7 @@ export default function MyTripPage() {
     state: "",
     country: "",
     zipCode: "",
+    identityCardImage: "",
   });
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -1199,7 +1202,7 @@ export default function MyTripPage() {
 
       {isCheckinDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-900">Online Check-In</h3>
               <button
@@ -1210,35 +1213,34 @@ export default function MyTripPage() {
               </button>
             </div>
 
-            <form onSubmit={handleCheckInSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">ID Type <span className="text-red-500">*</span></label>
-                  <select
-                    value={checkinForm.userIdentityCardType}
-                    onChange={(e) => setCheckinForm({ ...checkinForm, userIdentityCardType: e.target.value as userIdentityCardType })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
-                    required
-                  >
-                    <option value="national_id">National ID</option>
-                    <option value="passport">Passport</option>
-                    <option value="drivers_license">Driver's License</option>
-                    <option value="others">Other</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">ID Number <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    value={checkinForm.identityCardNumber}
-                    onChange={(e) => setCheckinForm({ ...checkinForm, identityCardNumber: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
-                    required
-                    placeholder="Enter ID number"
-                  />
-                </div>
+            <form id="checkin-form" onSubmit={handleCheckInSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-600">ID Type <span className="text-red-500">*</span></label>
+                <select
+                  value={checkinForm.userIdentityCardType}
+                  onChange={(e) => setCheckinForm({ ...checkinForm, userIdentityCardType: e.target.value as userIdentityCardType })}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  required
+                >
+                  <option value="national_id">National ID</option>
+                  <option value="passport">Passport</option>
+                  <option value="drivers_license">Driver's License</option>
+                  <option value="others">Other</option>
+                </select>
               </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-600">ID Number <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={checkinForm.identityCardNumber}
+                  onChange={(e) => setCheckinForm({ ...checkinForm, identityCardNumber: e.target.value })}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  required
+                  placeholder="Enter ID number"
+                />
+              </div>
+            </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-gray-600">Address</label>
@@ -1292,25 +1294,43 @@ export default function MyTripPage() {
                   />
                 </div>
               </div>
-
-              <div className="pt-4 flex gap-3 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setIsCheckinDialogOpen(false)}
-                  className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCheckingIn}
-                  className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                  style={{ background: colors.primaryColor }}
-                >
-                  {isCheckingIn ? "Processing..." : "Complete Check-In"}
-                </button>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-600">Identity Image</label>
+                <div className="flex gap-2 items-center">
+                  {checkinForm.identityCardImage && (
+                    <img src={checkinForm.identityCardImage} alt="Identity" className="w-12 h-12 object-cover rounded-md border" />
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsImageUploadModalOpen(true)}
+                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm"
+                  >
+                    Upload
+                  </button>
+                </div>
               </div>
+
+              <div className="pt-4 flex gap-3 justify-end"></div>
             </form>
+
+            <div className="px-6 py-4 border-t border-gray-100 flex gap-3 justify-end bg-white">
+              <button
+                type="button"
+                onClick={() => setIsCheckinDialogOpen(false)}
+                className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="checkin-form"
+                disabled={isCheckingIn}
+                className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                style={{ background: colors.primaryColor }}
+              >
+                {isCheckingIn ? "Processing..." : "Complete Check-In"}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1362,6 +1382,15 @@ export default function MyTripPage() {
           reservationId={bookingData.id}
           guestName={bookingData.guests?.[0] ? `${bookingData.guests[0].firstName} ${bookingData.guests[0].lastName}` : ""}
           onClose={() => setIsSpaDialogOpen(false)}
+        />
+      )}
+      {isImageUploadModalOpen && (
+        <ImageUploadModal
+          isOpen={isImageUploadModalOpen}
+          onClose={() => setIsImageUploadModalOpen(false)}
+          onUploadSuccess={(urls: string[]) =>
+            setCheckinForm({ ...checkinForm, identityCardImage: urls[0] })
+          }
         />
       )}
     </div>

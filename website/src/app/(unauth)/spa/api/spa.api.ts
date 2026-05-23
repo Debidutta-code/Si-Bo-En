@@ -35,10 +35,10 @@ export const createSpaReservationApi = async (
  */
 export const cancelSpaReservationApi = async (
   bookingId: string,
-  spaSlotId?: string,
+  spaSlotsId?: string,
 ): Promise<ISpaApiResponse> => {
     try {
-        const body = spaSlotId ? { spaSlotId } : {};
+        const body = spaSlotsId ? { spaSlotsId } : {};
         const response = await axios.put(
           `${SPA_BASE}/reservation/cancel/${encodeURIComponent(bookingId)}`,
           body,

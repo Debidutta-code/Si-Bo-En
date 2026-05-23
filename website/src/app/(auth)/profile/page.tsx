@@ -67,8 +67,22 @@ export default function ProfileHomePage() {
 
   return (
     <div className="space-y-6">
-
-      {/* ── Member card */}
+      <div className="mb-6 flex items-center justify-between">
+        <h2 className="text-[18px] font-bold text-[#1a1a1a]">My Profile</h2>
+        <button
+          onClick={() => {
+            const storedPropertyCode = sessionStorage.getItem("lastPropertyCode");
+            if (storedPropertyCode) {
+              router.push(`/Rooms?code=${storedPropertyCode}`);
+            } else {
+              router.push("/");
+            }
+          }}
+          className="inline-flex items-center rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50"
+        >
+          ← Homepage
+        </button>
+      </div>     {/* ── Member card */}
       <div className="rounded-2xl overflow-hidden" style={{
         boxShadow: "0 8px 32px rgba(21,149,162,0.2)",
         background: "linear-gradient(90deg, #0d7a87 0%, #1fc8d8 40%, #1595A2 60%, #0d7a87 100%)",

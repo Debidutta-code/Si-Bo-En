@@ -19,7 +19,7 @@ export default function MySpa() {
     const { propertyId } = useParams();
     const [loader, setLoader] = useState<ILoader>({ isLoading: false, message: "" });
     const [spas, setSpas] = useState<ISpa[]>([]);
-    
+
     const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
         start: startOfDay(new Date()),
         end: endOfDay(new Date())
@@ -36,7 +36,7 @@ export default function MySpa() {
         try {
             const startISO = format(dateRange.start, "yyyy-MM-dd'T'HH:mm:ss");
             const endISO = format(dateRange.end, "yyyy-MM-dd'T'HH:mm:ss");
-            
+
             const result = await SpasForUserService(propertyId, startISO, endISO);
             if (result.success) {
                 setSpas(result.data || []);
@@ -71,13 +71,13 @@ export default function MySpa() {
         }
     };
 
-const formatTime = (dateObj: Date | string) => {
-    return formatInTimeZone(new Date(dateObj), "UTC", "hh:mm a");
-};
+    const formatTime = (dateObj: Date | string) => {
+        return formatInTimeZone(new Date(dateObj), "UTC", "hh:mm a");
+    };
 
-const formatDate = (dateObj: Date | string) => {
-    return formatInTimeZone(new Date(dateObj), "UTC", "EEE, MMM do yyyy");
-};
+    const formatDate = (dateObj: Date | string) => {
+        return formatInTimeZone(new Date(dateObj), "UTC", "EEE, MMM do yyyy");
+    };
 
     return (
         <div className="container mx-auto py-8">
@@ -168,6 +168,7 @@ const formatDate = (dateObj: Date | string) => {
                                     </div>
                                 </CardHeader>
                                 
+
                                 <CardContent className="p-0">
                                     {/* @ts-ignore - SpaDates mapping assuming API sends dates aligned in this structure */}
                                     {spa.SpaDates && spa.SpaDates.length > 0 ? (
@@ -219,7 +220,13 @@ const formatDate = (dateObj: Date | string) => {
                                                                             <div className="flex flex-col gap-2 mt-2 pt-2 border-t text-sm flex-grow">
                                                                                 <div className="flex flex-col gap-1 text-gray-600">
                                                                                     <span><strong>{t('Spa.slots.guest')}</strong> {slot.userName || t('Spa.table.na')}</span>
-                                                                                    {slot.Reservation?.bookingCode && <span><strong>{t('Spa.slots.code')}</strong> {slot.Reservation.bookingCode}</span>}
+                                                                                    {slot.Reservation?.bookingCode && <span><strong>{t('Spa.slots.code')}</strong> {slot.Reservation.bookingCode.split("-")[1]}</span>}
+                                                                                    {spa.discountValue && (
+                                                                                        <span><strong>Price:</strong> {spa.currencyCode || "AED"} {spa.discountValue}</span>
+                                                                                    )}
+                                                                                    {spa.isInclusive && (
+                                                                                        <span><strong>Price:</strong> Inclusive</span>
+                                                                                    )}
                                                                                 </div>
                                                                                 <div className="mt-auto pt-2">
                                                                                     <button 
@@ -236,6 +243,12 @@ const formatDate = (dateObj: Date | string) => {
                                                                                 <div className="flex flex-col gap-1 text-gray-600">
                                                                                     <span><strong>{t('Spa.slots.guest')}</strong> {slot.userName || t('Spa.table.na')}</span>
                                                                                     {slot.Reservation?.bookingCode && <span><strong>{t('Spa.slots.code')}</strong> {slot.Reservation.bookingCode}</span>}
+                                                                                     {spa.discountValue && (
+                                                                                        <span><strong>Price:</strong> {spa.currencyCode || "AED"} {spa.discountValue}</span>
+                                                                                    )}
+                                                                                    {spa.isInclusive && (
+                                                                                        <span><strong>Price:</strong> Inclusive</span>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
                                                                         )}

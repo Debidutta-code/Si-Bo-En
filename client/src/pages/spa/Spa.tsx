@@ -446,7 +446,74 @@ const [editIsActive,setEditIsActive]=useState(false)
           <DialogHeader>
             <DialogTitle>{t('Spa.editDialog.title')}</DialogTitle>
           </DialogHeader>
-          {renderFormFields()}
+          {/* Reusing fields for brevity in this block */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Item Code</Label>
+              <Input value={formData.itemCode} onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })} />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label>Description</Label>
+              <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Service Time (mins)</Label>
+              <Input type="number" value={formData.serviceTime} onChange={(e) => setFormData({ ...formData, serviceTime: Number(e.target.value) })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Location</Label>
+              <Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
+            </div>
+            {!formData.isInclusive && (
+              <>
+                <div className="space-y-2">
+                  <Label>Discount Value</Label>
+                  <Input type="number" value={formData.discountValue || ''} onChange={(e) => setFormData({ ...formData, discountValue: e.target.value ? Number(e.target.value) : null })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Currency Code</Label>
+                  <select className="w-full border rounded-md p-2" value={formData.currencyCode || ''} onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value as CurrencyCode || null })}>
+                    <option value="">Select Currency</option>
+                    {currencies.map(c => <option key={c.code} value={c.code}>{c.code} - {c.name} ({c.symbol})</option>)}
+                  </select>
+                </div>
+              </>
+            )}
+            <div className="col-span-2 flex items-center space-x-6">
+              <div className="flex items-center space-x-2">
+                <Switch checked={formData.isInclusive} onCheckedChange={(checked) => setFormData({ ...formData, isInclusive: checked })} />
+                <Label>Is Inclusive</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch checked={formData.isActive} onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })} />
+                <Label>Is Active</Label>
+              </div>
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label>Images</Label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {formData.images.map((img, i) => (
+                  <div key={i} className="relative w-20 h-20 border rounded-md overflow-hidden">
+                    <img src={img} alt="spa" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(i)}
+                      className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white rounded-bl-md p-1"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <Button variant="outline" onClick={() => setIsImageUploadOpen(true)} type="button">
+                Upload Images
+              </Button>
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>{t('Spa.form.cancel')}</Button>
             <Button onClick={handleUpdate}>{t('Spa.form.update')}</Button>
