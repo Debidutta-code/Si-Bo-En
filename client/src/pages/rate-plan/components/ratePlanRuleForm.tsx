@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -73,6 +74,7 @@ export default function RatePlanRulesDialog({
   existingRule,
   onSuccess,
 }: RatePlanRulesDialogProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<RatePlanRuleFormData>({
     startDate: null,
     endDate: null,
@@ -121,37 +123,37 @@ export default function RatePlanRulesDialog({
   const handleSubmit = async () => {
     // Validation
     if (formData.minLos < 1) {
-      toast.error("Minimum LOS must be at least 1");
+      toast.error(t("RatePlanManagement.rules.minLosError"));
       return;
     }
 
     if (formData.maxLos !== null && formData.maxLos < formData.minLos) {
-      toast.error("Maximum LOS must be greater than or equal to Minimum LOS");
+      toast.error(t("RatePlanManagement.rules.maxLosError"));
       return;
     }
 
     if (formData.startDate && formData.endDate && formData.endDate < formData.startDate) {
-      toast.error("End date must be after start date");
+      toast.error(t("RatePlanManagement.rules.endDateError"));
       return;
     }
 
     if (formData.discountType && !formData.discountValue) {
-      toast.error("Please enter a discount value");
+      toast.error(t("RatePlanManagement.rules.discountValueError"));
       return;
     }
 
     if (formData.discountValue && !formData.discountType) {
-      toast.error("Please select a discount type");
+      toast.error(t("RatePlanManagement.rules.discountTypeError"));
       return;
     }
 
     if (formData.discountType === "percentage" && formData.discountValue && formData.discountValue > 100) {
-      toast.error("Percentage discount cannot exceed 100%");
+      toast.error(t("RatePlanManagement.rules.percentageError"));
       return;
     }
 
     if (formData.discountValue && formData.discountValue < 0) {
-      toast.error("Discount value cannot be negative");
+      toast.error(t("RatePlanManagement.rules.negativeError"));
       return;
     }
 
@@ -181,17 +183,17 @@ export default function RatePlanRulesDialog({
         toast.success(
           response.message ||
           (existingRule
-            ? "Rate plan rule updated successfully"
-            : "Rate plan rule created successfully")
+            ? t("RatePlanManagement.rules.ruleUpdatedSuccess")
+            : t("RatePlanManagement.rules.ruleCreatedSuccess"))
         );
         onSuccess();
         onOpenChange(false);
       } else {
-        toast.error(response.message || "Failed to save rate plan rule");
+        toast.error(response.message || t("RatePlanManagement.rules.failedToSaveRule"));
       }
     } catch (error) {
       console.error("Error saving rate plan rule:", error);
-      toast.error("Failed to save rate plan rule");
+      toast.error(t("RatePlanManagement.rules.failedToSaveRule"));
     } finally {
       setIsSubmitting(false);
     }
@@ -206,23 +208,23 @@ export default function RatePlanRulesDialog({
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {existingRule ? "Edit" : "Add"} Rate Plan Rules
+            {existingRule ? t("RatePlanManagement.rules.editTitle") : t("RatePlanManagement.rules.addTitle")}
           </DialogTitle>
           <DialogDescription>
-            Configure rules for <span className="font-semibold">{ratePlanName}</span>
+            {t("RatePlanManagement.rules.configureRules", { name: ratePlanName })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
           {/* Date Range Section */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700">Date Range (Optional)</h3>
-            <p className="text-xs text-gray-500">Leave empty for rules that apply year-round</p>
+            <h3 className="text-sm font-semibold text-gray-700">{t("RatePlanManagement.rules.dateRange")}</h3>
+            <p className="text-xs text-gray-500">{t("RatePlanManagement.rules.dateRangeDesc")}</p>
 
             <div className="grid grid-cols-2 gap-4">
               {/* Start Date */}
               <div className="grid gap-2">
-                <Label htmlFor="startDate">Start Date</Label>
+                <Label htmlFor="startDate">{t("RatePlanManagement.rules.startDate")}</Label>
                 <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -234,7 +236,7 @@ export default function RatePlanRulesDialog({
                       {formData.startDate ? (
                         format(formData.startDate, "PPP")
                       ) : (
-                        <span>Pick a date</span>
+                        <span>{t("RatePlanManagement.rules.pickDate")}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -254,7 +256,7 @@ export default function RatePlanRulesDialog({
 
               {/* End Date */}
               <div className="grid gap-2">
-                <Label htmlFor="endDate">End Date</Label>
+                <Label htmlFor="endDate">{t("RatePlanManagement.rules.endDate")}</Label>
                 <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -266,7 +268,7 @@ export default function RatePlanRulesDialog({
                       {formData.endDate ? (
                         format(formData.endDate, "PPP")
                       ) : (
-                        <span>Pick a date</span>
+                        <span>{t("RatePlanManagement.rules.pickDate")}</span>
                       )}
                     </Button>
                   </PopoverTrigger>
@@ -291,13 +293,13 @@ export default function RatePlanRulesDialog({
 
           {/* Length of Stay Section */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700">Length of Stay</h3>
+            <h3 className="text-sm font-semibold text-gray-700">{t("RatePlanManagement.rules.lengthOfStay")}</h3>
 
             <div className="grid grid-cols-2 gap-4">
               {/* Min LOS */}
               <div className="grid gap-2">
                 <Label htmlFor="minLos">
-                  Minimum LOS <span className="text-red-500">*</span>
+                  {t("RatePlanManagement.rules.minimumLos")} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="minLos"
@@ -309,12 +311,12 @@ export default function RatePlanRulesDialog({
                   }
                   placeholder="1"
                 />
-                <p className="text-xs text-gray-500">Must be at least 1 night</p>
+                <p className="text-xs text-gray-500">{t("RatePlanManagement.rules.minimumLosNote")}</p>
               </div>
 
               {/* Max LOS */}
               <div className="grid gap-2">
-                <Label htmlFor="maxLos">Maximum LOS</Label>
+                <Label htmlFor="maxLos">{t("RatePlanManagement.rules.maximumLos")}</Label>
                 <Input
                   id="maxLos"
                   type="number"
@@ -326,21 +328,21 @@ export default function RatePlanRulesDialog({
                       maxLos: e.target.value ? parseInt(e.target.value) : null,
                     })
                   }
-                  placeholder="No limit"
+                  placeholder={t("RatePlanManagement.rules.maximumLosPlaceholder")}
                 />
-                <p className="text-xs text-gray-500">Leave empty for no limit</p>
+                <p className="text-xs text-gray-500">{t("RatePlanManagement.rules.maximumLosNote")}</p>
               </div>
             </div>
           </div>
 
           {/* Discount Section */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700">Discount (Optional)</h3>
+            <h3 className="text-sm font-semibold text-gray-700">{t("RatePlanManagement.rules.discount")}</h3>
 
             <div className="grid grid-cols-2 gap-4">
               {/* Discount Type */}
               <div className="grid gap-2">
-                <Label htmlFor="discountType">Discount Type</Label>
+                <Label htmlFor="discountType">{t("RatePlanManagement.rules.discountType")}</Label>
                 <Select
                   value={formData.discountType || ""}
                   onValueChange={(value) =>
@@ -351,12 +353,12 @@ export default function RatePlanRulesDialog({
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
+                    <SelectValue placeholder={t("RatePlanManagement.rules.selectType")} />
                   </SelectTrigger>
                   <SelectContent>
                     {DISCOUNT_TYPES.map((type) => (
                       <SelectItem key={type.value} value={type.value}>
-                        {type.label}
+                        {type.value === "percentage" ? t("RatePlanManagement.rules.percentage") : t("RatePlanManagement.rules.flatAmount")}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -365,7 +367,7 @@ export default function RatePlanRulesDialog({
 
               {/* Discount Value */}
               <div className="grid gap-2">
-                <Label htmlFor="discountValue">Discount Value</Label>
+                <Label htmlFor="discountValue">{t("RatePlanManagement.rules.discountValue")}</Label>
                 <Input
                   id="discountValue"
                   type="number"
@@ -379,14 +381,14 @@ export default function RatePlanRulesDialog({
                       discountValue: e.target.value ? parseFloat(e.target.value) : null,
                     })
                   }
-                  placeholder={formData.discountType === "percentage" ? "0-100" : "Amount"}
+                  placeholder={formData.discountType === "percentage" ? t("RatePlanManagement.rules.percentagePlaceholder") : t("RatePlanManagement.rules.amountPlaceholder")}
                   disabled={!formData.discountType}
                 />
               </div>
               {formData.discountType === "flat" && (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="currencyCode">Currency Code</Label>
+                    <Label htmlFor="currencyCode">{t("RatePlanManagement.rules.currencyCode")}</Label>
                     <Select
                       value={formData.currencyCode}
                       onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
@@ -411,9 +413,9 @@ export default function RatePlanRulesDialog({
           {/* Active Status */}
           <div className="flex items-center justify-between space-x-2 pt-2">
             <div className="space-y-0.5">
-              <Label htmlFor="isActive">Active Rule</Label>
+              <Label htmlFor="isActive">{t("RatePlanManagement.rules.activeRule")}</Label>
               <p className="text-xs text-gray-500">
-                Enable or disable this rule
+                {t("RatePlanManagement.rules.activeRuleDesc")}
               </p>
             </div>
             <Switch
@@ -433,7 +435,7 @@ export default function RatePlanRulesDialog({
             onClick={handleCancel}
             disabled={isSubmitting}
           >
-            Cancel
+            {t("RatePlanManagement.rules.cancel")}
           </Button>
           <Button
             type="submit"
@@ -442,11 +444,11 @@ export default function RatePlanRulesDialog({
           >
             {isSubmitting
               ? existingRule
-                ? "Updating..."
-                : "Creating..."
+                ? t("RatePlanManagement.rules.updating")
+                : t("RatePlanManagement.rules.creating")
               : existingRule
-                ? "Update Rule"
-                : "Create Rule"}
+                ? t("RatePlanManagement.rules.updateRule")
+                : t("RatePlanManagement.rules.createRule")}
           </Button>
         </DialogFooter>
       </DialogContent>

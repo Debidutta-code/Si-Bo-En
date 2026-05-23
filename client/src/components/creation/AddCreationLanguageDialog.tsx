@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useTranslation } from "react-i18next";
 
 interface AddCreationLanguageDialogProps {
   open: boolean;
@@ -32,38 +33,39 @@ export default function AddCreationLanguageDialog({
   onOpenChange,
   creationId,
 }: AddCreationLanguageDialogProps) {
+  const { t } = useTranslation();
+
   const [selectedLang, setSelectedLang] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const propertyCtx = usePropertyContextSafe();
-  const availableLanguages = propertyCtx?.languages && propertyCtx.languages.length > 0
-    ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))
-    : languages;
+  const availableLanguages =
+    propertyCtx?.languages && propertyCtx.languages.length > 0
+      ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))
+      : languages;
 
   const handleSave = async () => {
     if (!selectedLang) {
-      toast.error("Please select a language.");
+      toast.error(t("AddCreationLanguageDialog.toast.languageRequired"));
       return;
     }
     if (!name.trim()) {
-      toast.error("Translated name is required.");
+      toast.error(t("AddCreationLanguageDialog.toast.nameRequired"));
       return;
     }
 
     setLoading(true);
-    const payload = {
-      [selectedLang]: { name },
-    };
+    const payload = { [selectedLang]: { name } };
 
     const res = await upsertCreationTranslationService(creationId, payload);
     if (res.success) {
-      toast.success("Translation added successfully!");
+      toast.success(t("AddCreationLanguageDialog.toast.saveSuccess"));
       setName("");
       setSelectedLang("");
       onOpenChange(false);
     } else {
-      toast.error(res.message || "Failed to add translation.");
+      toast.error(res.message || t("AddCreationLanguageDialog.toast.saveFailed"));
     }
     setLoading(false);
   };
@@ -72,14 +74,15 @@ export default function AddCreationLanguageDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Name Translation</DialogTitle>
+          <DialogTitle>{t("AddCreationLanguageDialog.title")}</DialogTitle>
         </DialogHeader>
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Language</Label>
+            <Label>{t("AddCreationLanguageDialog.form.languageLabel")}</Label>
             <Select value={selectedLang} onValueChange={setSelectedLang}>
               <SelectTrigger>
-                <SelectValue placeholder="Select Language" />
+                <SelectValue placeholder={t("AddCreationLanguageDialog.form.languagePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 {availableLanguages.map((lang) => (
@@ -92,9 +95,9 @@ export default function AddCreationLanguageDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Translated Name</Label>
+            <Label>{t("AddCreationLanguageDialog.form.translatedNameLabel")}</Label>
             <Input
-              placeholder="e.g., Mi Grupo"
+              placeholder={t("AddCreationLanguageDialog.form.translatedNamePlaceholder")}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -103,10 +106,10 @@ export default function AddCreationLanguageDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-            Cancel
+            {t("AddCreationLanguageDialog.buttons.cancel")}
           </Button>
           <Button onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Save Translation"}
+            {loading ? t("AddCreationLanguageDialog.buttons.saving") : t("AddCreationLanguageDialog.buttons.save")}
           </Button>
         </DialogFooter>
       </DialogContent>

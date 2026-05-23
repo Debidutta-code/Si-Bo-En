@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import  type { IAddonSubCategory, IAddonSubCategoryCreate, IAddonCategory } from "../interface";
+import type { IAddonSubCategory, IAddonSubCategoryCreate, IAddonCategory } from "../interface";
 
 interface SubCategoryDialogProps {
     open: boolean;
@@ -28,14 +29,16 @@ interface SubCategoryDialogProps {
     mode: "create" | "edit";
 }
 
-export default function SubCategoryDialog({ 
-    open, 
-    onOpenChange, 
-    onSave, 
-    subCategory, 
+export default function SubCategoryDialog({
+    open,
+    onOpenChange,
+    onSave,
+    subCategory,
     categories,
-    mode 
+    mode,
 }: SubCategoryDialogProps) {
+    const { t } = useTranslation();
+
     const [formData, setFormData] = useState<IAddonSubCategoryCreate>({
         name: "",
         categoryId: "",
@@ -52,11 +55,11 @@ export default function SubCategoryDialog({
 
     const handleSave = async () => {
         await onSave(formData);
-        setFormData({ name: "",  categoryId: "" });
+        setFormData({ name: "", categoryId: "" });
     };
 
     const handleClose = () => {
-        setFormData({ name: "",  categoryId: "" });
+        setFormData({ name: "", categoryId: "" });
         onOpenChange(false);
     };
 
@@ -65,23 +68,21 @@ export default function SubCategoryDialog({
             <DialogContent className="max-w-md">
                 <DialogHeader>
                     <DialogTitle>
-                        {mode === "create" ? "Create New Subcategory" : "Edit Subcategory"}
+                        {mode === "create" ? t("Addon.SubCategoryDialog.title.create") : t("Addon.SubCategoryDialog.title.edit")}
                     </DialogTitle>
                     <DialogDescription>
-                        {mode === "create" 
-                            ? "Add a new subcategory" 
-                            : "Update subcategory details"}
+                        {mode === "create" ? t("Addon.SubCategoryDialog.description.create") : t("Addon.SubCategoryDialog.description.edit")}
                     </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                        <Label htmlFor="sub-category">Category *</Label>
+                        <Label htmlFor="sub-category">{t("Addon.SubCategoryDialog.form.categoryLabel")}</Label>
                         <Select
                             value={formData.categoryId}
                             onValueChange={(value) => setFormData({ ...formData, categoryId: value })}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select category" />
+                                <SelectValue placeholder={t("Addon.SubCategoryDialog.form.categoryPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {categories.map((cat) => (
@@ -93,10 +94,10 @@ export default function SubCategoryDialog({
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="sub-category-name">Subcategory Name *</Label>
+                        <Label htmlFor="sub-category-name">{t("Addon.SubCategoryDialog.form.nameLabel")}</Label>
                         <Input
                             id="sub-category-name"
-                            placeholder="e.g., Airport Transfer, Room Service"
+                            placeholder={t("Addon.SubCategoryDialog.form.namePlaceholder")}
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         />
@@ -104,13 +105,13 @@ export default function SubCategoryDialog({
                 </div>
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose}>
-                        Cancel
+                        {t("Addon.SubCategoryDialog.form.cancel")}
                     </Button>
-                    <Button 
-                        onClick={handleSave} 
+                    <Button
+                        onClick={handleSave}
                         disabled={!formData.name.trim() || !formData.categoryId}
                     >
-                        {mode === "create" ? "Create" : "Update"}
+                        {mode === "create" ? t("Addon.SubCategoryDialog.form.create") : t("Addon.SubCategoryDialog.form.update")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -65,7 +65,7 @@ export class ReservationRepository {
                     paidAmount: data.paidAmount,
                     platforms: data.platforms,
                     bookingUserPhone: data.bookingUserPhone,
-                    otaGuestId: data.otaGuestId,
+                    customerId: data.customerId,
                 },
             });
             return {
@@ -327,7 +327,7 @@ export class ReservationRepository {
                     hotelName: true,
                     paidAmount: true,
                     isPromoUsed: true,
-                    OtaGuest: true,
+                    Customers: true,
                     paymentImages: true,
                     paymentMethod: true,
                     SpaSlot: true,
@@ -380,7 +380,7 @@ export class ReservationRepository {
                         },
                     },
                     agencyId: true,
-                    otaGuestId: true,
+                    customerId: true,
                     primaryGuestId: true,
                     pricingBrakedownId: true,
                     reservationPromoCodes: true,
@@ -838,14 +838,14 @@ export class ReservationRepository {
             return await prisma.reservation.findMany({
                 where: {
                     OR: [
-                        { otaGuestId: guestId },
+                        { customerId: guestId },
                         { primaryGuestId: guestId }
                     ]
                 },
                 orderBy: { reservationStartDate: 'desc' },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
                     addOns: true,
                     reservationGuests: true,
                     PricingBrakeDown: {
@@ -856,18 +856,18 @@ export class ReservationRepository {
                             promotionBrakeDown: true,
                         }
                     },
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
                         }
                     },
-                    reservationPromoCodes:true,
+                    reservationPromoCodes: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
                     },
                 },
             });
@@ -1028,8 +1028,8 @@ export class PriceBrakeDownRepo {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to create price breakdowns: ${error.message}`
-                  )
+                    `Failed to create price breakdowns: ${error.message}`
+                )
                 : new Error('Failed to create Price Brake Downs');
         }
     }
@@ -1138,8 +1138,8 @@ export class PriceBrakeDownRepo {
             console.error('createFullPricingBreakdown error:', error);
             throw error instanceof Error
                 ? new Error(
-                      `Failed to create full pricing breakdown: ${error.message}`
-                  )
+                    `Failed to create full pricing breakdown: ${error.message}`
+                )
                 : new Error('Failed to create full pricing breakdown');
         }
     }
@@ -1254,8 +1254,8 @@ export class PriceBrakeDownRepo {
             console.error('replacePricingBreakdown error:', error);
             throw error instanceof Error
                 ? new Error(
-                      `Failed to replace pricing breakdown: ${error.message}`
-                  )
+                    `Failed to replace pricing breakdown: ${error.message}`
+                )
                 : new Error('Failed to replace pricing breakdown');
         }
     }
@@ -1293,8 +1293,8 @@ export class AriManupulationRepo {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to decrease Available Rooms: ${error.message}`
-                  )
+                    `Failed to decrease Available Rooms: ${error.message}`
+                )
                 : new Error('Failed to decrease Available Rooms');
         }
     }
@@ -1318,8 +1318,8 @@ export class AriManupulationRepo {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to increase Available Rooms: ${error.message}`
-                  )
+                    `Failed to increase Available Rooms: ${error.message}`
+                )
                 : new Error('Failed to increase Available Rooms');
         }
     }
@@ -1398,8 +1398,8 @@ export class AriManupulationRepo {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to fetch active integration: ${error.message}`
-                  )
+                    `Failed to fetch active integration: ${error.message}`
+                )
                 : new Error('Failed to fetch active integration');
         }
     }
@@ -1417,14 +1417,16 @@ export class GuestRepository {
 
     public async createGuest(data: ICPrimaryGuest) {
         try {
-            return await prisma.guests.create({ data:{
-                firstName: data.firstName,
-                lastName: data.lastName,
-                email: data.email,
-                phoneNumber: data.phoneNumber,
-                propertyId: data.propertyId,
-                userType: data.userType,
-            } });
+            return await prisma.guests.create({
+                data: {
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    email: data.email,
+                    phoneNumber: data.phoneNumber,
+                    propertyId: data.propertyId,
+                    userType: data.userType,
+                }
+            });
         } catch (error) {
             throw error instanceof Error
                 ? new Error(`Failed to create guest: ${error.message}`)
@@ -1439,7 +1441,7 @@ export class GuestRepository {
         try {
             return await prisma.guests.update({
                 where: { id: guestId },
-                data: { 
+                data: {
                     address: details.address,
                     city: details.city,
                     country: details.country,
@@ -1449,7 +1451,7 @@ export class GuestRepository {
                     state: details.state,
                     zipCode: details.zipCode,
 
-                 },
+                },
             });
         } catch (error) {
             throw error instanceof Error
@@ -1649,7 +1651,7 @@ export interface ILoyaltyLevel {
 
 export interface ICreationGuest {
     id: string;
-    loyalityGuestId: string;
+    customerId: string;
     creationLoyaltyConfigId: string;
     noOfBookings: number;
     guestLevel: number;
@@ -1658,15 +1660,15 @@ export interface ICreationGuest {
 
 export class LoyaltyRepository {
     public async getCreationGuest(
-        loyalityGuestId: string,
+        customerId: string,
         creationLoyaltyConfigId: string
     ): Promise<ICreationGuest | null> {
         try {
             return await prisma.creationGuest.findUnique({
                 where: {
-                    creationLoyaltyConfigId_loyalityGuestId: {
+                    creationLoyaltyConfigId_customerId: {
                         creationLoyaltyConfigId,
-                        loyalityGuestId,
+                        customerId,
                     },
                 },
             });
@@ -1732,8 +1734,8 @@ export class LoyaltyRepository {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to increment loyalty bookings: ${error.message}`
-                  )
+                    `Failed to increment loyalty bookings: ${error.message}`
+                )
                 : new Error('Failed to increment loyalty bookings');
         }
     }
@@ -1743,15 +1745,15 @@ export class LoyaltyRepository {
         creationLoyaltyConfigId: string
     ): Promise<void> {
         try {
-            // 1. find the loyalty account by email
-            const loyalityGuest = await prisma.loyalityGuest.findUnique({
-                where: { guestEmail },
+            // 1. find the customer (loyalty account) by email
+            const customer = await prisma.customers.findUnique({
+                where: { email: guestEmail },
             });
-            if (!loyalityGuest) return; // not enrolled – nothing to do
+            if (!customer) return; // not enrolled – nothing to do
 
             // 2. find the programme-specific record
             const creationGuest = await this.getCreationGuest(
-                loyalityGuest.id,
+                customer.id,
                 creationLoyaltyConfigId
             );
             if (!creationGuest) return; // enrolled globally but not in this programme
@@ -1783,8 +1785,8 @@ export class AgencyCommissionRepository {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to create agency commission: ${error.message}`
-                  )
+                    `Failed to create agency commission: ${error.message}`
+                )
                 : new Error('Failed to create agency commission');
         }
     }
@@ -1799,8 +1801,8 @@ export class AgencyCommissionRepository {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to fetch agency commission: ${error.message}`
-                  )
+                    `Failed to fetch agency commission: ${error.message}`
+                )
                 : new Error('Failed to fetch agency commission');
         }
     }
@@ -1813,8 +1815,8 @@ export class AgencyCommissionRepository {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to delete agency commission: ${error.message}`
-                  )
+                    `Failed to delete agency commission: ${error.message}`
+                )
                 : new Error('Failed to delete agency commission');
         }
     }

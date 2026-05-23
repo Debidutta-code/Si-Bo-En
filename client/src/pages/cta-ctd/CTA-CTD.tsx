@@ -5,8 +5,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "@/components/axiosInstance";
 import RestrictionsPage from "./components/RestrictionsPage";
+import { useTranslation } from "react-i18next";
 
 export default function RestrictionsPageWrapper() {
+        const { t } = useTranslation('CTACTD');
+
     const { propertyId } = useParams<{ propertyId: string }>();
     const [propertyCode, setPropertyCode] = useState<string>("");
     const [isLoading, setIsLoading] = useState(true);
@@ -39,7 +42,7 @@ export default function RestrictionsPageWrapper() {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <div className="text-center py-12">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-                        <p className="mt-4 text-gray-600">Loading property data...</p>
+                        <p className="mt-4 text-gray-600">{t('loadingPropertyData')}</p>
                     </div>
                 </div>
             </div>
@@ -51,7 +54,7 @@ export default function RestrictionsPageWrapper() {
             <div className="container mx-auto py-8 px-4">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <div className="text-center py-12">
-                        <p className="text-red-600">Property not found</p>
+                        <p className="text-red-600">{t('propertyNotFound')}</p>
                     </div>
                 </div>
             </div>

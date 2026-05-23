@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Plus, Pencil, Trash2, Smartphone, Monitor, Tablet, Languages } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
 import { Button } from "@/components/ui/button";
@@ -31,12 +32,13 @@ import {
 import { languages } from "@/components/language/language";
 
 export default function PromoCodePage() {
+    const { t } = useTranslation();
     const { propertyId } = useParams<{ propertyId: string }>();
-        const { languages: propertyLanguages } = usePropertyContext();
-        const availableLanguages = propertyLanguages && propertyLanguages.length > 0
-            ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
-            : languages;
-    
+    const { languages: propertyLanguages } = usePropertyContext();
+    const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+        ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+        : languages;
+
     const [loading, setLoading] = useState<{
         isLoading: boolean;
         text: string;
@@ -60,7 +62,7 @@ export default function PromoCodePage() {
     const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
     const [editTranslationOpen, setEditTranslationOpen] = useState(false);
     const [editingLocale, setEditingLocale] = useState<string>("");
-    const [editingData, setEditingData] = useState<Record<string, any>>({}); 
+    const [editingData, setEditingData] = useState<Record<string, any>>({});
 
     const [formData, setFormData] = useState<ICreatePromoCode>({
         name: "",
@@ -96,16 +98,16 @@ export default function PromoCodePage() {
 
     const fetchPromoCodes = async () => {
         if (!propertyId) return;
-        setLoading({ isLoading: true, text: "Loading promo codes..." });
+        setLoading({ isLoading: true, text: t("PromoCode.loadingPromoCodes") });
         try {
             const response = await fetchPromoCodesService(propertyId);
             if (response.success) {
                 setPromoCodes(response.data || []);
             } else {
-                toast.error(response.message || "Failed to fetch promo codes");
+                toast.error(response.message || t("PromoCode.failedToFetchPromoCodes"));
             }
         } catch (error) {
-            toast.error("An error occurred while fetching promo codes");
+            toast.error(t("PromoCode.errorFetchingPromoCodes"));
         } finally {
             setLoading({ isLoading: false, text: "" });
         }
@@ -119,7 +121,7 @@ export default function PromoCodePage() {
                 setRoomTypes(response.data || []);
             }
         } catch (error) {
-            console.error("Failed to fetch room types", error);
+            console.error(t("PromoCode.failedToFetchRoomTypes"), error);
         }
     };
 
@@ -131,12 +133,12 @@ export default function PromoCodePage() {
                 setRatePlans(response.data || []);
             }
         } catch (error) {
-            console.error("Failed to fetch rate plans", error);
+            console.error(t("PromoCode.failedToFetchRatePlans"), error);
         }
     };
 
     const handleCreateOrUpdate = async () => {
-        setLoading({ isLoading: true, text: editingPromoCode ? "Updating promo code..." : "Creating promo code..." });
+        setLoading({ isLoading: true, text: editingPromoCode ? t("PromoCode.updatingPromoCode") : t("PromoCode.creatingPromoCode") });
         try {
             let response;
             if (editingPromoCode) {
@@ -146,15 +148,15 @@ export default function PromoCodePage() {
             }
 
             if (response.success) {
-                toast.success(editingPromoCode ? "Promo code updated successfully" : "Promo code created successfully");
+                toast.success(editingPromoCode ? t("PromoCode.promoCodeUpdated") : t("PromoCode.promoCodeCreated"));
                 setIsDialogOpen(false);
                 resetForm();
                 fetchPromoCodes();
             } else {
-                toast.error(response.message || "Failed to save promo code");
+                toast.error(response.message || t("PromoCode.failedToSavePromoCode"));
             }
         } catch (error) {
-            toast.error("An error occurred while saving promo code");
+            toast.error(t("PromoCode.errorSavingPromoCode"));
         } finally {
             setLoading({ isLoading: false, text: "" });
         }
@@ -163,17 +165,17 @@ export default function PromoCodePage() {
     const handleDelete = async (id: string) => {
         if (!propertyId) return;
 
-        setLoading({ isLoading: true, text: "Deleting promo code..." });
+        setLoading({ isLoading: true, text: t("PromoCode.deletingPromoCode") });
         try {
             const response = await deletePromoCodeService(propertyId, id);
             if (response.success) {
-                toast.success("Promo code deleted successfully");
+                toast.success(t("PromoCode.promoCodeDeleted"));
                 fetchPromoCodes();
             } else {
-                toast.error(response.message || "Failed to delete promo code");
+                toast.error(response.message || t("PromoCode.failedToDeletePromoCode"));
             }
         } catch (error) {
-            toast.error("An error occurred while deleting promo code");
+            toast.error(t("PromoCode.errorDeletingPromoCode"));
         } finally {
             setLoading({ isLoading: false, text: "" });
             setDeleteDialogOpen(false);
@@ -260,7 +262,7 @@ export default function PromoCodePage() {
     if (loading.isLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
-                <Loader text="Loading promo codes..." />
+                <Loader text={t("PromoCode.loadingPromoCodes")} />
             </div>
         );
     }
@@ -270,8 +272,8 @@ export default function PromoCodePage() {
             <div className="flex items-center justify-between">
                 <div>
                     <BackButton />
-                    <h1 className="text-3xl font-bold mt-2">Promo Codes</h1>
-                    <p className="text-muted-foreground">Manage promotional codes for your property</p>
+                    <h1 className="text-3xl font-bold mt-2">{t("PromoCode.title")}</h1>
+                    <p className="text-muted-foreground">{t("PromoCode.managePromoCodes")}</p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={(open) => {
                     setIsDialogOpen(open);
@@ -280,23 +282,23 @@ export default function PromoCodePage() {
                     <DialogTrigger asChild>
                         <Button>
                             <Plus className="mr-2 h-4 w-4" />
-                            Create Promo Code
+                            {t("PromoCode.createPromoCode")}
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
-                            <DialogTitle>{editingPromoCode ? "Edit Promo Code" : "Create New Promo Code"}</DialogTitle>
+                            <DialogTitle>{editingPromoCode ? t("PromoCode.editPromoCode") : t("PromoCode.createNewPromoCode")}</DialogTitle>
                             <DialogDescription>
-                                {editingPromoCode ? "Update the promo code details" : "Fill in the details to create a new promo code"}
+                                {editingPromoCode ? t("PromoCode.updatePromoCodeDetails") : t("PromoCode.fillDetailsToCreate")}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-6 py-4">
                             {/* Basic Information */}
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Basic Information</h3>
+                                <h3 className="text-lg font-semibold">{t("PromoCode.basicInformation")}</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="name">Promo Name *</Label>
+                                        <Label htmlFor="name">{t("PromoCode.promoName")} *</Label>
                                         <Input
                                             id="name"
                                             value={formData.name}
@@ -305,7 +307,7 @@ export default function PromoCodePage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="code">Promo Code * (8-12 characters)</Label>
+                                        <Label htmlFor="code">{t("PromoCode.promoCodeChars")}</Label>
                                         <Input
                                             id="code"
                                             value={formData.code}
@@ -316,12 +318,12 @@ export default function PromoCodePage() {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="description">Description</Label>
+                                    <Label htmlFor="description">{t("PromoCode.description")}</Label>
                                     <Textarea
                                         id="description"
                                         value={formData.description || ""}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        placeholder="Describe the promo code offer"
+                                        placeholder={t("PromoCode.describePromoCode")}
                                         rows={3}
                                     />
                                 </div>
@@ -331,10 +333,10 @@ export default function PromoCodePage() {
 
                             {/* Discount Configuration */}
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Discount Configuration</h3>
+                                <h3 className="text-lg font-semibold">{t("PromoCode.discountConfiguration")}</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="discountType">Discount Type</Label>
+                                        <Label htmlFor="discountType">{t("PromoCode.discountType")}</Label>
                                         <Select
                                             value={formData.discountType}
                                             onValueChange={(value: DiscountType) => setFormData({ ...formData, discountType: value })}
@@ -343,14 +345,14 @@ export default function PromoCodePage() {
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="percentage">Percentage</SelectItem>
-                                                <SelectItem value="flat">Flat Amount</SelectItem>
+                                                <SelectItem value="percentage">{t("PromoCode.percentage")}</SelectItem>
+                                                <SelectItem value="flat">{t("PromoCode.flatAmount")}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="discountValue">
-                                            Discount Value {formData.discountType === "percentage" ? "(%)" : "($)"}
+                                            {t("PromoCode.discountValue")} {formData.discountType === "percentage" ? "(%)" : "($)"}
                                         </Label>
                                         <Input
                                             id="discountValue"
@@ -366,7 +368,7 @@ export default function PromoCodePage() {
                                     formData.discountType === "flat" && (
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="currencyCode">Currency Code</Label>
+                                            <Label htmlFor="currencyCode">{t("PromoCode.currencyCode")}</Label>
                                             <Select
                                                 value={formData.currencyCode}
                                                 onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
@@ -388,7 +390,7 @@ export default function PromoCodePage() {
                                 }
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="minBookingAmount">Min Booking Amount </Label>
+                                        <Label htmlFor="minBookingAmount">{t("PromoCode.minBookingAmount")} </Label>
                                         <Input
                                             id="minBookingAmount"
                                             type="number"
@@ -396,11 +398,11 @@ export default function PromoCodePage() {
 
                                             value={formData.minBookingAmount || ""}
                                             onChange={(e) => setFormData({ ...formData, minBookingAmount: e.target.value ? parseFloat(e.target.value) : null })}
-                                            placeholder="Optional"
+                                            placeholder={t("PromoCode.optional")}
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="maxDiscountAmount">Max Discount Amount</Label>
+                                        <Label htmlFor="maxDiscountAmount">{t("PromoCode.maxDiscountAmount")}</Label>
                                         <Input
                                             id="maxDiscountAmount"
                                             type="number"
@@ -408,7 +410,7 @@ export default function PromoCodePage() {
 
                                             value={formData.maxDiscountAmount || ""}
                                             onChange={(e) => setFormData({ ...formData, maxDiscountAmount: e.target.value ? parseFloat(e.target.value) : null })}
-                                            placeholder="Optional"
+                                            placeholder={t("PromoCode.optional")}
                                         />
                                     </div>
                                 </div>
@@ -418,10 +420,10 @@ export default function PromoCodePage() {
 
                             {/* Validity Period */}
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Validity Period</h3>
+                                <h3 className="text-lg font-semibold">{t("PromoCode.validityPeriod")}</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="validFrom">Valid From</Label>
+                                        <Label htmlFor="validFrom">{t("PromoCode.validFrom")}</Label>
                                         <Input
                                             id="validFrom"
                                             type="datetime-local"
@@ -430,7 +432,7 @@ export default function PromoCodePage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="validTo">Valid To</Label>
+                                        <Label htmlFor="validTo">{t("PromoCode.validTo")}</Label>
                                         <Input
                                             id="validTo"
                                             type="datetime-local"
@@ -445,17 +447,17 @@ export default function PromoCodePage() {
 
                             {/* Usage Limits */}
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Usage Limits</h3>
+                                <h3 className="text-lg font-semibold">{t("PromoCode.usageLimits")}</h3>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="usageLimit">Total Usage Limit</Label>
+                                        <Label htmlFor="usageLimit">{t("PromoCode.totalUsageLimit")}</Label>
                                         <Input
                                             id="usageLimit"
                                             type="number"
                                             min={1}
                                             value={formData.usageLimit || ""}
                                             onChange={(e) => setFormData({ ...formData, usageLimit: e.target.value ? parseInt(e.target.value) : null })}
-                                            placeholder="Unlimited"
+                                            placeholder={t("PromoCode.unlimited")}
                                         />
                                     </div>
                                     {/* <div className="space-y-2">
@@ -476,12 +478,12 @@ export default function PromoCodePage() {
 
                             {/* Platform Applicability */}
                             <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Platform Applicability</h3>
+                                <h3 className="text-lg font-semibold">{t("PromoCode.platformApplicability")}</h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
                                             <Smartphone className="h-4 w-4" />
-                                            <Label htmlFor="mobileApp">Mobile App</Label>
+                                            <Label htmlFor="mobileApp">{t("PromoCode.mobileApp")}</Label>
                                         </div>
                                         <Switch
                                             id="mobileApp"
@@ -492,7 +494,7 @@ export default function PromoCodePage() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
                                             <Monitor className="h-4 w-4" />
-                                            <Label htmlFor="desktop">Desktop</Label>
+                                            <Label htmlFor="desktop">{t("PromoCode.desktop")}</Label>
                                         </div>
                                         <Switch
                                             id="desktop"
@@ -503,7 +505,7 @@ export default function PromoCodePage() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-2">
                                             <Tablet className="h-4 w-4" />
-                                            <Label htmlFor="tablet">Tablet</Label>
+                                            <Label htmlFor="tablet">{t("PromoCode.tablet")}</Label>
                                         </div>
                                         <Switch
                                             id="tablet"
@@ -513,14 +515,14 @@ export default function PromoCodePage() {
                                     </div>
                                 </div>
                             </div>
-                            
+
 
                             <Separator />
 
                             {/* Room Type Applicability */}
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold">Applicable Room Types</h3>
+                                    <h3 className="text-lg font-semibold">{t("PromoCode.applicableRoomTypes")}</h3>
                                     <div className="flex items-center space-x-2">
                                         <Switch
                                             id="specificRoomTypes"
@@ -532,7 +534,7 @@ export default function PromoCodePage() {
                                                 }
                                             }}
                                         />
-                                        <Label htmlFor="specificRoomTypes">Select Specific Room Types</Label>
+                                        <Label htmlFor="specificRoomTypes">{t("PromoCode.selectSpecificRoomTypes")}</Label>
                                     </div>
                                 </div>
 
@@ -558,13 +560,13 @@ export default function PromoCodePage() {
                                                         }
                                                     }}
                                                 />
-                                                <Label htmlFor={`rt-${roomType.id}`}>{roomType.roomName}</Label>
+                                                <Label htmlFor={`rt-${roomType.id}`}>{roomType._translations?roomType._translations.roomName:roomType.roomName}</Label>
                                             </div>
                                         ))}
                                     </div>
                                 )}
-                                {isSpecificRoomTypes && roomTypes.length === 0 && <p className="text-sm text-muted-foreground">No room types available.</p>}
-                                {!isSpecificRoomTypes && <p className="text-sm text-muted-foreground">Applicable to all room types.</p>}
+                                {isSpecificRoomTypes && roomTypes.length === 0 && <p className="text-sm text-muted-foreground">{t("PromoCode.noRoomTypesAvailable")}</p>}
+                                {!isSpecificRoomTypes && <p className="text-sm text-muted-foreground">{t("PromoCode.applicableToAllRoomTypes")}</p>}
                             </div>
 
                             <Separator />
@@ -572,7 +574,7 @@ export default function PromoCodePage() {
                             {/* Rate Plan Applicability */}
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold">Applicable Rate Plans</h3>
+                                    <h3 className="text-lg font-semibold">{t("PromoCode.applicableRatePlans")}</h3>
                                     <div className="flex items-center space-x-2">
                                         <Switch
                                             id="specificRatePlans"
@@ -584,7 +586,7 @@ export default function PromoCodePage() {
                                                 }
                                             }}
                                         />
-                                        <Label htmlFor="specificRatePlans">Select Specific Rate Plans</Label>
+                                        <Label htmlFor="specificRatePlans">{t("PromoCode.selectSpecificRatePlans")}</Label>
                                     </div>
                                 </div>
 
@@ -610,13 +612,13 @@ export default function PromoCodePage() {
                                                         }
                                                     }}
                                                 />
-                                                <Label htmlFor={`rp-${ratePlan.id}`}>{ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}</Label>
+                                                <Label htmlFor={`rp-${ratePlan.id}`}>{ratePlan._translations ? ratePlan._translations.ratePlanName : ratePlan.ratePlanName}</Label>
                                             </div>
                                         ))}
                                     </div>
                                 )}
-                                {isSpecificRatePlans && ratePlans.length === 0 && <p className="text-sm text-muted-foreground">No rate plans available.</p>}
-                                {!isSpecificRatePlans && <p className="text-sm text-muted-foreground">Applicable to all rate plans.</p>}
+                                {isSpecificRatePlans && ratePlans.length === 0 && <p className="text-sm text-muted-foreground">{t("PromoCode.noRatePlansAvailable")}</p>}
+                                {!isSpecificRatePlans && <p className="text-sm text-muted-foreground">{t("PromoCode.applicableToAllRatePlans")}</p>}
                             </div>
                         </div>
                         <div className="flex justify-end space-x-2">
@@ -624,10 +626,10 @@ export default function PromoCodePage() {
                                 setIsDialogOpen(false);
                                 resetForm();
                             }}>
-                                Cancel
+                                {t("PromoCode.cancel")}
                             </Button>
                             <Button onClick={handleCreateOrUpdate}>
-                                {editingPromoCode ? "Update" : "Create"}
+                                {editingPromoCode ? t("PromoCode.update") : t("PromoCode.create")}
                             </Button>
                         </div>
                     </DialogContent>
@@ -637,32 +639,32 @@ export default function PromoCodePage() {
             {/* Promo Codes List */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Active Promo Codes</CardTitle>
-                    <CardDescription>Manage all your promotional codes</CardDescription>
+                    <CardTitle>{t("PromoCode.activePromoCodes")}</CardTitle>
+                    <CardDescription>{t("PromoCode.managePromotionalCodes")}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {promoCodes.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-muted-foreground">No promo codes found. Create one to get started.</p>
+                            <p className="text-muted-foreground">{t("PromoCode.noPromoCodesFound")}</p>
                         </div>
                     ) : (
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Code</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Discount</TableHead>
-                                    <TableHead>Validity</TableHead>
-                                    <TableHead>Usage</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                                    <TableHead>{t("PromoCode.code")}</TableHead>
+                                    <TableHead>{t("PromoCode.name")}</TableHead>
+                                    <TableHead>{t("PromoCode.discount")}</TableHead>
+                                    <TableHead>{t("PromoCode.validity")}</TableHead>
+                                    <TableHead>{t("PromoCode.usage")}</TableHead>
+                                    <TableHead>{t("PromoCode.status")}</TableHead>
+                                    <TableHead className="text-right">{t("PromoCode.actions")}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {promoCodes.map((promoCode) => (
                                     <TableRow key={promoCode.id}>
                                         <TableCell className="font-mono font-bold">{promoCode.code}</TableCell>
-                                        <TableCell>{promoCode._translations?promoCode._translations.name:promoCode.name}</TableCell>
+                                        <TableCell>{promoCode._translations ? promoCode._translations.name : promoCode.name}</TableCell>
                                         <TableCell>
                                             <div className="flex items-center">
                                                 {promoCode.discountType === "percentage" ? (
@@ -679,21 +681,21 @@ export default function PromoCodePage() {
                                         <TableCell>
                                             <div className="text-sm">
                                                 <div>{formatDate(promoCode.validFrom)}</div>
-                                                <div className="text-muted-foreground">to {formatDate(promoCode.validTo)}</div>
+                                                <div className="text-muted-foreground">{t("PromoCode.to")} {formatDate(promoCode.validTo)}</div>
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             {promoCode.usageLimit ? (
-                                                <Badge variant="secondary">{promoCode.usageLimit} uses</Badge>
+                                                <Badge variant="secondary">{promoCode.usageLimit} {t("PromoCode.uses")}</Badge>
                                             ) : (
-                                                <Badge variant="secondary">Unlimited</Badge>
+                                                <Badge variant="secondary">{t("PromoCode.unlimited")}</Badge>
                                             )}
                                         </TableCell>
                                         <TableCell>
                                             {promoCode.isActive ? (
-                                                <Badge className="bg-green-500">Active</Badge>
+                                                <Badge className="bg-green-500">{t("PromoCode.active")}</Badge>
                                             ) : (
-                                                <Badge variant="destructive">Inactive</Badge>
+                                                <Badge variant="destructive">{t("PromoCode.inactive")}</Badge>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -742,9 +744,9 @@ export default function PromoCodePage() {
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("PromoCode.areYouSure")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete this promo code. This action cannot be undone.
+                            {t("PromoCode.deletePromoCodeDescription")}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -752,13 +754,13 @@ export default function PromoCodePage() {
                             setDeleteDialogOpen(false);
                             setPromoCodeToDelete(null);
                         }}>
-                            Cancel
+                            {t("PromoCode.cancel")}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            Delete
+                            {t("PromoCode.delete")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -770,10 +772,10 @@ export default function PromoCodePage() {
                         open={addTranslationOpen}
                         onOpenChange={setAddTranslationOpen}
                         entityId={translationEntityId}
-                        title="Add Promo Code Translation"
+                        title={t('PromoCode.addTranslation')}
                         fields={[
-                            { key: "name", label: "Promo Name", placeholder: "e.g. Oferta de Verano" },
-                            { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                            { key: "name", label: t('PromoCode.transName'), placeholder: "e.g. Oferta de Verano" },
+                            { key: "description", label: t('PromoCode.transDecs'), placeholder: "Enter translated description..." }
                         ]}
                         onSave={async (id, locale, data) => {
                             return await upsertPromoCodeTranslationService(id, { [locale]: data });
@@ -786,8 +788,8 @@ export default function PromoCodePage() {
                         entityId={translationEntityId}
                         title="Promo Code Translations"
                         displayFields={[
-                            { key: "name", label: "Name" },
-                            { key: "description", label: "Description" }
+                            { key: "name", label: t('PromoCode.transName') },
+                            { key: "description", label: t('PromoCode.transDecs') }
                         ]}
                         onFetch={getAllPromoCodeTranslationsService}
                         onDelete={deletePromoCodeTranslationLocaleService}
@@ -801,8 +803,8 @@ export default function PromoCodePage() {
                         initialData={editingData}
                         title="Edit Promo Code Translation"
                         fields={[
-                            { key: "name", label: "Promo Name", placeholder: "e.g. Oferta de Verano" },
-                            { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                            { key: "name", label: t('PromoCode.transName'), placeholder: "e.g. Oferta de Verano" },
+                            { key: "description", label: t('PromoCode.transDecs'), placeholder: "Enter translated description..." }
                         ]}
                         onSave={async (id, locale, data) => upsertPromoCodeTranslationService(id, { [locale]: data })}
                     />

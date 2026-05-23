@@ -213,6 +213,8 @@ export interface TaxBrakeDown {
     name: string;
     taxedAmount: number;
     currencyCode: CurrencyCode;
+    id?: string;
+    _translations?: Record<string, string>;
 }
 export interface AddOnBrakeDown {
     addonId: string;
@@ -223,6 +225,7 @@ export interface AddOnBrakeDown {
     currencyCode: CurrencyCode;
     date: string;
     type: 'included' | 'selected';
+    _translations?: Record<string, string>;
 }
 export interface PromotionBrakeDown {
     id: string;
@@ -239,6 +242,7 @@ export interface PromotionBrakeDown {
     discountAmount: number;
     restrictionType: 'increase' | 'decrease' | 'payLater';
     type: 'user_applied' | 'auto_applied';
+    _translations?: Record<string, string>;
 }
 export interface IRoomDetails {
     adults: number;

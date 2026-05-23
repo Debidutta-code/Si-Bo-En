@@ -9,8 +9,10 @@ import Loader from '@/components/Loader/Loader';
 import type { Icreations, ICreation } from "./types/types"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Settings } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 export default function HotelsPage() {
+  const { t } = useTranslation();
   const { creationId } = useParams<{ creationId: string }>();
   const [searchParams] = useSearchParams();
   const creationIdFromSearch = searchParams.get("isCustomVisible");
@@ -48,11 +50,11 @@ export default function HotelsPage() {
           return
       }
       } else {
-        toast.error(response.message || 'Failed to fetch');
+        toast.error(response.message || t('Toast.failedToFetchProperties'));
       }
     } catch (error) {
       console.error('Error fetching properties:', error);
-      toast.error('Failed to fetch properties');
+      toast.error(t('Toast.failedToFetchProperties'));
     } finally {
       setIsLoading(false)
     }
@@ -79,9 +81,9 @@ export default function HotelsPage() {
 
   const getTabDisplayName = (tab: string): string => {
     const pluralMap: { [key: string]: string } = {
-      group: "groups",
-      brand: "brands",
-      property: "properties"
+      group: t('PropertySuper.groups'),
+      brand: t('PropertySuper.brands'),
+      property: t('PropertySuper.properties')
     };
     return pluralMap[tab] || tab;
   };
@@ -89,7 +91,7 @@ export default function HotelsPage() {
   if (isLoading) {
     return (
       <div className='min-h-screen w-full flex justify-center items-center'>
-        <Loader text={`Loading your ${capitalizeFirstLetter(currentTab)}s ...`} />
+        <Loader text={t('PropertySuper.loadingItem', { item: getTabDisplayName(currentTab) })} />
       </div>
     )
   }
@@ -114,9 +116,9 @@ export default function HotelsPage() {
     <div className="space-y-6 p-4">
       <div className="flex justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Hotels & Properties</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('PropertySuper.title')}</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Manage all your hotel properties and their performance
+            {t('PropertySuper.subtitle')}
           </p>
         </div>
         <CreateEntityDialog creationType={"super"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={4} fetchProperties={fetchProperties} />
@@ -158,10 +160,10 @@ export default function HotelsPage() {
               </svg>
             </div>
             <h3 className="mt-4 text-lg font-medium text-gray-900">
-              No {getTabDisplayName(currentTab)} found
+              {t('PropertySuper.noFound', { item: getTabDisplayName(currentTab) })}
             </h3>
             <p className="mt-2 text-sm text-gray-500">
-              Get started by creating your first {currentTab}.
+              {t('PropertySuper.getStarted', { item: currentTab })}
             </p>
           </div>
         ) : (
@@ -190,7 +192,7 @@ export default function HotelsPage() {
                         <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <p className="text-sm">No image</p>
+                        <p className="text-sm">{t('Common.noImage')}</p>
                       </div>
                     </div>
                   )}
@@ -216,7 +218,7 @@ export default function HotelsPage() {
                         navigate(`/property/${item.propertyId}`)
                     }}
                   >
-                    View Details
+                    {t('Common.viewDetails')}
                   </Button>
                   {
                     item.type == "property" && (
@@ -230,7 +232,7 @@ export default function HotelsPage() {
                         <Settings className="h-4 w-4" />
                         {!item.property?.isDraft &&
 
-                        <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
+                        <span className="ml-2">{!item.property?.isDraft && t('Common.completeSetup')}</span>
                         }
                         
                       </Button>

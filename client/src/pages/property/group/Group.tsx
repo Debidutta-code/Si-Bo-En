@@ -60,8 +60,11 @@ import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { updateCreationService } from "../service/creation-filter.service";
 import type { IUpdateCreation } from "../types/types";
 import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
+import { useTranslation } from "react-i18next";
 
 export default function page() {
+    const { t } = useTranslation();
+
   const { creationId } = useParams<{ creationId: string }>();
   const [addMemberDialogOpen, setAddMemberDialogOpen] = useState<boolean>(false)
   const navigate = useNavigate();
@@ -106,8 +109,8 @@ export default function page() {
   const [editingData, setEditingData] = useState<Record<string, any>>({});
   const getTabDisplayName = (tab: string): string => {
     const pluralMap: { [key: string]: string } = {
-      brand: "brands",
-      property: "properties",
+      brand: t('Group.brands'),
+      property: t('Group.properties'),
     };
     return pluralMap[tab] || tab;
   };
@@ -126,7 +129,7 @@ export default function page() {
           setCurrentTab("property");
         }
       } else {
-        toast.error(response.message || "Failed to fetch");
+        toast.error(response.message || t('Toast.failedToFetch'));
       }
     } catch (error) {
       toast.error("Failed to fetch");
@@ -157,20 +160,20 @@ export default function page() {
         const data = response.data;
         setGroupManagers(data);
       } else {
-        toast.error(response.message || "Failed to fetch users");
+        toast.error(response.message || t('Toast.failedToFetchUsers'));
       }
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast.error("Failed to fetch users");
+      toast.error(t('Toast.failedToFetchUsers'));
     }
   };
   const handleAddMember = async () => {
     if (!selectedUser) {
-      toast.error("Please select a user");
+      toast.error(t('Toast.pleaseSelectUser'));
       return;
     }
     if (!creationId) {
-      toast.error("Invalid Creation");
+      toast.error(t('Toast.creationIdMissing'));
       return;
     }
     setIsAssigningUser(true);
@@ -181,17 +184,17 @@ export default function page() {
         role: "group_manager",
       });
       if (response.success) {
-        toast.success("User assigned successfully");
+        toast.success(t('Toast.userAssignedSuccessfully'));
         // Reset form
         setSelectedUser("");
         setAddMemberDialogOpen(false)
         // You might want to refresh the property data or user list here
       } else {
-        toast.error(response.message || "Failed to assign user");
+        toast.error(response.message || t('Toast.failedToAssignUser'));
       }
     } catch (error) {
       console.error("Error assigning user:", error);
-      toast.error("Failed to assign user");
+      toast.error(t('Toast.failedToAssignUser'));
     } finally {
       setIsAssigningUser(false);
     }
@@ -212,7 +215,7 @@ export default function page() {
       ...prev,
       images: [...prev.images, ...uploadedUrls],
     }));
-    toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+    toast.success(t('Toast.imagesUploadedSuccessfully', { count: uploadedUrls.length }));
   };
 
   const handleRemoveImage = (index: number) => {
@@ -224,7 +227,7 @@ export default function page() {
 
   const handleUpdateGroup = async () => {
     if (!creationId) {
-      toast.error("Invalid Group ID");
+      toast.error(t('Toast.invalidGroupId'));
       return;
     }
     try {
@@ -235,21 +238,21 @@ export default function page() {
         updateGroupDetails.isActive,
       );
       if (!response.success) {
-        toast.error(response.message || "Failed to update group");
+        toast.error(response.message || t('Toast.failedToUpdateGroup'));
         return;
       }
-      toast.success("Group updated successfully");
+      toast.success(t('Toast.groupUpdatedSuccessfully'));
       await fetchGroup();
       setIsUpdateDialogOpen(false);
     } catch (err: any) {
-      toast.error("Failed to update group");
+      toast.error(t('Toast.failedToUpdateGroup'));
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen w-full flex justify-center items-center">
-        <Loader text={`Loading your Group Details...`} />
+        <Loader text={t('Group.loadingYourGroup')} />
       </div>
     );
   }
@@ -296,7 +299,7 @@ export default function page() {
                       : "bg-red-100 text-red-700 ring-1 ring-red-200"
                     }`}
                 >
-                  {creations.groupData.isActive ? "● Active" : "● Inactive"}
+                  {creations.groupData.isActive ? `● ${t('Common.active')}` : `● ${t('Common.inactive')}`}
                 </span>
               </div>
             </div>
@@ -308,7 +311,7 @@ export default function page() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">
-                    Total Brands
+                    {t('Group.totalBrands')}
                   </h3>
                   <p className="text-3xl font-bold text-gray-900 mt-2">
                     {creations.brands.length}
@@ -335,7 +338,7 @@ export default function page() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">
-                    Total Properties
+                    {t('Group.totalProperties')}
                   </h3>
                   <p className="text-3xl font-bold text-gray-900 mt-2">
                     {creations.properties.length}
@@ -362,7 +365,7 @@ export default function page() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-medium text-gray-500">
-                    Group Managers
+                    {t('Group.groupManagers')}
                   </h3>
                   <p className="text-3xl font-bold text-gray-900 mt-2">
                     {creations.groupData.users.length}
@@ -380,7 +383,7 @@ export default function page() {
             <div className="border-t border-gray-200 pt-5">
               <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                 <User2Icon className="h-4 w-4 mr-2 text-gray-500" />
-                Assigned Managers
+                {t('Group.assignedManagers')}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {creations.groupData.users.map((user) => (
@@ -409,10 +412,10 @@ export default function page() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-gray-900">
-            Manage Brands & Properties
+            {t('Group.title')}
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            View and manage all brands and properties under this group
+            {t('Group.subtitle')}
           </p>
         </div>
 
@@ -431,19 +434,19 @@ export default function page() {
               className="cursor-pointer"
             >
               <Button variant={"secondary"}>
-                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Group
+                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> {t('Group.updateGroup')}
               </Button>
             </DropdownMenuItem>
 
             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setAddLanguageDialogOpen(true); }} className="cursor-pointer">
               <Button variant={"secondary"}>
-                <Plus className="h-4 w-4 mr-2 text-gray-600" /> Add Translation
+                <Plus className="h-4 w-4 mr-2 text-gray-600" /> {t("Common.addTranslation")}
               </Button>
             </DropdownMenuItem>
 
             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCheckLanguagesDialogOpen(true); }} className="cursor-pointer">
               <Button variant={"secondary"}>
-                <Globe className="h-4 w-4 mr-2 text-gray-600" /> Check Translations
+                <Globe className="h-4 w-4 mr-2 text-gray-600" /> {t("Common.checkTranslation")}
               </Button>
             </DropdownMenuItem>
 
@@ -457,26 +460,26 @@ export default function page() {
                   className="cursor-pointer"
                 >
                   <Button variant={"secondary"}>
-                    <User2Icon className="h-4 w-4 mr-2" /> Assign Manager
+                    <User2Icon className="h-4 w-4 mr-2" /> {t('Group.assignManager')}
                   </Button>
                 </DropdownMenuItem>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>Assign Group Manager</DialogTitle>
+                  <DialogTitle>{t('Group.assignGroupManager')}</DialogTitle>
                   <DialogDescription>
-                    Assign a manager to your Group.
+                    {t('Group.assignGroupManagerDescription')}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="user">User</Label>
+                    <Label htmlFor="user">{t('Common.name')}</Label>
                     <Select
                       value={selectedUser}
                       onValueChange={setSelectedUser}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a user" />
+                        <SelectValue placeholder={t('Group.selectUser')} />
                       </SelectTrigger>
                       <SelectContent>
                         {groupManagers?.groupManagers?.length > 0 ? (
@@ -488,7 +491,7 @@ export default function page() {
                           ))
                         ) : (
                           <SelectItem value="qq" disabled>
-                            No users available for this role
+                            {t('Group.noUsersAvailable')}
                           </SelectItem>
                         )}
                       </SelectContent>
@@ -500,7 +503,7 @@ export default function page() {
                     onClick={handleAddMember}
                     disabled={!selectedUser || isAssigningUser}
                   >
-                    {isAssigningUser ? "Assigning..." : "Assign User"}
+                    {isAssigningUser ? t('Common.assigning') : t('Common.assignUser')}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -518,7 +521,7 @@ export default function page() {
             <div className="px-2">
               <DeleteCreationDialog
                 type={"group"}
-                name={creations.groupData.name}
+                name={creations.groupData._translations?creations.groupData._translations.name:creations.groupData.name}
                 id={creations.groupData.id}
               />
             </div>
@@ -530,13 +533,13 @@ export default function page() {
       <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Group</DialogTitle>
-            <DialogDescription>Update basic group details.</DialogDescription>
+            <DialogTitle>{t('Group.updateGroup')}</DialogTitle>
+            <DialogDescription>{t('Group.assignGroupManagerDescription')}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div>
-              <Label className="text-sm font-medium">Name</Label>
+              <Label className="text-sm font-medium">{t('Common.name')}</Label>
               <Input
                 value={updateGroupDetails.name}
                 onChange={(e) =>
@@ -551,7 +554,7 @@ export default function page() {
 
             {/* Images Section */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Images</Label>
+              <Label className="text-sm font-medium">{t('Property.images')}</Label>
               <Button
                 type="button"
                 variant="outline"
@@ -559,7 +562,7 @@ export default function page() {
                 className="w-full"
               >
                 <Upload className="mr-2 h-4 w-4" />
-                Upload Images
+                {t('Common.uploadImages')}
               </Button>
 
               {/* Image Preview Grid */}
@@ -607,7 +610,7 @@ export default function page() {
                 }
               />
               <Label htmlFor="active" className="text-sm cursor-pointer">
-                Active
+                {t('Common.active')}
               </Label>
             </div>
           </div>
@@ -625,9 +628,9 @@ export default function page() {
               variant="outline"
               onClick={() => setIsUpdateDialogOpen(false)}
             >
-              Cancel
+              {t('Common.cancel')}
             </Button>
-            <Button onClick={handleUpdateGroup}>Save</Button>
+            <Button onClick={handleUpdateGroup}>{t('Common.save')}</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -668,10 +671,10 @@ export default function page() {
               </svg>
             </div>
             <h3 className="mt-4 text-lg font-medium text-gray-900">
-              No {getTabDisplayName(currentTab)} found
+              {t('Group.noFound', { item: getTabDisplayName(currentTab) })}
             </h3>
             <p className="mt-2 text-sm text-gray-500">
-              Get started by creating your first {currentTab}.
+              {t('Group.getStarted', { item: currentTab })}
             </p>
           </div>
         ) : (
@@ -720,7 +723,7 @@ export default function page() {
                         : navigate(`/property/${item.property?.id}`);
                     }}
                   >
-                    View Details
+                    {t('Common.viewDetails')}
                   </Button>
                   {item.type == "property" && (
                     <Button
@@ -734,7 +737,7 @@ export default function page() {
                       <Settings className="h-4 w-4" />
                       {!item.property?.isDraft && (
                         <span className="ml-2">
-                          {!item.property?.isDraft && "Complete Setup"}
+                          {!item.property?.isDraft && t('Common.completeSetup')}
                         </span>
                       )}
                     </Button>

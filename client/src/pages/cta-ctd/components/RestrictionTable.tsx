@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Restriction ,RoomType, RatePlan} from "../interfaces";
+import { useTranslation } from "react-i18next";
 
 interface RestrictionTableProps {
     restrictions: Restriction[];
@@ -35,12 +36,14 @@ export default function RestrictionTable({
     roomTypes,
     ratePlans,
 }: RestrictionTableProps) {
+        const { t } = useTranslation();
+
     if (isLoading) {
         return (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading restrictions...</p>
+                    <p className="mt-4 text-gray-600">{t("CTACTD.table.loading")}</p>
                 </div>
             </div>
         );
@@ -52,10 +55,10 @@ export default function RestrictionTable({
                 <div className="text-center py-12">
                     <Ban className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        No CTA/CTD Restrictions
+                        {t("CTACTD.table.noRestrictions")}
                     </h3>
                     <p className="text-gray-600">
-                        There are no restrictions set for the selected dates.
+                        {t("CTACTD.table.noRestrictionsDescription")}
                     </p>
                 </div>
             </div>
@@ -67,12 +70,12 @@ export default function RestrictionTable({
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Room Type</TableHead>
-                        <TableHead>Rate Plan</TableHead>
-                        <TableHead>Restriction Type</TableHead>
-                        <TableHead>Notes</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>{t("CTACTD.table.date")}</TableHead>
+                        <TableHead>{t("CTACTD.table.roomType")}</TableHead>
+                        <TableHead>{t("CTACTD.table.ratePlan")}</TableHead>
+                        <TableHead>{t("CTACTD.table.restrictionType")}</TableHead>
+                        <TableHead>{t("CTACTD.table.notes")}</TableHead>
+                        <TableHead className="text-right">{t("Common.actions")}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -132,7 +135,7 @@ export default function RestrictionTable({
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem onClick={() => onEdit(restriction)}>
                                             <Edit className="w-4 h-4 mr-2" />
-                                            Edit Restriction
+                                            {t("Common.edit")}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>

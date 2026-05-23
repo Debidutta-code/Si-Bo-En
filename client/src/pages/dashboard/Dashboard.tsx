@@ -21,12 +21,15 @@ import {
 import { useAppSelector } from '@/redux/hooks';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
 import { currencies } from '@/components/currency-code/cuurency';
+import { useTranslation } from "react-i18next";
 
 export default function Dashboard() {
+    const { t } = useTranslation();
+
   const { user } = useAppSelector((state) => state.user);
   const [loader, setLoader] = useState<ILoader>({
     isLoading: true,
-    message: "Fetching Analytics ..."
+    message: t('Dashboard.fetchingAnalytics')
   });
 
   const [analyticsData, setAnalyticsData] = useState<IAnalyticsData | null>(null);
@@ -91,11 +94,11 @@ export default function Dashboard() {
       if (response.success && response.data) {
         setStatisticsData(response.data);
       } else {
-        setError(response.message || "Failed to fetch statistics");
-        toast.error(response.message || "Failed to fetch statistics");
+        setError(response.message || t('Toast.failedToFetchStatistics'));
+        toast.error(response.message || t('Toast.failedToFetchStatistics'));
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage = err instanceof Error ? err.message : t('Toast.unexpectedError');
       setError(errorMessage);
       toast.error(errorMessage);
       console.error("Error fetching statistics:", err);
@@ -105,20 +108,20 @@ export default function Dashboard() {
   const fetchAnalytics = async (selectedCurrency: CurrencyCode, propertyId?: string, propertyCode?: string, propertyName?: string,) => {
     try {
       if (!selectedCurrency) return
-      setLoader({ isLoading: true, message: "Fetching Analytics ..." });
+      setLoader({ isLoading: true, message: t('Dashboard.fetchingAnalytics') });
       setError(null);
 
       const response = await fetchAnaltyticsService(propertyId, propertyCode, propertyName, selectedCurrency);
 
       if (response.success && response.data) {
         setAnalyticsData(response.data.analytics);
-        toast.success("Analytics fetched successfully", { id: "analytics-success" });
+        toast.success(t('Toast.analyticsFetchedSuccessfully'));
       } else {
-        setError(response.message || "Failed to fetch analytics");
-        toast.error(response.message || "Failed to fetch analytics");
+        setError(response.message || t('Toast.failedToFetchAnalytics'));
+        toast.error(response.message || t('Toast.failedToFetchAnalytics'));
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage = err instanceof Error ? err.message : t('Toast.unexpectedError');
       setError(errorMessage);
       toast.error(errorMessage);
       console.error("Error fetching analytics:", err);
@@ -130,7 +133,7 @@ export default function Dashboard() {
 
   const fetchProperties = async () => {
     try {
-      setLoader({ isLoading: true, message: "Fetching Property Names ..." });
+      setLoader({ isLoading: true, message: t('Dashboard.fetchingPropertyNames') });
       setError(null);
       const response = await fetchPropertiesService();
 
@@ -150,11 +153,11 @@ export default function Dashboard() {
         await fetchAnalytics(resolvedCurrency, undefined, undefined, undefined,);
         await fetchStatistics(resolvedCurrency, undefined, undefined, undefined,);
       } else {
-        setError(response.message || "Failed to fetch properties");
-        toast.error(response.message || "Failed to fetch properties");
+        setError(response.message || t('Toast.failedToFetchProperties'));
+        toast.error(response.message || t('Toast.failedToFetchProperties'));
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMessage = err instanceof Error ? err.message : t('Toast.unexpectedError');
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -176,7 +179,7 @@ export default function Dashboard() {
         <div className="max-w-md w-full bg-red-50 border border-red-200 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-4">
             <AlertCircle className="h-6 w-6 text-red-600" />
-            <h2 className="text-xl font-semibold text-red-800">Error Loading Analytics</h2>
+            <h2 className="text-xl font-semibold text-red-800">{t('Dashboard.errorLoadingAnalytics')}</h2>
           </div>
           <p className="text-red-700 mb-4">{error}</p>
           <button
@@ -186,7 +189,7 @@ export default function Dashboard() {
             }}
             className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors"
           >
-            Retry
+            {t('Common.retry')}
           </button>
         </div>
       </div>
@@ -197,7 +200,7 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen w-full flex justify-center items-center">
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">No analytics data available</p>
+          <p className="text-muted-foreground mb-4">{t('Dashboard.noAnalyticsDataAvailable')}</p>
           <button
             onClick={() => {
               fetchAnalytics(selectedCurrency);
@@ -205,7 +208,7 @@ export default function Dashboard() {
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors"
           >
-            Load Analytics
+            {t('Dashboard.loadAnalytics')}
           </button>
         </div>
       </div>
@@ -217,7 +220,7 @@ export default function Dashboard() {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold">Dashboard Analytics</h1>
+            <h1 className="text-2xl font-bold">{t('Dashboard.dashboardAnalytics')}</h1>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             {/* 🆕 NEW: Comparison Type Selector */}
@@ -229,9 +232,9 @@ export default function Dashboard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="date">By Date</SelectItem>
-                <SelectItem value="month">By Month</SelectItem>
-                <SelectItem value="year">By Year</SelectItem>
+                <SelectItem value="date">{t('Dashboard.byDate')}</SelectItem>
+                <SelectItem value="month">{t('Dashboard.byMonth')}</SelectItem>
+                <SelectItem value="year">{t('Dashboard.byYear')}</SelectItem>
               </SelectContent>
             </Select>
 
@@ -245,7 +248,7 @@ export default function Dashboard() {
                 }
               >
                 <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Select Year" />
+                  <SelectValue placeholder={t('Dashboard.selectYear')} />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 10 }, (_, i) => {
@@ -280,10 +283,10 @@ export default function Dashboard() {
               >
                 <SelectTrigger className="w-[200px]">
                   <Building2 className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Select All" />
+                  <SelectValue placeholder={t('Dashboard.selectAll')}/>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Select All</SelectItem>
+                  <SelectItem value="all">{t('Dashboard.selectAll')}</SelectItem>
                   {allProperties.map((property) => (
                     <SelectItem key={property.id} value={property.id}>
                       <div className="flex flex-col">
@@ -322,7 +325,7 @@ export default function Dashboard() {
               variant={"terciary"}
             >
               <RefreshCw className='h-3 mr-2 w-3' />
-              Refresh
+             {t('Common.refresh')}
             </Button>
           </div>
         </div>

@@ -30,6 +30,7 @@ import { cn } from "@/lib/utils";
 import type { IAddonAvailabilityCreate, IAddon } from "../interface";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 import { currencies } from "@/components/currency-code/cuurency";
+import { useTranslation } from "react-i18next";
 
 interface AddOnAvailabilityDialogProps {
     open: boolean;
@@ -46,6 +47,8 @@ export default function AddOnAvailabilityDialog({
     addOns,
     selectedAddonId,
 }: AddOnAvailabilityDialogProps) {
+    const { t } = useTranslation();
+
     const [formData, setFormData] = useState<IAddonAvailabilityCreate>({
         addonId: selectedAddonId || "",
         from: new Date(),
@@ -94,16 +97,16 @@ export default function AddOnAvailabilityDialog({
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent className="max-w-xl">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl">Create Availability</DialogTitle>
+                    <DialogTitle className="text-2xl">{t("Addon.availability.createTitle")}</DialogTitle>
                     <DialogDescription>
-                        Set pricing and availability for an add-on across a date range.
+                        {t("Addon.availability.createDescription")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                     {/* Add-On Selection */}
                     <div className="space-y-2">
-                        <Label htmlFor="addonId">Add-On *</Label>
+                        <Label htmlFor="addonId">{t("Addon.availability.addonLabel")}</Label>
                         <Select
                             value={formData.addonId}
                             onValueChange={(value) =>
@@ -112,7 +115,7 @@ export default function AddOnAvailabilityDialog({
                             disabled={!!selectedAddonId}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select an add-on" />
+                                <SelectValue placeholder={t("Addon.availability.addonPlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {addOns.filter(a => a.isActive).map((addOn) => (
@@ -127,7 +130,7 @@ export default function AddOnAvailabilityDialog({
                     {/* Date Range */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label>From Date *</Label>
+                            <Label>{t("Addon.availability.fromDate")}</Label>
                             <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -141,18 +144,18 @@ export default function AddOnAvailabilityDialog({
                                         {formData.from ? (
                                             format(formData.from, "PPP")
                                         ) : (
-                                            <span>Pick a date</span>
+                                            <span>{t("Addon.availability.pickDate")}</span>
                                         )}
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className=" p-0" align="start">
+                                <PopoverContent className="p-0" align="start">
                                     <Calendar
                                         mode="single"
                                         selected={formData.from}
                                         onSelect={(date) => {
                                             if (date) {
                                                 setFormData({ ...formData, from: date });
-                                                setFromDateOpen(false); // Close the popover
+                                                setFromDateOpen(false);
                                             }
                                         }}
                                         className="rounded-md border w-full"
@@ -163,7 +166,7 @@ export default function AddOnAvailabilityDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label>To Date *</Label>
+                            <Label>{t("Addon.availability.toDate")}</Label>
                             <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -177,18 +180,18 @@ export default function AddOnAvailabilityDialog({
                                         {formData.to ? (
                                             format(formData.to, "PPP")
                                         ) : (
-                                            <span>Pick a date</span>
+                                            <span>{t("Addon.availability.pickDate")}</span>
                                         )}
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className=" p-0" align="start">
+                                <PopoverContent className="p-0" align="start">
                                     <Calendar
                                         mode="single"
                                         selected={formData.to}
                                         onSelect={(date) => {
                                             if (date) {
                                                 setFormData({ ...formData, to: date });
-                                                setToDateOpen(false); // Close the popover
+                                                setToDateOpen(false);
                                             }
                                         }}
                                         initialFocus
@@ -196,7 +199,6 @@ export default function AddOnAvailabilityDialog({
                                             formData.from ? date < formData.from : false
                                         }
                                         className="rounded-md border w-full"
-
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -206,13 +208,13 @@ export default function AddOnAvailabilityDialog({
                     {/* Price and Currency */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="price">Price *</Label>
+                            <Label htmlFor="price">{t("Addon.availability.price")}</Label>
                             <Input
                                 id="price"
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                placeholder="Enter price"
+                                placeholder={t("Addon.availability.pricePlaceholder")}
                                 value={formData.price || ""}
                                 onChange={(e) =>
                                     setFormData({
@@ -224,10 +226,12 @@ export default function AddOnAvailabilityDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="currencyCode">Currency Code</Label>
+                            <Label htmlFor="currencyCode">{t("Addon.availability.currencyCode")}</Label>
                             <Select
                                 value={formData.currencyCode}
-                                onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
+                                onValueChange={(value) =>
+                                    setFormData({ ...formData, currencyCode: value as CurrencyCode })
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue />
@@ -240,7 +244,6 @@ export default function AddOnAvailabilityDialog({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            
                         </div>
                     </div>
                 </div>
@@ -248,7 +251,7 @@ export default function AddOnAvailabilityDialog({
                 {/* Availability Toggle */}
                 <div className="flex items-center justify-between space-x-2 py-2">
                     <Label htmlFor="isAvailable" className="cursor-pointer">
-                        Available for Booking
+                        {t("Addon.availability.availableForBooking")}
                     </Label>
                     <Switch
                         id="isAvailable"
@@ -259,15 +262,15 @@ export default function AddOnAvailabilityDialog({
                     />
                 </div>
 
-            <DialogFooter>
-                <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
-                    Cancel
-                </Button>
-                <Button onClick={handleSave} disabled={isSubmitting}>
-                    {isSubmitting ? "Creating..." : "Create Availability"}
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-        </Dialog >
+                <DialogFooter>
+                    <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
+                        {t("Addon.availability.cancel")}
+                    </Button>
+                    <Button onClick={handleSave} disabled={isSubmitting}>
+                        {isSubmitting ? t("Addon.creatingAvailability") : t("Addon.availability.createButton")}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }

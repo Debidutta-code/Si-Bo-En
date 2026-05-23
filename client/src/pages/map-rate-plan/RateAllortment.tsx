@@ -6,8 +6,11 @@ import { MapPin } from "lucide-react";
 import { FilterSection, MappingsTable, UpdatePriceDialog, CreateMappingDialog } from "./components";
 import { useMapRatePlan } from "./hooks";
 import type { Charges } from "./types";
+import { useTranslation } from "react-i18next";
 
 export default function MapRatePlan() {
+        const { t } = useTranslation();
+
     const { propertyId } = useParams<{ propertyId: string }>();
     const [editingMapping, setEditingMapping] = useState<Charges | null>(null);
     // const [isStartStopSellDialogOpen, setIsStartStopSellDialogOpen] = useState(false);
@@ -56,7 +59,7 @@ export default function MapRatePlan() {
     if (isLoading && charges.length === 0) {
         return (
             <div className="min-h-screen w-full flex justify-center items-center">
-                <Loader text="Loading rate plans and room types..." />
+                <Loader text={t("MapRatePlan.loading")} />
             </div>
         );
     }
@@ -76,8 +79,8 @@ export default function MapRatePlan() {
                                 <MapPin className="w-6 h-6 text-primary-foreground" />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900">Map Rate Plan</h1>
-                                <p className="text-gray-600">Connect rate plans with room types and set pricing</p>
+                                <h1 className="text-3xl font-bold text-gray-900">{t("MapRatePlan.title")}</h1>
+                                <p className="text-gray-600">{t("MapRatePlan.subtitle")}</p>
                             </div>
                         </div>
 

@@ -1,18 +1,18 @@
 model WishList {
     id String @id @default(uuid()) @map("id")
 
-    otaGuestId   String @map("ota_guest_id")
+    customerId   String @map("customer_id")
     propertyId   String @map("property_id")
     propertyCode String @map("property_code")
     propertyName String @map("property_name")
 
     createdAt DateTime @default(now()) @map("created_at")
 
-    OtaGuest     OtaGuest       @relation(fields: [otaGuestId], references: [id])
-    Property     Property       @relation(fields: [propertyId], references: [id])
+    Customer     Customers       @relation(fields: [customerId], references: [id],onDelete: Cascade)
+    Property     Property       @relation(fields: [propertyId], references: [id],onDelete: Cascade)
     RoomWishList RoomWishList[]
 
-    @@unique([otaGuestId, propertyId])
+    @@unique([customerId, propertyId])
     @@map("customer_wishlist")
 }
 
@@ -24,9 +24,9 @@ model RoomWishList {
     roomName   String   @map("room_name")
     createdAt  DateTime @default(now()) @map("created_at")
 
-    WishList WishList @relation(fields: [wishlistId], references: [id])
+    WishList WishList @relation(fields: [wishlistId], references: [id],onDelete: Cascade)
 
-    Room Room @relation(fields: [roomId], references: [id])
+    Room Room @relation(fields: [roomId], references: [id],onDelete: Cascade)
 
     @@unique([wishlistId, roomId])
     @@map("room_wishlist")

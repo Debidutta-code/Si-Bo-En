@@ -39,9 +39,12 @@ import {
   CreateBookingOffsetForm,
 } from "./components";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 export default function BookingOffset() {
   const { propertyId } = useParams();
+  const { t } = useTranslation();
+
   const [loader, setLoader] = useState<ILoader>({
     isLoading: false,
     message: "",
@@ -106,10 +109,10 @@ export default function BookingOffset() {
 
   const loadRatePlans = async () => {
     if (!propertyId) {
-      toast.error("Property ID is required");
+      toast.error(t("BookingOffset.toast.propertyIdRequired"));
       return;
     }
-    setLoader({ isLoading: true, message: "Loading Rate Plans..." });
+    setLoader({ isLoading: true, message: t("BookingOffset.toast.loadingRatePlans") });
     try {
       const ratePlansResponse = await fetchRatePlansService(propertyId);
       if (ratePlansResponse.success) {
@@ -118,7 +121,7 @@ export default function BookingOffset() {
         toast.error(ratePlansResponse.message);
       }
     } catch (error) {
-      toast.error("Failed to load Rate Plans, try again later");
+      toast.error(t("BookingOffset.toast.failedLoadRatePlans"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -126,7 +129,7 @@ export default function BookingOffset() {
 
   const fetchOffsets = async () => {
     if (!propertyId) return;
-    setLoader({ isLoading: true, message: "Loading Booking Offsets..." });
+    setLoader({ isLoading: true, message: t("BookingOffset.toast.loadingOffsets") });
     try {
       const response = await getBookingOffsetsService(
         propertyId,
@@ -137,10 +140,10 @@ export default function BookingOffset() {
       if (response.success) {
         setBookingOffsets(response.data || []);
       } else {
-        toast.error(response.message || "Failed to fetch booking offsets");
+        toast.error(response.message || t("BookingOffset.toast.failedFetchOffsets"));
       }
     } catch (error) {
-      toast.error("Failed to fetch booking offsets");
+      toast.error(t("BookingOffset.toast.failedFetchOffsets"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -162,22 +165,22 @@ export default function BookingOffset() {
 
   const handleEditSubmit = async () => {
     if (!editOffset) return;
-    setLoader({ isLoading: true, message: "Updating Booking Offset..." });
+    setLoader({ isLoading: true, message: t("BookingOffset.toast.updating") });
     try {
       const result = await updateBookingOffsetByIdService(
         editOffset.id,
         editForm,
       );
       if (result.success) {
-        toast.success("Booking offset updated successfully!");
+        toast.success(t("BookingOffset.toast.updatedSuccess"));
         setEditModalOpen(false);
         setEditOffset(null);
         fetchOffsets();
       } else {
-        toast.error(result.message || "Failed to update booking offset");
+        toast.error(result.message || t("BookingOffset.toast.failedUpdate"));
       }
     } catch (error) {
-      toast.error("Failed to update booking offset");
+      toast.error(t("BookingOffset.toast.failedUpdate"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -199,7 +202,7 @@ export default function BookingOffset() {
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-    setLoader({ isLoading: true, message: "Deleting Booking Offset(s)..." });
+    setLoader({ isLoading: true, message: t("BookingOffset.toast.deleting") });
     try {
       let result;
       if (deleteTarget.type === "single" && deleteTarget.id) {
@@ -220,16 +223,16 @@ export default function BookingOffset() {
       }
       if (result?.success) {
         toast.success(
-          deleteTarget.type === "single"
-            ? "Booking offset deleted successfully!"
-            : "Booking offsets deleted successfully!",
+        deleteTarget.type === "single"
+            ? t("BookingOffset.toast.deletedSingleSuccess")
+            : t("BookingOffset.toast.deletedBulkSuccess"),
         );
         fetchOffsets();
       } else {
-        toast.error(result?.message || "Failed to delete booking offset(s)");
+        toast.error(result?.message || t("BookingOffset.toast.failedDelete"));
       }
     } catch (error) {
-      toast.error("Failed to delete booking offset(s)");
+      toast.error(t("BookingOffset.toast.failedDelete"));
     } finally {
       setLoader({ isLoading: false, message: "" });
       setDeleteDialogOpen(false);
@@ -261,7 +264,7 @@ export default function BookingOffset() {
   const handleBulkUpdateSubmit = async () => {
     if (!propertyId || !bulkRatePlanId || !bulkStartDate || !bulkEndDate)
       return;
-    setLoader({ isLoading: true, message: "Updating Booking Offsets..." });
+    setLoader({ isLoading: true, message: t("BookingOffset.toast.bulkUpdating") });
     try {
       const result = await updateBookingOffsetsService(
         propertyId,
@@ -271,14 +274,14 @@ export default function BookingOffset() {
         bulkUpdateForm,
       );
       if (result.success) {
-        toast.success("Booking offsets updated successfully!");
+        toast.success(t("BookingOffset.toast.bulkUpdatedSuccess"));
         setBulkUpdateModalOpen(false);
         fetchOffsets();
       } else {
-        toast.error(result.message || "Failed to update booking offsets");
+        toast.error(result.message || t("BookingOffset.toast.failedBulkUpdate"));
       }
     } catch (error) {
-      toast.error("Failed to update booking offsets");
+      toast.error(t("BookingOffset.toast.failedBulkUpdate"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -304,20 +307,20 @@ export default function BookingOffset() {
     const days = Math.floor(value / 24);
     const hours = value % 24;
     if (days > 0 && hours > 0)
-      return `${days} day${days > 1 ? "s" : ""} and ${hours} hour${hours > 1 ? "s" : ""}`;
-    if (days > 0) return `${days} day${days > 1 ? "s" : ""}`;
-    return `${hours} hour${hours > 1 ? "s" : ""}`;
+      return `${days} ${days > 1 ? t("BookingOffset.daysAndHours.days") : t("BookingOffset.daysAndHours.day")} ${t("BookingOffset.daysAndHours.and")} ${hours} ${hours > 1 ? t("BookingOffset.daysAndHours.hours") : t("BookingOffset.daysAndHours.hour")}`;
+    if (days > 0) return `${days} ${days > 1 ? t("BookingOffset.daysAndHours.days") : t("BookingOffset.daysAndHours.day")}`;
+    return `${hours} ${hours > 1 ? t("BookingOffset.daysAndHours.hours") : t("BookingOffset.daysAndHours.hour")}`;
   };
   return (
     <div className="space-y-4">
       <BackButton />
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Booking Offsets</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t("BookingOffset.title")}</h2>
         <Button
           onClick={() => setCreateModalOpen(true)}
-          // className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        // className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
-          + Create Booking Offsets
+          + {t("BookingOffset.createButton")}
         </Button>
       </div>
 
@@ -325,22 +328,22 @@ export default function BookingOffset() {
       <div className="bg-card rounded-lg border border-border p-4 space-y-4">
         <div className="flex justify-between">
 
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold">Filters</h3>
-        </div>
-         <div className="flex items-center justify-end gap-3">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-gray-600" />
+            <h3 className="text-lg font-semibold">Filters</h3>
+          </div>
+          <div className="flex items-center justify-end gap-3">
             <Button
               onClick={handleBulkUpdateClick}
               variant={"default"}
             >
-              Bulk Update
+              {t("BookingOffset.bulkActions.bulkUpdate")}
             </Button>
             <Button
               onClick={handleBulkDeleteClick}
-              variant={"destructive"} 
+              variant={"destructive"}
             >
-              Bulk Delete
+              {t("BookingOffset.bulkActions.bulkUpdate")}
             </Button>
           </div>
         </div>
@@ -358,17 +361,17 @@ export default function BookingOffset() {
                 setBookingOffsets([]);
               }}
             >
-              <option value="">Select a Rate Plan</option>
-             {ratePlans.map((rp) => (
-  <option key={rp.id} value={rp.id}>
-    {rp._translations?.ratePlanName ?? rp.ratePlanName}
-  </option>
-))}
+              <option value="">{t("BookingOffset.filters.selectRatePlan")}</option>
+              {ratePlans.map((rp) => (
+                <option key={rp.id} value={rp.id}>
+                  {rp._translations?.ratePlanName ?? rp.ratePlanName}
+                </option>
+              ))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1">
-              Start Date
+              {t("BookingOffset.filters.startDate")}
             </label>
             <input
               type="date"
@@ -379,7 +382,7 @@ export default function BookingOffset() {
           </div>
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1">
-              End Date
+              {t("BookingOffset.filters.endDate")}
             </label>
             <input
               type="date"
@@ -396,17 +399,16 @@ export default function BookingOffset() {
         <div className="bg-card rounded-lg border border-border p-12 flex flex-col items-center justify-center text-center">
           <Calendar className="w-12 h-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">
-            No Rate Plan Selected
+            {t("BookingOffset.empty.title")}
           </h3>
           <p className="text-sm text-muted-foreground max-w-md">
-            Select a rate plan and date range above to view and manage booking
-            offsets.
+            {t("BookingOffset.empty.description")}
           </p>
         </div>
       ) : (
         <>
           {/* Bulk Action Buttons */}
-         
+
 
           {/* Offsets Table */}
           <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -415,14 +417,14 @@ export default function BookingOffset() {
                 <TableRow>
                   <TableHead className="text-center">Rate Plan</TableHead>
 
-                  <TableHead className="text-center">Date</TableHead>
-                  <TableHead className="text-center">Min Advance Booking</TableHead>
-                  <TableHead className="text-center">Max Advance Booking</TableHead>
-                  <TableHead className="text-center">Min Amend Booking</TableHead>
-                  <TableHead className="text-center">Max Amend Booking</TableHead>
-                  <TableHead className="text-center">Min Cancel Booking</TableHead>
-                  <TableHead className="text-center">Max Cancel Booking</TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
+                  <TableHead className="text-center">{t("BookingOffset.table.date")}</TableHead>
+                  <TableHead className="text-center">{t("BookingOffset.table.minAdvanceBooking")}</TableHead>
+                  <TableHead className="text-center">{t("BookingOffset.table.maxAdvanceBooking")}</TableHead>
+                  <TableHead className="text-center">{t("BookingOffset.table.minAmendBooking")}</TableHead>
+                  <TableHead className="text-center">{t("BookingOffset.table.maxAmendBooking")}</TableHead>
+                  <TableHead className="text-center">{t("BookingOffset.table.minCancelBooking")}</TableHead>
+                  <TableHead className="text-center">{t("BookingOffset.table.maxCancelBooking")}</TableHead>
+                  <TableHead className="text-center">{t("BookingOffset.table.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -432,16 +434,15 @@ export default function BookingOffset() {
                       colSpan={8}
                       className="text-center py-12 text-muted-foreground"
                     >
-                      No booking offsets found for this rate plan and date
-                      range.
+                      {t("BookingOffset.table.noOffsets")}
                     </TableCell>
                   </TableRow>
                 ) : (
                   bookingOffsets.map((offset) => (
                     <TableRow key={offset.id}>
-                     <TableCell className="font-medium">
-  {ratePlans.find(r => r.ratePlanCode === offset.ratePlanCode)?._translations?.ratePlanName ?? offset.ratePlanName}
-</TableCell>
+                      <TableCell className="font-medium">
+                        {ratePlans.find(r => r.ratePlanCode === offset.ratePlanCode)?._translations?.ratePlanName ?? offset.ratePlanName}
+                      </TableCell>
 
                       <TableCell className="font-medium">
                         {formatDate(offset.date)}
@@ -485,14 +486,14 @@ export default function BookingOffset() {
                               className="cursor-pointer"
                             >
                               <Edit className="w-4 h-4 mr-3" />
-                              Edit
+                              {t("Common.edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDeleteClick(offset.id)}
                               className="cursor-pointer text-destructive focus:text-destructive"
                             >
                               <Trash2 className="w-4 h-4 mr-3" />
-                              Delete
+                              {t("Common.edit")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -509,8 +510,8 @@ export default function BookingOffset() {
       {/* Edit Modal (Single Row) */}
       {editModalOpen && editOffset && (
         <OffsetFormModal
-          title="Edit Booking Offset"
-          subtitle={`Date: ${formatDate(editOffset.date)}`}
+          title={t("BookingOffset.form.editTitle")}
+          subtitle={t("BookingOffset.form.editSubtitle", { date: formatDate(editOffset.date) })}
           form={editForm}
           onFormChange={(f) => setEditForm(f as IUBookingOffsetR)}
           onSubmit={handleEditSubmit}
@@ -518,20 +519,20 @@ export default function BookingOffset() {
             setEditModalOpen(false);
             setEditOffset(null);
           }}
-          submitLabel="Save Changes"
+          submitLabel={t("BookingOffset.form.submitLabel")}
         />
       )}
 
       {/* Bulk Update Modal */}
       {bulkUpdateModalOpen && (
         <OffsetFormModal
-          title="Bulk Update Booking Offsets"
-          subtitle={`This will update offsets for the selected rate plan.`}
+          title={t("BookingOffset.form.bulkUpdateTitle")}
+          subtitle={t("BookingOffset.form.bulkUpdateSubtitle", { ratePlanName: selectedRatePlan?.ratePlanName })}
           form={bulkUpdateForm}
           onFormChange={setBulkUpdateForm}
           onSubmit={handleBulkUpdateSubmit}
           onClose={() => setBulkUpdateModalOpen(false)}
-          submitLabel="Update All"
+          submitLabel={t("BookingOffset.form.updateAllLabel")}
           showDateRange
           startDate={bulkStartDate}
           endDate={bulkEndDate}
@@ -548,13 +549,13 @@ export default function BookingOffset() {
         <DeleteConfirmDialog
           title={
             deleteTarget?.type === "bulk"
-              ? "Delete All Booking Offsets"
-              : "Delete Booking Offset"
+              ? t("BookingOffset.delete.bulkTitle")
+              : t("BookingOffset.delete.singleTitle")
           }
           message={
             deleteTarget?.type === "bulk"
-              ? `Are you sure you want to delete all booking offsets for the selected rate plan? This action cannot be undone.`
-              : "Are you sure you want to delete this booking offset? This action cannot be undone."
+              ? t("BookingOffset.delete.bulkMessage", { ratePlanName: selectedRatePlan?.ratePlanName })
+              : t("BookingOffset.delete.singleMessage")
           }
           onConfirm={handleDeleteConfirm}
           onCancel={handleDeleteCancel}

@@ -426,13 +426,13 @@ export class ReportsV2ExcelService {
             const leadDays =
                 r.checkInDate && r.bookedAt
                     ? Math.max(
-                          0,
-                          Math.ceil(
-                              (new Date(r.checkInDate).getTime() -
-                                  new Date(r.bookedAt).getTime()) /
-                                  86400000
-                          )
-                      )
+                        0,
+                        Math.ceil(
+                            (new Date(r.checkInDate).getTime() -
+                                new Date(r.bookedAt).getTime()) /
+                            86400000
+                        )
+                    )
                     : 'N/A';
             ws.addRow([
                 propertyNames.get(r.propertyId) || r.hotelName,
@@ -503,8 +503,8 @@ export class ReportsV2ExcelService {
             sortBy === 'revenue'
                 ? b.revenue - a.revenue
                 : sortBy === 'bookings'
-                  ? b.bookings - a.bookings
-                  : b.nights - a.nights
+                    ? b.bookings - a.bookings
+                    : b.nights - a.nights
         );
 
         const hdr = ws.addRow([
@@ -790,10 +790,10 @@ export class ReportsV2ExcelService {
 
         for (const g of guests) {
             // Personal info lives on the linked Guests record (nullable)
-            const guestInfo = g.guest;
+            const guestInfo = g.PrimaryGuests?.[0];
             const firstName = guestInfo?.firstName || 'N/A';
             const lastName = guestInfo?.lastName || 'N/A';
-            const email = g.guestEmail || guestInfo?.email || 'N/A';
+            const email = g.email || guestInfo?.email || 'N/A';
             const phone = guestInfo?.phoneNumber || 'N/A';
             const country = guestInfo?.country || 'N/A';
             const homeProperty = guestInfo?.property
@@ -823,8 +823,8 @@ export class ReportsV2ExcelService {
                 1
             );
 
-            // Total spend: cross-property sum from spendMap (keyed by guestEmail)
-            const totalSpend = spendMap.get(g.guestEmail) ?? 0;
+            // Total spend: cross-property sum from spendMap (keyed by email)
+            const totalSpend = spendMap.get(g.email) ?? 0;
 
             // Enrolled since = LoyalityGuest.createdAt
             const enrolledSince = g.createdAt

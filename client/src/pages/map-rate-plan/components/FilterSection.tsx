@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { IFilterProps, RatePlan, RoomTypes } from "../types";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface FilterSectionProps {
     filters: IFilterProps;
@@ -41,6 +42,8 @@ export default function FilterSection({
     onSearch,
     onCreateMapping,
 }: FilterSectionProps) {
+        const { t } = useTranslation();
+
     const [startDateOpen, setStartDateOpen] = useState(false);
     const [endDateOpen, setEndDateOpen] = useState(false);
     return (
@@ -48,10 +51,10 @@ export default function FilterSection({
             <CardHeader className="border-b bg-white">
                 <CardTitle className="text-xl flex items-center gap-2">
                     <Filter className="w-5 h-5" />
-                    Filter & Search
+                    {t("MapRatePlan.filterSearch")}
                 </CardTitle>
                 <CardDescription>
-                    Select rate plan, room type, and date range to view or create mappings
+                    {t("MapRatePlan.filterSearchDesc")}
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
@@ -61,13 +64,13 @@ export default function FilterSection({
 
                     {/* Room Type Selection */}
                     <div className="space-y-2">
-                        <Label className="text-sm font-semibold">Room Type</Label>
+                        <Label className="text-sm font-semibold">{t("MapRatePlan.roomTypeLabel")}</Label>
                         <Select
                             value={filters.roomTypeCode}
                             onValueChange={(value) => setFilters({ ...filters, roomTypeCode: value })}
                         >
                             <SelectTrigger className="h-11">
-                                <SelectValue placeholder="Select room type" />
+                                <SelectValue placeholder={t("MapRatePlan.selectRoomType")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {roomTypes.length > 0 ? (
@@ -78,20 +81,20 @@ export default function FilterSection({
                                     ))
                                 ) : (
                                     <SelectItem value="no-rooms" disabled>
-                                        No room types available
+                                        {t("MapRatePlan.noRoomTypesAvailable")}
                                     </SelectItem>
                                 )}
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <Label className="text-sm font-semibold">Rate Plan</Label>
+                        <Label className="text-sm font-semibold">{t("MapRatePlan.ratePlanLabel")}</Label>
                         <Select
                             value={filters.ratePlanCode}
                             onValueChange={(value) => setFilters({ ...filters, ratePlanCode: value })}
                         >
                             <SelectTrigger className="h-11">
-                                <SelectValue placeholder="Select rate plan" />
+                                <SelectValue placeholder={t("MapRatePlan.selectRatePlan")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {ratePlans.length > 0 ? (
@@ -102,7 +105,7 @@ export default function FilterSection({
                                     ))
                                 ) : (
                                     <SelectItem value="no-plans" disabled>
-                                        No rate plans available
+                                        {t("MapRatePlan.noRatePlansAvailable")}
                                     </SelectItem>
                                 )}
                             </SelectContent>
@@ -110,7 +113,7 @@ export default function FilterSection({
                     </div>
                     {/* Start Date */}
                     <div className="space-y-2">
-                        <Label className="text-sm font-semibold">Start Date</Label>
+                        <Label className="text-sm font-semibold">{t("MapRatePlan.startDate")}</Label>
                         <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -121,7 +124,7 @@ export default function FilterSection({
                                     )}
                                 >
                                     <Calendar className="mr-2 h-4 w-4" />
-                                    {dateRange.from ? format(dateRange.from, "MMM dd, yyyy") : "Select date"}
+                                    {dateRange.from ? format(dateRange.from, "MMM dd, yyyy") : t("MapRatePlan.selectDate")}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className=" p-0" align="start">
@@ -142,7 +145,7 @@ export default function FilterSection({
 
                     {/* End Date */}
                     <div className="space-y-2">
-                        <Label className="text-sm font-semibold">End Date</Label>
+                        <Label className="text-sm font-semibold">{t("MapRatePlan.endDate")}</Label>
                         <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -153,7 +156,7 @@ export default function FilterSection({
                                     )}
                                 >
                                     <Calendar className="mr-2 h-4 w-4" />
-                                    {dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : "Select date"}
+                                    {dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : t("MapRatePlan.selectDate")}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className=" p-0" align="start">
@@ -184,15 +187,11 @@ export default function FilterSection({
 
                     <Button onClick={onSearch} className="flex-1" variant="outline">
                         <Search className="w-4 h-4 mr-2" />
-                        Search Mappings
+                        {t("MapRatePlan.searchMappings")}
                     </Button>
-                    {/* <Button onClick={onStartStopSell} className="flex-1/2" variant="terciary">
-                        <Activity className="w-4 h-4 mr-2" />
-                        Start/Stop Sell
-                    </Button> */}
                     <Button onClick={onCreateMapping} className="flex-1">
                         <Plus className="w-4 h-4 mr-2" />
-                        Create New Mapping
+                        {t("MapRatePlan.createNewMapping")}
                     </Button>
                 </div>
             </CardContent>

@@ -19,8 +19,11 @@ import { getAllRoles, getAccessByRole, createNewRole, modifyStaff, deleteRole } 
 import Loader from '@/components/Loader/Loader';
 import toast from 'react-hot-toast';
 import { capitalizeFirstLetter } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export default function AccessControlPage() {
+    const { t } = useTranslation();
+
   const [roles, setRoles] = useState<IAccess[]>([]);
   const [selectedRole, setSelectedRole] = useState<IAccess | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -58,7 +61,7 @@ export default function AccessControlPage() {
       setSelectedRole(data?.data || null);
     } catch (err) {
       console.error('Failed to fetch role details', err);
-      toast.error('Could not load role details.');
+        toast.error(t('Toast.couldNotLoadRoleDetails'));
     } finally {
       setLoading(false);
     }
@@ -80,12 +83,12 @@ export default function AccessControlPage() {
       const res = await modifyStaff(selectedRole);
       setRoles((prev) => prev.map((r) => (r.role === selectedRole.role ? selectedRole : r)));
       if (res.success) {
-        toast.success('Role updated successfully!');
+        toast.success(t('Toast.roleUpdatedSuccessfully'));
       } else {
-        toast.error(res?.message || 'Failed to update role.');
+        toast.error(res?.message || t('Toast.failedToUpdateRole'));
       }
     } catch (err) {
-      toast.error('Failed to save role.');
+      toast.error(t('Toast.failedToSaveRole'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -94,7 +97,7 @@ export default function AccessControlPage() {
 
   const handleCreateRole = async () => {
     if (!newRole.roleName.trim()) {
-      toast.error('Role name is required.');
+      toast.error(t('Toast.roleNameRequired'));
       return;
     }
 
@@ -156,12 +159,12 @@ export default function AccessControlPage() {
         setRoles([...roles, role]);
         setNewRole({ roleName: '', roleLevel: 0 });
         setIsDialogOpen(false);
-        toast.success('Role created successfully!');
+        toast.success(t('Toast.roleCreatedSuccessfully'));
       } else {
-        toast.error(res?.message || 'Failed to create role.');
+        toast.error(res?.message || t('Toast.failedToCreateRole'));
       }
     } catch (err) {
-      toast.error('Failed to create role.');
+      toast.error(t('Toast.failedToCreateRole'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -170,7 +173,7 @@ export default function AccessControlPage() {
 
   const handleDeleteRole = async (roleName: string) => {
     if (!roleName.trim()) {
-      toast.error('Please enter a role name to delete.');
+      toast.error(t('Toast.enterRoleNameToDelete'));
       return;
     }
 
@@ -184,13 +187,12 @@ export default function AccessControlPage() {
         }
         setNewRole({ roleName: '', roleLevel: 0 });
         setDeleteDialogOpen(false);
-        toast.success('Role deleted successfully!');
+        toast.success(t('Toast.roleDeletedSuccessfully'));
       } else {
-        toast.error(res?.message || 'Failed to delete role.');
+        toast.error(res?.message || t('Toast.failedToDeleteRole'));
       }
     } catch (err) {
-      toast.error('Failed to delete role.');
-      console.error(err);
+      toast.error(t('Toast.failedToDeleteRole'));
     } finally {
       setLoading(false);
     }
@@ -199,7 +201,7 @@ export default function AccessControlPage() {
   if (loading && !roles.length) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <Loader text="Loading Roles and Access" />
+        <Loader text={t('AccessControl.loadingRolesAndAccess')} />
       </div>
     );
   }
@@ -215,9 +217,9 @@ export default function AccessControlPage() {
                 <Shield className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Access & Role Management</h1>
+               <h1 className="text-xl font-bold text-foreground">{t('AccessControl.title')}</h1>
                 <p className="text-muted-foreground text-sm mt-1">
-                  Manage roles and their permissions across the system
+                  {t('AccessControl.subtitle')}
                 </p>
               </div>
             </div>
@@ -240,7 +242,7 @@ export default function AccessControlPage() {
                     >
                       <Button variant="ghost" className="w-full justify-start px-2">
                         <Plus className="h-4 w-4 mr-2" />
-                        Create Role
+                        {t('AccessControl.createRole')}
                       </Button>
                     </DropdownMenuItem>
                   </DialogTrigger>
@@ -248,15 +250,15 @@ export default function AccessControlPage() {
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2">
                         <Plus className="h-5 w-5 text-primary" />
-                        Create New Role
+                        {t('AccessControl.createNewRole')}
                       </DialogTitle>
                       <DialogDescription>
-                        Enter a name and level for the new role. All permissions start disabled.
+                        {t('AccessControl.createNewRoleDescription')}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
-                        <Label htmlFor="roleName">Role Name</Label>
+                        <Label htmlFor="roleName">{t('AccessControl.roleName')}</Label>
                         <Input
                           id="roleName"
                           value={newRole.roleName}
@@ -268,7 +270,7 @@ export default function AccessControlPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="roleLevel">Role Level</Label>
+                        <Label htmlFor="roleLevel">{t('AccessControl.roleLevel')}</Label>
                         <Input
                           id="roleLevel"
                           type="number"
@@ -291,9 +293,9 @@ export default function AccessControlPage() {
                         variant="outline"
                         onClick={() => setIsDialogOpen(false)}
                       >
-                        Cancel
+                        {t('Common.cancel')}
                       </Button>
-                      <Button onClick={handleCreateRole}>Create Role</Button>
+                      <Button onClick={handleCreateRole}>{t('AccessControl.createRole')}</Button>
                     </div>
                   </DialogContent>
                 </Dialog>
@@ -307,7 +309,7 @@ export default function AccessControlPage() {
                     >
                       <Button variant="ghost" className="w-full justify-start px-2 text-red-500">
                         <Trash className="h-4 w-4 mr-2" />
-                        Delete Role
+                        {t('AccessControl.deleteRole')}
                       </Button>
                     </DropdownMenuItem>
                   </DialogTrigger>
@@ -315,21 +317,21 @@ export default function AccessControlPage() {
                     <DialogHeader>
                       <DialogTitle className="flex items-center gap-2 text-red-600">
                         <Trash className="h-5 w-5" />
-                        Delete Role
+                        {t('AccessControl.deleteRole')}
                       </DialogTitle>
                       <DialogDescription>
-                        Enter the name of the role to confirm deletion.
+                        {t('AccessControl.deleteRoleDescription')}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2 py-4">
-                      <Label htmlFor="confirmDeleteRoleName">Role Name</Label>
+                      <Label htmlFor="confirmDeleteRoleName">{t('AccessControl.roleName')}</Label>
                       <Input
                         id="confirmDeleteRoleName"
                         value={newRole.roleName} // ← Still using same, but see improvement below
                         onChange={(e) =>
                           setNewRole({ ...newRole, roleName: e.target.value })
                         }
-                        placeholder="Enter role name"
+                        placeholder={t('AccessControl.enterRoleName')}
                         className="focus:ring-red-500"
                       />
                     </div>
@@ -339,13 +341,13 @@ export default function AccessControlPage() {
                         variant="outline"
                         onClick={() => setDeleteDialogOpen(false)}
                       >
-                        Cancel
+                        {t('Common.cancel')}
                       </Button>
                       <Button
                         variant="destructive"
                         onClick={() => handleDeleteRole(newRole.roleName)}
                       >
-                        Delete Role
+                        {t('AccessControl.deleteRole')}
                       </Button>
                     </div>
                   </DialogContent>
@@ -360,7 +362,7 @@ export default function AccessControlPage() {
               <CardHeader className="pb-4">
                 <CardTitle className="flex items-center text-lg text-foreground">
                   <Users className="h-5 w-5 mr-2 text-primary" />
-                  Select Role
+                  {t('AccessControl.selectRole')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -369,7 +371,7 @@ export default function AccessControlPage() {
                   onValueChange={handleRoleChange}
                 >
                   <SelectTrigger className="w-full sm:w-72 h-12 text-sm">
-                    <SelectValue placeholder="Select a role to manage" />
+                    <SelectValue placeholder={t('AccessControl.selectRoleToManage')} />
                   </SelectTrigger>
                   <SelectContent>
                     {roles.map((role) => (
@@ -409,7 +411,7 @@ export default function AccessControlPage() {
                         className="flex items-center text-xs"
                       >
                         <Activity className={`h-3 w-3 mr-1 ${selectedRole.isActive ? 'text-green-500' : 'text-gray-500'}`} />
-                        {selectedRole.isActive ? 'Active' : 'Inactive'}
+                        {selectedRole.isActive ? t('Common.active') : t('Common.inactive')}
                       </Badge>
                     </div>
                   </div>
@@ -420,162 +422,162 @@ export default function AccessControlPage() {
                   className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 h-11 self-start sm:self-auto"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Save Changes
+                  {t('AccessControl.saveChanges')}
                 </Button>
               </div>
             </CardHeader>
 
             <CardContent className="pt-6 pb-8">
               {/* Hotel Management */}
-              <Section title="Hotel Management" icon={<Settings className="h-5 w-5" />}>
+              <Section title={t('AccessControl.hotelManagement')} icon={<Settings className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="View Hotel"
+                  label={t('AccessControl.viewHotel')}
                   checked={selectedRole.canViewHotel}
                   onChange={() => handlePermissionToggle('canViewHotel')}
                 />
                 <PermissionToggle
-                  label="Create Hotel"
+                  label={t('AccessControl.createHotel')}
                   checked={selectedRole.canCreateHotel}
                   onChange={() => handlePermissionToggle('canCreateHotel')}
                 />
                 <PermissionToggle
-                  label="Update Hotel"
+                  label={t('AccessControl.updateHotel')}
                   checked={selectedRole.canUpdateHotel}
                   onChange={() => handlePermissionToggle('canUpdateHotel')}
                 />
                 <PermissionToggle
-                  label="Delete Hotel"
+                  label={t('AccessControl.deleteHotel')}
                   checked={selectedRole.canDeleteHotel}
                   onChange={() => handlePermissionToggle('canDeleteHotel')}
                 />
               </Section>
 
               {/* Payment */}
-              <Section title="Payment" icon={<Settings className="h-5 w-5" />}>
+              <Section title={t('AccessControl.payment')} icon={<Settings className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="Update Payment Details"
+                  label={t('AccessControl.updatePaymentDetails')}
                   checked={selectedRole.canUpdatePaymentDetails}
                   onChange={() => handlePermissionToggle('canUpdatePaymentDetails')}
                 />
               </Section>
 
               {/* Rate Plan */}
-              <Section title="Rate Plan Management" icon={<Settings className="h-5 w-5" />}>
+              <Section title={t('AccessControl.ratePlanManagement')} icon={<Settings className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="View Rate Plan"
+                  label={t('AccessControl.viewRatePlan')}
                   checked={selectedRole.canViewRatePlan}
                   onChange={() => handlePermissionToggle('canViewRatePlan')}
                 />
                 <PermissionToggle
-                  label="Create Rate Plan"
+                  label={t('AccessControl.createRatePlan')}
                   checked={selectedRole.canCreateRatePlan}
                   onChange={() => handlePermissionToggle('canCreateRatePlan')}
                 />
                 <PermissionToggle
-                  label="Update Rate Plan"
+                  label={t('AccessControl.updateRatePlan')}
                   checked={selectedRole.canUpdateRatePlan}
                   onChange={() => handlePermissionToggle('canUpdateRatePlan')}
                 />
                 <PermissionToggle
-                  label="Delete Rate Plan"
+                  label={t('AccessControl.deleteRatePlan')}
                   checked={selectedRole.canDeleteRatePlan}
                   onChange={() => handlePermissionToggle('canDeleteRatePlan')}
                 />
               </Section>
 
               {/* Inventory */}
-              <Section title="Inventory & Availability" icon={<Settings className="h-5 w-5" />}>
+              <Section title={t('AccessControl.inventoryAvailability')} icon={<Settings className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="Add Inventory"
+                  label={t('AccessControl.addInventory')}
                   checked={selectedRole.canAddInventory}
                   onChange={() => handlePermissionToggle('canAddInventory')}
                 />
                 <PermissionToggle
-                  label="Create Room Availability"
+                  label={t('AccessControl.createRoomAvailability')}
                   checked={selectedRole.canCreateRoomAvailability}
                   onChange={() => handlePermissionToggle('canCreateRoomAvailability')}
                 />
                 <PermissionToggle
-                  label="Map Rate Plan"
+                  label={t('AccessControl.mapRatePlan')}
                   checked={selectedRole.canMapRatePlan}
                   onChange={() => handlePermissionToggle('canMapRatePlan')}
                 />
                 <PermissionToggle
-                  label="Update Room Price"
+                  label={t('AccessControl.updateRoomPrice')}
                   checked={selectedRole.canUpdateRoomPrice}
                   onChange={() => handlePermissionToggle('canUpdateRoomPrice')}
                 />
               </Section>
 
               {/* Booking */}
-              <Section title="Booking" icon={<Settings className="h-5 w-5" />}>
+              <Section title={t('AccessControl.booking')} icon={<Settings className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="See Booking Details"
+                  label={t('AccessControl.seeBookingDetails')}
                   checked={selectedRole.canSeeBookingDetails}
                   onChange={() => handlePermissionToggle('canSeeBookingDetails')}
                 />
                 <PermissionToggle
-                  label="Update Booking Status"
+                  label={t('AccessControl.updateBookingStatus')}
                   checked={selectedRole.canUpdateBookingStatus}
                   onChange={() => handlePermissionToggle('canUpdateBookingStatus')}
                 />
               </Section>
 
               {/* Analytics */}
-              <Section title="Analytics" icon={<Activity className="h-5 w-5" />}>
+              <Section title={t('AccessControl.analytics')} icon={<Activity className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="View Analytics"
+                  label={t('AccessControl.viewAnalytics')}
                   checked={selectedRole.canViewAnalytics}
                   onChange={() => handlePermissionToggle('canViewAnalytics')}
                 />
               </Section>
 
               {/* Members */}
-              <Section title="Members Management" icon={<Users className="h-5 w-5" />}>
+              <Section title={t('AccessControl.membersManagement')} icon={<Users className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="View Members"
+                  label={t('AccessControl.viewMembers')}
                   checked={selectedRole.canViewMembers}
                   onChange={() => handlePermissionToggle('canViewMembers')}
                 />
                 <PermissionToggle
-                  label="Create Members"
+                  label={t('AccessControl.createMembers')}
                   checked={selectedRole.canCreateMembers}
                   onChange={() => handlePermissionToggle('canCreateMembers')}
                 />
                 <PermissionToggle
-                  label="Update Members"
+                  label={t('AccessControl.updateMembers')}
                   checked={selectedRole.canUpdateMembers}
                   onChange={() => handlePermissionToggle('canUpdateMembers')}
                 />
                 <PermissionToggle
-                  label="Delete Members"
+                  label={t('AccessControl.deleteMembers')}
                   checked={selectedRole.canDeleteMembers}
                   onChange={() => handlePermissionToggle('canDeleteMembers')}
                 />
               </Section>
 
               {/* User Management */}
-              <Section title="User Management (by Level)" icon={<Users className="h-5 w-5" />}>
+              <Section title={t('AccessControl.userManagementByLevel')} icon={<Users className="h-5 w-5" />}>
                 {([0, 1, 2, 3] as const).map((level) => (
                   <div key={level} className="col-span-full sm:col-span-2 lg:col-span-3">
                     <div className="flex items-center mb-3">
                       <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary font-medium px-3 py-1">
-                        Level {level} Users
+                        {t('AccessControl.levelUsers', { level })}
                       </Badge>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <PermissionToggle
-                        label={`Create Level ${level} User`}
+                        label={t('AccessControl.createLevelUser', { level })}
                         checked={selectedRole[`canCreateLevel${level}User`]}
                         onChange={() => handlePermissionToggle(`canCreateLevel${level}User`)}
                       />
                       <PermissionToggle
-                        label={`Update Level ${level} User`}
+                        label={t('AccessControl.updateLevelUser', { level })}
                         checked={selectedRole[`canUpdateLevel${level}User`]}
                         onChange={() => handlePermissionToggle(`canUpdateLevel${level}User`)}
                       />
                       <PermissionToggle
-                        label={`Delete Level ${level} User`}
+                        label={t('AccessControl.deleteLevelUser', { level })}
                         checked={selectedRole[`canDeleteLevel${level}User`]}
                         onChange={() => handlePermissionToggle(`canDeleteLevel${level}User`)}
                       />
@@ -585,81 +587,81 @@ export default function AccessControlPage() {
               </Section>
 
               {/* Logs */}
-              <Section title="Logs" icon={<Activity className="h-5 w-5" />}>
+              <Section title={t('AccessControl.logs')} icon={<Activity className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="View Logs"
+                  label={t('AccessControl.viewLogs')}
                   checked={selectedRole.canViewLogs}
                   onChange={() => handlePermissionToggle('canViewLogs')}
                 />
               </Section>
 
               {/* Role & Access */}
-              <Section title="Role & Access Management" icon={<Shield className="h-5 w-5" />}>
+              <Section title={t('AccessControl.roleAccessManagement')} icon={<Shield className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="Create New Role"
+                  label={t('AccessControl.createNewRole')}
                   checked={selectedRole.canCreateNewRole}
                   onChange={() => handlePermissionToggle('canCreateNewRole')}
                 />
                 <PermissionToggle
-                  label="View Access"
+                  label={t('AccessControl.viewAccess')}
                   checked={selectedRole.canViewAccess}
                   onChange={() => handlePermissionToggle('canViewAccess')}
                 />
                 <PermissionToggle
-                  label="Modify Access"
+                  label={t('AccessControl.modifyAccess')}
                   checked={selectedRole.canModifyAccess}
                   onChange={() => handlePermissionToggle('canModifyAccess')}
                 />
                 <PermissionToggle
-                  label="Delete Role"
+                  label={t('AccessControl.deleteRole')}
                   checked={selectedRole.canDeleteRole}
                   onChange={() => handlePermissionToggle('canDeleteRole')}
                 />
               </Section>
 
               {/* Policy */}
-              <Section title="Policy Management" icon={<Settings className="h-5 w-5" />}>
+              <Section title={t('AccessControl.policyManagement')} icon={<Settings className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="Create Policy"
+                  label={t('AccessControl.createPolicy')}
                   checked={selectedRole.canCreatePolicy}
                   onChange={() => handlePermissionToggle('canCreatePolicy')}
                 />
                 <PermissionToggle
-                  label="Update Policy"
+                  label={t('AccessControl.updatePolicy')}
                   checked={selectedRole.canUpdatePolicy}
                   onChange={() => handlePermissionToggle('canUpdatePolicy')}
                 />
                 <PermissionToggle
-                  label="Delete Policy"
+                  label={t('AccessControl.deletePolicy')}
                   checked={selectedRole.canDeletePolicy}
                   onChange={() => handlePermissionToggle('canDeletePolicy')}
                 />
               </Section>
 
               {/* Custom Data */}
-              <Section title="Custom Data Management" icon={<Settings className="h-5 w-5" />}>
+              <Section title={t('AccessControl.customDataManagement')} icon={<Settings className="h-5 w-5" />}>
                 <PermissionToggle
-                  label="Manage Categories"
+                  label={t('AccessControl.manageCategories')}
                   checked={selectedRole.canCDCategory}
                   onChange={() => handlePermissionToggle('canCDCategory')}
                 />
                 <PermissionToggle
-                  label="Manage Property Types"
+                  label={t('AccessControl.managePropertyTypes')}
                   checked={selectedRole.canCDPropertyType}
                   onChange={() => handlePermissionToggle('canCDPropertyType')}
                 />
                 <PermissionToggle
-                  label="Manage Destination Types"
+                  label={t('AccessControl.manageDestinationTypes')}
                   checked={selectedRole.canCDDestinationType}
                   onChange={() => handlePermissionToggle('canCDDestinationType')}
                 />
                 <PermissionToggle
-                  label="Manage Amenities"
+                  label={t('AccessControl.manageAmenities')}
                   checked={selectedRole.canCDAmenity}
                   onChange={() => handlePermissionToggle('canCDAmenity')}
                 />
                 <PermissionToggle
-                  label="View Drafted Properties"
+                  label={t('AccessControl.viewDraftedProperties')}
                   checked={selectedRole.canSeeDraftedProperties}
                   onChange={() => handlePermissionToggle('canSeeDraftedProperties')}
                 />

@@ -27,6 +27,7 @@ interface AddonAvailability {
         category?: { code: string; name: string };
         subCategory?: { code: string; name: string };
         addonVariant?: { code: string; name: string };
+        _translations?: Record<string, string>;
     };
 }
 
@@ -180,20 +181,20 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                                 {addon.images?.[0] && (
                                                     <img
                                                         src={addon.images[0]}
-                                                        alt={addon.name}
+                                                        alt={addon._translations?.name || addon.name}
                                                         className="w-20 h-20 rounded-lg object-cover flex-shrink-0 border border-gray-200"
                                                     />
                                                 )}
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-start justify-between gap-2 mb-1">
                                                         <h5 className="font-bold text-sm text-gray-900 leading-tight">
-                                                            {addon.name}
+                                                            {addon._translations?.name || addon.name}
                                                         </h5>
                                                     </div>
 
-                                                    {addon.description && (
+                                                    {(addon._translations?.description || addon.description) && (
                                                         <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                                                            {addon.description}
+                                                            {addon._translations?.description || addon.description}
                                                         </p>
                                                     )}
 

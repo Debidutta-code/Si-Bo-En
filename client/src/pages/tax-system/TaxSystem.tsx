@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
 import toast from "react-hot-toast";
@@ -100,6 +101,7 @@ interface LoadingProps {
 }
 
 export default function TaxSystem() {
+    const { t } = useTranslation();
     const { propertyId } = useParams<{ propertyId: string }>();
     const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
     // State management
@@ -207,11 +209,11 @@ export default function TaxSystem() {
     }, [propertyId]);
 
     const fetchAllData = async () => {
-        setLoader({ isLoading: true, message: "Loading tax system data..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.loadingTaxSystemData") });
         try {
             await Promise.all([fetchTaxRules(), fetchTaxGroups(), fetchRatePlans(), fetchTouristTaxes(), fetchRoomTypes()]);
         } catch (error) {
-            toast.error("Failed to load tax system data");
+            toast.error(t("TaxSystem.failedToLoadTaxSystemData"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -223,10 +225,10 @@ export default function TaxSystem() {
             if (response.success) {
                 setTouristTaxes(response.data || []);
             } else {
-                toast.error(response.message || "Failed to fetch tourist taxes");
+                toast.error(response.message || t("TaxSystem.failedToFetchTouristTaxes"));
             }
         } catch (error) {
-            toast.error("Failed to fetch tourist taxes");
+            toast.error(t("TaxSystem.failedToFetchTouristTaxes"));
         }
     }
     const fetchRoomTypes = async () => {
@@ -236,10 +238,10 @@ export default function TaxSystem() {
             if (response.success) {
                 setAllRooms(response.data || []);
             } else {
-                toast.error(response.message || "Failed to fetch room types");
+                toast.error(response.message || t("TaxSystem.failedToFetchRoomTypes"));
             }
         } catch (error) {
-            toast.error("Failed to fetch room types");
+            toast.error(t("TaxSystem.failedToFetchRoomTypes"));
         }
     };
     const handleSaveTouristTax = async (data: ICTouristTax) => {
@@ -251,36 +253,36 @@ export default function TaxSystem() {
     };
     const handleDeleteTouristTax = async () => {
         if (!deleteDialog.item) return;
-        setLoader({ isLoading: true, message: "Deleting additional charge..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.deletingAdditionalCharge") });
         try {
             const response = await deleteTouristTaxService(deleteDialog.item.id);
             if (response.success) {
-                toast.success(response.message || "Additional charge deleted successfully");
+                toast.success(response.message || t("TaxSystem.additionalChargeDeletedSuccessfully"));
                 setDeleteDialog({ open: false, type: null, item: null });
                 fetchTouristTaxes();
             } else {
-                toast.error(response.message || "Failed to delete additional charge");
+                toast.error(response.message || t("TaxSystem.failedToDeleteAdditionalCharge"));
             }
         } catch (error) {
-            toast.error("Failed to delete additional charge");
+            toast.error(t("TaxSystem.failedToDeleteAdditionalCharge"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
     };
     const handleCreateTouristTax = async (data: ICTouristTax) => {
         if (!propertyId) return;
-        setLoader({ isLoading: true, message: "Creating tourist tax..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.creatingTouristTax") });
         try {
             const response = await createTouristTaxService(propertyId, data);
             if (response.success) {
-                toast.success(response.message || "Tourist tax created successfully");
+                toast.success(response.message || t("TaxSystem.touristTaxCreatedSuccessfully"));
                 setTouristTaxDialog({ open: false, mode: "create", touristTax: null });
                 fetchTouristTaxes();
             } else {
-                toast.error(response.message || "Failed to create tourist tax");
+                toast.error(response.message || t("TaxSystem.failedToCreateTouristTax"));
             }
         } catch (error) {
-            toast.error("Failed to create tourist tax");
+            toast.error(t("TaxSystem.failedToCreateTouristTax"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -288,21 +290,21 @@ export default function TaxSystem() {
 
     const handleUpdateTouristTax = async (data: ICTouristTax) => {
         if (!touristTaxDialog.touristTax) return;
-        setLoader({ isLoading: true, message: "Updating tourist tax..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.updatingTouristTax") });
         try {
             const response = await updateTouristTaxService(
                 touristTaxDialog.touristTax.id,
                 data
             );
             if (response.success) {
-                toast.success(response.message || "Tourist tax updated successfully");
+                toast.success(response.message || t("TaxSystem.touristTaxUpdatedSuccessfully"));
                 setTouristTaxDialog({ open: false, mode: "create", touristTax: null });
                 fetchTouristTaxes();
             } else {
-                toast.error(response.message || "Failed to update tourist tax");
+                toast.error(response.message || t("TaxSystem.failedToUpdateTouristTax"));
             }
         } catch (error) {
-            toast.error("Failed to update tourist tax");
+            toast.error(t("TaxSystem.failedToUpdateTouristTax"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -318,10 +320,10 @@ export default function TaxSystem() {
             if (response.success) {
                 setRatePlans(response.data || []);
             } else {
-                toast.error(response.message || "Failed to fetch rate plans");
+                toast.error(response.message || t("TaxSystem.failedToFetchRatePlans"));
             }
         } catch (error) {
-            toast.error("Failed to fetch rate plans");
+            toast.error(t("TaxSystem.failedToFetchRatePlans"));
         }
     }
     // console.log("Rate Plans:", ratePlans);
@@ -332,10 +334,10 @@ export default function TaxSystem() {
             if (response.success) {
                 setTaxRules(response.data || []);
             } else {
-                toast.error(response.message || "Failed to fetch tax rules");
+                toast.error(response.message || t("TaxSystem.failedToFetchTaxRules"));
             }
         } catch (error) {
-            toast.error("Failed to fetch tax rules");
+            toast.error(t("TaxSystem.failedToFetchTaxRules"));
         }
     };
 
@@ -347,10 +349,10 @@ export default function TaxSystem() {
             if (response.success) {
                 setTaxGroups(response.data || []);
             } else {
-                toast.error(response.message || "Failed to fetch tax groups");
+                toast.error(response.message || t("TaxSystem.failedToFetchTaxGroups"));
             }
         } catch (error) {
-            toast.error("Failed to fetch tax groups");
+            toast.error(t("TaxSystem.failedToFetchTaxGroups"));
         }
     };
 
@@ -365,18 +367,18 @@ export default function TaxSystem() {
 
     const handleCreateTaxRule = async (data: ICTaxRule) => {
         if (!propertyId) return;
-        setLoader({ isLoading: true, message: "Creating tax rule..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.creatingTaxRule") });
         try {
             const response = await createTaxRuleService(propertyId, data);
             if (response.success) {
-                toast.success(response.message || "Tax rule created successfully");
+                toast.success(response.message || t("TaxSystem.taxRuleCreatedSuccessfully"));
                 setTaxRuleDialog({ open: false, mode: "create", taxRule: null });
                 fetchTaxRules();
             } else {
-                toast.error(response.message || "Failed to create tax rule");
+                toast.error(response.message || t("TaxSystem.failedToCreateTaxRule"));
             }
         } catch (error) {
-            toast.error("Failed to create tax rule");
+            toast.error(t("TaxSystem.failedToCreateTaxRule"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -384,21 +386,21 @@ export default function TaxSystem() {
 
     const handleUpdateTaxRule = async (data: ICTaxRule) => {
         if (!taxRuleDialog.taxRule) return;
-        setLoader({ isLoading: true, message: "Updating tax rule..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.updatingTaxRule") });
         try {
             const response = await updateTaxRuleService(
                 taxRuleDialog.taxRule.id,
                 data
             );
             if (response.success) {
-                toast.success(response.message || "Tax rule updated successfully");
+                toast.success(response.message || t("TaxSystem.taxRuleUpdatedSuccessfully"));
                 setTaxRuleDialog({ open: false, mode: "create", taxRule: null });
                 fetchTaxRules();
             } else {
-                toast.error(response.message || "Failed to update tax rule");
+                toast.error(response.message || t("TaxSystem.failedToUpdateTaxRule"));
             }
         } catch (error) {
-            toast.error("Failed to update tax rule");
+            toast.error(t("TaxSystem.failedToUpdateTaxRule"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -406,18 +408,18 @@ export default function TaxSystem() {
 
     const handleDeleteTaxRule = async () => {
         if (!deleteDialog.item) return;
-        setLoader({ isLoading: true, message: "Deleting tax rule..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.deletingTaxRule") });
         try {
             const response = await deleteTaxRuleService(deleteDialog.item.id);
             if (response.success) {
-                toast.success(response.message || "Tax rule deleted successfully");
+                toast.success(response.message || t("TaxSystem.taxRuleDeletedSuccessfully"));
                 setDeleteDialog({ open: false, type: null, item: null });
                 fetchTaxRules();
             } else {
-                toast.error(response.message || "Failed to delete tax rule");
+                toast.error(response.message || t("TaxSystem.failedToDeleteTaxRule"));
             }
         } catch (error) {
-            toast.error("Failed to delete tax rule");
+            toast.error(t("TaxSystem.failedToDeleteTaxRule"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -434,7 +436,7 @@ export default function TaxSystem() {
 
     const handleCreateTaxGroup = async (data: ICTaxGroup) => {
         if (!propertyId) return;
-        setLoader({ isLoading: true, message: "Creating tax group..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.creatingTaxGroup") });
         try {
             const response = await createTaxGroupService(propertyId, data);
             if (response.success) {
@@ -443,14 +445,14 @@ export default function TaxSystem() {
                     await addRulesToTaxGroupService(response.data.id, data.taxRuleIds);
                 }
 
-                toast.success(response.message || "Tax group created successfully");
+                toast.success(response.message || t("TaxSystem.taxGroupCreatedSuccessfully"));
                 setTaxGroupDialog({ open: false, mode: "create", taxGroup: null });
                 fetchTaxGroups();
             } else {
-                toast.error(response.message || "Failed to create tax group");
+                toast.error(response.message || t("TaxSystem.failedToCreateTaxGroup"));
             }
         } catch (error) {
-            toast.error("Failed to create tax group");
+            toast.error(t("TaxSystem.failedToCreateTaxGroup"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -458,7 +460,7 @@ export default function TaxSystem() {
 
     const handleUpdateTaxGroup = async (data: ICTaxGroup) => {
         if (!taxGroupDialog.taxGroup) return;
-        setLoader({ isLoading: true, message: "Updating tax group..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.updatingTaxGroup") });
         try {
             // Update basic tax group details
             const response = await updateTaxGroupService(
@@ -485,14 +487,14 @@ export default function TaxSystem() {
                     await removeRulesFromTaxGroupService(taxGroupDialog.taxGroup.id, rulesToRemove);
                 }
 
-                toast.success(response.message || "Tax group updated successfully");
+                toast.success(response.message || t("TaxSystem.taxGroupUpdatedSuccessfully"));
                 setTaxGroupDialog({ open: false, mode: "create", taxGroup: null });
                 fetchTaxGroups();
             } else {
-                toast.error(response.message || "Failed to update tax group");
+                toast.error(response.message || t("TaxSystem.failedToUpdateTaxGroup"));
             }
         } catch (error) {
-            toast.error("Failed to update tax group");
+            toast.error(t("TaxSystem.failedToUpdateTaxGroup"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -500,18 +502,18 @@ export default function TaxSystem() {
 
     const handleDeleteTaxGroup = async () => {
         if (!deleteDialog.item) return;
-        setLoader({ isLoading: true, message: "Deleting tax group..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.deletingTaxGroup") });
         try {
             const response = await deleteTaxGroupService(deleteDialog.item.id);
             if (response.success) {
-                toast.success(response.message || "Tax group deleted successfully");
+                toast.success(response.message || t("TaxSystem.taxGroupDeletedSuccessfully"));
                 setDeleteDialog({ open: false, type: null, item: null });
                 fetchTaxGroups();
             } else {
-                toast.error(response.message || "Failed to delete tax group");
+                toast.error(response.message || t("TaxSystem.failedToDeleteTaxGroup"));
             }
         } catch (error) {
-            toast.error("Failed to delete tax group");
+            toast.error(t("TaxSystem.failedToDeleteTaxGroup"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -520,14 +522,14 @@ export default function TaxSystem() {
     // Group action handlers
     const handleAddRuleToGroup = async () => {
         if (!groupActionDialog.ruleId || !groupActionDialog.selectedGroupId) return;
-        setLoader({ isLoading: true, message: "Adding rule to group..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.addingRuleToGroup") });
         try {
             const response = await addRulesToTaxGroupService(
                 groupActionDialog.selectedGroupId,
                 [groupActionDialog.ruleId]
             );
             if (response.success) {
-                toast.success("Tax rule added to group successfully");
+                toast.success(t("TaxSystem.taxRuleAddedToGroupSuccessfully"));
                 setGroupActionDialog({
                     open: false,
                     action: null,
@@ -540,10 +542,10 @@ export default function TaxSystem() {
                     fetchTaxGroups()
                 ])
             } else {
-                toast.error(response.message || "Failed to add rule to group");
+                toast.error(response.message || t("TaxSystem.failedToAddRuleToGroup"));
             }
         } catch (error) {
-            toast.error("Failed to add rule to group");
+            toast.error(t("TaxSystem.failedToAddRuleToGroup"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -551,14 +553,14 @@ export default function TaxSystem() {
 
     const handleRemoveRuleFromGroup = async () => {
         if (!groupActionDialog.ruleId || !groupActionDialog.selectedGroupId) return;
-        setLoader({ isLoading: true, message: "Removing rule from group..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.removingRuleFromGroup") });
         try {
             const response = await removeRulesFromTaxGroupService(
                 groupActionDialog.selectedGroupId,
                 [groupActionDialog.ruleId]
             );
             if (response.success) {
-                toast.success("Tax rule removed from group successfully");
+                toast.success(t("TaxSystem.taxRuleRemovedFromGroupSuccessfully"));
                 setGroupActionDialog({
                     open: false,
                     action: null,
@@ -571,10 +573,10 @@ export default function TaxSystem() {
                     fetchTaxGroups()
                 ])
             } else {
-                toast.error(response.message || "Failed to remove rule from group");
+                toast.error(response.message || t("TaxSystem.failedToRemoveRuleFromGroup"));
             }
         } catch (error) {
-            toast.error("Failed to remove rule from group");
+            toast.error(t("TaxSystem.failedToRemoveRuleFromGroup"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -597,14 +599,14 @@ export default function TaxSystem() {
     const handleAddRatePlanToGroup = async () => {
         // console.log("add called")
         if (!ratePlanActionDialog.ratePlanId || !ratePlanActionDialog.selectedGroupId) return;
-        setLoader({ isLoading: true, message: "Adding rate plan to tax group..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.addingRatePlanToTaxGroup") });
         try {
             const response = await addRatePlanToTaxGroupService(
                 ratePlanActionDialog.selectedGroupId,
                 ratePlanActionDialog.ratePlanId
             );
             if (response.success) {
-                toast.success("Rate plan added to tax group successfully");
+                toast.success(t("TaxSystem.ratePlanAddedToTaxGroupSuccessfully"));
                 setRatePlanActionDialog({
                     open: false,
                     action: null,
@@ -613,10 +615,10 @@ export default function TaxSystem() {
                 });
                 fetchTaxGroups();
             } else {
-                toast.error(response.message || "Failed to add rate plan to tax group");
+                toast.error(response.message || t("TaxSystem.failedToAddRatePlanToTaxGroup"));
             }
         } catch (error) {
-            toast.error("Failed to add rate plan to tax group");
+            toast.error(t("TaxSystem.failedToAddRatePlanToTaxGroup"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -624,14 +626,14 @@ export default function TaxSystem() {
 
     const handleRemoveRatePlanFromGroup = async () => {
         if (!ratePlanActionDialog.ratePlanId || !ratePlanActionDialog.selectedGroupId) return;
-        setLoader({ isLoading: true, message: "Removing rate plan from tax group..." });
+        setLoader({ isLoading: true, message: t("TaxSystem.removingRatePlanFromTaxGroup") });
         try {
             const response = await removeRatePlanFromTaxGroupService(
                 ratePlanActionDialog.selectedGroupId,
                 ratePlanActionDialog.ratePlanId
             );
             if (response.success) {
-                toast.success("Rate plan removed from tax group successfully");
+                toast.success(t("TaxSystem.ratePlanRemovedFromTaxGroupSuccessfully"));
                 setRatePlanActionDialog({
                     open: false,
                     action: null,
@@ -640,10 +642,10 @@ export default function TaxSystem() {
                 });
                 fetchTaxGroups();
             } else {
-                toast.error(response.message || "Failed to remove rate plan from tax group");
+                toast.error(response.message || t("TaxSystem.failedToRemoveRatePlanFromTaxGroup"));
             }
         } catch (error) {
-            toast.error("Failed to remove rate plan from tax group");
+            toast.error(t("TaxSystem.failedToRemoveRatePlanFromTaxGroup"));
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
@@ -694,10 +696,10 @@ export default function TaxSystem() {
                         </div>
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">
-                                Tax System Management
+                                {t("TaxSystem.taxSystemManagement")}
                             </h1>
                             <p className="text-gray-600">
-                                Configure tax rules and groups for your property
+                                {t("TaxSystem.configureTaxRules")}
                             </p>
                         </div>
                     </div>
@@ -710,7 +712,7 @@ export default function TaxSystem() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">
-                                        Total Tax Rules
+                                        {t("TaxSystem.totalTaxRules")}
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900">
                                         {taxRules.length}
@@ -725,7 +727,7 @@ export default function TaxSystem() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">
-                                        Total Tax Groups
+                                        {t("TaxSystem.totalTaxGroups")}
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900">
                                         {taxGroups.length}
@@ -740,7 +742,7 @@ export default function TaxSystem() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-gray-600">
-                                        Total Additional Charges
+                                        {t("TaxSystem.totalAdditionalCharges")}
                                     </p>
                                     <p className="text-2xl font-bold text-gray-900">
                                         {touristTaxes.length}
@@ -755,9 +757,9 @@ export default function TaxSystem() {
                 {/* Tabs */}
                 <Tabs defaultValue="rules" className="space-y-6">
                     <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="rules">Tax Rules</TabsTrigger>
-                        <TabsTrigger value="groups">Tax Groups</TabsTrigger>
-                        <TabsTrigger value="additional-charges">Additional charges</TabsTrigger>
+                        <TabsTrigger value="rules">{t("TaxSystem.taxRules")}</TabsTrigger>
+                        <TabsTrigger value="groups">{t("TaxSystem.taxGroups")}</TabsTrigger>
+                        <TabsTrigger value="additional-charges">{t("TaxSystem.additionalCharges")}</TabsTrigger>
                     </TabsList>
 
                     {/* Tax Rules Tab */}
@@ -769,7 +771,7 @@ export default function TaxSystem() {
                                     <div className="flex-1 relative">
                                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                         <Input
-                                            placeholder="Search tax rules..."
+                                            placeholder={t("TaxSystem.searchTaxRules")}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="pl-10"
@@ -785,7 +787,7 @@ export default function TaxSystem() {
                                         }
                                     >
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Create Tax
+                                        {t("TaxSystem.createTax")}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -797,12 +799,12 @@ export default function TaxSystem() {
                                 <CardContent className="p-12 text-center">
                                     <Receipt className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                                     <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                                        No Tax Rules Found
+                                        {t("TaxSystem.noTaxRulesFound")}
                                     </h3>
                                     <p className="text-gray-500 mb-6">
                                         {searchQuery
-                                            ? "No tax rules match your search criteria."
-                                            : "Get started by creating your first tax rule."}
+                                            ? t("TaxSystem.noTaxRulesMatchCriteria")
+                                            : t("TaxSystem.getStartedTaxRules")}
                                     </p>
                                     {!searchQuery && (
                                         <Button
@@ -815,7 +817,7 @@ export default function TaxSystem() {
                                             }
                                         >
                                             <Plus className="w-4 h-4 mr-2" />
-                                            Create Tax Rule
+                                            {t("TaxSystem.createTaxRule")}
                                         </Button>
                                     )}
                                 </CardContent>
@@ -834,7 +836,7 @@ export default function TaxSystem() {
                                                         {rule._translations ? rule._translations.name : rule.name}
                                                     </CardTitle>
                                                     <CardDescription className="text-xs">
-                                                        Priority: {rule.priority}
+                                                        {t("TaxSystem.priority")}: {rule.priority}
                                                     </CardDescription>
                                                 </div>
                                                 <DropdownMenu>
@@ -858,7 +860,7 @@ export default function TaxSystem() {
                                                             }
                                                         >
                                                             <Pencil className="w-4 h-4 mr-2" />
-                                                            Edit
+                                                            {t("TaxSystem.edit")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'rule', entityId: rule.id }))}
@@ -876,12 +878,12 @@ export default function TaxSystem() {
                                                         <DropdownMenuSub>
                                                             <DropdownMenuSubTrigger>
                                                                 <UserPlus className="w-4 h-4 mr-2" />
-                                                                Add to Group
+                                                                {t("TaxSystem.addToGroup")}
                                                             </DropdownMenuSubTrigger>
                                                             <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
                                                                 {getAvailableGroupsForRule(rule.id).length === 0 ? (
                                                                     <div className="px-2 py-1.5 text-sm text-gray-500">
-                                                                        No available groups
+                                                                        {t("TaxSystem.noAvailableGroups")}
                                                                     </div>
                                                                 ) : (
                                                                     getAvailableGroupsForRule(rule.id).map((group) => (
@@ -905,12 +907,12 @@ export default function TaxSystem() {
                                                         <DropdownMenuSub>
                                                             <DropdownMenuSubTrigger>
                                                                 <UserMinus className="w-4 h-4 mr-2" />
-                                                                Remove from Group
+                                                                {t("TaxSystem.removeFromGroup")}
                                                             </DropdownMenuSubTrigger>
                                                             <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
                                                                 {getGroupsForRule(rule.id).length === 0 ? (
                                                                     <div className="px-2 py-1.5 text-sm text-gray-500">
-                                                                        Not in any group
+                                                                        {t("TaxSystem.notInAnyGroup")}
                                                                     </div>
                                                                 ) : (
                                                                     getGroupsForRule(rule.id).map((group) => (
@@ -1002,7 +1004,7 @@ export default function TaxSystem() {
                                     <div className="flex-1 relative">
                                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                         <Input
-                                            placeholder="Search tax groups..."
+                                            placeholder={t("TaxSystem.searchTaxGroups")}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="pl-10"
@@ -1018,7 +1020,7 @@ export default function TaxSystem() {
                                         }
                                     >
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Create Tax Group
+                                        {t("TaxSystem.createTaxGroup")}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -1030,12 +1032,12 @@ export default function TaxSystem() {
                                 <CardContent className="p-12 text-center">
                                     <Layers className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                                     <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                                        No Tax Groups Found
+                                        {t("TaxSystem.noTaxGroupsFound")}
                                     </h3>
                                     <p className="text-gray-500 mb-6">
                                         {searchQuery
-                                            ? "No tax groups match your search criteria."
-                                            : "Get started by creating your first tax group."}
+                                            ? t("TaxSystem.noTaxGroupsMatchCriteria")
+                                            : t("TaxSystem.getStartedTaxGroups")}
                                     </p>
                                     {!searchQuery && (
                                         <Button
@@ -1048,7 +1050,7 @@ export default function TaxSystem() {
                                             }
                                         >
                                             <Plus className="w-4 h-4 mr-2" />
-                                            Create Tax Group
+                                            {t("TaxSystem.createTaxGroup")}
                                         </Button>
                                     )}
                                 </CardContent>
@@ -1070,12 +1072,12 @@ export default function TaxSystem() {
                                                         {group.isActive ? (
                                                             <span className="flex items-center gap-1 text-green-600">
                                                                 <CheckCircle className="w-3 h-3" />
-                                                                Active
+                                                                {t("TaxSystem.active")}
                                                             </span>
                                                         ) : (
                                                             <span className="flex items-center gap-1 text-gray-400">
                                                                 <XCircle className="w-3 h-3" />
-                                                                Inactive
+                                                                {t("TaxSystem.inactive")}
                                                             </span>
                                                         )}
                                                     </CardDescription>
@@ -1101,7 +1103,7 @@ export default function TaxSystem() {
                                                             }
                                                         >
                                                             <Pencil className="w-4 h-4 mr-2" />
-                                                            Edit
+                                                            {t("TaxSystem.edit")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'group', entityId: group.id }))}
@@ -1119,12 +1121,12 @@ export default function TaxSystem() {
                                                         <DropdownMenuSub>
                                                             <DropdownMenuSubTrigger>
                                                                 <UserPlus className="w-4 h-4 mr-2" />
-                                                                Add Rate Plan
+                                                                {t("TaxSystem.addRatePlan")}
                                                             </DropdownMenuSubTrigger>
                                                             <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
                                                                 {getAvailableRatePlansForGroup(group.id).length === 0 ? (
                                                                     <div className="px-2 py-1.5 text-sm text-gray-500">
-                                                                        No available rate plans
+                                                                        {t("TaxSystem.noAvailableRatePlans")}
                                                                     </div>
                                                                 ) : (
                                                                     getAvailableRatePlansForGroup(group.id).map((ratePlan) => (
@@ -1148,12 +1150,12 @@ export default function TaxSystem() {
                                                         <DropdownMenuSub>
                                                             <DropdownMenuSubTrigger>
                                                                 <UserMinus className="w-4 h-4 mr-2" />
-                                                                Remove Rate Plan
+                                                                {t("TaxSystem.removeRatePlan")}
                                                             </DropdownMenuSubTrigger>
                                                             <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
                                                                 {getRatePlansForGroup(group.id).length === 0 ? (
                                                                     <div className="px-2 py-1.5 text-sm text-gray-500">
-                                                                        No rate plans assigned
+                                                                        {t("TaxSystem.noRatePlansAssigned")}
                                                                     </div>
                                                                 ) : (
                                                                     getRatePlansForGroup(group.id).map((ratePlan) => (
@@ -1186,7 +1188,7 @@ export default function TaxSystem() {
                                                             className="text-red-600"
                                                         >
                                                             <Trash2 className="w-4 h-4 mr-2" />
-                                                            Delete
+                                                            {t("Common.delete")}
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -1197,7 +1199,7 @@ export default function TaxSystem() {
                                                 <Badge
                                                     variant={group.isActive ? "default" : "secondary"}
                                                 >
-                                                    {group.isActive ? "Active" : "Inactive"}
+                                                    {group.isActive ? t("TaxSystem.active") : t("TaxSystem.inactive")}
                                                 </Badge>
                                                 {group.taxGroupRules && group.taxGroupRules.length > 0 && (
                                                     <div className="space-y-1">
@@ -1258,7 +1260,7 @@ export default function TaxSystem() {
                                     <div className="flex-1 relative">
                                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                                         <Input
-                                            placeholder="Search additional charges..."
+                                            placeholder={t("TaxSystem.searchAdditionalCharges")}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="pl-10"
@@ -1274,7 +1276,7 @@ export default function TaxSystem() {
                                         }
                                     >
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Add Charges
+                                        {t("TaxSystem.addCharges")}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -1286,12 +1288,12 @@ export default function TaxSystem() {
                                 <CardContent className="p-12 text-center">
                                     <Receipt className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                                     <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                                        No Additional Charges Found
+                                        {t("TaxSystem.noAdditionalChargesFound")}
                                     </h3>
                                     <p className="text-gray-500 mb-6">
                                         {searchQuery
-                                            ? "No additional charges match your search criteria."
-                                            : "Get started by creating your first additional charge."}
+                                            ? t("TaxSystem.noAdditionalChargesMatchCriteria")
+                                            : t("TaxSystem.getStartedAdditionalCharges")}
                                     </p>
                                     {!searchQuery && (
                                         <Button
@@ -1304,7 +1306,7 @@ export default function TaxSystem() {
                                             }
                                         >
                                             <Plus className="w-4 h-4 mr-2" />
-                                            Add Charges
+                                            {t("TaxSystem.addCharges")}
                                         </Button>
                                     )}
                                 </CardContent>
@@ -1350,7 +1352,7 @@ export default function TaxSystem() {
                                                             }
                                                         >
                                                             <Pencil className="w-4 h-4 mr-2" />
-                                                            Edit
+                                                            {t("TaxSystem.edit")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'charge', entityId: charge.id }))}
@@ -1376,7 +1378,7 @@ export default function TaxSystem() {
                                                             className="text-red-600"
                                                         >
                                                             <Trash2 className="w-4 h-4 mr-2" />
-                                                            Delete
+                                                            {t("Common.delete")}
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -1454,7 +1456,7 @@ export default function TaxSystem() {
                 >
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogTitle>{t("TaxSystem.areYouSure")}</AlertDialogTitle>
                             <AlertDialogDescription>
                                 This will permanently delete the{" "}
                                 {deleteDialog.type === "rule"
@@ -1469,7 +1471,7 @@ export default function TaxSystem() {
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t("TaxSystem.cancel")}</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={() => {
                                     if (deleteDialog.type === "rule") {
@@ -1482,7 +1484,7 @@ export default function TaxSystem() {
                                 }}
                                 className="bg-red-600 hover:bg-red-700"
                             >
-                                Delete
+                                {t("Common.delete")}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -1503,7 +1505,7 @@ export default function TaxSystem() {
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>
-                                {groupActionDialog.action === "add" ? "Add to Group" : "Remove from Group"}
+                                {groupActionDialog.action === "add" ? t("TaxSystem.addToGroup") : t("TaxSystem.removeFromGroup")}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                                 {groupActionDialog.action === "add"
@@ -1520,7 +1522,7 @@ export default function TaxSystem() {
                                         : handleRemoveRuleFromGroup
                                 }
                             >
-                                {groupActionDialog.action === "add" ? "Add" : "Remove"}
+                                {groupActionDialog.action === "add" ? t("TaxSystem.add") : t("TaxSystem.remove")}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -1542,8 +1544,8 @@ export default function TaxSystem() {
                         <AlertDialogHeader>
                             <AlertDialogTitle>
                                 {ratePlanActionDialog.action === "add"
-                                    ? "Add Rate Plan to Tax Group"
-                                    : "Remove Rate Plan from Tax Group"}
+                                    ? t("TaxSystem.addRatePlanToTaxGroup")
+                                    : t("TaxSystem.removeRatePlanFromTaxGroup")}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                                 {ratePlanActionDialog.action === "add"
@@ -1560,7 +1562,7 @@ export default function TaxSystem() {
                                         : handleRemoveRatePlanFromGroup
                                 }
                             >
-                                {ratePlanActionDialog.action === "add" ? "Add" : "Remove"}
+                                {ratePlanActionDialog.action === "add" ? t("TaxSystem.add") : t("TaxSystem.remove")}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>

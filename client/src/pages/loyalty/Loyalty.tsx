@@ -26,6 +26,7 @@ import BasicConfigTab from "./components/BasicConfigTab";
 import AddPropertyToLoyalty from "./components/AddPropertyToLoyalty";
 import { fetchPropertiesByCreationIdService } from "../dashboard/services/dash.service";
 import BackButton from "@/components/shared/BackButton";
+import { useTranslation } from "react-i18next";
 
 interface Property {
   id: string;
@@ -39,6 +40,8 @@ interface Property {
 }
 
 export default function Loyalty() {
+    const { t } = useTranslation();
+
   const { creationId } = useParams();
   const [loader, setLoader] = useState<ILoader>({
     isLoading: true,
@@ -91,12 +94,12 @@ export default function Loyalty() {
       
         setAvailableProperties(response.data);
       } else {
-        toast.error(response.message || "Failed to fetch properties");
+        toast.error(response.message || t("Loyalty.toast.failedFetchProperties"));
         setAvailableProperties([]);
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
-      toast.error("Failed to fetch properties");
+      toast.error(t("Loyalty.toast.failedFetchProperties"));
       setAvailableProperties([]);
     }
   };
@@ -104,7 +107,7 @@ export default function Loyalty() {
   const fetchLoyaltyData = async () => {
     if (!creationId) return;
 
-    setLoader({ isLoading: true, message: "Loading Loyalty Configuration..." });
+    setLoader({ isLoading: true, message: t("Loyalty.toast.loadingConfig") });
     try {
       const creationResponse = await getLoyalityByCreationService(creationId);
 
@@ -158,17 +161,17 @@ export default function Loyalty() {
   const handleCreateCreationLoyalty = async (data: { discountType: string; discountValue: number; currencyCode: string }) => {
     if (!creationId) return;
 
-    if (data.discountValue <= 0) {
-      toast.error("Discount value must be greater than 0");
+   if (data.discountValue <= 0) {
+      toast.error(t("Loyalty.toast.discountValueRequired"));
       return;
     }
 
     if (data.discountType === "percentage" && data.discountValue > 100) {
-      toast.error("Percentage discount cannot exceed 100%");
+      toast.error(t("Loyalty.toast.percentageExceed"));
       return;
     }
 
-    setLoader({ isLoading: true, message: "Creating Loyalty Configuration..." });
+    setLoader({ isLoading: true, message: t("Loyalty.toast.creatingConfig") });
     try {
       const response = await createCreationLoyalityService({
         creationId,
@@ -178,13 +181,13 @@ export default function Loyalty() {
       });
 
       if (response.success) {
-        toast.success("Loyalty configuration created successfully");
+        toast.success(t("Loyalty.successMessage"));
         await fetchLoyaltyData();
       } else {
-        toast.error(response.message || "Failed to create loyalty configuration");
+        toast.error(response.message || t("Loyalty.errorMessage"));
       }
     } catch (error) {
-      toast.error("An error occurred while creating loyalty configuration");
+      toast.error(t("Loyalty.errorMessage"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -194,16 +197,16 @@ export default function Loyalty() {
     if (!creationId || !creationLoyalty) return;
 
     if (discountValue <= 0) {
-      toast.error("Discount value must be greater than 0");
+      toast.error(t("Loyalty.toast.discountValueRequired"));
       return;
     }
 
     if (discountType === "percentage" && discountValue > 100) {
-      toast.error("Percentage discount cannot exceed 100%");
+      toast.error(t("Loyalty.toast.percentageExceed"));
       return;
     }
 
-    setLoader({ isLoading: true, message: "Updating Discounts..." });
+    setLoader({ isLoading: true, message: t("Loyalty.toast.updatingDiscounts") });
     try {
       const response = await updateCreationLoyalityService(creationLoyalty.id!, {
         loyaltyDiscountType: discountType as any,
@@ -212,13 +215,13 @@ export default function Loyalty() {
       });
 
       if (response.success) {
-        toast.success("Discounts updated successfully");
+        toast.success(t("Loyalty.toast.discountsUpdated"));
         await fetchLoyaltyData();
       } else {
-        toast.error(response.message || "Failed to update discounts");
+        toast.error(response.message || t("Loyalty.errorMessage"));
       }
     } catch (error) {
-      toast.error("An error occurred while updating discounts");
+      toast.error(t("Loyalty.errorMessage"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -228,11 +231,11 @@ export default function Loyalty() {
     if (!creationId || !creationLoyalty) return;
 
     if (logos.length === 0) {
-      toast.error("Please upload at least one logo");
+      toast.error(t("Loyalty.toast.uploadLogo"));
       return;
     }
 
-    setLoader({ isLoading: true, message: "Creating Basic Configuration..." });
+    setLoader({ isLoading: true, message: t("Loyalty.toast.creatingBasic") });
     try {
       const response = await createLoyaltyProgramService({
         loyaltyProgramId: creationLoyalty.id!,
@@ -241,13 +244,13 @@ export default function Loyalty() {
       });
 
       if (response.success) {
-        toast.success("Basic configuration created successfully");
+        toast.success(t("Loyalty.toast.basicCreated"));
         await fetchLoyaltyData();
       } else {
-        toast.error(response.message || "Failed to create basic configuration");
+        toast.error(response.message || t("Loyalty.errorMessage"));
       }
     } catch (error) {
-      toast.error("An error occurred while creating basic configuration");
+      toast.error(t("Loyalty.errorMessage"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -257,11 +260,11 @@ export default function Loyalty() {
     if (!creationId || !creationLoyalty) return;
 
     if (logos.length === 0) {
-      toast.error("Please upload at least one logo");
+      toast.error(t("Loyalty.toast.uploadLogo"));
       return;
     }
 
-    setLoader({ isLoading: true, message: "Updating Basic Configuration..." });
+    setLoader({ isLoading: true, message: t("Loyalty.toast.updatingBasic") });
     try {
       const response = await updateLoyaltyProgramService(creationLoyalty.id!, {
         logo: logos,
@@ -269,13 +272,13 @@ export default function Loyalty() {
       });
 
       if (response.success) {
-        toast.success("Basic configuration updated successfully");
+        toast.success(t("Loyalty.toast.basicUpdated"));
         await fetchLoyaltyData();
       } else {
-        toast.error(response.message || "Failed to update configuration");
+        toast.error(response.message || t("Loyalty.errorMessage"));
       }
     } catch (error) {
-      toast.error("An error occurred while updating configuration");
+      toast.error(t("Loyalty.errorMessage"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -314,7 +317,7 @@ export default function Loyalty() {
 
   const handleImageUploadSuccess = (uploadedUrls: string[]) => {
     setLogos([...logos, ...uploadedUrls]);
-    toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+    toast.success(t("Loyalty.toast.uploadSuccess", { count: uploadedUrls.length }));
   };
 
   const handleRemoveLogo = (index: number) => {
@@ -339,9 +342,9 @@ export default function Loyalty() {
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
       <BackButton />
       <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">Loyalty Program Configuration</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">{t("Loyalty.page.title")}</h1>
         <p className="text-muted-foreground mt-2">
-          Manage your loyalty program settings and benefits
+          {t("Loyalty.page.subtitle")}
         </p>
       </div>
 
@@ -349,9 +352,9 @@ export default function Loyalty() {
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "discounts" | "basic" | "properties")} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="basic">Basic Config</TabsTrigger>
-          <TabsTrigger value="discounts">Discounts</TabsTrigger>
-          <TabsTrigger value="properties">Properties</TabsTrigger>
+          <TabsTrigger value="basic">{t("Loyalty.tabs.basicConfig")}</TabsTrigger>
+          <TabsTrigger value="discounts">{t("Loyalty.tabs.discounts")}</TabsTrigger>
+          <TabsTrigger value="properties">{t("Loyalty.tabs.properties")}</TabsTrigger>
         </TabsList>
 
         {/* Discounts Tab */}

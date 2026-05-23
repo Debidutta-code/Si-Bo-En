@@ -48,6 +48,7 @@ interface BankDetails {
 const BookingReviewPage = () => {
   const { t } = useTranslation();
   const bookingDetails = useSelector((state: RootState) => state.booking);
+  const customer = useSelector((state: RootState) => (state as any).customer);
   const {
     startDate: checkIn,
     endDate: checkOut,
@@ -334,6 +335,7 @@ const BookingReviewPage = () => {
           bookingDetails.loyalityMemberEmail ||
           localStorage.getItem(`loyalty_member_${PropertyId}`)
         ),
+        customerId: customer.isAuthenticated ? customer.customer?.id : undefined,
       };
 
       const response = await axios.post(

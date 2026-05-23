@@ -31,8 +31,9 @@ interface IStatisticsComparison {
 
 interface StatisticsStatsProps {
   data: IStatisticsComparison;
-  currencyCode:CurrencyCode;
+  currencyCode: CurrencyCode;
 }
+import { useTranslation } from "react-i18next";
 
 const StatCard = ({
   title,
@@ -47,16 +48,16 @@ const StatCard = ({
   format?: 'number' | 'currency';
   currency?: CurrencyCode;
 }) => {
-const formatValue = (value: number) => {
-  if (format === 'currency') {
-    const symbol =currency ?? 'USD';
-    return `${symbol} ${value.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })}`;
-  }
-  return value.toLocaleString('en-US');
-};
+  const formatValue = (value: number) => {
+    if (format === 'currency') {
+      const symbol = currency ?? 'USD';
+      return `${symbol} ${value.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+    }
+    return value.toLocaleString('en-US');
+  };
 
   const isPositive = metric.percentageChange > 0;
   const isNegative = metric.percentageChange < 0;
@@ -154,10 +155,10 @@ const formatValue = (value: number) => {
 
       {/* Percentage Change */}
       <div className={`flex items-center justify-center gap-1 text-xs font-semibold ${isPositive
-          ? 'text-green-600'
-          : isNegative
-            ? 'text-red-600'
-            : 'text-gray-600'
+        ? 'text-green-600'
+        : isNegative
+          ? 'text-red-600'
+          : 'text-gray-600'
         }`}>
         {isPositive ? (
           <>
@@ -179,17 +180,17 @@ const formatValue = (value: number) => {
   );
 };
 
-export default function StatisticsStats({ data , currencyCode }: StatisticsStatsProps) {
+export default function StatisticsStats({ data, currencyCode }: StatisticsStatsProps) {
+  const { t } = useTranslation(); { }
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="bg-white rounded-lg border p-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Statistics</h2>
+            <h2 className="text-lg font-bold text-gray-900">{t('Dashboard.statistics')}</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Comparison: {data.period.previous.label} vs {data.period.current.label}
-            </p>
+              {t('Dashboard.comparison', { previous: data.period.previous.label, current: data.period.current.label })}            </p>
           </div>
         </div>
       </div>
@@ -197,14 +198,14 @@ export default function StatisticsStats({ data , currencyCode }: StatisticsStats
       {/* Statistics Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <StatCard
-          title="Bookings"
+          title={t('Dashboard.totalBookings')}
           metric={data.bookings}
           period={data.period}
           format="number"
         />
 
         <StatCard
-          title="Revenue"
+          title={t('DashboardStats.totalRevenue')}
           metric={data.revenue}
           period={data.period}
           format="currency"
@@ -212,7 +213,7 @@ export default function StatisticsStats({ data , currencyCode }: StatisticsStats
         />
 
         <StatCard
-          title="Average Booking Value"
+          title={t('DashboardStats.avgBookingValue')}
           metric={data.averageBookingValue}
           period={data.period}
           format="currency"
@@ -220,14 +221,14 @@ export default function StatisticsStats({ data , currencyCode }: StatisticsStats
         />
 
         <StatCard
-          title="Cancellation Rate"
+          title={t('DashboardStats.cancellationRate')}
           metric={data.cancelledBookings}
           period={data.period}
           format="number"
         />
 
         <StatCard
-          title="Room Nights"
+          title={t('DashboardStats.totalReservations')}
           metric={data.roomNights}
           period={data.period}
           format="number"

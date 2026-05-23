@@ -290,7 +290,7 @@ export class NewReservationService {
                     agencyId: agencyId || null,
                     platforms: platforms || 'web',
                     paymentMethod: paymentMethods,
-                    otaGuestId: payload.otaGuestId,
+                    customerId: payload.customerId,
                 });
             if (promoCode && promoCodeDetails) {
                 this.reservationRepository.createReservationPromoCode({

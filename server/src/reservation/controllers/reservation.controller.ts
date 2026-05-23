@@ -6,6 +6,7 @@ import { ICReservationS, IGuestCheckInDetails } from '../types';
 import { getDeviceInfo, getGeoLocationDetails } from '../../utils';
 import { decodeToken } from '../../utils/jwtHelper';
 import { config } from '../../config';
+import { ReservationInterceptor } from '../../multi-language/interceptors/reservation/reservation.interceptor';
 
 export class ReservationController {
     private reservationService: NewReservationService;
@@ -120,7 +121,7 @@ export class ReservationController {
     ): Promise<Response> {
         try {
             const guestId = req.otaUser?.id;
-            if(!guestId) {
+            if (!guestId) {
                 return res.status(401).json(errorResponse('Login to continue to reservation'));
             }
             const data: ICReservationS = req.body;
@@ -183,7 +184,7 @@ export class ReservationController {
                     .json(errorResponse('Payment method is required'));
             }
 
-            data.otaGuestId = guestId;
+            data.customerId = guestId;
 
             const PropertyDetails = req.property;
             if (!PropertyDetails) {
@@ -238,6 +239,8 @@ export class ReservationController {
         try {
             const reservationCode = req.params.reservationCode;
             const propertyCode = req.query.propertyCode as string;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+
             if (!propertyCode) {
                 return res
                     .status(400)
@@ -253,10 +256,13 @@ export class ReservationController {
                     .json(errorResponse('Reservation code is required'));
             }
 
-            const serRes = await this.reservationService.getReservaltionByCode(
+            let serRes = await this.reservationService.getReservaltionByCode(
                 reservationCode,
                 propertyCode
             );
+            
+            serRes = await ReservationInterceptor.intercept(serRes, locale);
+
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {
@@ -321,6 +327,26 @@ export class ReservationController {
                     );
             }
             return res.status(500).json(errorResponse('Internal server Error'));
+        }
+    }
+
+    /** GET /reservations  (protected via customerProtect) — my reservations for the logged-in customer */
+    public async getMyReservations(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const customerId = req.customer?.id;
+            if (!customerId) {
+                return res.status(401).json(errorResponse('Not authenticated'));
+            }
+            const result = await this.reservationService.getReservationsByGuestId(customerId);
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse('Failed to fetch reservations', error.message));
+            }
+            return res.status(500).json(errorResponse('Failed to fetch reservations'));
         }
     }
 
@@ -468,10 +494,10 @@ export class ReservationController {
                     promoCode?.toString(),
                     countryCode?.toString(),
                     dateFilterType?.toString() as
-                        | 'checkin'
-                        | 'booking'
-                        | 'modification'
-                        | undefined
+                    | 'checkin'
+                    | 'booking'
+                    | 'modification'
+                    | undefined
                 );
 
             return res.status(serRes.success ? 200 : 400).json(serRes);

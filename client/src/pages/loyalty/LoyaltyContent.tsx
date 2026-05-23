@@ -46,12 +46,16 @@ import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
 import { usePropertyContextSafe } from "@/contexts/PropertyContext";
 import { languages } from "@/components/language/language";
+import { useTranslation } from "react-i18next";
+
 
 export default function LoyaltyContent() {
+    const { t } = useTranslation();
+
   const { creationId } = useParams();
   const [isLoading, setIsLoading] = useState<ILoader>({
     isLoading: true,
-    message: "Loading loyalty program..."
+    message: t('Loyalty.contentLoading')
   });
   const [loyaltyProgramId, setLoyaltyProgramId] = useState<string>("");
 
@@ -103,10 +107,10 @@ export default function LoyaltyContent() {
       if (response.success && response.data) {
         setLoyaltyProgramId(response.data.id);
       } else {
-        toast.error("No loyalty program found");
+        toast.error(t('Loyalty.noLoyaltyProgramFound'));
       }
     } catch (error) {
-      toast.error("Failed to fetch loyalty program");
+      toast.error(t('Loyalty.failedToFetchProgram'));
     } finally {
       setIsLoading({ isLoading: false, message: "" });
     }
@@ -128,11 +132,11 @@ export default function LoyaltyContent() {
 
   const handleCreateCondition = async (): Promise<void> => {
     if (!conditionForm.text.trim()) {
-      toast.error("Condition text is required");
+      toast.error(t('Loyalty.conditionTextRequired'));
       return;
     }
 
-    setIsLoading({ isLoading: true, message: "Creating condition..." });
+    setIsLoading({ isLoading: true, message: t('Loyalty.creatingCondition') });
     const response = await createConditionService({
       loyaltyProgramId,
       text: conditionForm.text,
@@ -140,7 +144,7 @@ export default function LoyaltyContent() {
     });
 
     if (response.success) {
-      toast.success("Condition created successfully");
+      toast.success(t('Loyalty.conditionCreated'));
       setConditionForm({ text: "", language: "en" });
       setIsConditionDialogOpen(false);
       await fetchConditions();
@@ -152,11 +156,11 @@ export default function LoyaltyContent() {
 
   const handleUpdateCondition = async (): Promise<void> => {
     if (!editingCondition || !conditionForm.text.trim()) {
-      toast.error("Condition text is required");
+      toast.error(t('Loyalty.conditionTextRequired'));
       return;
     }
 
-    setIsLoading({ isLoading: true, message: "Updating condition..." });
+    setIsLoading({ isLoading: true, message: t('Loyalty.updatingCondition') });
     const response = await updateConditionService(editingCondition.id, {
       text: conditionForm.text,
       language: conditionForm.language,
@@ -164,7 +168,7 @@ export default function LoyaltyContent() {
     });
 
     if (response.success) {
-      toast.success("Condition updated successfully");
+      toast.success(t('Loyalty.conditionUpdated'));
       setEditingCondition(null);
       setConditionForm({ text: "", language: "en" });
       setIsConditionDialogOpen(false);
@@ -178,10 +182,10 @@ export default function LoyaltyContent() {
   const handleDeleteCondition = async (): Promise<void> => {
     if (!deleteConditionId) return;
 
-    setIsLoading({ isLoading: true, message: "Deleting condition..." });
+    setIsLoading({ isLoading: true, message: t('Loyalty.deletingCondition') });
     const response = await deleteConditionService(deleteConditionId);
     if (response.success) {
-      toast.success("Condition deleted successfully");
+      toast.success(t('Loyalty.conditionDeleted'));
       await fetchConditions();
     } else {
       toast.error(response.message);
@@ -191,7 +195,7 @@ export default function LoyaltyContent() {
   };
 
   const handleToggleConditionStatus = async (condition: ILoyalityCondition): Promise<void> => {
-    setIsLoading({ isLoading: true, message: "Updating status..." });
+    setIsLoading({ isLoading: true, message: t('Loyalty.updateStatus') });
     const response = await updateConditionService(condition.id, {
       text: condition.text,
       language: condition.language,
@@ -199,7 +203,7 @@ export default function LoyaltyContent() {
     });
 
     if (response.success) {
-      toast.success(`Condition ${!condition.isActive ? "activated" : "deactivated"}`);
+      toast.success(condition.isActive ? t('Loyalty.conditionDeactivated') : t('Loyalty.conditionActivated'));
       await fetchConditions();
     } else {
       toast.error(response.message);
@@ -209,11 +213,11 @@ export default function LoyaltyContent() {
 
   const handleCreateSpecialCondition = async (): Promise<void> => {
     if (!specialConditionForm.title.trim()) {
-      toast.error("Title is required");
+      toast.error(t('Loyalty.titleRequired'));
       return;
     }
 
-    setIsLoading({ isLoading: true, message: "Creating special condition..." });
+    setIsLoading({ isLoading: true, message: t('Loyalty.creatingSpecial') });
     const response = await createSpecialConditionService({
       loyaltyProgramId,
       title: specialConditionForm.title,
@@ -222,7 +226,7 @@ export default function LoyaltyContent() {
     });
 
     if (response.success) {
-      toast.success("Special condition created successfully");
+      toast.success(t('Loyalty.specialCreated'));
       setSpecialConditionForm({ title: "", subTitle: "", language: "en" });
       setIsSpecialDialogOpen(false);
       await fetchSpecialConditions();
@@ -234,11 +238,11 @@ export default function LoyaltyContent() {
 
   const handleUpdateSpecialCondition = async (): Promise<void> => {
     if (!editingSpecialCondition || !specialConditionForm.title.trim()) {
-      toast.error("Title is required");
+      toast.error(t('Loyalty.titleRequired'));
       return;
     }
 
-    setIsLoading({ isLoading: true, message: "Updating special condition..." });
+    setIsLoading({ isLoading: true, message: t('Loyalty.updatingSpecial') });
     const response = await updateSpecialConditionService(editingSpecialCondition.id, {
       title: specialConditionForm.title,
       subTitle: specialConditionForm.subTitle || null,
@@ -247,7 +251,7 @@ export default function LoyaltyContent() {
     });
 
     if (response.success) {
-      toast.success("Special condition updated successfully");
+      toast.success(t('Loyalty.specialUpdated'));
       setEditingSpecialCondition(null);
       setSpecialConditionForm({ title: "", subTitle: "", language: "en" });
       setIsSpecialDialogOpen(false);
@@ -261,10 +265,10 @@ export default function LoyaltyContent() {
   const handleDeleteSpecialCondition = async (): Promise<void> => {
     if (!deleteSpecialConditionId) return;
 
-    setIsLoading({ isLoading: true, message: "Deleting special condition..." });
+    setIsLoading({ isLoading: true, message: t('Loyalty.deletingSpecial') });
     const response = await deleteSpecialConditionService(deleteSpecialConditionId);
     if (response.success) {
-      toast.success("Special condition deleted successfully");
+      toast.success(t('Loyalty.specialDeleted'));
       await fetchSpecialConditions();
     } else {
       toast.error(response.message);
@@ -274,7 +278,7 @@ export default function LoyaltyContent() {
   };
 
   const handleToggleSpecialConditionStatus = async (condition: ILoyalitySpecialCondition): Promise<void> => {
-    setIsLoading({ isLoading: true, message: "Updating status..." });
+    setIsLoading({ isLoading: true, message: t('Loyalty.updateStatus') });
     const response = await updateSpecialConditionService(condition.id, {
       title: condition.title,
       subTitle: condition.subTitle,
@@ -283,7 +287,7 @@ export default function LoyaltyContent() {
     });
 
     if (response.success) {
-      toast.success(`Special condition ${!condition.isActive ? "activated" : "deactivated"}`);
+      toast.success(condition.isActive ? t('Loyalty.specialDeactivated') : t('Loyalty.specialActivated'));
       await fetchSpecialConditions();
     } else {
       toast.error(response.message);
@@ -333,16 +337,16 @@ export default function LoyaltyContent() {
 
       <Tabs defaultValue="conditions" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="conditions">Terms & Conditions</TabsTrigger>
-          <TabsTrigger value="special">Special Conditions</TabsTrigger>
+          <TabsTrigger value="conditions">{t('Loyalty.termsConditions')}</TabsTrigger>
+          <TabsTrigger value="special">{t('Loyalty.specialConditionsTab')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="conditions" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Terms & Conditions</h2>
+            <h2 className="text-2xl font-bold">{t('Loyalty.termsConditions')}</h2>
             <Button onClick={() => setIsConditionDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Condition
+              {t('Loyalty.addCondition')}
             </Button>
           </div>
 
@@ -350,7 +354,7 @@ export default function LoyaltyContent() {
             {conditions.length === 0 ? (
               <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
-                  No conditions added yet. Click "Add Condition" to create one.
+                  {t('Loyalty.noConditions')}
                 </CardContent>
               </Card>
             ) : (
@@ -403,10 +407,10 @@ export default function LoyaltyContent() {
 
         <TabsContent value="special" className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold">Special Conditions</h2>
+            <h2 className="text-2xl font-bold">{t('Loyalty.specialConditionsTab')}</h2>
             <Button onClick={() => setIsSpecialDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Special Condition
+              {t('Loyalty.addSpecialCondition')}
             </Button>
           </div>
 
@@ -414,7 +418,7 @@ export default function LoyaltyContent() {
             {specialConditions.length === 0 ? (
               <Card>
                 <CardContent className="p-6 text-center text-muted-foreground">
-                  No special conditions added yet. Click "Add Special Condition" to create one.
+                  {t('Loyalty.noSpecialConditions')}
                 </CardContent>
               </Card>
             ) : (
@@ -479,27 +483,27 @@ export default function LoyaltyContent() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCondition ? "Edit Condition" : "Add New Condition"}
+              {editingCondition ? t('Loyalty.editCondition') : t('Loyalty.addNewCondition')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="condition-text">Condition Text</Label>
+              <Label htmlFor="condition-text">{t('Loyalty.conditionText')}</Label>
               <Textarea
                 id="condition-text"
                 value={conditionForm.text}
                 onChange={(e) => setConditionForm({ ...conditionForm, text: e.target.value })}
-                placeholder="Enter condition text..."
+                placeholder={t('Loyalty.enterConditionText')}
                 rows={5}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeConditionDialog}>
-              Cancel
+              {t('Loyalty.cancel')}
             </Button>
             <Button onClick={editingCondition ? handleUpdateCondition : handleCreateCondition}>
-              {editingCondition ? "Update" : "Create"}
+              {editingCondition ? t('Loyalty.update') : t('Loyalty.create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -509,36 +513,36 @@ export default function LoyaltyContent() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingSpecialCondition ? "Edit Special Condition" : "Add New Special Condition"}
+              {editingSpecialCondition ? t('Loyalty.editSpecialCondition') : t('Loyalty.addNewSpecialCondition')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="special-title">Title</Label>
+              <Label htmlFor="special-title">{t('Loyalty.conditionTitle')}</Label>
               <Input
                 id="special-title"
                 value={specialConditionForm.title}
                 onChange={(e) => setSpecialConditionForm({ ...specialConditionForm, title: e.target.value })}
-                placeholder="Enter title..."
+                placeholder={t('Loyalty.enterTitle')}
               />
             </div>
             <div>
-              <Label htmlFor="special-subtitle">Subtitle (Optional)</Label>
+              <Label htmlFor="special-subtitle">{t('Loyalty.subTitleOptional')}</Label>
               <Textarea
                 id="special-subtitle"
                 value={specialConditionForm.subTitle}
                 onChange={(e) => setSpecialConditionForm({ ...specialConditionForm, subTitle: e.target.value })}
-                placeholder="Enter subtitle..."
+                placeholder={t('Loyalty.enterSubtitle')}
                 rows={3}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeSpecialConditionDialog}>
-              Cancel
+              {t('Loyalty.cancel')}
             </Button>
             <Button onClick={editingSpecialCondition ? handleUpdateSpecialCondition : handleCreateSpecialCondition}>
-              {editingSpecialCondition ? "Update" : "Create"}
+              {editingSpecialCondition ? t('Loyalty.update') : t('Loyalty.create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -548,14 +552,14 @@ export default function LoyaltyContent() {
       <AlertDialog open={!!deleteConditionId} onOpenChange={() => setDeleteConditionId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('Loyalty.deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this condition. This action cannot be undone.
+              {t('Loyalty.deleteConditionDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteCondition}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t('Loyalty.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCondition}>{t('Loyalty.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -564,14 +568,14 @@ export default function LoyaltyContent() {
       <AlertDialog open={!!deleteSpecialConditionId} onOpenChange={() => setDeleteSpecialConditionId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('Loyalty.deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete this special condition. This action cannot be undone.
+              {t('Loyalty.deleteSpecialDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSpecialCondition}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t('Loyalty.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSpecialCondition}>{t('Loyalty.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface RatePlan {
     id: string;
@@ -25,10 +26,10 @@ interface RoomType {
     roomName: string;
     roomType: string;
     _translations: {
-                roomName: string;
-                roomType: string;
-                description: string;
-            }
+        roomName: string;
+        roomType: string;
+        description: string;
+    }
 }
 
 interface FormData {
@@ -44,6 +45,7 @@ interface StartStopSellFormProps {
 }
 
 export default function StartStopSellForm({ propertyId }: StartStopSellFormProps) {
+    const { t } = useTranslation();
     const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -68,7 +70,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
         try {
             setIsLoading(true);
             const axios = axiosInstance();
-            
+
             // Fetch rate plans
             try {
                 const ratePlansResponse = await axios.get(`/ari/rate-plan/${propertyId}`);
@@ -92,7 +94,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
             }
         } catch (error) {
             console.error("Error fetching property data:", error);
-            toast.error("Failed to load property data");
+            toast.error(t("StartStopSell.toast.failedToLoadData"));
         } finally {
             setIsLoading(false);
         }
@@ -101,15 +103,15 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
     const handleSubmit = async () => {
         // Validation
         if (!formData.ratePlanCode && !formData.roomTypeCode) {
-            toast.error("Please select at least one: Rate Plan or Room Type");
+            toast.error(t("StartStopSell.toast.selectAtLeastOne"));
             return;
         }
         if (!formData.from || !formData.to) {
-            toast.error("Please select both from and to dates");
+            toast.error(t("StartStopSell.toast.selectBothDates"));
             return;
         }
         if (formData.to < formData.from) {
-            toast.error("To date cannot be earlier than From date");
+            toast.error(t("StartStopSell.toast.toDateEarlier"));
             return;
         }
 
@@ -137,9 +139,9 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                 roomTypeCode: dataToSend.roomTypeCode,
                 isSellStop: dataToSend.isSellStop,
             });
-            
+
             if (response.success) {
-                toast.success(response.message || `Sale ${formData.isSellStop ? 'stopped' : 'started'} successfully`);
+                toast.success(response.message || (formData.isSellStop ? t("StartStopSell.toast.saleStopped") : t("StartStopSell.toast.saleStarted")));
                 // Reset form
                 setFormData({
                     from: new Date(),
@@ -149,22 +151,22 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                     isSellStop: true,
                 });
             } else {
-                toast.error(response.message || "Failed to process start/stop sell");
+                toast.error(response.message || t("StartStopSell.toast.failedToProcess"));
             }
         } catch (error) {
             console.error("Start/Stop Sell Error:", error);
-            toast.error("An error occurred");
+            toast.error(t("StartStopSell.toast.errorOccurred"));
         } finally {
             setIsSubmitting(false);
         }
     };
 
-   if (isLoading && ratePlans.length === 0 && roomTypes.length === 0) {
+    if (isLoading && ratePlans.length === 0 && roomTypes.length === 0) {
         return (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="text-center py-12">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading data...</p>
+                    <p className="mt-4 text-gray-600">{t("StartStopSell.form.loadingData")}</p>
                 </div>
             </div>
         );
@@ -175,7 +177,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
             <div className="grid gap-6">
                 {/* Action Type */}
                 <div className="grid gap-2">
-                    <Label>Action</Label>
+                    <Label>{t("StartStopSell.form.action")}</Label>
                     <div className="flex gap-4">
                         <Button
                             variant={formData.isSellStop ? "default" : "outline"}
@@ -183,7 +185,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                             className="flex items-center gap-2"
                         >
                             <Ban className="w-4 h-4" />
-                            Stop Sales
+                            {t("StartStopSell.form.stopSales")}
                         </Button>
                         <Button
                             variant={!formData.isSellStop ? "default" : "outline"}
@@ -191,14 +193,14 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                             className="flex items-center gap-2"
                         >
                             <PlayCircle className="w-4 h-4" />
-                            Start Sales
+                            {t("StartStopSell.form.startSales")}
                         </Button>
                     </div>
                 </div>
 
                 {/* Rate Plan Selection */}
                 <div className="grid gap-2">
-                    <Label>Rate Plan (Optional)</Label>
+                    <Label>{t("StartStopSell.form.ratePlan")}</Label>
                     <Select
                         value={formData.ratePlanCode}
                         onValueChange={(value) =>
@@ -206,21 +208,21 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                         }
                     >
                         <SelectTrigger>
-                            <SelectValue placeholder="Select rate plan (optional)" />
+                            <SelectValue placeholder={t("StartStopSell.form.selectRatePlan")} />
                         </SelectTrigger>
                         <SelectContent>
-                          {ratePlans.map((plan) => (
-    <SelectItem key={plan.id} value={plan.ratePlanCode}>
-        {plan._translations?.ratePlanName ?? plan.ratePlanName}
-    </SelectItem>
-))}
+                            {ratePlans.map((plan) => (
+                                <SelectItem key={plan.id} value={plan.ratePlanCode}>
+                                    {plan._translations?.ratePlanName ?? plan.ratePlanName}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
 
                 {/* Room Type Selection */}
                 <div className="grid gap-2">
-                    <Label>Room Type (Optional)</Label>
+                    <Label>{t("StartStopSell.form.roomType")}</Label>
                     <Select
                         value={formData.roomTypeCode}
                         onValueChange={(value) =>
@@ -228,14 +230,14 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                         }
                     >
                         <SelectTrigger>
-                            <SelectValue placeholder="Select room type (optional)" />
+                            <SelectValue placeholder={t("StartStopSell.form.selectRoomType")} />
                         </SelectTrigger>
                         <SelectContent>
-                           {roomTypes.map((room) => (
-    <SelectItem key={room.id} value={room.roomType}>
-        {room._translations?.roomName ?? room.roomName}
-    </SelectItem>
-))}
+                            {roomTypes.map((room) => (
+                                <SelectItem key={room.id} value={room.roomType}>
+                                    {room._translations?.roomName ?? room.roomName}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -243,7 +245,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                 {/* Date Range */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                        <Label>From Date *</Label>
+                        <Label>{t("StartStopSell.form.fromDate")}</Label>
                         <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -254,7 +256,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                                     )}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {formData.from ? format(formData.from, "PPP") : "Pick a date"}
+                                    {formData.from ? format(formData.from, "PPP") : t("StartStopSell.form.pickDate")}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
@@ -272,7 +274,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                     </div>
 
                     <div className="grid gap-2">
-                        <Label>To Date *</Label>
+                        <Label>{t("StartStopSell.form.toDate")}</Label>
                         <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -283,7 +285,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                                     )}
                                 >
                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {formData.to ? format(formData.to, "PPP") : "Pick a date"}
+                                    {formData.to ? format(formData.to, "PPP") : t("StartStopSell.form.pickDate")}
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0">
@@ -309,7 +311,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                         disabled={isSubmitting}
                         className={formData.isSellStop ? "bg-destructive hover:bg-destructive/90" : "bg-success hover:bg-success/90"}
                     >
-                        {isSubmitting ? "Processing..." : formData.isSellStop ? "Stop Sales" : "Start Sales"}
+                        {isSubmitting ? t("StartStopSell.form.processing") : formData.isSellStop ? t("StartStopSell.form.stopSales") : t("StartStopSell.form.startSales")}
                     </Button>
                     <Button
                         variant="outline"
@@ -324,7 +326,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                         }}
                         disabled={isSubmitting}
                     >
-                        Reset
+                        {t("StartStopSell.form.reset")}
                     </Button>
                 </div>
             </div>

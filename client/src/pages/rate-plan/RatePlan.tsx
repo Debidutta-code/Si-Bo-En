@@ -5,6 +5,7 @@ import BackButton from "@/components/shared/BackButton";
 import Loader from "@/components/Loader/Loader";
 import { createRatePlanService, fetchRatePlansService, removeRatePlanService, updateRatePlanService } from "./services";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MoreVertical, Pencil, Trash2, Plus, Package, Globe } from "lucide-react"; // ✅ ADDED Globe
@@ -44,6 +45,7 @@ import { upsertRatePlanTranslationService } from "./services/ratePlan-language.s
 // import { usePropertyContext } from '@/contexts/PropertyContext';
 
 export default function RatePlan() {
+  const { t } = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const [allRatePlans, setAllRatePlans] = useState<RatePlan[]>([]);
   const [newRatePlan, setNewRatePlan] = useState<CreateRatePlan>(
@@ -110,20 +112,20 @@ export default function RatePlan() {
 
   const fetchRatePlans = async () => {
     if (!propertyId) {
-      toast.error("Property ID is missing");
+      toast.error(t("RatePlanManagement.toast.propertyIdMissing"));
       return;
     }
     try {
-      setLoader({ isLoading: true, text: "Fetching Rate Plans..." });
+      setLoader({ isLoading: true, text: t("RatePlanManagement.fetchingRatePlans") });
       const ratePlans = await fetchRatePlansService(propertyId);
       if (ratePlans.success) {
         // toast.success(ratePlans.message || "Rate Plans fetched successfully");
         setAllRatePlans(ratePlans.data || []);
       } else {
-        toast.error(ratePlans.message || "Failed to fetch Rate Plans");
+        toast.error(ratePlans.message || t("RatePlanManagement.failedToFetchRatePlans"));
       }
     } catch (error) {
-      toast.error("Failed to fetch Rate Plans");
+      toast.error(t("RatePlanManagement.failedToFetch"));
     } finally {
       setLoader({ isLoading: false, text: "" });
     }
@@ -131,26 +133,26 @@ export default function RatePlan() {
 
   const createRatePlan = async () => {
     if (!propertyId) {
-      toast.error("Property ID is missing");
+      toast.error(t("RatePlanManagement.toast.propertyIdMissing"));
       return;
     }
     if (!newRatePlan.ratePlanName.trim()) {
-      toast.error("Rate plan name is required");
+      toast.error(t("RatePlanManagement.toast.ratePlanNameRequired"));
       return;
     }
     try {
-      setLoader({ isLoading: true, text: "Creating Rate Plan..." });
+      setLoader({ isLoading: true, text: t("RatePlanManagement.creatingRatePlan") });
       const response = await createRatePlanService(propertyId, newRatePlan);
       if (response.success) {
-        toast.success(response.message || "Rate Plan created successfully");
+        toast.success(response.message || t("RatePlanManagement.ratePlanCreatedSuccess"));
         setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true, roomOnlyVisible: true });
         setCreateDialogOpen(false);
         fetchRatePlans();
       } else {
-        toast.error(response.message || "Failed to create Rate Plan");
+        toast.error(response.message || t("RatePlanManagement.failedToCreateRatePlan"));
       }
     } catch (error) {
-      toast.error("Failed to create Rate Plan");
+      toast.error(t("RatePlanManagement.failedToCreate"));
     } finally {
       setLoader({ isLoading: false, text: "" });
     }
@@ -158,20 +160,20 @@ export default function RatePlan() {
 
   const deleteRatePlan = async (ratePlanCode: string) => {
     if (!propertyId) {
-      toast.error("Property ID is missing");
+      toast.error(t("RatePlanManagement.toast.propertyIdMissing"));
       return;
     }
     try {
-      setLoader({ isLoading: true, text: "Deleting Rate Plan..." });
+      setLoader({ isLoading: true, text: t("RatePlanManagement.deletingRatePlan") });
       const response = await removeRatePlanService(ratePlanCode);
       if (response.success) {
-        toast.success(response.message || "Rate Plan deleted successfully");
+        toast.success(response.message || t("RatePlanManagement.ratePlanDeletedSuccess"));
         fetchRatePlans();
       } else {
-        toast.error(response.message || "Failed to delete Rate Plan");
+        toast.error(response.message || t("RatePlanManagement.failedToDeleteRatePlan"));
       }
     } catch (error) {
-      toast.error("Failed to delete Rate Plan");
+      toast.error(t("RatePlanManagement.failedToDelete"));
     } finally {
       setLoader({ isLoading: false, text: "" });
       setDeleteDialog({ open: false, ratePlan: null });
@@ -206,19 +208,19 @@ export default function RatePlan() {
     if (!editDialog.ratePlan) return;
 
     if (!newRatePlan.ratePlanName.trim()) {
-      toast.error("Rate plan name is required");
+      toast.error(t("RatePlanManagement.toast.ratePlanNameRequired"));
       return;
     }
 
     try {
-      setLoader({ isLoading: true, text: "Updating Rate Plan..." });
+      setLoader({ isLoading: true, text: t("RatePlanManagement.updatingRatePlan") });
       const response = await updateRatePlanService(
         editDialog.ratePlan.ratePlanCode,
         newRatePlan
       );
 
       if (response.success) {
-        toast.success(response.message || "Rate Plan updated successfully");
+        toast.success(response.message || t("RatePlanManagement.ratePlanUpdatedSuccess"));
         setEditDialog({ open: false, ratePlan: null });
         setNewRatePlan({
           ratePlanName: "",
@@ -228,10 +230,10 @@ export default function RatePlan() {
         });
         fetchRatePlans();
       } else {
-        toast.error(response.message || "Failed to update Rate Plan");
+        toast.error(response.message || t("RatePlanManagement.failedToUpdateRatePlan"));
       }
     } catch (error) {
-      toast.error("Failed to update Rate Plan");
+      toast.error(t("RatePlanManagement.failedToUpdate"));
     } finally {
       setLoader({ isLoading: false, text: "" });
     }
@@ -286,34 +288,34 @@ export default function RatePlan() {
 
         <div className="mt-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Rate Plans</h1>
-            <p className="text-gray-600 mt-1 text-sm">Manage your property rate plans</p>
+            <h1 className="text-xl font-bold text-gray-900">{t("RatePlanManagement.title")}</h1>
+            <p className="text-gray-600 mt-1 text-sm">{t("RatePlanManagement.subtitle")}</p>
           </div>
 
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button className="w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
-                Create Rate Plan
+                {t("RatePlanManagement.createRatePlan")}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
-                <DialogTitle>Create New Rate Plan</DialogTitle>
+                <DialogTitle>{t("RatePlanManagement.createNewRatePlan")}</DialogTitle>
                 <DialogDescription>
-                  Add a new rate plan for your property. Fill in the details below.
+                  {t("RatePlanManagement.policiesTaxNote")}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="ratePlanName">
-                    Rate Plan Name <span className="text-red-500">*</span>
+                    {t("RatePlanManagement.ratePlanName")} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="ratePlanName"
                     value={newRatePlan.ratePlanName}
                     onChange={(e) => setNewRatePlan({ ...newRatePlan, ratePlanName: e.target.value })}
-                    placeholder="e.g., Standard Rate, Weekend Special"
+                    placeholder={t("RatePlanManagement.ratePlanNamePlaceholder")}
                     className="col-span-3"
                   />
                 </div>
@@ -321,9 +323,9 @@ export default function RatePlan() {
                 <div className="grid gap-4">
                   <div className="flex items-center justify-between space-x-2">
                     <div className="space-y-0.5">
-                      <Label htmlFor="b2b-available">B2B Available</Label>
+                      <Label htmlFor="b2b-available">{t("RatePlanManagement.b2bAvailable")}</Label>
                       <p className="text-xs text-gray-500">
-                        Enable this rate plan for business-to-business bookings
+                        {t("RatePlanManagement.b2bAvailableDesc")}
                       </p>
                     </div>
                     <Switch
@@ -337,9 +339,9 @@ export default function RatePlan() {
 
                   <div className="flex items-center justify-between space-x-2">
                     <div className="space-y-0.5">
-                      <Label htmlFor="b2c-available">B2C Available</Label>
+                      <Label htmlFor="b2c-available">{t("RatePlanManagement.b2cAvailable")}</Label>
                       <p className="text-xs text-gray-500">
-                        Enable this rate plan for direct customer bookings
+                        {t("RatePlanManagement.b2cAvailableDesc")}
                       </p>
                     </div>
                     <Switch
@@ -352,9 +354,9 @@ export default function RatePlan() {
                   </div>
                   <div className="flex items-center justify-between space-x-2">
                     <div className="space-y-0.5">
-                      <Label htmlFor="edit-room-only-visible">Room Only Price Visible</Label>
+                      <Label htmlFor="edit-room-only-visible">{t("RatePlanManagement.roomOnlyPriceVisible")}</Label>
                       <p className="text-xs text-gray-500">
-                        Enable this rate plan room only price will be visible to customers.
+                        {t("RatePlanManagement.roomOnlyPriceVisibleDesc")}
                       </p>
                     </div>
                     <Switch
@@ -368,7 +370,7 @@ export default function RatePlan() {
                 </div>
 
                 <p className="text-xs text-gray-500">
-                  Policies and tax can be configured after creation
+                  {t("RatePlanManagement.policiesTaxNote")}
                 </p>
               </div>
               <DialogFooter>
@@ -380,14 +382,14 @@ export default function RatePlan() {
                     setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true, roomOnlyVisible: true });
                   }}
                 >
-                  Cancel
+                  {t("RatePlanManagement.cancel")}
                 </Button>
                 <Button
                   type="submit"
                   onClick={createRatePlan}
                   disabled={!newRatePlan.ratePlanName.trim()}
                 >
-                  Create Rate Plan
+                  {t("RatePlanManagement.createRatePlan")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -396,10 +398,10 @@ export default function RatePlan() {
 
         {/* Rate Plans List Section */}
         <div className="mb-6">
-          <h2 className="text-lg font-semibold mb-4 text-gray-800">All Rate Plans</h2>
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">{t("RatePlanManagement.allRatePlans")}</h2>
           {allRatePlans.length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
-              No rate plans found. Create your first rate plan above.
+              {t("RatePlanManagement.noRatePlansFound")}
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -426,7 +428,7 @@ export default function RatePlan() {
                           className="cursor-pointer"
                         >
                           {ratePlan.ratePlanRules ? <Pencil className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-                          <span>{ratePlan.ratePlanRules ? "Update Rules" : "Add Rules"}</span>
+                          <span>{ratePlan.ratePlanRules ? t("RatePlanManagement.updateRules") : t("RatePlanManagement.addRules")}</span>
                         </DropdownMenuItem>
 
                         {/* ✅ ADDED: Manage Addons menu item */}
@@ -435,7 +437,7 @@ export default function RatePlan() {
                           className="cursor-pointer"
                         >
                           <Package className="mr-2 h-4 w-4" />
-                          <span>Manage Addons</span>
+                          <span>{t("RatePlanManagement.manageAddons")}</span>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem
@@ -443,7 +445,7 @@ export default function RatePlan() {
                           className="cursor-pointer"
                         >
                           <Plus className="mr-2 h-4 w-4" />
-                          <span>Add Language</span>
+                          <span>{t("Common.addTranslation")}</span>
                         </DropdownMenuItem>
                         
                         <DropdownMenuItem
@@ -451,7 +453,7 @@ export default function RatePlan() {
                           className="cursor-pointer"
                         >
                           <Globe className="mr-2 h-4 w-4" />
-                          <span>Check Languages</span>
+                          <span>{t("Common.checkTranslation")}</span>
                         </DropdownMenuItem>
 
                         <DropdownMenuItem
@@ -459,14 +461,14 @@ export default function RatePlan() {
                           className="cursor-pointer"
                         >
                           <Pencil className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
+                          <span>{t("RatePlanManagement.edit")}</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteClick(ratePlan)}
                           className="cursor-pointer text-red-600"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
-                          <span>Delete</span>
+                          <span>{t("RatePlanManagement.delete")}</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -478,7 +480,7 @@ export default function RatePlan() {
                   <div className="space-y-3 mb-4 text-xm">
                     <div className="flex justify-between">
                       <p className="text-sm text-gray-600">
-                        <span className="font-medium">Code:</span> {ratePlan.ratePlanCode}
+                        <span className="font-medium">{t("RatePlanManagement.code")}:</span> {ratePlan.ratePlanCode}
                       </p>
                       <p className="text-sm text-gray-600">
                         {ratePlan.createdAt
@@ -497,11 +499,11 @@ export default function RatePlan() {
                     <div className="flex gap-3 mb-2">
                       <div className="flex items-center gap-1.5">
                         <div className={`h-2 w-2 rounded-full ${ratePlan.b2bAvailable ? 'bg-primary' : 'bg-gray-300'}`} />
-                        <span className="text-xs text-gray-600">B2B</span>
+                        <span className="text-xs text-gray-600">{t("RatePlanManagement.b2b")}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <div className={`h-2 w-2 rounded-full ${ratePlan.b2cAvailable ? 'bg-primary' : 'bg-gray-300'}`} />
-                        <span className="text-xs text-gray-600">B2C</span>
+                        <span className="text-xs text-gray-600">{t("RatePlanManagement.b2c")}</span>
                       </div>
 
                     </div>
@@ -511,40 +513,40 @@ export default function RatePlan() {
                       <div className="flex items-center gap-2">
                         <div className={`h-2 w-2 rounded-full ${ratePlan.cancellationPolicyId ? 'bg-green-500' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">
-                          Cancellation Policy
+                          {t("RatePlanManagement.cancellationPolicy")}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <div className={`h-2 w-2 rounded-full ${ratePlan.depositPolicyId ? 'bg-green-500' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">
-                          Deposit Policy
+                          {t("RatePlanManagement.depositPolicy")}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <div className={`h-2 w-2 rounded-full ${ratePlan.guaranteePolicyId ? 'bg-green-500' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">
-                          Guarantee Policy
+                          {t("RatePlanManagement.guaranteePolicy")}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-2">
                         <div className={`h-2 w-2 rounded-full ${ratePlan.taxGroupId ? 'bg-green-500' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">
-                          Tax
+                          {t("RatePlanManagement.tax")}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={`h-2 w-2 rounded-full ${!ratePlan.ratePlanRules ? 'bg-gray-300' : ratePlan.ratePlanRules.isActive ? 'bg-green-500' : 'bg-orange-300'}`} />
                         <span className="text-xs text-gray-600">
-                          MLOS Rules
+                          {t("RatePlanManagement.mlosRules")}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className={`h-2 w-2 rounded-full ${ratePlan.Addons?.length === 0 ? 'bg-gray-300' : 'bg-green-500'}`} />
                         <span className="text-xs text-gray-600">
-                          Addon Included
+                          {t("RatePlanManagement.addonIncluded")}
                         </span>
                       </div>
                     </div>
@@ -560,30 +562,30 @@ export default function RatePlan() {
       <Dialog open={editDialog.open} onOpenChange={(open) => !open && handleCancelEdit()}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Edit Rate Plan</DialogTitle>
+            <DialogTitle>{t("RatePlanManagement.editRatePlan")}</DialogTitle>
             <DialogDescription>
-              Update rate plan details below.
+              {t("RatePlanManagement.updateRatePlanDetails")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-ratePlanName">
-                Rate Plan Name <span className="text-red-500">*</span>
+                {t("RatePlanManagement.ratePlanName")} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="edit-ratePlanName"
                 value={newRatePlan.ratePlanName}
                 onChange={(e) => setNewRatePlan({ ...newRatePlan, ratePlanName: e.target.value })}
-                placeholder="Enter rate plan name"
+                placeholder={t("RatePlanManagement.ratePlanNamePlaceholder")}
               />
             </div>
 
             <div className="grid gap-4">
               <div className="flex items-center justify-between space-x-2">
                 <div className="space-y-0.5">
-                  <Label htmlFor="edit-b2b-available">B2B Available</Label>
+                  <Label htmlFor="edit-b2b-available">{t("RatePlanManagement.b2bAvailable")}</Label>
                   <p className="text-xs text-gray-500">
-                    Enable this rate plan for business-to-business bookings
+                    {t("RatePlanManagement.b2bAvailableDesc")}
                   </p>
                 </div>
                 <Switch
@@ -597,9 +599,9 @@ export default function RatePlan() {
 
               <div className="flex items-center justify-between space-x-2">
                 <div className="space-y-0.5">
-                  <Label htmlFor="edit-b2c-available">B2C Available</Label>
+                  <Label htmlFor="edit-b2c-available">{t("RatePlanManagement.b2cAvailable")}</Label>
                   <p className="text-xs text-gray-500">
-                    Enable this rate plan for direct customer bookings
+                    {t("RatePlanManagement.b2cAvailableDesc")}
                   </p>
                 </div>
                 <Switch
@@ -613,9 +615,9 @@ export default function RatePlan() {
             </div>
             <div className="flex items-center justify-between space-x-2">
               <div className="space-y-0.5">
-                <Label htmlFor="edit-room-only-visible">Room Only Price Visible</Label>
+                <Label htmlFor="edit-room-only-visible">{t("RatePlanManagement.roomOnlyPriceVisible")}</Label>
                 <p className="text-xs text-gray-500">
-                  Enable this rate plan room only price will be visible to customers.
+                  {t("RatePlanManagement.roomOnlyPriceVisibleDesc")}
                 </p>
               </div>
               <Switch
@@ -633,14 +635,14 @@ export default function RatePlan() {
               variant="outline"
               onClick={handleCancelEdit}
             >
-              Cancel
+              {t("RatePlanManagement.cancel")}
             </Button>
             <Button
               type="submit"
               onClick={handleUpdateRatePlan}
               disabled={!newRatePlan.ratePlanName.trim()}
             >
-              Update Rate Plan
+              {t("RatePlanManagement.updateRatePlan")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -650,19 +652,18 @@ export default function RatePlan() {
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && handleCancelDelete()}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t("RatePlanManagement.areYouSure")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the rate plan{" "}
-              <span className="font-semibold">"{deleteDialog.ratePlan?.ratePlanName}"</span>.
+              {t("RatePlanManagement.deleteRatePlanMessage", { name: deleteDialog.ratePlan?.ratePlanName })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleCancelDelete}>{t("RatePlanManagement.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              Delete
+              {t("RatePlanManagement.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -735,9 +736,9 @@ export default function RatePlan() {
           entityId={editLanguageDialog.ratePlanId}
           locale={editLanguageDialog.locale}
           initialData={editLanguageDialog.data}
-          title="Edit Rate Plan Translation"
+          title={t("RatePlan.editTrans")}
           fields={[
-            { key: "ratePlanName", label: "Rate Plan Name", placeholder: "e.g., Plan Estándar" },
+            { key: "ratePlanName", label: t('RatePlan.planName'), placeholder: "e.g., Plan Estándar" },
           ]}
           onSave={async (id, locale, data) => upsertRatePlanTranslationService(id, { [locale]: data })}
         />

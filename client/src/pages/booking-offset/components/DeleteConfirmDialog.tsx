@@ -10,6 +10,7 @@ interface DeleteConfirmDialogProps {
   onStartDateChange?: (date: string) => void;
   onEndDateChange?: (date: string) => void;
 }
+import { useTranslation } from "react-i18next";
 
 import {
   Dialog,
@@ -43,6 +44,7 @@ export default function DeleteConfirmDialog({
   selectedRatePlanId?: string;
   onRatePlanChange?: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Dialog open={true} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="max-w-md">
@@ -62,18 +64,18 @@ export default function DeleteConfirmDialog({
                   onChange={(e) => onRatePlanChange?.(e.target.value)}
                 >
                   <option value="">Select a Rate Plan</option>
-                 {ratePlans.map((rp) => (
-  <option key={rp.id} value={rp.id}>
-    {rp._translations?.ratePlanName ?? rp.ratePlanName}
-  </option>
-))}
+                  {ratePlans.map((rp) => (
+                    <option key={rp.id} value={rp.id}>
+                      {rp._translations?.ratePlanName ?? rp.ratePlanName}
+                    </option>
+                  ))}
                 </select>
               </div>
             )}
             {showDateRange && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Start Date</Label>
+                  {t("BookingOffset.formModal.startDate")}
                   <Input
                     type="date"
                     value={startDate}
@@ -81,7 +83,7 @@ export default function DeleteConfirmDialog({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>End Date</Label>
+                  {t("BookingOffset.formModal.endDate")}
                   <Input
                     type="date"
                     value={endDate}
@@ -95,10 +97,10 @@ export default function DeleteConfirmDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            Cancel
+            {t("BookingOffset.formModal.cancel")}
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? "Deleting..." : "Delete"}
+            {isLoading ? t("BookingOffset.formModal.deleting") : t("BookingOffset.formModal.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

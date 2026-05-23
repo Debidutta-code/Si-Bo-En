@@ -33,13 +33,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { ILoader } from '../dashboard/interface';
+import { useTranslation } from 'react-i18next';
 
 const AgenciesListPage: React.FC = () => {
+    const { t } = useTranslation();
+
   const navigate = useNavigate();
   const [agencies, setAgencies] = useState<IAgency[]>([]);
   const [loading, setLoading] = useState<ILoader>({
     isLoading: true,
-    message: 'Loading agencies...',
+    message: t('Agency.loading'),
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
@@ -62,7 +65,7 @@ const AgenciesListPage: React.FC = () => {
   const fetchAgencies = async () => {
     setLoading({
       isLoading: true,
-      message: 'Loading agencies...',
+      message: t('Agency.loading'),
     });
     try {
       const response = await getAgencies(page, limit);
@@ -121,12 +124,12 @@ if (loading.isLoading) {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Agencies</h1>
-          <p className="text-gray-500 mt-1">Manage travel agencies and corporate partners</p>
+          <h1 className="text-3xl font-bold">{t('Agency.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('Agency.subtitle')}</p>
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Create Agency
+          {t('Agency.createAgency')}
         </Button>
       </div>
 
@@ -134,7 +137,7 @@ if (loading.isLoading) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Total Agencies</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">{t('Agency.totalAgencies')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalAgencies}</div>
@@ -142,7 +145,7 @@ if (loading.isLoading) {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Travel Agencies</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">{t('Agency.travelAgencies')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -152,7 +155,7 @@ if (loading.isLoading) {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Corporate</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">{t('Agency.corporate')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -162,7 +165,7 @@ if (loading.isLoading) {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Active Agents</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">{t('Agency.activeAgents')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">-</div>
@@ -177,7 +180,7 @@ if (loading.isLoading) {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search by name, email, or IATA code..."
+                placeholder={t('Agency.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -185,22 +188,22 @@ if (loading.isLoading) {
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Agency Type" />
+                <SelectValue placeholder={t('Agency.agencyType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="travel_agency">Travel Agency</SelectItem>
-                <SelectItem value="corporate">Corporate</SelectItem>
+                <SelectItem value="all">{t('Agency.allTypes')}</SelectItem>
+                <SelectItem value="travel_agency">{t('Agency.travelAgency')}</SelectItem>
+                <SelectItem value="corporate">{t('Agency.corporate')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={commissionFilter} onValueChange={setCommissionFilter}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Commission Type" />
+                <SelectValue placeholder={t('Agency.commissionType')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Commissions</SelectItem>
-                <SelectItem value="percentage">Percentage</SelectItem>
-                <SelectItem value="fixed">Fixed</SelectItem>
+                <SelectItem value="all">{t('Agency.allCommissions')}</SelectItem>
+                <SelectItem value="percentage">{t('Agency.percentage')}</SelectItem>
+                <SelectItem value="fixed">{t('Agency.fixed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -213,20 +216,20 @@ if (loading.isLoading) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Agency Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>IATA Code</TableHead>
-                <TableHead>Commission</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('Agency.agencyName')}</TableHead>
+                <TableHead>{t('Agency.type')}</TableHead>
+                <TableHead>{t('Agency.email')}</TableHead>
+                <TableHead>{t('Agency.contact')}</TableHead>
+                <TableHead>{t('Agency.iataCode')}</TableHead>
+                <TableHead>{t('Agency.commission')}</TableHead>
+                <TableHead>{t('Agency.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAgencies.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    No agencies found
+                    {t('Agency.noAgencies')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -235,7 +238,7 @@ if (loading.isLoading) {
                     <TableCell className="font-medium">{agency.agencyName}</TableCell>
                     <TableCell>
                       <Badge variant={agency.agencyType === 'travel_agency' ? 'default' : 'secondary'}>
-                        {agency.agencyType === 'travel_agency' ? 'Travel Agency' : 'Corporate'}
+                        {agency.agencyType === 'travel_agency' ? t('Agency.travelAgency') : t('Agency.corporate')}
                       </Badge>
                     </TableCell>
                     <TableCell>{agency.agencyEmail}</TableCell>
@@ -258,7 +261,7 @@ if (loading.isLoading) {
                             onClick={() => navigate(`/app/agency/${agency.id}`)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
-                            View Details
+                            {t('Agency.viewDetails')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
@@ -267,7 +270,7 @@ if (loading.isLoading) {
                             }}
                           >
                             <Edit className="h-4 w-4 mr-2" />
-                            Edit Agency
+                            {t('Agency.editAgency')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {
@@ -277,7 +280,7 @@ if (loading.isLoading) {
                             className="text-red-600 focus:text-red-600"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Agency
+                            {t('Agency.deleteAgency')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -291,7 +294,7 @@ if (loading.isLoading) {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-gray-500">
-              Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, totalAgencies)} of {totalAgencies} agencies
+              {t('Agency.paginationInfo', { start: ((page - 1) * limit) + 1, end: Math.min(page * limit, totalAgencies), total: totalAgencies })}
             </div>
             <div className="flex gap-2">
               <Button
@@ -300,7 +303,7 @@ if (loading.isLoading) {
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
               >
-                Previous
+                {t('Agency.previous')}
               </Button>
               <Button
                 variant="outline"
@@ -308,7 +311,7 @@ if (loading.isLoading) {
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
               >
-                Next
+                {t('Agency.next')}
               </Button>
             </div>
           </div>
@@ -335,8 +338,8 @@ if (loading.isLoading) {
             open={isDeleteDialogOpen}
             onOpenChange={setIsDeleteDialogOpen}
             onConfirm={handleDelete}
-            title="Delete Agency"
-            description={`Are you sure you want to delete "${selectedAgency.agencyName}"? This action cannot be undone.`}
+            title={t('Agency.deleteConfirmTitle')}
+            description={t('Agency.deleteConfirmDesc', { name: selectedAgency?.agencyName })}
           />
         </>
       )}

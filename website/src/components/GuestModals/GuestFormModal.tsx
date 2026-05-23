@@ -508,9 +508,10 @@ const GuestFormModal: React.FC<Props> = ({
                 const groupedAddons = (() => {
                   const map = new Map<string, { name: string; quantity: number; total: number; currency: string; type: string }>();
                   for (const addon of finalPrice.addonBrakeDowns ?? []) {
-                    const isChild = addon.name?.includes("Child age");
+                    const addonNameRaw = addon._translations?.name || addon.name;
+                    const isChild = addonNameRaw?.includes("Child age");
                     const key = isChild ? `${addon.addonId}::child` : `${addon.addonId}::${addon.type}`;
-                    const baseName = isChild ? addon.name.replace(/\s*\(Child age \d+\)/, "") : addon.name;
+                    const baseName = isChild ? addonNameRaw.replace(/\s*\(Child age \d+\)/, "") : addonNameRaw;
                     const displayName = isChild ? t("GuestForm.childrenAddon", { name: baseName }) : baseName;
                     if (map.has(key)) {
                       const e = map.get(key)!;
@@ -653,12 +654,15 @@ const GuestFormModal: React.FC<Props> = ({
                           amount={`- ${cur} ${(totalPromoDiscount + finalPrice.loyalityDiscount + finalPrice.promoCodeDiscount).toFixed(2)}`}
                           amountClass="text-green-700"
                         >
-                          {deductPromos.map((promo: any, i: number) => (
-                            <div key={i} className="flex justify-between py-0.5 text-green-700">
-                              <span>{promo.name} ({promo.discountValue}%)</span>
-                              <span>- {(promo.currencyCode || finalPrice.currencyCode)} {(promo.discountAmount ?? 0).toFixed(2)}</span>
-                            </div>
-                          ))}
+                          {deductPromos.map((promo: any, i: number) => {
+                            const promoName = promo._translations?.promotionName || promo.name;
+                            return (
+                              <div key={i} className="flex justify-between py-0.5 text-green-700">
+                                <span>{promoName} ({promo.discountValue}%)</span>
+                                <span>- {(promo.currencyCode || finalPrice.currencyCode)} {(promo.discountAmount ?? 0).toFixed(2)}</span>
+                              </div>
+                            );
+                          })}
                           {(finalPrice.loyalityDiscount ?? 0) > 0 && (
                             <div className="flex justify-between py-0.5 text-green-700">
                               <span>{t("GuestForm.loyaltyDiscount")}</span>
@@ -681,14 +685,17 @@ const GuestFormModal: React.FC<Props> = ({
                         label={t("GuestForm.taxesAndFees")}
                         amount={`${cur} ${(finalPrice.taxedAmount ?? 0).toFixed(2)}`}
                       >
-                        {finalPrice.taxBrakeDown.map((tax: any, i: number) => (
-                          <div key={i} className="flex justify-between py-0.5 text-gray-600">
-                            <span>{tax.name}</span>
-                            <span className="text-gray-900">
-                              {tax.currencyCode || finalPrice.currencyCode} {(tax.taxedAmount ?? 0).toFixed(2)}
-                            </span>
-                          </div>
-                        ))}
+                        {finalPrice.taxBrakeDown.map((tax: any, i: number) => {
+                          const taxName = tax._translations?.name || tax.name;
+                          return (
+                            <div key={i} className="flex justify-between py-0.5 text-gray-600">
+                              <span>{taxName}</span>
+                              <span className="text-gray-900">
+                                {tax.currencyCode || finalPrice.currencyCode} {(tax.taxedAmount ?? 0).toFixed(2)}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </AccordionSection>
                     )}
 
@@ -723,15 +730,15 @@ const GuestFormModal: React.FC<Props> = ({
                           </div>
                           {payLaterPromos.length > 0 && (
                             <div className="pl-3 space-y-1 pb-1">
-                              {payLaterPromos.map((promo: any, i: number) => (
-                                <div key={i} className="flex justify-between text-xs text-blue-500">
-                                  <span>
-                                    {promo.name} ({promo.discountValue}{promo.discountType === 'percentage' ? '%' : ''})
-                                    <span className="ml-1 text-[10px] text-gray-800">{t("GuestForm.payLater")}</span>
-                                  </span>
-                                  <span>{cur} {(promo.discountAmount ?? 0).toFixed(2)}</span>
-                                </div>
-                              ))}
+                              {payLaterPromos.map((promo: any, i: number) => {
+                                const payLaterName = promo._translations?.name || promo.name;
+                                return (
+                                  <div key={i} className="flex justify-between text-xs text-blue-500">
+                                    <span>{payLaterName}</span>
+                                    <span>{cur} {(promo.discountAmount ?? 0).toFixed(2)}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
                           )}
                         </div>

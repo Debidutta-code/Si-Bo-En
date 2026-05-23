@@ -34,6 +34,7 @@ import AmendReservationModal from "./Amendreservationmodal";
 // import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import SpaBookingDialog from "./SpaBooking/SpaBookingDialog";
+import { useTranslation } from "react-i18next";
 
 
 interface ViewDetailsModalProps {
@@ -75,6 +76,8 @@ function CancelConfirmationModal({
   onCancel,
   isLoading,
 }: CancelConfirmationModalProps) {
+    const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
@@ -87,25 +90,24 @@ function CancelConfirmationModal({
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-card-foreground mb-2">
-                Cancel Reservation
+                {t('Bookings.cancelConfirm.title')}
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Are you sure you want to cancel this reservation?
+                {t('Bookings.cancelConfirm.message')}
               </p>
               <div className="bg-muted rounded-md p-3 mb-4">
                 <div className="text-sm space-y-1">
                   <p className="font-medium text-card-foreground">
-                    Booking Code: {reservation.bookingCode}
+                    {t('Bookings.cancelConfirm.bookingCode')}: {reservation.bookingCode}
                   </p>
                   <p className="text-muted-foreground">
-                    Guest: {reservation.primaryGuest?.firstName}{" "}
+                     {t('Bookings.cancelConfirm.guest')}: {reservation.primaryGuest?.firstName}{" "}
                     {reservation.primaryGuest?.lastName}
                   </p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                This action cannot be undone. The guest will be notified of the
-                cancellation.
+                {t('Bookings.cancelConfirm.actionNote')}
               </p>
             </div>
           </div>
@@ -116,14 +118,14 @@ function CancelConfirmationModal({
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-card-foreground border border-border rounded-md hover:bg-accent transition-colors disabled:opacity-50"
           >
-            Cancel
+            {t('Bookings.cancelConfirm.cancelBtn')}
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
             className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors disabled:opacity-50"
           >
-            {isLoading ? "Cancelling..." : "Yes, Cancel Reservation"}
+            {isLoading ? t('Bookings.cancelConfirm.cancelling') : t('Bookings.cancelConfirm.confirmBtn')}
           </button>
         </div>
       </div>
@@ -146,6 +148,7 @@ export default function ReservationsTable({
   onCancel,
   onNoShow,
 }: ReservationsTableProps) {
+  const {t}= useTranslation();
   const [selectedReservation, setSelectedReservation] = useState<IReservation | null>(null);
   const [activeDialog, setActiveDialog] = useState<DialogType>(null);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -193,10 +196,10 @@ export default function ReservationsTable({
     try {
       const response = await downloadBookingVoucher(bookingCode);
       if (!response.success) {
-        toast.error(response.message || "Failed to download voucher");
+        toast.error(response.message || t('Bookings.toast.failedToDownloadVoucher'));
       }
     } catch {
-      toast.error("Failed to download voucher");
+      toast.error(t('Bookings.toast.failedToDownloadVoucher'));
     }
   };
 
@@ -248,16 +251,16 @@ export default function ReservationsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-[12px]">Booking Code</TableHead>
-              <TableHead className="text-[12px]">Guest</TableHead>
-              <TableHead className="text-[12px]">Rooms</TableHead>
-              <TableHead className="text-[12px]">Check-in</TableHead>
-              <TableHead className="text-[12px]">Check-out</TableHead>
-              <TableHead className="text-[12px]">Status</TableHead>
-              <TableHead className="text-[12px]">Source</TableHead>
-              <TableHead className="text-[12px]">Incl. Tax</TableHead>
-              <TableHead className="text-[12px]">Excl. Tax</TableHead>
-              <TableHead className="text-right text-[12px]">Actions</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.bookingCode')}</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.guest')}</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.rooms')}</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.checkIn')}</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.checkOut')}</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.status')}</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.source')}</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.inclTax')}</TableHead>
+              <TableHead className="text-[12px]">{t('Bookings.table.exclTax')}</TableHead>
+              <TableHead className="text-right text-[12px]">{t('Bookings.table.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -303,32 +306,32 @@ export default function ReservationsTable({
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => openDialog("view", reservation)} className="cursor-pointer">
+                     <DropdownMenuItem onClick={() => openDialog("view", reservation)} className="cursor-pointer">
                         <Eye className="w-4 h-4 mr-3" />
-                        View Details
+                        {t('Bookings.table.viewDetails')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
                         <VenetianMask className="w-4 h-4 mr-3" />
-                        Add Spa / Activity
+                        {t('Bookings.table.addSpa')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDownloadVoucher(reservation.bookingCode)} className="cursor-pointer">
                         <FileText className="w-4 h-4 mr-3" />
-                        Download Voucher
+                        {t('Bookings.table.downloadVoucher')}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openDialog("amend", reservation)} className="cursor-pointer">
                         <Edit className="w-4 h-4 mr-3" />
-                        Amend
+                        {t('Bookings.table.amend')}
                       </DropdownMenuItem>
                       {!["cancelled", "no_show"].includes(reservation.bookingStatus) && (
                         <DropdownMenuItem onClick={() => openDialog("noShow", reservation)} className="cursor-pointer text-destructive focus:text-destructive">
                           <EyeOff className="w-4 h-4 mr-3" />
-                          No Show
+                          {t('Bookings.table.noShow')}
                         </DropdownMenuItem>
                       )}
                       {!["cancelled", "no_show"].includes(reservation.bookingStatus) && (
                         <DropdownMenuItem onClick={() => openDialog("cancel", reservation)} className="cursor-pointer text-destructive focus:text-destructive">
                           <XCircle className="w-4 h-4 mr-3" />
-                          Cancel
+                          {t('Bookings.table.cancel')}
                         </DropdownMenuItem>
                       )}
                       {/* {

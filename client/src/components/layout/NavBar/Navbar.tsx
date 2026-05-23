@@ -19,8 +19,11 @@ import { useSelector } from 'react-redux';
 import type { RootState } from '@/redux/store';
 import { languages, type LanguageCode } from '@/components/language/language';
 import { setLanguage } from '@/redux/language.slice';
+import { useTranslation } from 'react-i18next';
 
 export default function Navbar({ isOpen }: { isOpen: boolean }) {
+    const { t } = useTranslation();
+
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.user);
   const axiosInstance = AxiosInstance();
@@ -155,12 +158,12 @@ export default function Navbar({ isOpen }: { isOpen: boolean }) {
               {user?.role && (
                 <DropdownMenuItem className="cursor-default focus:bg-transparent">
                   <Shield className="mr-2 h-4 w-4" />
-                  <span className="text-sm capitalize">{user.role.replace('_', ' ')}</span>
+                  <span className="text-sm capitalize">{t('User.role')}: {user.role.replace('_', ' ')}</span>
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem className="cursor-default focus:bg-transparent" onClick={() => { navigate("/forgot-password") }}>
                 <RotateCcwKey className="mr-2 h-4 w-4" />
-                <span className="text-sm capitalize" >Change Password</span>
+                <span className="text-sm capitalize" >{t('Auth.changePassword')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

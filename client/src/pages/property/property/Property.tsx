@@ -54,8 +54,11 @@ import CheckCreationLanguagesDialog from "@/components/creation/CheckCreationLan
 import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
 import { upsertCreationTranslationService } from "../service/creation-lang.service";
 
+import { useTranslation } from 'react-i18next';
 
 export default function PropertyPage() {
+        const { t } = useTranslation();
+
     const { user } = useAppSelector((state) => state.user);
     const [addMemberDialogOpen, setAddMemberDialogOpen] = useState<boolean>(false)
     const { creationId } = useParams<{ creationId: string }>();
@@ -91,11 +94,7 @@ export default function PropertyPage() {
     const [propertyDetails, setPropertyDetails] = useState<IPropertyCreations | null>(null);
     const [isCreationCompleted, setIsCreationCompleted] = useState<boolean>(false);
     const [isDrafted, setIsDrafted] = useState<boolean>(false);
-    const roles = [
-        { value: "hotel_manager", label: "Hotel Manager" },
-        { value: "staff", label: "Staff" },
-        { value: "spa_manager", label: "Spa Manager" },
-    ];
+    const roles = [{ value: "hotel_manager", label: t('Roles.hotelManager') }, { value: "staff", label: t('Roles.staff') },];
     const [selectedRole, setSelectedRole] = useState<string>(roles[0].value);
     const [selectedUser, setSelectedUser] = useState<string>('');
     const [users, setUsers] = useState<HotelManagerMapping>({
@@ -165,11 +164,11 @@ export default function PropertyPage() {
                 setIsDrafted(response.data.propertyDetails.isDrafted);
                 fetchPartners(response.data.propertyDetails.id);
             } else {
-                toast.error(response.message || "Failed to fetch property");
+                toast.error(response.message || t('Toast.failedToFetchProperty'));
             }
         } catch (error) {
             console.error("Error fetching property:", error);
-            toast.error("Failed to fetch property");
+            toast.error(t('Toast.failedToFetchProperty'));
         } finally {
             setIsLoading(false);
         }
@@ -183,11 +182,11 @@ export default function PropertyPage() {
             if (response.success) {
                 setMasterPartners(response.data);
             } else {
-                toast.error(response.message || "Failed to fetch partners");
+                toast.error(response.message || t('Toast.failedToFetchPartners'));
             }
         } catch (error) {
             console.error("Error fetching partners:", error);
-            toast.error("Failed to fetch partners");
+            toast.error(t('Toast.failedToFetchPartners'));
         }
     }
 
@@ -197,34 +196,34 @@ export default function PropertyPage() {
             if (response.success) {
                 setUsers(response.data);
             } else {
-                toast.error(response.message || "Failed to fetch users");
+                toast.error(response.message || t('Toast.failedToFetchUsers'));
             }
         } catch (error) {
             console.error("Error fetching users:", error);
-            toast.error("Failed to fetch users");
+            toast.error(t('Toast.failedToFetchUsers'));
         }
     }
 
     const updatePropertyConfig = async () => {
         if (user?.role != "super_admin") {
-            toast.error("Only SuperAdmin can update the config");
-            return;
+            toast.error(t('Toast.onlySuperAdminCanUpdate'));
+            return
         }
         if (!propertyDetails?.id) {
-            toast.error("Property Not Selected");
+            toast.error(t('Toast.propertyNotSelected'));
             return;
         }
         try {
             setIsLoading(true);
             const response = await updatePropertyConfigService(propertyDetails.id, propertyConfig);
             if (response.success) {
-                toast.success("property Config Updated successfully");
-                fetchPropertyConfig(propertyDetails.id);
+                toast.success(t('Toast.propertyConfigUpdated'))
+                fetchPropertyConfig(propertyDetails.id)
             } else {
-                toast.error(response.message || "Failed to update Property config");
+                toast.error(response.message || t('Toast.failedToUpdatePropertyConfig'))
             }
         } catch (error) {
-            toast.error("Failed to Update Property");
+            toast.error(t('Toast.failedToUpdatePropertyConfig'))
         } finally {
             setIsLoading(false);
         }
@@ -233,7 +232,7 @@ export default function PropertyPage() {
     const fetchPropertyConfig = async (creationId: string) => {
         if (user?.role != "super_admin") return;
         if (!creationId) {
-            toast.error("Property Not Selected");
+            toast.error(t('Toast.propertyNotSelected'));
             return;
         }
         try {
@@ -242,10 +241,10 @@ export default function PropertyPage() {
             if (response.success) {
                 setPropertyConfig(response.data);
             } else {
-                toast.error(response.message || "Failed to fetch Property config");
+                toast.error(response.message || t('Toast.failedToFetchPropertyConfig'))
             }
         } catch (error) {
-            toast.error("Failed to fetch Property config");
+            toast.error(t('Toast.failedToFetchPropertyConfig'))
         } finally {
             setIsLoading(false);
         }
@@ -273,13 +272,13 @@ export default function PropertyPage() {
 
     const handleAddMember = async () => {
         if (!selectedUser) {
-            toast.error("Please select a user");
+            toast.error(t('Toast.pleaseSelectUser'));
             return;
         }
         setIsAssigningUser(true);
         try {
             if (!creationDetails?.id) {
-                toast.error("Creation ID is missing");
+                toast.error(t('Toast.creationIdMissing'));
                 setIsAssigningUser(false);
                 return;
             }
@@ -289,16 +288,16 @@ export default function PropertyPage() {
                 role: selectedRole
             });
             if (response.success) {
-                toast.success("User assigned successfully");
+                toast.success(t('Toast.userAssignedSuccessfully'));
                 setSelectedUser('');
                 setAddMemberDialogOpen(false);
                 initialFetch();
             } else {
-                toast.error(response.message || "Failed to assign user");
+                toast.error(response.message || t('Toast.failedToAssignUser'));
             }
         } catch (error) {
             console.error("Error assigning user:", error);
-            toast.error("Failed to assign user");
+            toast.error(t('Toast.failedToAssignUser'));
         } finally {
             setIsAssigningUser(false);
         }
@@ -319,7 +318,7 @@ export default function PropertyPage() {
             ...prev,
             images: [...prev.images, ...uploadedUrls]
         }));
-        toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+        toast.success(t('Toast.imagesUploadedSuccessfully', { count: uploadedUrls.length }));
     };
 
     const handleRemoveImage = (index: number) => {
@@ -331,19 +330,19 @@ export default function PropertyPage() {
 
     const handleUpdateProperty = async () => {
         if (!creationId) {
-            toast.error('Invalid Property ID');
+            toast.error(t('Toast.invalidPropertyId'));
             return;
         }
         try {
             const response = await updateCreationService(creationId, updatePropertyDetails.name, updatePropertyDetails.images, updatePropertyDetails.isActive);
             if (!response.success) {
-                toast.error(response.message || 'Failed to update property');
+                toast.error(response.message || t('Toast.failedToUpdateProperty'));
                 return;
             }
-            toast.success('Property updated successfully');
+            toast.success(t('Toast.propertyUpdatedSuccessfully'));
             window.location.reload();
         } catch (err: any) {
-            toast.error('Failed to update property');
+            toast.error(t('Toast.failedToUpdateProperty'));
         }
     };
 
@@ -401,17 +400,17 @@ export default function PropertyPage() {
         try {
             const response = await createPropertyIntegrationService(data);
             if (response.success) {
-                toast.success(`Successfully integrated with ${selectedPartner?.name}`);
+                toast.success(t('Toast.integratedSuccessfully', { partner: selectedPartner?.name }));
+                // Refresh partners to show updated status
                 if (propertyDetails?.id) {
                     await fetchPartners(propertyDetails.id);
                 }
             } else {
-                toast.error(response.message || 'Failed to integrate');
+                toast.error(response.message || t('Toast.failedToIntegrate'));
                 throw new Error(response.message);
             }
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to integrate');
-            throw error;
+            toast.error(error?.message || t('Toast.failedToIntegrate'));
         }
     };
 
@@ -423,15 +422,16 @@ export default function PropertyPage() {
             const newStatus = !currentStatus;
             const response = await updatePropertyIntegrationStatusService(integrationId, newStatus);
             if (response.success) {
-                toast.success(`Integration ${newStatus ? 'activated' : 'deactivated'} successfully`);
+                toast.success(newStatus ? t('Toast.integrationActivated') : t('Toast.integrationDeactivated'));
+                // Refresh partners to show updated status
                 if (propertyDetails?.id) {
                     await fetchPartners(propertyDetails.id);
                 }
             } else {
-                toast.error(response.message || 'Failed to update integration status');
+                toast.error(response.message || t('Toast.failedToUpdateIntegrationStatus'));
             }
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to update integration status');
+            toast.error(error?.message || t('Toast.failedToUpdateIntegrationStatus'));
         } finally {
             setIsIntegrating(prev => ({ ...prev, [integrationId]: false }));
         }
@@ -451,14 +451,17 @@ export default function PropertyPage() {
         try {
             const response = await addPropertyIntegrationFieldService(integrationId, data);
             if (response.success) {
-                toast.success('Field added successfully');
-                if (propertyDetails?.id) await fetchPartners(propertyDetails.id);
+                toast.success(t('Toast.fieldAddedSuccessfully'));
+                // Refresh partners
+                if (propertyDetails?.id) {
+                    await fetchPartners(propertyDetails.id);
+                }
             } else {
-                toast.error(response.message || 'Failed to add field');
+                toast.error(response.message || t('Toast.failedToAddField'));
                 throw new Error(response.message);
             }
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to add field');
+            toast.error(error?.message || t('Toast.failedToAddField'));
             throw error;
         }
     };
@@ -467,14 +470,17 @@ export default function PropertyPage() {
         try {
             const response = await updatePropertyIntegrationFieldService(fieldId, { value });
             if (response.success) {
-                toast.success('Field updated successfully');
-                if (propertyDetails?.id) await fetchPartners(propertyDetails.id);
+                toast.success(t('Toast.fieldUpdatedSuccessfully'));
+                // Refresh partners
+                if (propertyDetails?.id) {
+                    await fetchPartners(propertyDetails.id);
+                }
             } else {
-                toast.error(response.message || 'Failed to update field');
+                toast.error(response.message || t('Toast.failedToUpdateField'));
                 throw new Error(response.message);
             }
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to update field');
+            toast.error(error?.message || t('Toast.failedToUpdateField'));
             throw error;
         }
     };
@@ -483,14 +489,16 @@ export default function PropertyPage() {
         try {
             const response = await deletePropertyIntegrationFieldService(fieldId);
             if (response.success) {
-                toast.success('Field deleted successfully');
-                if (propertyDetails?.id) await fetchPartners(propertyDetails.id);
+                toast.success(t('Toast.fieldDeletedSuccessfully'));
+                if (propertyDetails?.id) {
+                    await fetchPartners(propertyDetails.id);
+                }
             } else {
-                toast.error(response.message || 'Failed to delete field');
+                toast.error(response.message || t('Toast.failedToDeleteField'));
                 throw new Error(response.message);
             }
         } catch (error: any) {
-            toast.error(error?.message || 'Failed to delete field');
+            toast.error(error?.message || t('Toast.failedToDeleteField'));
             throw error;
         }
     };
@@ -498,7 +506,7 @@ export default function PropertyPage() {
     if (isLoading) {
         return (
             <div className='min-h-screen w-full flex justify-center items-center'>
-                <Loader text={`Loading your Property ...`} />
+                <Loader text={t('Property.loadingYourPropertys')} />
             </div>
         );
     }
@@ -514,12 +522,12 @@ export default function PropertyPage() {
                                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                         </svg>
                     </div>
-                    <h3 className="mt-4 text-lg font-medium text-gray-900">Property Not Found</h3>
+                    <h3 className="mt-4 text-lg font-medium text-gray-900">{t('Property.propertyNotFound')}</h3>
                     <p className="mt-2 text-sm text-gray-500">
-                        The property you're looking for doesn't exist or has been removed.
+                        {t('Property.propertyNotFoundDescription')}
                     </p>
                     <Button onClick={() => navigate('/app/property')} className="mt-4">
-                        Go Back to Properties
+                        {t('Property.goBackToProperties')}
                     </Button>
                 </div>
             </div>
@@ -550,14 +558,15 @@ export default function PropertyPage() {
                             <div className="flex items-center space-x-3">
                                 <p className="text-sm text-gray-600">
                                     {isDrafted
-                                        ? "Manage your hotel property and its performance"
-                                        : "Complete your property setup to start managing"}
+                                        ? t('Property.manageYourHotelProperty')
+                                        : t('Property.completeYourPropertySetup')
+                                    }
                                 </p>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isDrafted
                                     ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
                                     : 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200'
                                     }`}>
-                                    {isDrafted ? '● Active' : '● Setup Required'}
+                                    {isDrafted ? t('Property.activeStatus') : t('Property.setupRequiredStatus')}
                                 </span>
                             </div>
                         </div>
@@ -568,20 +577,20 @@ export default function PropertyPage() {
             {/* Actions Bar with Dropdown */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900">Property Management</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{t('Property.propertyManagement')}</h2>
                     <p className="text-sm text-gray-600 mt-1">
-                        Configure and manage your property settings
+                        {t('Property.configureAndManageProperty')}
                     </p>
                 </div>
                 <div className='flex'>
                     <div className="px-2">
                         {isCreationCompleted ? (
                             <Button onClick={handleEditProperty} className="w-full">
-                                View Property
+                                {t('Property.viewProperty')}
                             </Button>
                         ) : (
                             <Button onClick={handleCreateProperty} className="w-full">
-                                Complete Property Setup
+                                {t('Property.completePropertySetup')}
                             </Button>
                         )}
                     </div>
@@ -594,18 +603,18 @@ export default function PropertyPage() {
                         <DropdownMenuContent align="end" className="w-56 space-y-2">
                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); openUpdateDialog(); }} className="cursor-pointer">
                                 <Button variant={"secondary"}>
-                                    <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Property
+                                    <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> {t('Property.updateProperty')}
                                 </Button>
                             </DropdownMenuItem>
 
                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setAddTranslationDialogOpen(true); }} className="cursor-pointer">
                                 <Button variant={"secondary"}>
-                                    <Plus className="h-4 w-4 mr-2 text-gray-600" /> Add Translation
+                                    <Plus className="h-4 w-4 mr-2 text-gray-600" /> {t("Common.addTranslation")}
                                 </Button>
                             </DropdownMenuItem>
                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCheckTranslationsDialogOpen(true); }} className="cursor-pointer">
                                 <Button variant={"secondary"}>
-                                    <Globe className="h-4 w-4 mr-2 text-gray-600" /> Check Translations
+                                    <Globe className="h-4 w-4 mr-2 text-gray-600" /> {t("Common.checkTranslation")}
                                 </Button>
                             </DropdownMenuItem>
 
@@ -618,7 +627,7 @@ export default function PropertyPage() {
                                     className="cursor-pointer"
                                 >
                                     <Button variant={"secondary"}>
-                                        <Settings className='h-4 w-4 mr-2' /> Property Config
+                                        <Settings className='h-4 w-4 mr-2' /> {t('Property.propertyConfig')}
                                     </Button>
                                 </DropdownMenuItem>
                             )}
@@ -630,38 +639,38 @@ export default function PropertyPage() {
                                             variant={"secondary"}
                                             onClick={() => { setAddMemberDialogOpen(true) }}
                                         >
-                                            <User2Icon className='h-4 w-4 mr-2' /> Add Members
+                                            <User2Icon className='h-4 w-4 mr-2' /> {t('Property.addMembers')}
                                         </Button>
                                     </DropdownMenuItem>
                                 </DialogTrigger>
                                 <DialogContent className='sm:max-w-[425px]'>
                                     <DialogHeader>
-                                        <DialogTitle>Add Members</DialogTitle>
+                                        <DialogTitle>{t('Property.addMembers')}</DialogTitle>
                                         <DialogDescription>
-                                            Assign a user to your property with a specific role.
+                                            {t('Property.addMemberDescription')}
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className='space-y-4 py-4'>
                                         <div className='space-y-2'>
-                                            <Label htmlFor='role'>Role</Label>
+                                            <Label htmlFor='role'>{t('User.role')}</Label>
                                             <Select value={selectedRole} onValueChange={setSelectedRole}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder='Select a role' />
+                                                    <SelectValue placeholder={t('Property.selectRole')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {roles.map((role, index) => (
                                                         <SelectItem key={index} value={role.value}>
-                                                            {role.label}
+                                                            {role.value === "hotel_manager" ? t('Roles.hotelManager') : t('Roles.staff')}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className='space-y-2'>
-                                            <Label htmlFor='user'>User</Label>
+                                            <Label htmlFor='user'>{t('Common.name')}</Label>
                                             <Select value={selectedUser} onValueChange={setSelectedUser}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder='Select a user' />
+                                                    <SelectValue placeholder={t('Property.selectUser')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {selectedRole === "hotel_manager" && users?.hotelManagers?.length > 0 ? (
@@ -690,7 +699,7 @@ export default function PropertyPage() {
                                                         ))
                                                     ) : (
                                                         <SelectItem value="qq" disabled>
-                                                            No users available for this role
+                                                            {t('Property.noUsersAvailable')}
                                                         </SelectItem>
                                                     )}
                                                 </SelectContent>
@@ -702,7 +711,7 @@ export default function PropertyPage() {
                                             onClick={handleAddMember}
                                             disabled={!selectedUser || isAssigningUser}
                                         >
-                                            {isAssigningUser ? 'Assigning...' : 'Assign User'}
+                                            {isAssigningUser ? t('Common.assigning') : t('Common.assignUser')}
                                         </Button>
                                     </DialogFooter>
                                 </DialogContent>
@@ -718,7 +727,7 @@ export default function PropertyPage() {
                                     className="cursor-pointer"
                                 >
                                     <Button variant={"secondary"}>
-                                        <Languages className='h-4 w-4 mr-2' /> Add Language
+                                        <Languages className='h-4 w-4 mr-2' /> {t("Property.addLanguage")}
                                     </Button>
                                 </DropdownMenuItem>
                             )}
@@ -820,12 +829,12 @@ export default function PropertyPage() {
                     </div>
                     <div className="ml-3">
                         <p className={`text-sm font-medium ${isCreationCompleted && isDrafted ? 'text-green-800' : 'text-yellow-800'}`}>
-                            {isCreationCompleted && isDrafted ? 'Property Setup Complete' : 'Property Setup Incomplete'}
+                            {isCreationCompleted && isDrafted ? t('Property.propertySetupComplete') : t('Property.propertySetupIncomplete')}
                         </p>
                         <p className={`text-sm ${isCreationCompleted && isDrafted ? 'text-green-700' : 'text-yellow-700'}`}>
                             {isCreationCompleted && isDrafted
-                                ? 'Your property is ready for bookings and management.'
-                                : 'Please complete the property setup to start accepting bookings.'
+                               ? t('Property.propertyReadyForBookings')
+                                : t('Property.completePropertySetupToStart')
                             }
                         </p>
                     </div>
@@ -843,15 +852,14 @@ export default function PropertyPage() {
                             </svg>
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            Property Setup Required
+                            {t('Property.propertySetupRequired')}
                         </h3>
                         <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
-                            Your property creation "{creationDetails.name}" exists, but the hotel property details
-                            need to be completed before you can start managing bookings and inventory.
+                            {t('Property.propertySetupRequiredDescription')}
                         </p>
                         <div className="space-y-3">
                             <Button onClick={handleCreateProperty} className="mr-3">
-                                Complete Property Setup
+                                {t('Property.completePropertySetup')}
                             </Button>
                         </div>
                     </div>
@@ -860,7 +868,7 @@ export default function PropertyPage() {
 
             {/* Assigned Members Section */}
             <div className="bg-white p-6 rounded-lg shadow">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Assigned Members</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">{t("Property.assignedMembers")}</h3>
                 {creationDetails?.users && creationDetails.users.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {creationDetails.users.map((user) => (
@@ -887,9 +895,9 @@ export default function PropertyPage() {
                 <div className="bg-white p-6 rounded-lg shadow">
                     <div className="flex items-center justify-between mb-5">
                         <div>
-                            <h3 className="text-lg font-bold text-gray-900">Property Languages</h3>
+                            <h3 className="text-lg font-bold text-gray-900">{t('Property.propertyLanguages')}</h3>
                             <p className="text-sm text-gray-500 mt-0.5">
-                                Languages available to guests on this property's portal
+                                {t('Property.propertyLanguagesDecs')}
                             </p>
                         </div>
                         <Button
@@ -899,16 +907,14 @@ export default function PropertyPage() {
                             className="gap-2"
                         >
                             <Languages className="h-4 w-4" />
-                            {isLangPanelOpen ? 'Close' : 'Add language'}
+                            {isLangPanelOpen ? t('Common.cancel') : t('Property.addLanguage')}
                         </Button>
                     </div>
 
                     {/* Language picker panel */}
                     {isLangPanelOpen && (
                         <div className="mb-5 border border-dashed border-gray-200 rounded-lg p-4 bg-gray-50">
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">
-                                Select languages to add
-                            </p>
+                            
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                 {languages.map((lang) => {
                                     const isEn = lang.code === 'en';
@@ -1002,15 +1008,14 @@ export default function PropertyPage() {
             {/* Loyalty Configuration Section */}
             {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') && (
                 <div className="bg-white p-6 rounded-lg shadow">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Loyalty Configuration</h3>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">{t('Sidebar.loyaltyConfiguration')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <Link to={`/app/loyalty/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="bg-blue-100 p-2 rounded-full text-blue-600">
                                 <LayoutDashboard className="h-5 w-5" />
                             </div>
                             <div>
-                                <h4 className="font-medium text-gray-900">Configuration</h4>
-                                <p className="text-xs text-gray-500">Manage general loyalty settings</p>
+                                <h4 className="font-medium text-gray-900">{t('Sidebar.loyaltyConfiguration')}</h4>
                             </div>
                         </Link>
                         <Link to={`/app/loyalty/register-form/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
@@ -1018,8 +1023,7 @@ export default function PropertyPage() {
                                 <FileText className="h-5 w-5" />
                             </div>
                             <div>
-                                <h4 className="font-medium text-gray-900">Register Form</h4>
-                                <p className="text-xs text-gray-500">Configure member registration</p>
+                                <h4 className="font-medium text-gray-900">{t('Sidebar.registerForm')}</h4>
                             </div>
                         </Link>
                         <Link to={`/app/loyalty/content-config/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
@@ -1027,8 +1031,7 @@ export default function PropertyPage() {
                                 <UsersIcon className="h-5 w-5" />
                             </div>
                             <div>
-                                <h4 className="font-medium text-gray-900">Content Config</h4>
-                                <p className="text-xs text-gray-500">Manage loyalty content</p>
+                                <h4 className="font-medium text-gray-900">{t('Sidebar.contentConfiguration')}</h4>
                             </div>
                         </Link>
                         {user?.role === 'super_admin' && (
@@ -1037,8 +1040,7 @@ export default function PropertyPage() {
                                     <Shield className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <h4 className="font-medium text-gray-900">Loyalty Guests</h4>
-                                    <p className="text-xs text-gray-500">View and manage guests</p>
+                                    <h4 className="font-medium text-gray-900">{t('Sidebar.loyaltyGuests')}</h4>
                                 </div>
                             </Link>
                         )}
@@ -1047,8 +1049,7 @@ export default function PropertyPage() {
                                 <Award className="h-5 w-5" />
                             </div>
                             <div>
-                                <h4 className="font-medium text-gray-900">Loyalty Levels</h4>
-                                <p className="text-xs text-gray-500">Configure tier levels</p>
+                                <h4 className="font-medium text-gray-900">{t('Sidebar.loyaltyLevels')}</h4>
                             </div>
                         </Link>
                     </div>

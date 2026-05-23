@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isToday } from "date-fns";
 import type { IRoomDateAvailability } from "../types";
+import { useTranslation } from "react-i18next";
 
 interface AvailabilityCalendarProps {
   availability: IRoomDateAvailability[];
@@ -46,13 +47,22 @@ const levelStyles = {
   },
 };
 
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default function AvailabilityCalendar({
   availability,
   totalRooms,
   onDayClick,
 }: AvailabilityCalendarProps) {
+    const { t } = useTranslation();
+  const DAYS = [
+    t("Common.sundayShort", "Sun"),
+    t("Common.mondayShort", "Mon"),
+    t("Common.tuesdayShort", "Tue"),
+    t("Common.wednesdayShort", "Wed"),
+    t("Common.thursdayShort", "Thu"),
+    t("Common.fridayShort", "Fri"),
+    t("Common.saturdayShort", "Sat")
+  ];
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -175,10 +185,10 @@ export default function AvailabilityCalendar({
       {/* Legend */}
       <div className="mt-4 pt-3 border-t grid grid-cols-2 gap-y-1.5 gap-x-2">
         {[
-          { label: "High availability", range: "70% – 100%", dot: "bg-green-500" },
-          { label: "Medium availability", range: "30% – 69%", dot: "bg-yellow-500" },
-          { label: "Low availability", range: "1% – 29%", dot: "bg-orange-500" },
-          { label: "Fully booked", range: "0%", dot: "bg-red-500" },
+          { label: t("Inventory.calendar.highAvailability"), range: t("Inventory.calendar.highRange"), dot: "bg-green-500" },
+          { label: t("Inventory.calendar.mediumAvailability"), range: t("Inventory.calendar.mediumRange"), dot: "bg-yellow-500" },
+          { label: t("Inventory.calendar.lowAvailability"), range: t("Inventory.calendar.lowRange"), dot: "bg-orange-500" },
+          { label: t("Inventory.calendar.fullyBooked"), range: t("Inventory.calendar.fullyBookedRange"), dot: "bg-red-500" },
         ].map(({ label, range, dot }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />

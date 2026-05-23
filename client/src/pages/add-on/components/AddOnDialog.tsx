@@ -21,15 +21,16 @@ import {
 } from "@/components/ui/select";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { X, Upload } from "lucide-react";
-import type { 
-    IAddon, 
-    IAddonCreate, 
+import type {
+    IAddon,
+    IAddonCreate,
     IAddonUpdate,
     IAddonCategory,
     IAddonSubCategory,
     IAddonVariant,
-    PostingRhythm 
+    PostingRhythm
 } from "../interface";
+import { useTranslation } from "react-i18next";
 
 interface AddOnDialogProps {
     open: boolean;
@@ -42,16 +43,18 @@ interface AddOnDialogProps {
     mode: "create" | "edit";
 }
 
-export default function AddOnDialog({ 
-    open, 
-    onOpenChange, 
-    onSave, 
-    addOn, 
+export default function AddOnDialog({
+    open,
+    onOpenChange,
+    onSave,
+    addOn,
     categories,
     subCategories,
     variants,
-    mode 
+    mode
 }: AddOnDialogProps) {
+    const { t } = useTranslation();
+
     const [formData, setFormData] = useState<IAddonCreate | IAddonUpdate>({
         name: "",
         postingRhythm: "per_night",
@@ -145,39 +148,43 @@ export default function AddOnDialog({
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">
-                        {mode === "create" ? "Create New Add-On" : "Edit Add-On"}
+                        {mode === "create" ? t("Addon.dialog.createTitle") : t("Addon.dialog.editTitle")}
                     </DialogTitle>
                     <DialogDescription>
-                        {mode === "create" 
-                            ? "Add a new service or amenity to your property" 
-                            : "Update the add-on details"}
+                        {mode === "create"
+                            ? t("Addon.dialog.createDescription")
+                            : t("Addon.dialog.editDescription")}
                     </DialogDescription>
                 </DialogHeader>
+
                 <div className="space-y-4 py-4">
                     <div className="grid grid-cols-2 gap-4">
+
+                        {/* Add-On Name */}
                         <div className="space-y-2 col-span-2">
-                            <Label htmlFor="name">Add-On Name *</Label>
+                            <Label htmlFor="name">{t("Addon.dialog.form.addonNameLabel")}</Label>
                             <Input
                                 id="name"
-                                placeholder="e.g., Airport Transfer"
+                                placeholder={t("Addon.dialog.form.addonNamePlaceholder")}
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             />
                         </div>
-                        
+
+                        {/* Category */}
                         <div className="space-y-2">
-                            <Label htmlFor="category">Category *</Label>
+                            <Label htmlFor="category">{t("Addon.dialog.form.categoryLabel")}</Label>
                             <Select
                                 value={formData.categoryId || ""}
-                                onValueChange={(value) => setFormData({ 
-                                    ...formData, 
+                                onValueChange={(value) => setFormData({
+                                    ...formData,
                                     categoryId: value,
                                     subcategoryId: "",
                                     variantId: ""
                                 })}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select category" />
+                                    <SelectValue placeholder={t("Addon.dialog.form.categoryPlaceholder")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categories?.map((cat) => (
@@ -189,19 +196,20 @@ export default function AddOnDialog({
                             </Select>
                         </div>
 
+                        {/* Subcategory */}
                         <div className="space-y-2">
-                            <Label htmlFor="subcategory">Subcategory *</Label>
+                            <Label htmlFor="subcategory">{t("Addon.dialog.form.subcategoryLabel")}</Label>
                             <Select
                                 value={formData.subcategoryId || ""}
-                                onValueChange={(value) => setFormData({ 
-                                    ...formData, 
+                                onValueChange={(value) => setFormData({
+                                    ...formData,
                                     subcategoryId: value,
                                     variantId: ""
                                 })}
                                 disabled={!formData.categoryId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select subcategory" />
+                                    <SelectValue placeholder={t("Addon.dialog.form.subcategoryPlaceholder")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {filteredSubCategories?.map((sub) => (
@@ -213,15 +221,16 @@ export default function AddOnDialog({
                             </Select>
                         </div>
 
+                        {/* Variant */}
                         <div className="space-y-2">
-                            <Label htmlFor="variant">Variant *</Label>
+                            <Label htmlFor="variant">{t("Addon.dialog.form.variantLabel")}</Label>
                             <Select
                                 value={formData.variantId || ""}
                                 onValueChange={(value) => setFormData({ ...formData, variantId: value })}
                                 disabled={!formData.subcategoryId}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select variant" />
+                                    <SelectValue placeholder={t("Addon.dialog.form.variantPlaceholder")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {filteredVariants.map((variant) => (
@@ -233,11 +242,12 @@ export default function AddOnDialog({
                             </Select>
                         </div>
 
+                        {/* Posting Rhythm */}
                         <div className="space-y-2">
-                            <Label htmlFor="postingRhythm">Posting Rhythm *</Label>
+                            <Label htmlFor="postingRhythm">{t("Addon.dialog.form.postingRhythmLabel")}</Label>
                             <Select
                                 value={formData.postingRhythm}
-                                onValueChange={(value: PostingRhythm) => 
+                                onValueChange={(value: PostingRhythm) =>
                                     setFormData({ ...formData, postingRhythm: value })
                                 }
                             >
@@ -245,30 +255,32 @@ export default function AddOnDialog({
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="per_stay">Per Stay</SelectItem>
-                                    <SelectItem value="per_night">Per Night</SelectItem>
-                                    <SelectItem value="per_person_per_night">Per Person Per Night</SelectItem>
-                                    <SelectItem value="per_room_per_night">Per Room Per Night</SelectItem>
-                                    <SelectItem value="per_person_per_stay">Per Person Per Stay</SelectItem>
-                                    <SelectItem value="per_person_per_room">Per Person Per Room</SelectItem>
-                                    <SelectItem value="per_room">Per Room</SelectItem>
+                                    <SelectItem value="per_stay">{t("Addon.dialog.postingRhythm.perStay")}</SelectItem>
+                                    <SelectItem value="per_night">{t("Addon.dialog.postingRhythm.perNight")}</SelectItem>
+                                    <SelectItem value="per_person_per_night">{t("Addon.dialog.postingRhythm.perPersonPerNight")}</SelectItem>
+                                    <SelectItem value="per_room_per_night">{t("Addon.dialog.postingRhythm.perRoomPerNight")}</SelectItem>
+                                    <SelectItem value="per_person_per_stay">{t("Addon.dialog.postingRhythm.perPersonPerStay")}</SelectItem>
+                                    <SelectItem value="per_person_per_room">{t("Addon.dialog.postingRhythm.perPersonPerRoom")}</SelectItem>
+                                    <SelectItem value="per_room">{t("Addon.dialog.postingRhythm.perRoom")}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
+                        {/* Description */}
                         <div className="space-y-2 col-span-2">
-                            <Label htmlFor="description">Description</Label>
+                            <Label htmlFor="description">{t("Addon.decs")}</Label>
                             <Textarea
                                 id="description"
-                                placeholder="Describe the add-on service..."
+                                placeholder={t("Addon.dialog.form.descriptionPlaceholder")}
                                 value={formData.description || ""}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 rows={3}
                             />
                         </div>
 
+                        {/* Images */}
                         <div className="space-y-2 col-span-2">
-                            <Label>Images</Label>
+                            <Label>{t("Addon.dialog.form.imagesLabel")}</Label>
                             <div className="space-y-2">
                                 <Button
                                     type="button"
@@ -277,9 +289,9 @@ export default function AddOnDialog({
                                     className="w-full"
                                 >
                                     <Upload className="w-4 h-4 mr-2" />
-                                    Upload Images
+                                    {t("Addon.dialog.form.uploadImages")}
                                 </Button>
-                                
+
                                 {formData.images && formData.images.length > 0 && (
                                     <div className="grid grid-cols-4 gap-2 mt-2">
                                         {formData.images.map((imageUrl, index) => (
@@ -303,8 +315,9 @@ export default function AddOnDialog({
                             </div>
                         </div>
 
+                        {/* Active Status */}
                         <div className="flex items-center justify-between col-span-2">
-                            <Label htmlFor="isActive">Active Status</Label>
+                            <Label htmlFor="isActive">{t("Addon.dialog.form.activeStatus")}</Label>
                             <Switch
                                 id="isActive"
                                 checked={formData.isActive}
@@ -313,15 +326,13 @@ export default function AddOnDialog({
                         </div>
                     </div>
                 </div>
+
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose}>
-                        Cancel
+                        {t("Addon.dialog.buttons.cancel")}
                     </Button>
-                    <Button 
-                        onClick={handleSave}
-                        disabled={ !formData.variantId}
-                    >
-                        {mode === "create" ? "Create Add-On" : "Update Add-On"}
+                    <Button onClick={handleSave} disabled={!formData.variantId}>
+                        {mode === "create" ? t("Addon.dialog.buttons.create") : t("Addon.dialog.buttons.update")}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -329,7 +340,6 @@ export default function AddOnDialog({
             <ImageUploadModal
                 isOpen={isImageModalOpen}
                 onClose={() => setIsImageModalOpen(false)}
-                // uploadImages={uploadImages}
                 onUploadSuccess={handleImageUploadSuccess}
             />
         </Dialog>

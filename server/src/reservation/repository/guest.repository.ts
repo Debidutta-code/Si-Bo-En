@@ -8,7 +8,7 @@ import {
 export class GuestRepository {
     public async createGuest(guestData: ICGuest): Promise<IGuests | Error> {
         try {
-            return await prisma.guests.create({ data: guestData });
+            return await prisma.guests.create({ data: guestData }) as unknown as IGuests;
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(error.message);
@@ -22,7 +22,7 @@ export class GuestRepository {
         try {
             return await prisma.$transaction(
                 guestData.map(item => prisma.guests.create({ data: item }))
-            );
+            ) as unknown as IGuests[];
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(error.message);
@@ -36,7 +36,7 @@ export class GuestRepository {
         try {
             return await prisma.guests.findFirst({
                 where: { email: guestEmail },
-            });
+            }) as unknown as IGuests | null;
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(error.message);
@@ -46,7 +46,7 @@ export class GuestRepository {
     }
     public async findGuestById(id: string): Promise<IGuests | null> {
         try {
-            return await prisma.guests.findUnique({ where: { id } });
+            return await prisma.guests.findUnique({ where: { id } }) as unknown as IGuests | null;
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(error.message);
@@ -67,7 +67,7 @@ export class GuestRepository {
                     identityCardNumber: guestDocument.identityCardNumber,
                     identityCardImage: guestDocument.identityCardImage,
                 },
-            });
+            }) as unknown as IGuests;
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(error.message);
@@ -83,7 +83,7 @@ export class GuestRepository {
             return await prisma.guests.update({
                 where: { id: guestId },
                 data: guestData,
-            });
+            }) as unknown as IGuests;
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(error.message);
@@ -109,7 +109,7 @@ export class GuestRepository {
     // }
     public async removeGuest(id: string): Promise<IGuests | Error> {
         try {
-            return await prisma.guests.delete({ where: { id } });
+            return await prisma.guests.delete({ where: { id } }) as unknown as IGuests;
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(error.message);
@@ -126,7 +126,7 @@ export class GuestRepository {
                     propertyId: propertyId,
                 },
                 orderBy: { createdAt: 'desc' },
-            });
+            }) as unknown as IGuests[];
         } catch (error) {
             if (error instanceof Error) {
                 throw new Error(error.message);

@@ -43,12 +43,15 @@ import {
 } from "../api/create/propertyEmails.apis";
 import { useNavigate } from "react-router-dom";
 import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
+import { useTranslation } from "react-i18next";
 
 export default function PropertyDetails({
   propertyId,
 }: {
   propertyId: string;
 }) {
+    const { t } = useTranslation();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -113,7 +116,7 @@ export default function PropertyDetails({
   const [editingData, setEditingData] = useState<Record<string, any>>({});
   useEffect(() => {
     if (!propertyId) {
-      toast.error("Property id not found");
+      toast.error(t('Toast.propertyIdMissing'));
       return;
     }
     fetchPropertyDetails(propertyId);
@@ -140,15 +143,15 @@ export default function PropertyDetails({
     try {
       const response = await createPropertyEmail(propertyId, addEmailValue.trim());
       if (response.success) {
-        toast.success("Email added successfully");
+        toast.success(t('Toast.emailAdded'));
         setAddEmailValue("");
         setAddEmailOpen(false);
         fetchEmails(propertyId);
       } else {
-        toast.error(response.message || "Failed to add email");
+        toast.error(response.message || t('Toast.failedToAddEmail'));
       }
     } catch {
-      toast.error("Failed to add email");
+      toast.error(t('Toast.failedToAddEmail'));
     } finally {
       setAddEmailLoading(false);
     }
@@ -160,16 +163,16 @@ export default function PropertyDetails({
     try {
       const response = await updatePropertyEmail(editingEmail.id, editEmailValue.trim());
       if (response.success) {
-        toast.success("Email updated successfully");
+        toast.success(t('Toast.emailUpdated'));
         setEditEmailOpen(false);
         setEditingEmail(null);
         setEditEmailValue("");
         fetchEmails(propertyId);
       } else {
-        toast.error(response.message || "Failed to update email");
+        toast.error(response.message || t('Toast.failedToUpdateEmail'));
       }
     } catch {
-      toast.error("Failed to update email");
+      toast.error(t('Toast.failedToUpdateEmail'));
     } finally {
       setEditEmailLoading(false);
     }
@@ -181,14 +184,14 @@ export default function PropertyDetails({
     try {
       const response = await deletePropertyEmail(deleteEmailId);
       if (response.success) {
-        toast.success("Email deleted successfully");
+        toast.success(t('Toast.emailDeleted'));
         setDeleteEmailId(null);
         setPropertyEmails((prev) => prev.filter((e) => e.id !== deleteEmailId));
       } else {
-        toast.error(response.message || "Failed to delete email");
+        toast.error(response.message || t('Toast.failedToDeleteEmail'));
       }
     } catch {
-      toast.error("Failed to delete email");
+      toast.error(t('Toast.failedToDeleteEmail'));
     } finally {
       setDeleteEmailLoading(false);
     }
@@ -233,20 +236,20 @@ _translations:data._translations
     try {
       const response = await updatePropertyById(propertyId, payload);
       if (response.success) {
-        toast.success("Property Details Updated successfully");
+        toast.success(t('Toast.propertyDetailsUpdated'));
         setPropertyDetails(payload);
       } else {
-        throw new Error(response.message || "Failed to Update Property Details");
+        throw new Error(response.message || t('Toast.failedToUpdateProperty'));
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to Update Property please try again later");
+      toast.error(error?.message || t('Toast.failedToUpdateProperty'));
     } finally {
       setIsUpdating(false);
     }
   };
 
   if (loading) {
-    return <Loader text="Loading Property Details" />;
+    return <Loader text={t('PropertyDetails.loadingDetails')} />;
   }
 
   if (error) {
@@ -262,10 +265,10 @@ _translations:data._translations
           </div>
           <div className="mt-3 flex gap-2">
             <Button onClick={() => fetchPropertyDetails(propertyId)} size="sm">
-              Retry
+              {t('PropertyDetails.retry')}
             </Button>
             <Button variant="outline" onClick={() => window.history.back()} size="sm">
-              Go Back
+              {t('PropertyDetails.goBack')}
             </Button>
           </div>
         </div>
@@ -285,29 +288,29 @@ _translations:data._translations
               </h1>
               <span className="px-3 py-1 bg-success/10 text-success-700 text-xs font-semibold rounded-full flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" />
-                Active
+                {t('PropertyDetails.active')}
               </span>
               {propertyDetails.propertyCategory?.masterCategory?.categoryName && (
                 <span className="px-3 py-1 bg-primary/10 text-primary-700 text-xs font-semibold rounded-full flex items-center gap-1">
                   <Tag className="h-3 w-3" />
-                  {propertyDetails.propertyCategory.masterCategory.categoryName}
+                  {propertyDetails.propertyCategory.masterCategory._translations?propertyDetails.propertyCategory.masterCategory._translations.categoryName:propertyDetails.propertyCategory.masterCategory.categoryName}
                 </span>
               )}
             </div>
-            <ExpandableDescription description={propertyDetails.description} />
+            <ExpandableDescription description={propertyDetails._translations?propertyDetails._translations.description:propertyDetails.description} />
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90">
                 <PenTool className="h-4 w-4 mr-2" />
-                Edit Details
+                {t('PropertyDetails.editDetails')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="max-h-[95vh] overflow-y-auto sm:max-w-3xl">
               <AlertDialogHeader>
                 <div className="flex w-full justify-between items-center">
                   <AlertDialogTitle className="text-xl font-semibold">
-                    Update Property Details
+                    {t('PropertyDetails.updatePropertyDetails')}
                   </AlertDialogTitle>
                   <AlertDialogCancel className="rounded-full h-10 w-10 p-0 hover:bg-gray-100">
                     <X className="h-4 w-4" />
@@ -320,7 +323,7 @@ _translations:data._translations
                 />
               </AlertDialogHeader>
               <AlertDialogFooter className="gap-2">
-                <AlertDialogCancel className="mt-0" disabled={isUpdating}>Cancel</AlertDialogCancel>
+                <AlertDialogCancel className="mt-0" disabled={isUpdating}>{t('PropertyDetails.cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={(e) => {
                     e.preventDefault();
@@ -328,7 +331,7 @@ _translations:data._translations
                   }}
                   disabled={isUpdating}
                 >
-                  {isUpdating ? "Updating..." : "Update Property Details"}
+                  {isUpdating ? t('PropertyDetails.updating') : t('PropertyDetails.updatePropertyDetails')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -338,22 +341,22 @@ _translations:data._translations
             onClick={() => navigate(`/app/property/property/${propertyDetails?.creationId}`)}
           >
             <Settings className="h-4 w-4 mr-2" />
-            Property Configuration
+            {t('Property.propertyConfiguration')}
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90">
                 <Globe className="h-4 w-4 mr-2" />
-                Translations
+            {t('Property.translations')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setAddTranslationOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" /> Add Translation
+                <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setCheckTranslationsOpen(true)}>
-                <Languages className="h-4 w-4 mr-2" /> Check Translations
+                <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -392,14 +395,14 @@ _translations:data._translations
               <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Mail className="h-5 w-5 text-primary-600" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900">Contact & Details</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('PropertyDetails.contactAndDetails')}</h2>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <Mail className="h-4 w-4 text-gray-400" />
-                  Email
+                  {t('PropertyDetails.email')}
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyEmail || "Not provided"}
@@ -409,7 +412,7 @@ _translations:data._translations
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <Phone className="h-4 w-4 text-gray-400" />
-                  Contact
+                  {t('PropertyDetails.contact')}
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyContact || "Not provided"}
@@ -418,7 +421,7 @@ _translations:data._translations
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <House className="h-4 w-4 text-gray-400" />
-                  Property Code
+                  {t('PropertyDetails.propertyCode')}
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyCode.replace(/[A-Z0-9]/g, "*")}
@@ -438,14 +441,14 @@ _translations:data._translations
               <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
                 <House className="h-5 w-5 text-primary-600" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900">Property Information</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{t('PropertyDetails.propertyInformation')}</h2>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <House className="h-4 w-4 text-gray-400" />
-                  Property Type
+                  {t('PropertyDetails.propertyType')}
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyType?.masterPropertyType._translations?propertyDetails.propertyType?.masterPropertyType._translations.propertyTypeName:propertyDetails.propertyType?.masterPropertyType.propertyTypeName || "Not specified"}
@@ -455,7 +458,7 @@ _translations:data._translations
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <Tag className="h-4 w-4 text-gray-400" />
-                  Category
+                  {t('PropertyDetails.category')}
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyCategory?.masterCategory._translations?propertyDetails.propertyCategory?.masterCategory._translations.categoryName:propertyDetails.propertyCategory?.masterCategory.categoryName || "Not specified"}
@@ -464,7 +467,7 @@ _translations:data._translations
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <Tag className="h-4 w-4 text-gray-400" />
-                  Booking Engine Url
+                  {t('PropertyDetails.bookingEngineUrl')}
                 </span>
                 <a className="text-xs text-gray-900 font-medium text-right" target="_blank" rel="noopener noreferrer"
                   href={`${import.meta.env.VITE_BOOKING_ENGINE_URL}/Rooms/?code=${propertyDetails.propertyCode}`}
@@ -486,8 +489,8 @@ _translations:data._translations
                 <MailPlus className="h-5 w-5 text-primary-600" />
               </div>
               <div>
-                <CardTitle className="text-lg font-semibold text-gray-900">Additional Emails</CardTitle>
-                <p className="text-xs text-gray-500 mt-0.5">Extra contact emails for this property</p>
+                <CardTitle className="text-lg font-semibold text-gray-900">{t('PropertyDetails.additionalEmails')}</CardTitle>
+                <p className="text-xs text-gray-500 mt-0.5">{t('PropertyDetails.emailDescription')}</p>
               </div>
             </div>
             <Button
@@ -496,7 +499,7 @@ _translations:data._translations
               className="flex items-center gap-1.5"
             >
               <Plus className="h-4 w-4" />
-              Add Email
+              {t('PropertyDetails.addEmail')}
             </Button>
           </div>
         </CardHeader>
@@ -511,8 +514,8 @@ _translations:data._translations
                 <Mail className="h-7 w-7 text-gray-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-700">No additional emails yet</p>
-                <p className="text-xs text-gray-500 mt-1">Add extra contact emails for this property</p>
+                <p className="text-sm font-medium text-gray-700">{t('PropertyDetails.noEmailsYet')}</p>
+                <p className="text-xs text-gray-500 mt-1">{t('PropertyDetails.emailDescription')}</p>
               </div>
               <Button
                 variant="outline"
@@ -521,7 +524,7 @@ _translations:data._translations
                 className="flex items-center gap-1.5"
               >
                 <Plus className="h-4 w-4" />
-                Add First Email
+                {t('PropertyDetails.addFirstEmail')}
               </Button>
             </div>
           ) : (
@@ -570,14 +573,14 @@ _translations:data._translations
       <Dialog open={addEmailOpen} onOpenChange={setAddEmailOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Email Address</DialogTitle>
+            <DialogTitle>{t('PropertyDetails.addEmailAddress')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
-            <Label htmlFor="add-email">Email Address</Label>
+            <Label htmlFor="add-email">{t('PropertyDetails.emailAddress')}</Label>
             <Input
               id="add-email"
               type="email"
-              placeholder="e.g. reservations@hotel.com"
+              placeholder={t('PropertyDetails.placeholderEmail')}
               value={addEmailValue}
               onChange={(e) => setAddEmailValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAddEmail()}
@@ -585,10 +588,10 @@ _translations:data._translations
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" disabled={addEmailLoading} onClick={() => setAddEmailOpen(false)}>
-              Cancel
+              {t('PropertyDetails.cancel')}
             </Button>
             <Button disabled={addEmailLoading || !addEmailValue.trim()} onClick={handleAddEmail}>
-              {addEmailLoading ? "Adding..." : "Add Email"}
+              {addEmailLoading ? t('PropertyDetails.adding') : t('PropertyDetails.addEmail')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -598,14 +601,14 @@ _translations:data._translations
       <Dialog open={editEmailOpen} onOpenChange={(open) => { setEditEmailOpen(open); if (!open) setEditingEmail(null); }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Email Address</DialogTitle>
+            <DialogTitle>{t('PropertyDetails.editEmailAddress')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
-            <Label htmlFor="edit-email">Email Address</Label>
+            <Label htmlFor="edit-email">{t('PropertyDetails.emailAddress')}</Label>
             <Input
               id="edit-email"
               type="email"
-              placeholder="e.g. reservations@hotel.com"
+              placeholder={t('PropertyDetails.placeholderEmail')}
               value={editEmailValue}
               onChange={(e) => setEditEmailValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleEditEmail()}
@@ -613,10 +616,10 @@ _translations:data._translations
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" disabled={editEmailLoading} onClick={() => setEditEmailOpen(false)}>
-              Cancel
+              {t('PropertyDetails.cancel')}
             </Button>
             <Button disabled={editEmailLoading || !editEmailValue.trim()} onClick={handleEditEmail}>
-              {editEmailLoading ? "Saving..." : "Save Changes"}
+              {editEmailLoading ? t('PropertyDetails.savingChanges') : t('Property.updateProperty')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -626,19 +629,19 @@ _translations:data._translations
       <AlertDialog open={!!deleteEmailId} onOpenChange={(open) => { if (!open) setDeleteEmailId(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Email Address?</AlertDialogTitle>
+            <AlertDialogTitle>{t('PropertyDetails.deleteEmailTitle')}</AlertDialogTitle>
           </AlertDialogHeader>
           <p className="text-sm text-gray-600 px-1">
-            This will permanently remove the email address from this property. This action cannot be undone.
+            {t('PropertyDetails.deleteEmailDesc')}
           </p>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel disabled={deleteEmailLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteEmailLoading}>{t('PropertyDetails.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deleteEmailLoading}
               onClick={(e) => { e.preventDefault(); handleDeleteEmail(); }}
             >
-              {deleteEmailLoading ? "Deleting..." : "Delete"}
+              {deleteEmailLoading ? t('PropertyDetails.deleting') : t('Loyalty.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

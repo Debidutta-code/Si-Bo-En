@@ -55,6 +55,7 @@ import { languages } from "@/components/language/language";
 import { upsertPolicyTranslationService, getAllPolicyTranslationsService, deletePolicyTranslationLocaleService } from "./services/policy-multilang.services";
 import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
 import { usePropertyContext } from "@/contexts/PropertyContext";
+import { useTranslation } from "react-i18next";
 
 interface GroupedPolicy {
     id: string;
@@ -70,6 +71,7 @@ interface GroupedPolicy {
 }
 
 export default function PoliciesPage() {
+    const { t } = useTranslation();
     const { propertyId } = useParams<{ propertyId: string }>();
 
     const { languages: propertyLanguages } = usePropertyContext();
@@ -80,7 +82,7 @@ export default function PoliciesPage() {
     const [loading, setLoading] = useState<{
         isLoading: boolean;
         text: string;
-    }>({ isLoading: false, text: "Loading policies..." });
+    }>({ isLoading: false, text: t("Policies.loadingPolicies") });
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -153,16 +155,16 @@ export default function PoliciesPage() {
 
     const fetchPolicies = async () => {
         if (!propertyId) return;
-        setLoading({ isLoading: true, text: "Loading policies..." });
+        setLoading({ isLoading: true, text: t("Policies.loadingPolicies") });
         try {
             const response = await getPoliciesService(propertyId);
             if (response.success && response.data) {
                 setPolicies(response.data.allPolicies || []);
             } else {
-                toast.error(response.message || "Failed to fetch policies");
+                toast.error(t("Policies.") + (response.message || t("Policies.failedToFetchPolicies")));
             }
         } catch (error) {
-            toast.error("An error occurred while fetching policies");
+            toast.error(t("Policies.errorFetchingPolicies"));
         } finally {
             setLoading({ isLoading: false, text: "" });
         }
@@ -174,16 +176,16 @@ export default function PoliciesPage() {
             if (ratePlans.success) {
                 setRatePlans(ratePlans.data || []);
             } else {
-                console.error(ratePlans.message || "Failed to fetch rate plans");
+                console.error(t("Policies.") + (ratePlans.message || t("Policies.failedToFetchRatePlans")));
             }
         } catch (error) {
-            console.error("An error occurred while fetching rate plans");
+            console.error(t("Policies.errorFetchingRatePlans"));
         }
     };
 
     useEffect(() => {
         if (!propertyId) {
-            toast.error("Property ID is missing in the URL");
+            toast.error(t("Policies.propertyIdMissing"));
             return;
         }
         fetchPolicies();
@@ -193,7 +195,7 @@ export default function PoliciesPage() {
     const handleCreatePolicy = async () => {
         if (!propertyId) return;
         if (!newPolicy.policyName.trim()) {
-            toast.error("Policy name is required");
+            toast.error(t("Policies.policyNameRequired"));
             return;
         }
         setIsSubmitting(true);
@@ -205,15 +207,15 @@ export default function PoliciesPage() {
                 newPolicy.description
             );
             if (response.success) {
-                toast.success("Policy created successfully");
+                toast.success(t("Policies.policyCreated"));
                 setNewPolicy({ policyName: "", type: "cancellation", description: "" });
                 setIsDialogOpen(false);
                 fetchPolicies();
             } else {
-                toast.error(response.message || "Failed to create policy");
+                toast.error(t("Policies.") + (response.message || t("Policies.failedToCreatePolicy")));
             }
         } catch (error) {
-            toast.error("An error occurred while creating the policy");
+            toast.error(t("Policies.errorCreatingPolicy"));
         } finally {
             setIsSubmitting(false);
         }
@@ -227,13 +229,13 @@ export default function PoliciesPage() {
         try {
             const response = await deletePolicyService(policyToDelete.id);
             if (response.success) {
-                toast.success("Policy deleted successfully");
+                toast.success(t("Policies.policyDeleted"));
                 fetchPolicies();
             } else {
-                toast.error(response.message || "Failed to delete policy");
+                toast.error(t("Policies.") + (response.message || t("Policies.failedToDeletePolicy")));
             }
         } catch (error) {
-            toast.error("Error deleting policy");
+            toast.error(t("Policies.errorDeletingPolicy"));
         } finally {
             setIsSubmitting(false);
             setPolicyToDelete(null);
@@ -247,21 +249,21 @@ export default function PoliciesPage() {
 
     const handleConfirmAssign = async () => {
         if (!policyToAssign || !selectedRatePlanId) {
-            if (!selectedRatePlanId) toast.error("Please select a rate plan");
+            if (!selectedRatePlanId) toast.error(t("Policies.selectRatePlanError"));
             return;
         }
         setIsSubmitting(true);
         try {
             const response = await addPolicyToRatePlanService(policyToAssign.id, selectedRatePlanId);
             if (response.success) {
-                toast.success("Policy assigned to rate plan successfully");
+                toast.success(t("Policies.policyAssigned"));
                 setPolicyToAssign(null);
                 fetchPolicies();
             } else {
-                toast.error(response.message || "Failed to assign policy");
+                toast.error(t("Policies.") + (response.message || t("Policies.failedToAssignPolicy")));
             }
         } catch (error) {
-            toast.error("Error assigning policy");
+            toast.error(t("Policies.errorAssigningPolicy"));
         } finally {
             setIsSubmitting(false);
         }
@@ -278,7 +280,7 @@ export default function PoliciesPage() {
     const handleConfirmEdit = async () => {
         if (!policyToEdit) return;
         if (!editForm.policyName.trim()) {
-            toast.error("Policy name is required");
+            toast.error(t("Policies.policyNameRequired"));
             return;
         }
         setIsSubmitting(true);
@@ -289,14 +291,14 @@ export default function PoliciesPage() {
                 editForm.description
             );
             if (response.success) {
-                toast.success("Policy updated successfully");
+                toast.success(t("Policies.policyUpdated"));
                 setPolicyToEdit(null);
                 fetchPolicies();
             } else {
-                toast.error(response.message || "Failed to update policy");
+                toast.error(t("Policies.") + (response.message || t("Policies.failedToUpdatePolicy")));
             }
         } catch (error) {
-            toast.error("Error updating policy");
+            toast.error(t("Policies.errorUpdatingPolicy"));
         } finally {
             setIsSubmitting(false);
         }
@@ -304,23 +306,23 @@ export default function PoliciesPage() {
 
     const handleSaveLanguage = async () => {
         if (!selectedPolicyId || !selectedLang) {
-            toast.error("Please select a language");
+            toast.error(t("Policies.pleaseSelectLanguage", "Please select a language"));
             return;
         }
         if (!langForm.policyName && !langForm.description) {
-            toast.error("Fill at least one translated field");
+            toast.error(t("Policies.fillTranslatedField", "Fill at least one translated field"));
             return;
         }
         setLangSubmitting(true);
         const payload = { [selectedLang]: { policyName: langForm.policyName, description: langForm.description } };
         const res = await upsertPolicyTranslationService(selectedPolicyId, payload);
         if (res.success) {
-            toast.success("Translation saved");
+            toast.success(t("Policies.translationSaved", "Translation saved"));
             setIsAddLanguageOpen(false);
             setLangForm({ policyName: "", description: "" });
             setSelectedLang("");
         } else {
-            toast.error(res.message || "Failed to save translation");
+            toast.error(res.message || t("Policies.failedToSaveTranslation", "Failed to save translation"));
         }
         setLangSubmitting(false);
     };
@@ -340,12 +342,12 @@ export default function PoliciesPage() {
         if (!selectedPolicyId) return;
         const res = await deletePolicyTranslationLocaleService(selectedPolicyId, locale);
         if (res.success) {
-            toast.success("Translation deleted");
+            toast.success(t("Policies.translationDeleted", "Translation deleted"));
             const updated = { ...langTranslations };
             delete updated[locale];
             setLangTranslations(updated);
         } else {
-            toast.error(res.message || "Failed to delete translation");
+            toast.error(res.message || t("Policies.failedToDeleteTranslation", "Failed to delete translation"));
         }
     };
 
@@ -367,7 +369,7 @@ export default function PoliciesPage() {
     if (loading.isLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
-                <Loader text="Loading policies..." />
+                <Loader text={t("Policies.loadingPolicies")} />
             </div>
         );
     }
@@ -385,29 +387,29 @@ export default function PoliciesPage() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-[#0f172a]">
-                                Property Policies
+                                {t("Policies.title")}
                             </h1>
                             <p className="text-sm text-[#64748b]">
-                                Manage cancellation, deposit, and guarantee policies
+                                {t("Policies.managePolicies")}
                             </p>
                         </div>
                     </div>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
                             <Button className="bg-primary text-white hover:bg-primary/80">
-                                <Plus className="mr-2 h-4 w-4" /> Add Policy
+                                <Plus className="mr-2 h-4 w-4" /> {t("Policies.addPolicy")}
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[500px]">
                             <DialogHeader>
-                                <DialogTitle>Create New Policy</DialogTitle>
+                                <DialogTitle>{t("Policies.createNewPolicy")}</DialogTitle>
                                 <DialogDescription>
-                                    Define the terms for your new policy.
+                                    {t("Policies.defineTerms")}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-5 py-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="name">Policy Name</Label>
+                                    <Label htmlFor="name">{t("Policies.policyName")}</Label>
                                     <Input
                                         id="name"
                                         placeholder="e.g., Standard Cancellation"
@@ -418,7 +420,7 @@ export default function PoliciesPage() {
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="type">Policy Type</Label>
+                                    <Label htmlFor="type">{t("Policies.policyType")}</Label>
                                     <Select
                                         value={newPolicy.type}
                                         onValueChange={(value: PolicyTypes) =>
@@ -426,20 +428,20 @@ export default function PoliciesPage() {
                                         }
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select type" />
+                                            <SelectValue placeholder={t("Policies.selectType")} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="cancellation">Cancellation</SelectItem>
-                                            <SelectItem value="deposit">Deposit</SelectItem>
-                                            <SelectItem value="guarantee">Guarantee</SelectItem>
+                                            <SelectItem value="cancellation">{t("Policies.cancellation")}</SelectItem>
+                                            <SelectItem value="deposit">{t("Policies.deposit")}</SelectItem>
+                                            <SelectItem value="guarantee">{t("Policies.guarantee")}</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="description">Description</Label>
+                                    <Label htmlFor="description">{t("Policies.description")}</Label>
                                     <Textarea
                                         id="description"
-                                        placeholder="Enter policy details..."
+                                        placeholder={t("Policies.enterPolicyDetails")}
                                         className="min-h-[100px]"
                                         value={newPolicy.description}
                                         onChange={(e) =>
@@ -450,10 +452,10 @@ export default function PoliciesPage() {
                             </div>
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
-                                    Cancel
+                                    {t("Policies.cancel")}
                                 </Button>
                                 <Button onClick={handleCreatePolicy} disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/80">
-                                    {isSubmitting ? "Saving..." : "Save Policy"}
+                                    {isSubmitting ? t("Policies.saving") : t("Policies.savePolicy")}
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -463,10 +465,10 @@ export default function PoliciesPage() {
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                     {[
-                        { label: "Total", count: groupedPolicies.length, icon: <FileText className="h-5 w-5" /> },
-                        { label: "Cancellation", count: groupedPolicies.filter((p) => p.type === "cancellation").length, icon: <AlertCircle className="h-5 w-5" /> },
-                        { label: "Deposit", count: groupedPolicies.filter((p) => p.type === "deposit").length, icon: <CreditCard className="h-5 w-5" /> },
-                        { label: "Guarantee", count: groupedPolicies.filter((p) => p.type === "guarantee").length, icon: <Shield className="h-5 w-5" /> },
+                        { label: t("Policies.total"), count: groupedPolicies.length, icon: <FileText className="h-5 w-5" /> },
+                        { label: t("Policies.cancellation"), count: groupedPolicies.filter((p) => p.type === "cancellation").length, icon: <AlertCircle className="h-5 w-5" /> },
+                        { label: t("Policies.deposit"), count: groupedPolicies.filter((p) => p.type === "deposit").length, icon: <CreditCard className="h-5 w-5" /> },
+                        { label: t("Policies.guarantee"), count: groupedPolicies.filter((p) => p.type === "guarantee").length, icon: <Shield className="h-5 w-5" /> },
                     ].map((stat) => (
                         <div key={stat.label} className="rounded-xl border border-[#e2e8f0] bg-white p-4">
                             <div className="flex items-center justify-between">
@@ -485,10 +487,10 @@ export default function PoliciesPage() {
                 {/* Tabs */}
                 <Tabs defaultValue="all" className="w-full">
                     <TabsList className="w-full max-w-md bg-white border border-[#e2e8f0] p-1 rounded-lg">
-                        <TabsTrigger value="all" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">All</TabsTrigger>
-                        <TabsTrigger value="cancellation" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">Cancellation</TabsTrigger>
-                        <TabsTrigger value="deposit" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">Deposit</TabsTrigger>
-                        <TabsTrigger value="guarantee" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">Guarantee</TabsTrigger>
+                        <TabsTrigger value="all" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">{t("Policies.all")}</TabsTrigger>
+                        <TabsTrigger value="cancellation" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">{t("Policies.cancellation")}</TabsTrigger>
+                        <TabsTrigger value="deposit" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">{t("Policies.deposit")}</TabsTrigger>
+                        <TabsTrigger value="guarantee" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">{t("Policies.guarantee")}</TabsTrigger>
                     </TabsList>
 
                     <div className="mt-5">
@@ -525,14 +527,14 @@ export default function PoliciesPage() {
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end" className="w-44">
-                                                                <DropdownMenuLabel className="text-xs text-[#94a3b8]">Actions</DropdownMenuLabel>
+                                                                <DropdownMenuLabel className="text-xs text-[#94a3b8]">{t("Policies.actions")}</DropdownMenuLabel>
                                                                 <DropdownMenuItem onClick={() => handleEditClick(policy)} className="cursor-pointer text-sm">
                                                                     <Pencil className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
-                                                                    Edit Policy
+                                                                    {t("Policies.editPolicy")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem onClick={() => handleAssignClick(policy)} className="cursor-pointer text-sm">
                                                                     <Link2 className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
-                                                                    Add to Rate Plan
+                                                                    {t("Policies.addToRatePlan")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
                                                                     onClick={() => {
@@ -543,7 +545,7 @@ export default function PoliciesPage() {
                                                                     }}
                                                                     className="cursor-pointer text-sm"
                                                                 >
-                                                                    Add Language
+                                                                    {t("Common.addTranslation")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
                                                                     onClick={() => {
@@ -553,7 +555,7 @@ export default function PoliciesPage() {
                                                                     }}
                                                                     className="cursor-pointer text-sm"
                                                                 >
-                                                                    Check Languages
+                                                                    {t("Common.checkTranslation")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuSeparator />
                                                                 <DropdownMenuItem
@@ -561,7 +563,7 @@ export default function PoliciesPage() {
                                                                     className="text-red-600 focus:text-red-600 cursor-pointer text-sm"
                                                                 >
                                                                     <Trash2 className="mr-2 h-3.5 w-3.5" />
-                                                                    Delete
+                                                                    {t("Policies.delete")}
                                                                 </DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
@@ -583,7 +585,7 @@ export default function PoliciesPage() {
                                                             <div className="flex items-center gap-1.5 mb-2">
                                                                 <Tag className="h-3 w-3 text-gray-500" />
                                                                 <span className="text-[10px] font-semibold text-gray-500 ">
-                                                                    Linked Rate Plans
+                                                                    {t("Policies.linkedRatePlans")}
                                                                 </span>
                                                             </div>
                                                             {policy.ratePlans.length > 0 ? (
@@ -600,7 +602,7 @@ export default function PoliciesPage() {
                                                                 </div>
                                                             ) : (
                                                                 <p className="text-xs text-[#cbd5e1]">
-                                                                    No rate plans linked
+                                                                    {t("Policies.noRatePlansLinked")}
                                                                 </p>
                                                             )}
                                                         </div>
@@ -609,11 +611,11 @@ export default function PoliciesPage() {
                                                         <div className="flex items-center justify-between pt-2 border-t border-[#f1f5f9]">
                                                             <div className={`flex items-center gap-1.5 text-xs font-medium ${policy.ratePlans.length > 0 ? "text-[#22c55e]" : "text-[#cbd5e1]"}`}>
                                                                 <span className={`h-1.5 w-1.5 rounded-full ${policy.ratePlans.length > 0 ? "bg-[#22c55e]" : "bg-[#cbd5e1]"}`} />
-                                                                {policy.ratePlans.length > 0 ? "Active" : "Inactive"}
+                                                                {policy.ratePlans.length > 0 ? t("Policies.active") : t("Policies.inactive")}
                                                             </div>
                                                             {policy.ratePlans.length > 0 && (
                                                                 <span className="text-[11px] text-[#94a3b8]">
-                                                                    {policy.ratePlans.length} plan{policy.ratePlans.length > 1 ? "s" : ""}
+                                                                    {policy.ratePlans.length} {policy.ratePlans.length > 1 ? t("Policies.plans") : t("Policies.plan")}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -628,19 +630,19 @@ export default function PoliciesPage() {
                                                     <FileText className="h-8 w-8 text-[#94a3b8]" />
                                                 </div>
                                                 <h3 className="mt-4 text-lg font-semibold text-[#0f172a]">
-                                                    No policies found
+                                                    {t("Policies.noPoliciesFound", "No policies found")}
                                                 </h3>
                                                 <p className="mt-1.5 text-sm text-[#94a3b8] max-w-xs">
                                                     {tabValue === "all"
-                                                        ? "Get started by creating your first policy."
-                                                        : `No ${tabValue} policies yet.`}
+                                                        ? t("Policies.getStartedCreating", "Get started by creating your first policy.")
+                                                        : t("Policies.noPoliciesYet", { type: tabValue, defaultValue: `No ${tabValue} policies yet.` })}
                                                 </p>
                                                 {tabValue === "all" && (
                                                     <Button
                                                         onClick={() => setIsDialogOpen(true)}
                                                         className="mt-4 bg-[#1e293b] text-white hover:bg-[#334155]"
                                                     >
-                                                        <Plus className="mr-2 h-4 w-4" /> Create Policy
+                                                        <Plus className="mr-2 h-4 w-4" /> {t("Policies.createPolicy", "Create Policy")}
                                                     </Button>
                                                 )}
                                             </div>
@@ -655,19 +657,19 @@ export default function PoliciesPage() {
                 <AlertDialog open={!!policyToDelete} onOpenChange={(open) => !open && setPolicyToDelete(null)}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogTitle>{t("Policies.deleteConfirmTitle")}</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This will permanently delete "{policyToDelete?.policyName}". This action cannot be undone.
+                                {t("Policies.deleteConfirmDescription", { name: policyToDelete?.policyName })}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel disabled={isSubmitting}>{t("Policies.cancel")}</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={(e) => { e.preventDefault(); handleConfirmDelete(); }}
                                 className="bg-red-600 hover:bg-red-700"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Deleting..." : "Delete"}
+                                {isSubmitting ? t("Policies.deleting") : t("Policies.delete")}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -677,17 +679,17 @@ export default function PoliciesPage() {
                 <Dialog open={!!policyToAssign} onOpenChange={(open) => !open && setPolicyToAssign(null)}>
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                            <DialogTitle>Add to Rate Plan</DialogTitle>
+                            <DialogTitle>{t("Policies.addToRatePlanDialog")}</DialogTitle>
                             <DialogDescription>
-                                Assign "{policyToAssign?.policyName}" to a rate plan.
+                                {t("Policies.assignToRatePlan", { name: policyToAssign?.policyName })}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
-                                <Label>Select Rate Plan</Label>
+                                <Label>{t("Policies.selectRatePlan")}</Label>
                                 <Select value={selectedRatePlanId} onValueChange={setSelectedRatePlanId}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select a rate plan" />
+                                        <SelectValue placeholder={t("Policies.selectRatePlanPlaceholder")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {ratePlans.map((plan) => (
@@ -701,10 +703,10 @@ export default function PoliciesPage() {
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setPolicyToAssign(null)} disabled={isSubmitting}>
-                                Cancel
+                                {t("Policies.cancel")}
                             </Button>
                             <Button onClick={handleConfirmAssign} disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/80">
-                                {isSubmitting ? "Assigning..." : "Add to Rate Plan"}
+                                {isSubmitting ? t("Policies.assigning") : t("Policies.addToRatePlan")}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -714,14 +716,14 @@ export default function PoliciesPage() {
                 <Dialog open={!!policyToEdit} onOpenChange={(open) => !open && setPolicyToEdit(null)}>
                     <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
-                            <DialogTitle>Edit Policy</DialogTitle>
+                            <DialogTitle>{t("Policies.editPolicyDialog")}</DialogTitle>
                             <DialogDescription>
-                                Update the name and description for "{policyToEdit?.policyName}".
+                                {t("Policies.updatePolicyName", { name: policyToEdit?.policyName })}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-5 py-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="edit-name">Policy Name</Label>
+                                <Label htmlFor="edit-name">{t("Policies.policyName")}</Label>
                                 <Input
                                     id="edit-name"
                                     placeholder="e.g., Standard Cancellation"
@@ -732,10 +734,10 @@ export default function PoliciesPage() {
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="edit-description">Description</Label>
+                                <Label htmlFor="edit-description">{t("Policies.description")}</Label>
                                 <Textarea
                                     id="edit-description"
-                                    placeholder="Enter policy details..."
+                                    placeholder={t("Policies.enterPolicyDetails", "Enter policy details...")}
                                     className="min-h-[100px]"
                                     value={editForm.description}
                                     onChange={(e) =>
@@ -746,10 +748,10 @@ export default function PoliciesPage() {
                         </div>
                         <DialogFooter>
                             <Button variant="outline" onClick={() => setPolicyToEdit(null)} disabled={isSubmitting}>
-                                Cancel
+                                {t("Policies.cancel")}
                             </Button>
                             <Button onClick={handleConfirmEdit} disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/80">
-                                {isSubmitting ? "Updating..." : "Update Policy"}
+                                {isSubmitting ? t("Policies.updating", "Updating...") : t("Policies.updatePolicy")}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -758,15 +760,15 @@ export default function PoliciesPage() {
                 <Dialog open={isAddLanguageOpen} onOpenChange={(open) => { setIsAddLanguageOpen(open); if (!open) { setSelectedLang(""); setLangForm({ policyName: "", description: "" }); } }}>
                     <DialogContent className="sm:max-w-[440px]">
                         <DialogHeader>
-                            <DialogTitle>Add Translation</DialogTitle>
-                            <DialogDescription>Add a translation for this policy.</DialogDescription>
+                            <DialogTitle>{t("Common.addTranslation")}</DialogTitle>
+                            <DialogDescription>{t("Policies.addTranslationDesc")}</DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
-                                <Label>Language</Label>
+                                <Label>{t("Policies.language", "Language")}</Label>
                                 <Select value={selectedLang} onValueChange={setSelectedLang}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select Language" />
+                                        <SelectValue placeholder={t("Policies.selectLanguage", "Select Language")} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {availableLanguages.map((lang) => (
@@ -776,17 +778,17 @@ export default function PoliciesPage() {
                                 </Select>
                             </div>
                             <div className="grid gap-2">
-                                <Label>Policy Name</Label>
+                                <Label>{t("Policies.policyName")}</Label>
                                 <Input
-                                    placeholder="Translated policy name"
+                                    placeholder={t("Policies.translatedPolicyName", "Translated policy name")}
                                     value={langForm.policyName}
                                     onChange={(e) => setLangForm({ ...langForm, policyName: e.target.value })}
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>Description</Label>
+                                <Label>{t("Policies.description")}</Label>
                                 <Textarea
-                                    placeholder="Translated description"
+                                    placeholder={t("Policies.translatedDescription", "Translated description")}
                                     className="min-h-[90px]"
                                     value={langForm.description}
                                     onChange={(e) => setLangForm({ ...langForm, description: e.target.value })}
@@ -794,9 +796,9 @@ export default function PoliciesPage() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setIsAddLanguageOpen(false)} disabled={langSubmitting}>Cancel</Button>
+                            <Button variant="outline" onClick={() => setIsAddLanguageOpen(false)} disabled={langSubmitting}>{t("Policies.cancel")}</Button>
                             <Button onClick={handleSaveLanguage} disabled={langSubmitting} className="bg-primary text-white hover:bg-primary/80">
-                                {langSubmitting ? "Saving..." : "Save Translation"}
+                                {langSubmitting ? t("Policies.saving") : t("Policies.saveTranslation", "Save Translation")}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -806,26 +808,26 @@ export default function PoliciesPage() {
                 <Dialog open={isCheckLanguagesOpen} onOpenChange={setIsCheckLanguagesOpen}>
                     <DialogContent className="sm:max-w-[480px]">
                         <DialogHeader>
-                            <DialogTitle>Available Translations</DialogTitle>
-                            <DialogDescription>All saved translations for this policy.</DialogDescription>
+                            <DialogTitle>{t("Policies.availableTranslations")}</DialogTitle>
+                            <DialogDescription>{t("Policies.allSavedTranslations")}</DialogDescription>
                         </DialogHeader>
                         <div className="py-2 space-y-3 max-h-[360px] overflow-y-auto">
                             {langLoading ? (
-                                <p className="text-sm text-[#94a3b8] text-center py-6">Loading translations...</p>
+                                <p className="text-sm text-[#94a3b8] text-center py-6">{t("Policies.loadingTranslations", "Loading translations...")}</p>
                             ) : Object.keys(langTranslations).length === 0 ? (
-                                <p className="text-sm text-[#94a3b8] text-center py-6">No translations found.</p>
+                                <p className="text-sm text-[#94a3b8] text-center py-6">{t("Policies.noTranslationsFound", "No translations found.")}</p>
                             ) : (
                                 Object.entries(langTranslations).map(([locale, data]) => (
                                     <div key={locale} className="flex items-start justify-between border border-[#e2e8f0] rounded-lg p-3 gap-3">
                                         <div className="space-y-0.5">
                                             <p className="text-sm font-semibold text-[#0f172a]">{getLangName(locale)}</p>
-                                            {data.policyName && <p className="text-xs text-[#475569]">Name: {data.policyName}</p>}
-                                            {data.description && <p className="text-xs text-[#94a3b8] line-clamp-2">Desc: {data.description}</p>}
+                                            {data.policyName && <p className="text-xs text-[#475569]">{t("Policies.name")}: {data.policyName}</p>}
+                                            {data.description && <p className="text-xs text-[#94a3b8] line-clamp-2">{t("Policies.decs")}: {data.description}</p>}
                                         </div>
                                         <div className="flex items-center gap-1 shrink-0">
                                             <button
                                                 className="h-7 w-7 flex items-center justify-center rounded hover:bg-gray-100"
-                                                title="Edit translation"
+                                                title={t("Policies.editTranslation", "Edit translation")}
                                                 onClick={() => setEditLangDialog({ open: true, locale, data })}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -839,7 +841,7 @@ export default function PoliciesPage() {
                                                 className="shrink-0"
                                                 onClick={() => handleDeleteLocale(locale)}
                                             >
-                                                Delete
+                                                {t("Policies.delete")}
                                             </Button>
                                         </div>
                                     </div>
@@ -857,10 +859,10 @@ export default function PoliciesPage() {
                         entityId={selectedPolicyId}
                         locale={editLangDialog.locale}
                         initialData={editLangDialog.data}
-                        title="Edit Policy Translation"
+                        title={t("Policies.editPolicyTranslation", "Edit Policy Translation")}
                         fields={[
-                            { key: "policyName", label: "Policy Name", placeholder: "Translated policy name" },
-                            { key: "description", label: "Description", placeholder: "Translated description" },
+                            { key: "policyName", label: t("Policies.policyName"), placeholder: t("Policies.translatedPolicyName", "Translated policy name") },
+                            { key: "description", label: t("Policies.description"), placeholder: t("Policies.translatedDescription", "Translated description") },
                         ]}
                         onSave={async (id, locale, data) => upsertPolicyTranslationService(id, { [locale]: data })}
                     />

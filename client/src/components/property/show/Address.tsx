@@ -23,12 +23,14 @@ import {
 import UpdatePropertyAddress from "../update/PropertyAddress";
 import { updatePropertyAddress } from "../api/create/propertyAddress";
 import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
-// import { getCountryISO } from "@/lib/geoUtils";
+import { useTranslation } from "react-i18next";
 interface PropertyId {
   propertyId: string;
 }
 
 export default function PropertyAddress({ propertyId }: PropertyId) {
+    const { t } = useTranslation();
+
   const [loading, setLoading] = useState(true);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
@@ -81,7 +83,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
         toast.error(response.message);
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to fetch property Address");
+      toast.error(error?.message || t('Toast.failedToFetchAddress'));
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
 
   useEffect(() => {
     if (!propertyId) {
-      toast.error("Property id not found");
+      toast.error(t('Toast.propertyIdNotFound'));
       return;
     }
     fetchPropertyAddress(propertyId);
@@ -108,21 +110,21 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
       };
       const response = await updatePropertyAddress(propertyId, payload);
       if (response.success) {
-        toast.success("Property address Updated successfully");
+        toast.success(t('Toast.addressUpdated'));
       } else {
-        toast.error(
+       toast.error(
           response?.message ||
-          "Failed to Update property address,try again letter"
+          t('Toast.failedToUpdateAddress')
         );
       }
     } catch (error) {
-      toast.error("Failed to update Property address");
+      toast.error(t('Toast.failedToUpdateAddress'));
     } finally {
       setLoading(false);
     }
   };
   if (loading) {
-    return <Loader text="Loading Property Address" />;
+    return <Loader text={t('PropertyDetails.loadingAddress')} />;
   }
 
   return (
@@ -131,10 +133,10 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-semibold text-gray-900">
-              Property Address
+              {t('PropertyDetails.propertyAddress')}
             </CardTitle>
             <p className="text-sm text-gray-500 mt-1">
-              Complete address and location details
+              {t('PropertyDetails.addressDescription')}
             </p>
           </div>
           <div className="flex gap-2">
@@ -142,7 +144,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
             <AlertDialogTrigger asChild>
               <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
                 <PenTool className="h-4 w-4" />
-                Edit Address
+                {t('PropertyDetails.editAddress')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
@@ -150,10 +152,10 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                 <div className="flex w-full justify-between items-start">
                   <div>
                     <AlertDialogTitle className="text-xl">
-                      Update Property Address
+                      {t('PropertyDetails.updatePropertyAddress')}
                     </AlertDialogTitle>
                     <p className="text-sm text-gray-500 mt-1">
-                      Modify the property location information
+                      {t('PropertyDetails.modifyLocation')}
                     </p>
                   </div>
                   <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
@@ -167,7 +169,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                 />
               </AlertDialogHeader>
               <AlertDialogFooter className="border-t pt-4">
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('PropertyDetails.cancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={(e: any) => {
                     e.preventDefault();
@@ -175,7 +177,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                   }}
                   disabled={loading}
                 >
-                  {loading ? "Updating..." : "Update Address"}
+                  {loading ? t('PropertyDetails.updatingAddress') : t('PropertyDetails.updateAddress')}
                 </AlertDialogAction>
               </AlertDialogFooter>
               </AlertDialogContent>
@@ -185,15 +187,15 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
               <DropdownMenuTrigger asChild>
                 <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
                   <Globe className="h-4 w-4" />
-                  Translations
+                 {t( 'Property.translations')}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => setAddTranslationOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Translation
+                  <Plus className="h-4 w-4 mr-2" /> {t('Common.addTranslation')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setCheckTranslationsOpen(true)}>
-                  <Languages className="h-4 w-4 mr-2" /> Check Translations
+                  <Languages className="h-4 w-4 mr-2" /> {t('Common.checkTranslation')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -233,44 +235,44 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
           <div className="space-y-6">
             <div className="group">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                Address Line 1
+                {t('PropertyDetails.addressLine1')}
               </label>
               <p className="text-base text-gray-900">
                 {propertyAddress._translations?propertyAddress._translations.addressLine1:propertyAddress.addressLine1 || (
-                  <span className="text-gray-400 italic">Not specified</span>
+                  <span className="text-gray-400 italic">{t('PropertyDetails.notSpecified')}</span>
                 )}
               </p>
             </div>
 
             <div className="group">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                Address Line 2
+                {t('PropertyDetails.addressLine2')}
               </label>
               <p className="text-base text-gray-900">
                 {propertyAddress._translations?propertyAddress._translations.addressLine2:propertyAddress.addressLine2 || (
-                  <span className="text-gray-400 italic">Not specified</span>
+                  <span className="text-gray-400 italic">{t('PropertyDetails.notSpecified')}</span>
                 )}
               </p>
             </div>
 
             <div className="group">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                Location / Area
+                {t('PropertyDetails.locationArea')}
               </label>
               <p className="text-base text-gray-900">
                 {propertyAddress._translations?propertyAddress._translations.location:propertyAddress.location || (
-                  <span className="text-gray-400 italic">Not specified</span>
+                  <span className="text-gray-400 italic">{t('PropertyDetails.notSpecified')}</span>
                 )}
               </p>
             </div>
 
             <div className="group">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                Landmark
+                {t('PropertyDetails.landmark')}
               </label>
               <p className="text-base text-gray-900">
                 {propertyAddress._translations?propertyAddress._translations.landmark:propertyAddress.landmark || (
-                  <span className="text-gray-400 italic">Not specified</span>
+                  <span className="text-gray-400 italic">{t('PropertyDetails.notSpecified')}</span>
                 )}
               </p>
             </div>
@@ -280,18 +282,18 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
           <div className="space-y-6">
             <div className="group">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                City
+                {t('PropertyDetails.city')}
               </label>
               <p className="text-base text-gray-900">
                 {propertyAddress._translations?propertyAddress._translations.city:propertyAddress.city || (
-                  <span className="text-gray-400 italic">Not specified</span>
+                  <span className="text-gray-400 italic">{t('PropertyDetails.notSpecified')}</span>
                 )}
               </p>
             </div>
 
             <div className="group">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                State & Country
+                {t('PropertyDetails.stateCountry')}
               </label>
               <p className="text-base text-gray-900">
                 {propertyAddress.state && propertyAddress.country ? (
@@ -299,19 +301,19 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
                     {propertyAddress._translations?propertyAddress._translations.state:propertyAddress.state}, {propertyAddress._translations?propertyAddress._translations.country:propertyAddress.country}
                   </>
                 ) : (
-                  <span className="text-gray-400 italic">Not specified</span>
+                  <span className="text-gray-400 italic">{t('PropertyDetails.notSpecified')}</span>
                 )}
               </p>
             </div>
 
             <div className="group">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                Zip Code
+                {t('PropertyDetails.zipCode')}
               </label>
               <p className="text-base text-gray-900 font-mono">
                 {propertyAddress.zipCode || (
                   <span className="text-gray-400 italic font-sans">
-                    Not specified
+                    {t('PropertyDetails.notSpecified')}
                   </span>
                 )}
               </p>
@@ -319,24 +321,24 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
 
             <div className="group">
               <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
-                GPS Coordinates
+                {t('PropertyDetails.gpsCoordinates')}
               </label>
               <div className="flex items-center gap-3 text-sm text-gray-900 font-mono">
                 {propertyAddress.latitude && propertyAddress.longitude ? (
                   <>
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-500 text-xs">Lat:</span>
+                      <span className="text-gray-500 text-xs">{t('PropertyDetails.lat')}:</span>
                       <span>{propertyAddress.latitude}</span>
                     </div>
                     <span className="text-gray-300">|</span>
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-500 text-xs">Lng:</span>
+                      <span className="text-gray-500 text-xs">{t('PropertyDetails.lng')}:</span>
                       <span>{propertyAddress.longitude}</span>
                     </div>
                   </>
                 ) : (
                   <span className="text-gray-400 italic font-sans">
-                    Not specified
+                    {t('PropertyDetails.notSpecified')}
                   </span>
                 )}
               </div>

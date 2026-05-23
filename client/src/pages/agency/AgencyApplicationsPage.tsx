@@ -26,12 +26,15 @@ import ApplicationDetailsDialog from './components/ApplicationDetailsDialog';
 import ApproveApplicationDialog from './components/ApproveApplicationDialog';
 import RejectApplicationDialog from './components/RejectApplicationDialog';
 import type { ILoader } from '../dashboard/interface';
+import { useTranslation } from 'react-i18next';
 
 const AgencyApplicationsPage: React.FC = () => {
+    const { t } = useTranslation();
+
   const [applications, setApplications] = useState<IAgencyApplication[]>([]);
   const [loading, setLoading] = useState<ILoader>({
     isLoading: true,
-    message: 'Loading applications...',
+    message: t('AgencyApplication.loading'),
   });
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<fAgencyApplicationStatus>('all');
@@ -52,7 +55,7 @@ const AgencyApplicationsPage: React.FC = () => {
   const fetchApplications = async () => {
     setLoading({
       isLoading: true,
-      message: 'Loading applications...',
+      message: t('AgencyApplication.loading'),
     });
     try {
       const response = await getAgencyApplications(statusFilter, page, limit);
@@ -140,8 +143,8 @@ const AgencyApplicationsPage: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Agency Applications</h1>
-          <p className="text-gray-500 mt-1">Review and manage agency applications</p>
+          <h1 className="text-3xl font-bold">{t('AgencyApplication.title')}</h1>
+          <p className="text-gray-500 mt-1">{t('AgencyApplication.subtitle')}</p>
         </div>
       </div>
 
@@ -149,7 +152,7 @@ const AgencyApplicationsPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Total Applications</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">{t('AgencyApplication.totalApplications')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalApplications}</div>
@@ -157,7 +160,7 @@ const AgencyApplicationsPage: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">{t('AgencyApplication.pending')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">
@@ -167,7 +170,7 @@ const AgencyApplicationsPage: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Approved</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">{t('AgencyApplication.approved')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
@@ -177,7 +180,7 @@ const AgencyApplicationsPage: React.FC = () => {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Rejected</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">{t('AgencyApplication.rejected')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
@@ -194,7 +197,7 @@ const AgencyApplicationsPage: React.FC = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search by applicant name, agency name, or email..."
+                placeholder={t('AgencyApplication.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -207,14 +210,14 @@ const AgencyApplicationsPage: React.FC = () => {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="Status" />
+               <SelectTrigger className="w-full md:w-[180px]">
+                <SelectValue placeholder={t('AgencyApplication.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="all">{t('AgencyApplication.allStatus')}</SelectItem>
+                <SelectItem value="pending">{t('AgencyApplication.pending')}</SelectItem>
+                <SelectItem value="approved">{t('AgencyApplication.approved')}</SelectItem>
+                <SelectItem value="rejected">{t('AgencyApplication.rejected')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -227,21 +230,20 @@ const AgencyApplicationsPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Applicant Name</TableHead>
-                <TableHead>Application No</TableHead>
-
-                <TableHead>Agency Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                 <TableHead>{t('AgencyApplication.applicationNo')}</TableHead>
+                <TableHead>{t('AgencyApplication.applicantName')}</TableHead>
+                <TableHead>{t('AgencyApplication.agencyName')}</TableHead>
+                <TableHead>{t('AgencyApplication.email')}</TableHead>
+                <TableHead>{t('AgencyApplication.phone')}</TableHead>
+                <TableHead>{t('AgencyApplication.status')}</TableHead>
+                <TableHead>{t('AgencyApplication.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredApplications.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    No applications found
+                    {t('AgencyApplication.noApplications')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -267,7 +269,7 @@ const AgencyApplicationsPage: React.FC = () => {
                             setSelectedApplication(application);
                             setIsDetailsOpen(true);
                           }}
-                          title="View Details"
+                          title={t('AgencyApplication.viewDetails')}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -280,7 +282,7 @@ const AgencyApplicationsPage: React.FC = () => {
                                 setSelectedApplication(application);
                                 setIsApproveOpen(true);
                               }}
-                              title="Approve"
+                              title={t('AgencyApplication.approve')}
                               className="text-green-600 hover:text-green-700"
                             >
                               <CheckCircle className="h-4 w-4" />
@@ -292,7 +294,7 @@ const AgencyApplicationsPage: React.FC = () => {
                                 setSelectedApplication(application);
                                 setIsRejectOpen(true);
                               }}
-                              title="Reject"
+                              title={t('AgencyApplication.reject')}
                               className="text-red-600 hover:text-red-700"
                             >
                               <XCircle className="h-4 w-4" />
@@ -310,7 +312,7 @@ const AgencyApplicationsPage: React.FC = () => {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-gray-500">
-              Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, totalApplications)} of {totalApplications} applications
+              {t('AgencyApplication.paginationInfo', { start: ((page - 1) * limit) + 1, end: Math.min(page * limit, totalApplications), total: totalApplications })}
             </div>
             <div className="flex gap-2">
               <Button
@@ -319,7 +321,7 @@ const AgencyApplicationsPage: React.FC = () => {
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
               >
-                Previous
+                {t('AgencyApplication.previous')}
               </Button>
               <Button
                 variant="outline"
@@ -327,7 +329,7 @@ const AgencyApplicationsPage: React.FC = () => {
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
               >
-                Next
+                {t('AgencyApplication.previous')}
               </Button>
             </div>
           </div>

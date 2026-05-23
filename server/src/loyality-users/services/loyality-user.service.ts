@@ -38,10 +38,10 @@ export class LoyalityUserService {
             const accessToken = assignLoyaltyToken(
                 {
                     id: loyalityGuest.id,
-                    email: loyalityGuest.guestEmail,
+                    email: loyalityGuest.email,
                 },
-                config.loyaltyJWTSecret!,
-                config.loyaltyJWTExpiresIn!
+                config.customerJWTSecret!,
+                config.customerJWTExpiresIn!
             );
             return successResponse('User logged in successfully', {
                 id: loyalityGuest.id,

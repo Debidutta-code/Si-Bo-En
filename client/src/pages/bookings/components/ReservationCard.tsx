@@ -22,6 +22,7 @@ import type { IGuestDistribution, IReservation } from "../types";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import PrimaryGuestDetailsDialog from "./primaryGuest";
+import { useTranslation } from "react-i18next";
 
 interface ReservationCardProps {
   reservation: IReservation;
@@ -36,6 +37,8 @@ export default function ReservationCard({
   onAmend,
   onClose,
 }: ReservationCardProps) {
+    const { t } = useTranslation();
+
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isGuestDetailsOpen, setIsGuestDetailsOpen] = useState<boolean>(false);
 
@@ -154,7 +157,7 @@ export default function ReservationCard({
           {/* Guest Information */}
           <div>
             <h4 className="text-sm font-semibold text-gray-900 mb-3">
-              Guest Information
+              {t('Bookings.reservationCard.guestInformation')}
             </h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -176,7 +179,7 @@ export default function ReservationCard({
               )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <User className="w-4 h-4 flex-shrink-0" />
-                <span>{reservation.guests.length} Guest(s)</span>
+                <span>{reservation.guests.length} {t('Bookings.reservationCard.guestInformation')}</span>
               </div>
             </div>
           </div>
@@ -184,31 +187,31 @@ export default function ReservationCard({
           {/* Booking Details */}
           <div>
             <h4 className="text-sm font-semibold text-gray-900 mb-3">
-              Booking Details
+              {t('Bookings.reservationCard.bookingDetails')}
             </h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4 flex-shrink-0" />
                 <span>
-                  Check-in:{" "}
+                  {t('Bookings.reservationCard.checkIn')}:{" "}
                   <strong>{formatDate(reservation.reservationStartDate)}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4 flex-shrink-0" />
                 <span>
-                  Check-out:{" "}
+                  {t('Bookings.reservationCard.checkOut')}:{" "}
                   <strong>{formatDate(reservation.reservationEndDate)}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Clock className="w-4 h-4 flex-shrink-0" />
-                <span>{calculateNights()} Night(s)</span>
+                <span>{calculateNights()} {t('Bookings.reservationCard.nights')}</span>
               </div>
               {reservation.roomTypeCode && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span>Room: {reservation.roomTypeCode}</span>
+                  <span>{t('Bookings.reservationCard.room')}: {reservation.roomTypeCode}</span>
                 </div>
               )}
             </div>
@@ -219,13 +222,13 @@ export default function ReservationCard({
         <div className="mt-6 pt-6 border-t border-gray-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Amount</p>
+              <p className="text-sm text-gray-600">{t('Bookings.reservationCard.totalAmount')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {reservation.currencyCode} {reservation.amount.toFixed(2)}
               </p>
               {reservation.paidAmount > 0 && (
                 <p className="text-sm text-green-600 mt-1">
-                  Paid: {reservation.currencyCode}{" "}
+                  {t('Bookings.reservationCard.paid')}: {reservation.currencyCode}{" "}
                   {reservation.paidAmount.toFixed(2)}
                 </p>
               )}
@@ -239,12 +242,12 @@ export default function ReservationCard({
               {isExpanded ? (
                 <>
                   <ChevronUp className="w-4 h-4 mr-1" />
-                  Show Less
+                  {t('Bookings.reservationCard.showLess')}
                 </>
               ) : (
                 <>
                   <ChevronDown className="w-4 h-4 mr-1" />
-                  Show More
+                  {t('Bookings.reservationCard.showMore')}
                 </>
               )}
             </Button>
@@ -281,7 +284,8 @@ export default function ReservationCard({
 
               return (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Price Breakdown</h4>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">                  {t('Bookings.reservationCard.priceBreakdown')}
+</h4>
                   <div className="border border-gray-200 rounded-lg overflow-hidden text-sm">
 
                     {/* Room charges */}
@@ -405,15 +409,15 @@ export default function ReservationCard({
                     {/* Totals */}
                     <div className="p-4 space-y-2">
                       <div className="flex justify-between text-gray-600">
-                        <span>Subtotal (excl. tax)</span>
+                      <span>{t('Bookings.reservationCard.amountExclTax')}:</span>
                         <span>{currency} {amountBeforeTax.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-gray-600">
-                        <span>Tax</span>
+                        <span>{t('Bookings.reservationCard.totalTax')}:</span>
                         <span>{currency} {taxedAmount.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between font-medium text-gray-900 pt-2 border-t border-gray-200">
-                        <span>Total (incl. tax)</span>
+                      <span>{t('Bookings.reservationCard.totalInclTax')}:</span>
                         <span>{currency} {totalAmount.toFixed(2)}</span>
                       </div>
                       {laterPayable > 0 && (
@@ -438,26 +442,26 @@ export default function ReservationCard({
             {/* Additional Information */}
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-600">Payment Method:</span>
+                <span className="text-gray-600">{t('Bookings.reservationCard.paymentMethod')}:</span>
                 <p className="font-medium text-gray-900 mt-1 capitalize">
                   {reservation.paymentMethod.replace(/_/g, " ")}
                 </p>
               </div>
               <div>
-                <span className="text-gray-600">Booking Source:</span>
+                <span className="text-gray-600">{t('Bookings.reservationCard.bookingSource')}:</span>
                 <p className="font-medium text-gray-900 mt-1 uppercase">
                   {reservation.bookingSource}
                 </p>
               </div>
               <div>
-                <span className="text-gray-600">Booked At:</span>
+                <span className="text-gray-600">{t('Bookings.reservationCard.bookedAt')}:</span>
                 <p className="font-medium text-gray-900 mt-1">
                   {formatDate(reservation.bookedAt)}
                 </p>
               </div>
               {reservation.isPromoUsed && (
                 <div>
-                  <span className="text-gray-600">Promo Applied:</span>
+                  <span className="text-gray-600">{t('Bookings.reservationCard.promoApplied')}:</span>
                   <p className="font-medium text-green-600 mt-1">Yes</p>
                 </div>
               )}
@@ -513,7 +517,7 @@ export default function ReservationCard({
                 onClick={() => setIsExpanded(false)}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                Close
+                {t('Bookings.reservationCard.close')}
               </Button>
             </div>
           </div>

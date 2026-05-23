@@ -41,23 +41,26 @@ import Spa from "./components/Spa";
 import { getAllRoomViews } from "./services/room-view.services";
 import type { ILoader } from "../dashboard/interface";
 import RoomViewTab from "./components/RoomView";
+import { useTranslation } from "react-i18next";
 
-const TABS = [
-  { value: "categories", label: "Categories", icon: Tag },
-  { value: "property-types", label: "Property Types", icon: Home },
-  { value: "property-amenities", label: "Property Amenities", icon: Sparkles },
-  { value: "room-amenities", label: "Room Amenities", icon: Sparkles },
-  { value: "room-views", label: "Room Views", icon: View },
-  { value: "loyalty-fields", label: "Loyalty Fields", icon: Users },
-  { value: "payment-integrations", label: "Payment Integrations", icon: DollarSign },
-  { value: "master-integrations", label: "Master Integrations", icon: Cable },
-  { value: "spa", label: "Spa Type", icon: Bubbles },
-];
 
 export default function ManagementPage() {
+  const { t } = useTranslation();
+  const TABS = [
+      { value: "categories", label: t('Management.categories'), icon: Tag },
+      { value: "property-types", label: t('Management.propertyTypes'), icon: Home },
+      { value: "property-amenities", label: t('Management.propertyAmenities'), icon: Sparkles },
+      { value: "room-amenities", label: t('Management.roomAmenities'), icon: Sparkles },
+      { value: "room-views", label: t('Management.roomViews'), icon: View },
+      { value: "loyalty-fields", label: t('Management.loyaltyFields'), icon: Users },
+      { value: "payment-integrations", label: t('Management.paymentIntegrations'), icon: DollarSign },
+      { value: "master-integrations", label: t('Management.masterIntegrations'), icon: Cable },
+    { value: "spa", label: t("Management.spa"), icon: Bubbles },
+  ];
+
   const [loading, setLoading] = useState<ILoader> ({
     isLoading:true,
-    message:"Loading Management Data ..."
+    message: t('Management.loadingData')
   });
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [propertyTypes, setPropertyTypes] = useState<IPropertyType[]>([]);
@@ -75,7 +78,7 @@ export default function ManagementPage() {
   const fetchAllData = async () => {
     setLoading({
       isLoading: true,
-      message: "Loading Management Data ..."
+      message: t('Management.loadingData')
     });
     try {
       const [
@@ -111,7 +114,7 @@ export default function ManagementPage() {
       if (roomViewsRes.success)
         setRoomViews(roomViewsRes?.data);
     } catch (error) {
-      toast.error("Failed to fetch management data");
+      toast.error(t('Toast.failedToFetchManagementData'));
     } finally {
       setLoading({
         isLoading: false,
@@ -133,10 +136,10 @@ export default function ManagementPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Property Management
+          {t('Management.title')}
         </h1>
         <p className="text-sm text-gray-600 mt-1">
-          Manage categories, types, and amenities for your properties
+          {t('Management.subtitle')}
         </p>
       </div>
 

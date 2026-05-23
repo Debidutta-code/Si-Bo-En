@@ -31,6 +31,7 @@ import { format } from "date-fns";
 import type { IAddonAvailability, IAddon } from "../interface";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { useTranslation } from "react-i18next";
 
 interface AddOnAvailabilityTableProps {
     availabilities: IAddonAvailability[];
@@ -49,6 +50,8 @@ export default function AddOnAvailabilityTable({
     onCreateNew,
     isLoading = false,
 }: AddOnAvailabilityTableProps) {
+    const { t } = useTranslation();
+
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editData, setEditData] = useState<{
         price: number;
@@ -86,7 +89,6 @@ export default function AddOnAvailabilityTable({
         }
     };
 
-    // Sort availabilities by date
     const sortedAvailabilities = [...availabilities].sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
@@ -99,15 +101,15 @@ export default function AddOnAvailabilityTable({
                         <div>
                             <CardTitle className="flex items-center gap-2">
                                 <Calendar className="w-5 h-5" />
-                                Availability & Pricing for {addOn.name}
+                                {t("Addon.availabilityTable.cardTitle", { name: addOn.name })}
                             </CardTitle>
                             <CardDescription>
-                                Manage daily pricing and availability for this add-on
+                                {t("Addon.availabilityTable.cardDescription")}
                             </CardDescription>
                         </div>
                         <Button onClick={onCreateNew} disabled={isLoading}>
                             <Plus className="w-4 h-4 mr-2" />
-                            Add Dates
+                            {t("Addon.availabilityTable.addDates")}
                         </Button>
                     </div>
                 </CardHeader>
@@ -116,14 +118,14 @@ export default function AddOnAvailabilityTable({
                         <div className="text-center py-12">
                             <DollarSign className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                             <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                                No Availability Set
+                                {t("Addon.availabilityTable.noAvailabilityTitle")}
                             </h3>
                             <p className="text-gray-500 mb-6">
-                                Set pricing and availability to start selling this add-on
+                                {t("Addon.availabilityTable.noAvailabilityDescription")}
                             </p>
                             <Button onClick={onCreateNew}>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Add Availability
+                                {t("Addon.availabilityTable.addAvailability")}
                             </Button>
                         </div>
                     ) : (
@@ -131,11 +133,13 @@ export default function AddOnAvailabilityTable({
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead>Price</TableHead>
-                                        <TableHead>Currency</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+                                        <TableHead>{t("Addon.availabilityTable.table.date")}</TableHead>
+                                        <TableHead>{t("Addon.availabilityTable.table.price")}</TableHead>
+                                        <TableHead>{t("Addon.availabilityTable.table.currency")}</TableHead>
+                                        <TableHead>{t("Addon.availabilityTable.table.status")}</TableHead>
+                                        <TableHead className="text-right">
+                                            {t("Addon.availabilityTable.table.actions")}
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -199,8 +203,8 @@ export default function AddOnAvailabilityTable({
                                                         }
                                                     >
                                                         {availability.isAvailable
-                                                            ? "Available"
-                                                            : "Unavailable"}
+                                                            ? t("Addon.availabilityTable.status.available")
+                                                            : t("Addon.availabilityTable.status.unavailable")}
                                                     </Badge>
                                                 )}
                                             </TableCell>
@@ -211,14 +215,14 @@ export default function AddOnAvailabilityTable({
                                                             size="sm"
                                                             onClick={() => handleSaveEdit(availability.id)}
                                                         >
-                                                            Save
+                                                            {t("Addon.availabilityTable.buttons.save")}
                                                         </Button>
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
                                                             onClick={handleCancelEdit}
                                                         >
-                                                            Cancel
+                                                            {t("Addon.availabilityTable.buttons.cancel")}
                                                         </Button>
                                                     </div>
                                                 ) : (
@@ -234,10 +238,7 @@ export default function AddOnAvailabilityTable({
                                                             size="sm"
                                                             variant="ghost"
                                                             onClick={() =>
-                                                                setDeleteDialog({
-                                                                    open: true,
-                                                                    availability,
-                                                                })
+                                                                setDeleteDialog({ open: true, availability })
                                                             }
                                                             className="text-red-600 hover:text-red-700"
                                                         >
@@ -255,28 +256,30 @@ export default function AddOnAvailabilityTable({
                 </CardContent>
             </Card>
 
-            {/* Delete Confirmation Dialog */}
             <AlertDialog
                 open={deleteDialog.open}
                 onOpenChange={(open) => setDeleteDialog({ open, availability: null })}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("Addon.areYouSure")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete the availability for{" "}
-                            {deleteDialog.availability &&
-                                format(new Date(deleteDialog.availability.date), "PPP")}
-                            . This action cannot be undone.
+                            {t("Addon.availabilityTable.deleteDialog.description", {
+                                date: deleteDialog.availability
+                                    ? format(new Date(deleteDialog.availability.date), "PPP")
+                                    : "",
+                            })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>
+                            {t("Addon.availabilityTable.buttons.cancel")}
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteConfirm}
                             className="bg-red-600 hover:bg-red-700"
                         >
-                            Delete
+                            {t("Addon.availabilityTable.buttons.delete")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

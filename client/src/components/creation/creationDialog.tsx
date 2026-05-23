@@ -12,6 +12,8 @@ import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { Label } from "@/components/ui/label";
 import type { ILoader } from "@/pages/dashboard/interface";
 import { useAppSelector } from "@/redux/hooks";
+import { useTranslation } from "react-i18next";
+
 const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, creationType }:
     {
         currentTab: string,
@@ -21,21 +23,22 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
         creationType: "brand" | "group" | "super"
     }
 ) => {
-  const user = useAppSelector((state) => state.user.user);
+    const { t } = useTranslation();
+    const user = useAppSelector((state) => state.user.user);
     const [customs, setCustoms] = useState<ICreation[]>([]);
-    const [open,setOpen]=useState<boolean>(false)
+    const [open, setOpen] = useState<boolean>(false)
     const [selectedCustom, _setSelectedCustom] = useState<ICreation | null>(null);
     useEffect(() => {
         const fetchCustoms = async () => {
             setIsLoading({
                 isLoading: true,
-                message: "Loading Customs ..."
+                message: t("CreateEntity.toast.loadingCustoms")
             });
             try {
                 const customs = await getAllCustoms();
                 setCustoms(customs.data);
             } catch (error) {
-                toast.error("Failed to load customs");
+                toast.error(t("CreateEntity.toast.failedLoadCustoms"));
             } finally {
                 setIsLoading({
                     isLoading: false,
@@ -66,7 +69,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
             ...prev,
             images: [...prev.images, ...uploadedUrls]
         }));
-        toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+        toast.success(t("CreateEntity.toast.uploadSuccess", { count: uploadedUrls.length }));
     };
 
     const handleRemoveImage = (index: number) => {
@@ -78,22 +81,22 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
 
     const handleCreate = async () => {
         if (!newGBP.name.trim()) {
-            toast.error("Fill the name")
+            toast.error(t("CreateEntity.toast.fillName"))
             return;
         }
         setIsLoading({
             isLoading: true,
-            message: `Creating ${capitalizeFirstLetter(newGBP.type)}...`
+            message: t("CreateEntity.toast.creating", { type: capitalizeFirstLetter(newGBP.type) })
         });
         try {
             const payload = { ...newGBP, isCustom: newGBP.assignTo ? true : false };
-            if(user?.role==="regional_admin"){
+            if (user?.role === "regional_admin") {
                 payload.assignTo = user.creation;
                 payload.isCustom = true;
             }
             const res = await createEntity(payload)
             if (res.success) {
-                toast.success("Created successfully")
+                toast.success(t("CreateEntity.toast.createdSuccess"))
                 setNewGBP({
                     name: "",
                     type: "property",
@@ -106,7 +109,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                 fetchProperties();
                 setOpen(false)
             } else {
-                toast.error(res.message)
+            toast.error(t("CreateEntity.toast.failedCreate"))
             }
 
         } catch (error) {
@@ -121,18 +124,18 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
     };
 
     return (
-        <AlertDialog open={open}  onOpenChange={setOpen}>
+        <AlertDialog open={open} onOpenChange={setOpen}>
             <AlertDialogTrigger asChild>
-                <Button variant={"secondary"} onClick={()=>setOpen(true)}>
+                <Button variant={"secondary"} onClick={() => setOpen(true)}>
                     <PlusCircle className="h-4 w-4 mr-2" />
-                    Create {capitalizeFirstLetter(currentTab)}
+                    {t("CreateEntity.button", { name: capitalizeFirstLetter(currentTab) })}
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
 
                 <AlertDialogHeader>
                     <div className="flex w-full justify-between">
-                        <AlertDialogTitle>Create New Entity</AlertDialogTitle>
+                        <AlertDialogTitle>{t("CreateEntity.title")}</AlertDialogTitle>
                         <AlertDialogCancel className="rounded-full h-10 w-10 p-0">
                             <X className="h-4 w-4" />
                         </AlertDialogCancel>
@@ -142,11 +145,11 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                 <div className="space-y-4 py-2">
                     <div>
                         <label htmlFor="entity-name" className="text-sm font-medium">
-                            Name
+                            {t("CreateEntity.name")}
                         </label>
                         <Input
                             id="entity-name"
-                            placeholder={`Enter ${newGBP.type} name`}
+                            placeholder={t("CreateEntity.namePlaceholder", { type: newGBP.type })}
                             value={newGBP.name}
                             onChange={(e) => setNewGBP({ ...newGBP, name: e.target.value })}
                             className="mt-1"
@@ -155,7 +158,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
 
                     <div>
                         <label htmlFor="entity-type" className="text-sm font-medium">
-                            Type
+                            {t("CreateEntity.type")}
                         </label>
                         <Select
                             value={newGBP.type}
@@ -164,35 +167,35 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                             }
                         >
                             <SelectTrigger id="entity-type" className="mt-1">
-                                <SelectValue placeholder="Select type" />
+                                <SelectValue placeholder={t("CreateEntity.typePlaceholder")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {creationType === "group" && (
                                     <>
-                                        <SelectItem value="brand">Brand</SelectItem>
-                                        <SelectItem value="property">Property</SelectItem>
+                                        <SelectItem value="brand">{t("CreateEntity.types.brand")}</SelectItem>
+                                        <SelectItem value="property">{t("CreateEntity.types.property")}</SelectItem>
                                     </>
                                 )} {creationType === "brand" && (
                                     <>
-                                        <SelectItem value="property">Property</SelectItem>
+                                        <SelectItem value="property">{t("CreateEntity.types.property")}</SelectItem>
                                     </>
                                 )}
                                 {creationType === "super" && (
                                     <>
-                                        <SelectItem value="group">Group</SelectItem>
-                                        <SelectItem value="brand">Brand</SelectItem>
-                                        <SelectItem value="property">Property</SelectItem>
-                                        <SelectItem value="regional">Regional</SelectItem>
+                                        <SelectItem value="group">{t("CreateEntity.types.group")}</SelectItem>
+                                        <SelectItem value="brand">{t("CreateEntity.types.brand")}</SelectItem>
+                                        <SelectItem value="property">{t("CreateEntity.types.property")}</SelectItem>
+                                        <SelectItem value="regional">{t("CreateEntity.types.regional")}</SelectItem>
 
                                     </>
                                 )}
                             </SelectContent>
                         </Select>
                     </div>
-                    {creationType === "super" && newGBP.type!=="regional" && (
+                    {creationType === "super" && newGBP.type !== "regional" && (
                         <div>
                             <label htmlFor="entity-type" className="text-sm font-medium">
-                                Custom
+                                {t("CreateEntity.custom")}
                             </label>
                             <Select
                                 value={selectedCustom?.id}
@@ -201,10 +204,10 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                                 }
                             >
                                 <SelectTrigger id="entity-type" className="mt-1">
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue placeholder={t("CreateEntity.customPlaceholder")} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {customs.length>0&&
+                                    {customs.length > 0 &&
                                         customs.map((regional) => (
                                             <SelectItem key={regional.id} value={regional.id}>
                                                 {regional.name}
@@ -216,7 +219,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                         </div>
                     )}
                     <div>
-                        <Label className="text-sm font-medium">Images ({newGBP.images.length})</Label>
+                        <Label className="text-sm font-medium">{t("CreateEntity.images", { count: newGBP.images.length })}</Label>
                         <div className="mt-2">
                             <Button
                                 type="button"
@@ -225,7 +228,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                                 className="w-full"
                             >
                                 <Upload className="h-4 w-4 mr-2" />
-                                Upload Images
+                                {t("CreateEntity.uploadImages")}
                             </Button>
                         </div>
 
@@ -253,7 +256,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                 </div>
 
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading.isLoading}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isLoading.isLoading}>{t("CreateEntity.cancel")}</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={(e) => {
                             e.preventDefault();
@@ -262,8 +265,8 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                         disabled={isLoading.isLoading}
                     >
                         {isLoading.isLoading
-                            ? `Creating...`
-                            : `Create ${capitalizeFirstLetter(newGBP.type)}`}
+                            ? t("CreateEntity.creating")
+                            : t("CreateEntity.createButton", { type: capitalizeFirstLetter(newGBP.type) })}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

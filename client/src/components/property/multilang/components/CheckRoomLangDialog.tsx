@@ -6,16 +6,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/Loader/Loader";
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   roomId: string;
-  /** Optional: when provided, an Edit (pencil) button is shown for each locale row */
   onEdit?: (locale: string, data: Record<string, any>) => void;
 }
 
 export default function CheckRoomLangDialog({ open, onOpenChange, roomId, onEdit }: Props) {
+  const { t } = useTranslation();
+
   const [translations, setTranslations] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
 
@@ -37,12 +39,12 @@ export default function CheckRoomLangDialog({ open, onOpenChange, roomId, onEdit
   const handleDelete = async (locale: string) => {
     const res = await deleteRoomTranslationLocaleService(roomId, locale);
     if (res.success) {
-      toast.success("Translation deleted successfully!");
+      toast.success(t("CheckRoomLangDialog.toast.deleteSuccess"));
       const updated = { ...translations };
       delete updated[locale];
       setTranslations(updated);
     } else {
-      toast.error(res.message || "Failed to delete translation");
+      toast.error(res.message || t("CheckRoomLangDialog.toast.deleteFailed"));
     }
   };
 
@@ -51,24 +53,39 @@ export default function CheckRoomLangDialog({ open, onOpenChange, roomId, onEdit
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[80vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Room Translations</DialogTitle></DialogHeader>
-        {loading ? <div className="flex justify-center py-8"><Loader text="Fetching translations..." /></div> : (
+        <DialogHeader>
+          <DialogTitle>{t("CheckRoomLangDialog.title")}</DialogTitle>
+        </DialogHeader>
+
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <Loader text={t("CheckRoomLangDialog.loader.fetching")} />
+          </div>
+        ) : (
           <div className="space-y-4 py-4">
-            {Object.entries(translations).length === 0 ? <p className="text-center text-gray-500">No translations found.</p> : (
+            {Object.entries(translations).length === 0 ? (
+              <p className="text-center text-gray-500">{t("CheckRoomLangDialog.empty.noTranslations")}</p>
+            ) : (
               Object.entries(translations).map(([locale, data]) => (
                 <div key={locale} className="flex justify-between items-start border p-4 rounded-md shadow-sm gap-3">
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-gray-800">{getLangName(locale)}</h4>
-                    <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Name:</span> {data.roomName}</p>
-                    <p className="text-sm text-gray-600"><span className="font-medium">Description:</span> {data.description?.substring(0, 60)}{data.description?.length > 60 ? "..." : ""}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      <span className="font-medium">{t("CheckRoomLangDialog.fields.name")}:</span> {data.roomName}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">{t("CheckRoomLangDialog.fields.description")}:</span>{" "}
+                      {data.description?.substring(0, 60)}{data.description?.length > 60 ? "..." : ""}
+                    </p>
                   </div>
+
                   <div className="flex items-center gap-1 shrink-0">
                     {onEdit && (
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7"
-                        title="Edit translation"
+                        title={t("CheckRoomLangDialog.tooltips.edit")}
                         onClick={() => onEdit(locale, data)}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -77,7 +94,12 @@ export default function CheckRoomLangDialog({ open, onOpenChange, roomId, onEdit
                         </svg>
                       </Button>
                     )}
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleDelete(locale)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => handleDelete(locale)}
+                    >
                       <Trash2 className="h-3.5 w-3.5 text-red-500" />
                     </Button>
                   </div>

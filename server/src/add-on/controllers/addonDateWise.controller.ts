@@ -3,6 +3,7 @@ import { AddonDateWiseService } from '../services';
 import { successResponse, errorResponse } from '../../utils/return';
 import { ICreateAddonAvailability } from '../interfaces';
 import { PropertyCustomRequest } from '../../utils';
+import { AddonInterceptor } from '../../multi-language/interceptors/addon/addon.interceptor';
 export class AddonDateWiseController {
     private addonDateWiseService: AddonDateWiseService;
 
@@ -316,13 +317,16 @@ export class AddonDateWiseController {
                     .status(400)
                     .json(errorResponse('Rate plan code is required'));
             }
-            const result =
+            let result =
                 await this.addonDateWiseService.getAvailableAddonsByDateRange(
                     propertyId,
                     startDate,
                     endDate,
                     ratePlanCode
                 );
+
+            const locale = req.headers['accept-language']?.slice(0, 2) || 'en';
+            result = await AddonInterceptor.intercept(result, locale);
 
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {

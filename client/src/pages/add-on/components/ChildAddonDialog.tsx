@@ -39,14 +39,11 @@ import {
   X,
 } from "lucide-react";
 import Loader from "@/components/Loader/Loader";
-import type {
-  IChildAddon,
-  ICChildAddoon,
-  IUpdateChildAddon,
-} from "../interface";
+import type { IChildAddon, ICChildAddoon, IUpdateChildAddon } from "../interface";
 import type { DiscountType } from "@/pages/tax-system/interface";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 import { currencies } from "@/components/currency-code/cuurency";
+import { useTranslation } from "react-i18next";
 
 interface ChildAddonDialogProps {
   open: boolean;
@@ -78,22 +75,17 @@ export default function ChildAddonDialog({
   addonId,
   isLoading,
 }: ChildAddonDialogProps) {
-  const [formData, setFormData] =
-    useState<Omit<ICChildAddoon, "addonId">>(initialFormState);
-  const [editingChildAddon, setEditingChildAddon] =
-    useState<IChildAddon | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<{
-    open: boolean;
-    id: string | null;
-  }>({
+  const { t } = useTranslation();
+
+  const [formData, setFormData] = useState<Omit<ICChildAddoon, "addonId">>(initialFormState);
+  const [editingChildAddon, setEditingChildAddon] = useState<IChildAddon | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string | null }>({
     open: false,
     id: null,
   });
 
   useEffect(() => {
-    if (!open) {
-      resetForm();
-    }
+    if (!open) resetForm();
   }, [open]);
 
   const resetForm = () => {
@@ -113,9 +105,7 @@ export default function ChildAddonDialog({
     });
   };
 
-  const handleCancelEdit = () => {
-    resetForm();
-  };
+  const handleCancelEdit = () => resetForm();
 
   const handleSubmit = async () => {
     if (editingChildAddon) {
@@ -123,12 +113,8 @@ export default function ChildAddonDialog({
         minAge: formData.minAge,
         maxAge: formData.maxAge,
         discountApplicable: formData.discountApplicable,
-        discountType: formData.discountApplicable
-          ? formData.discountType
-          : null,
-        discountAmount: formData.discountApplicable
-          ? formData.discountAmount
-          : null,
+        discountType: formData.discountApplicable ? formData.discountType : null,
+        discountAmount: formData.discountApplicable ? formData.discountAmount : null,
         currencyCode:
           formData.discountApplicable && formData.discountType === "flat"
             ? formData.currencyCode
@@ -142,12 +128,8 @@ export default function ChildAddonDialog({
         minAge: formData.minAge,
         maxAge: formData.maxAge,
         discountApplicable: formData.discountApplicable,
-        discountType: formData.discountApplicable
-          ? formData.discountType
-          : null,
-        discountAmount: formData.discountApplicable
-          ? formData.discountAmount
-          : null,
+        discountType: formData.discountApplicable ? formData.discountType : null,
+        discountAmount: formData.discountApplicable ? formData.discountAmount : null,
         currencyCode:
           formData.discountApplicable && formData.discountType === "flat"
             ? formData.currencyCode
@@ -162,9 +144,7 @@ export default function ChildAddonDialog({
     if (deleteConfirm.id) {
       await onDelete(deleteConfirm.id);
       setDeleteConfirm({ open: false, id: null });
-      if (editingChildAddon?.id === deleteConfirm.id) {
-        resetForm();
-      }
+      if (editingChildAddon?.id === deleteConfirm.id) resetForm();
     }
   };
 
@@ -179,15 +159,9 @@ export default function ChildAddonDialog({
     if (formData.minAge >= formData.maxAge) return false;
     if (formData.discountApplicable) {
       if (!formData.discountType) return false;
-      if (!formData.discountAmount || formData.discountAmount <= 0)
-        return false;
-      if (
-        formData.discountType === "percentage" &&
-        formData.discountAmount > 100
-      )
-        return false;
-      if (formData.discountType === "flat" && !formData.currencyCode)
-        return false;
+      if (!formData.discountAmount || formData.discountAmount <= 0) return false;
+      if (formData.discountType === "percentage" && formData.discountAmount > 100) return false;
+      if (formData.discountType === "flat" && !formData.currencyCode) return false;
     }
     return true;
   };
@@ -199,40 +173,44 @@ export default function ChildAddonDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Baby className="w-5 h-5 text-primary" />
-              Children Catalog
+              {t("childAddonDialog.title")}
             </DialogTitle>
             <DialogDescription>
-              Manage age-based pricing for children. Define age ranges and
-              optional discounts.
+              {t("childAddonDialog.description")}
             </DialogDescription>
           </DialogHeader>
 
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
-              <Loader text="Loading children catalog..." />
+              <Loader text={t("childAddonDialog.loader.loading")} />
             </div>
           ) : (
             <div className="space-y-6 py-4">
+
               {/* Existing Child Addons List */}
               {childAddons.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-gray-700">
-                    Existing Age Groups ({childAddons.length})
+                    {t("childAddonDialog.list.existingAgeGroups", { count: childAddons.length })}
                   </h4>
                   <div className="space-y-2 max-h-[200px] overflow-y-auto">
                     {childAddons.map((child) => (
                       <div
                         key={child.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${editingChildAddon?.id === child.id
-                          ? "border-primary bg-primary/5"
-                          : "border-gray-200 hover:bg-gray-50"
-                          }`}
+                        className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                          editingChildAddon?.id === child.id
+                            ? "border-primary bg-primary/5"
+                            : "border-gray-200 hover:bg-gray-50"
+                        }`}
                       >
                         <div className="flex items-center gap-3">
                           <Baby className="w-4 h-4 text-gray-400" />
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              Age {child.minAge} – {child.maxAge} years
+                              {t("childAddonDialog.list.ageRange", {
+                                min: child.minAge,
+                                max: child.maxAge,
+                              })}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
                               {child.discountApplicable ? (
@@ -245,14 +223,13 @@ export default function ChildAddonDialog({
                                   ) : (
                                     <>
                                       <DollarSign className="w-3 h-3 mr-1" />
-                                      {child.discountAmount}{" "}
-                                      {child.currencyCode}
+                                      {child.discountAmount} {child.currencyCode}
                                     </>
                                   )}
                                 </Badge>
                               ) : (
                                 <Badge variant="secondary" className="text-xs">
-                                  No Discount
+                                  {t("childAddonDialog.list.noDiscount")}
                                 </Badge>
                               )}
                             </div>
@@ -271,9 +248,7 @@ export default function ChildAddonDialog({
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                            onClick={() =>
-                              setDeleteConfirm({ open: true, id: child.id })
-                            }
+                            onClick={() => setDeleteConfirm({ open: true, id: child.id })}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </Button>
@@ -284,16 +259,15 @@ export default function ChildAddonDialog({
                 </div>
               )}
 
-              {/* Divider */}
-              {childAddons.length > 0 && (
-                <div className="border-t border-gray-200" />
-              )}
+              {childAddons.length > 0 && <div className="border-t border-gray-200" />}
 
               {/* Form */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-gray-700">
-                    {editingChildAddon ? "Edit Age Group" : "Add New Age Group"}
+                    {editingChildAddon
+                      ? t("childAddonDialog.form.editAgeGroup")
+                      : t("childAddonDialog.form.addAgeGroup")}
                   </h4>
                   {editingChildAddon && (
                     <Button
@@ -303,7 +277,7 @@ export default function ChildAddonDialog({
                       className="text-gray-500"
                     >
                       <X className="w-4 h-4 mr-1" />
-                      Cancel Edit
+                      {t("childAddonDialog.form.cancelEdit")}
                     </Button>
                   )}
                 </div>
@@ -311,56 +285,47 @@ export default function ChildAddonDialog({
                 {/* Age Range */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="child-min-age">Minimum Age *</Label>
+                    <Label htmlFor="child-min-age">{t("childAddonDialog.form.minAge")}</Label>
                     <Input
                       id="child-min-age"
                       type="number"
                       min={0}
-                      placeholder="e.g., 0"
+                      placeholder={t("childAddonDialog.form.minAgePlaceholder")}
                       value={formData.minAge}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          minAge: Number(e.target.value),
-                        })
+                        setFormData({ ...formData, minAge: Number(e.target.value) })
                       }
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="child-max-age">Maximum Age *</Label>
+                    <Label htmlFor="child-max-age">{t("childAddonDialog.form.maxAge")}</Label>
                     <Input
                       id="child-max-age"
                       type="number"
                       min={1}
-                      placeholder="e.g., 12"
+                      placeholder={t("childAddonDialog.form.maxAgePlaceholder")}
                       value={formData.maxAge}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          maxAge: Number(e.target.value),
-                        })
+                        setFormData({ ...formData, maxAge: Number(e.target.value) })
                       }
                     />
                   </div>
                 </div>
+
                 {formData.minAge >= formData.maxAge && formData.maxAge > 0 && (
                   <p className="text-xs text-red-500">
-                    Minimum age must be less than maximum age.
+                    {t("childAddonDialog.form.ageValidationError")}
                   </p>
                 )}
 
                 {/* Discount Toggle */}
                 <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
                   <div>
-                    <Label
-                      htmlFor="discount-applicable"
-                      className="text-sm font-medium"
-                    >
-                      Custom Pricing Rules
+                    <Label htmlFor="discount-applicable" className="text-sm font-medium">
+                      {t("childAddonDialog.form.customPricingLabel")}
                     </Label>
-
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Apply discounts or make this age group free of charge
+                      {t("childAddonDialog.form.customPricingDescription")}
                     </p>
                   </div>
                   <Switch
@@ -371,9 +336,7 @@ export default function ChildAddonDialog({
                         ...formData,
                         discountApplicable: checked,
                         discountType: checked ? formData.discountType : null,
-                        discountAmount: checked
-                          ? formData.discountAmount
-                          : null,
+                        discountAmount: checked ? formData.discountAmount : null,
                         currencyCode: checked ? formData.currencyCode : null,
                       })
                     }
@@ -384,34 +347,31 @@ export default function ChildAddonDialog({
                 {formData.discountApplicable && (
                   <div className="space-y-4 p-4 rounded-lg bg-gray-50 border border-gray-200">
                     <div className="space-y-2">
-                      <Label htmlFor="discount-type">Discount Type *</Label>
+                      <Label htmlFor="discount-type">{t("childAddonDialog.form.discountType")}</Label>
                       <Select
                         value={formData.discountType || ""}
                         onValueChange={(value) =>
                           setFormData({
                             ...formData,
                             discountType: value as DiscountType,
-                            currencyCode:
-                              value === "percentage"
-                                ? null
-                                : formData.currencyCode,
+                            currencyCode: value === "percentage" ? null : formData.currencyCode,
                           })
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select discount type" />
+                          <SelectValue placeholder={t("childAddonDialog.form.discountTypePlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="percentage">
                             <span className="flex items-center gap-2">
                               <Percent className="w-3.5 h-3.5" />
-                              Percentage
+                              {t("childAddonDialog.form.discountTypePercentage")}
                             </span>
                           </SelectItem>
                           <SelectItem value="flat">
                             <span className="flex items-center gap-2">
                               <DollarSign className="w-3.5 h-3.5" />
-                              Flat Amount
+                              {t("childAddonDialog.form.discountTypeFlat")}
                             </span>
                           </SelectItem>
                         </SelectContent>
@@ -421,57 +381,53 @@ export default function ChildAddonDialog({
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="discount-amount">
-                          Discount Amount *
+                          {t("childAddonDialog.form.discountAmount")}
                           {formData.discountType === "percentage" && (
-                            <span className="text-gray-400 ml-1">(0-100)</span>
+                            <span className="text-gray-400 ml-1">
+                              {t("childAddonDialog.form.discountAmountRange")}
+                            </span>
                           )}
                         </Label>
                         <Input
                           id="discount-amount"
                           type="number"
                           min={0}
-                          max={
-                            formData.discountType === "percentage"
-                              ? 100
-                              : undefined
-                          }
-                          placeholder="e.g., 25"
+                          max={formData.discountType === "percentage" ? 100 : undefined}
+                          placeholder={t("childAddonDialog.form.discountAmountPlaceholder")}
                           value={formData.discountAmount ?? ""}
                           onChange={(e) =>
                             setFormData({
                               ...formData,
-                              discountAmount: e.target.value
-                                ? Number(e.target.value)
-                                : null,
+                              discountAmount: e.target.value ? Number(e.target.value) : null,
                             })
                           }
                         />
                       </div>
-                      {
-                        formData.discountType === "flat" && (
 
-                          <div className="space-y-2">
-                            <Label htmlFor="currencyCode">Currency Code</Label>
-                            <Select
-                              value={formData.currencyCode || "AED"}
-                              onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {currencies.map((currency) => (
-                                  <SelectItem key={currency.code} value={currency.code}>
-                                    {currency.name} ({currency.symbol})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )
-
-                      }
-
+                      {formData.discountType === "flat" && (
+                        <div className="space-y-2">
+                          <Label htmlFor="currencyCode">
+                            {t("childAddonDialog.form.currencyCode")}
+                          </Label>
+                          <Select
+                            value={formData.currencyCode || "AED"}
+                            onValueChange={(value) =>
+                              setFormData({ ...formData, currencyCode: value as CurrencyCode })
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {currencies.map((currency) => (
+                                <SelectItem key={currency.code} value={currency.code}>
+                                  {currency.name} ({currency.symbol})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -481,21 +437,18 @@ export default function ChildAddonDialog({
 
           <DialogFooter>
             <Button variant="outline" onClick={handleClose}>
-              Close
+              {t("childAddonDialog.buttons.close")}
             </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!isFormValid() || isLoading}
-            >
+            <Button onClick={handleSubmit} disabled={!isFormValid() || isLoading}>
               {editingChildAddon ? (
                 <>
                   <Pencil className="w-4 h-4 mr-2" />
-                  Update
+                  {t("childAddonDialog.buttons.update")}
                 </>
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Age Group
+                  {t("childAddonDialog.buttons.addAgeGroup")}
                 </>
               )}
             </Button>
@@ -512,19 +465,18 @@ export default function ChildAddonDialog({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Age Group</AlertDialogTitle>
+            <AlertDialogTitle>{t("childAddonDialog.deleteDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this children's age group? This
-              action cannot be undone.
+              {t("childAddonDialog.deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("childAddonDialog.buttons.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {t("childAddonDialog.buttons.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

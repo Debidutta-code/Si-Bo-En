@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,6 +57,8 @@ export default function ManagementTabs({
     onEditVariant,
     onDeleteVariant,
 }: ManagementTabsProps) {
+    const { t } = useTranslation();
+
     const [deleteDialog, setDeleteDialog] = useState<{
         open: boolean;
         type: "category" | "subcategory" | "variant" | null;
@@ -107,26 +110,27 @@ export default function ManagementTabs({
                 <TabsList className="grid w-full grid-cols-3">
                     <TabsTrigger value="categories">
                         <Layers className="w-4 h-4 mr-2" />
-                        Categories ({categories.length})
+                        {t("Addon.ManagementTabs.tabs.categories", { count: categories.length })}
                     </TabsTrigger>
                     <TabsTrigger value="subcategories">
                         <FolderTree className="w-4 h-4 mr-2" />
-                        Subcategories ({subCategories.length})
+                        {t("Addon.ManagementTabs.tabs.subcategories", { count: subCategories.length })}
                     </TabsTrigger>
                     <TabsTrigger value="variants">
                         <Package className="w-4 h-4 mr-2" />
-                        Variants ({variants.length})
+                        {t("Addon.ManagementTabs.tabs.variants", { count: variants.length })}
                     </TabsTrigger>
                 </TabsList>
 
+                {/* ── Categories Tab ── */}
                 <TabsContent value="categories" className="space-y-4">
                     <div className="flex justify-between items-center">
                         <p className="text-sm text-gray-600">
-                            Manage add-on categories
+                            {t("Addon.ManagementTabs.categories.description")}
                         </p>
                         <Button onClick={onCreateCategory} size="sm">
                             <Plus className="w-4 h-4 mr-2" />
-                            New Category
+                            {t("Addon.ManagementTabs.categories.newButton")}
                         </Button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -135,8 +139,9 @@ export default function ManagementTabs({
                                 <CardContent className="p-4">
                                     <div className="flex justify-between items-start mb-2">
                                         <div className="flex-1">
-                                            <h3 className="font-semibold text-lg">{category._translations?category._translations.name:category.name}</h3>
-                                            
+                                            <h3 className="font-semibold text-lg">
+                                                {category._translations ? category._translations.name : category.name}
+                                            </h3>
                                         </div>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -147,37 +152,34 @@ export default function ManagementTabs({
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem onClick={() => onEditCategory(category)}>
                                                     <Pencil className="w-4 h-4 mr-2" />
-                                                    Edit
+                                                    {t("Addon.ManagementTabs.actions.edit")}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                     onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, openEdit: false, type: 'category', entityId: category.id }))}
+                                                    onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, openEdit: false, type: "category", entityId: category.id }))}
                                                 >
                                                     <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
-                                                    Add Translation
+                                                    {t("Addon.ManagementTabs.actions.addTranslation")}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                     onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, openEdit: false, type: 'category', entityId: category.id }))}
+                                                    onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, openEdit: false, type: "category", entityId: category.id }))}
                                                 >
                                                     <Languages className="w-4 h-4 mr-2 text-green-600" />
-                                                    Check Translations
+                                                    {t("Addon.ManagementTabs.actions.checkTranslations")}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() => setDeleteDialog({
-                                                        open: true,
-                                                        type: "category",
-                                                        id: category.id,
-                                                        name: category.name
-                                                    })}
+                                                    onClick={() => setDeleteDialog({ open: true, type: "category", id: category.id, name: category.name })}
                                                     className="text-red-600"
                                                 >
                                                     <Trash2 className="w-4 h-4 mr-2" />
-                                                    Delete
+                                                    {t("Addon.ManagementTabs.actions.delete")}
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
                                     <Badge variant="outline" className="text-xs">
-                                        {subCategories.filter(s => s.categoryId === category.id).length} subcategories
+                                        {t("Addon.ManagementTabs.categories.subcategoryCount", {
+                                            count: subCategories.filter(s => s.categoryId === category.id).length,
+                                        })}
                                     </Badge>
                                 </CardContent>
                             </Card>
@@ -185,86 +187,85 @@ export default function ManagementTabs({
                     </div>
                 </TabsContent>
 
+                {/* ── Subcategories Tab ── */}
                 <TabsContent value="subcategories" className="space-y-4">
                     <div className="flex justify-between items-center">
                         <p className="text-sm text-gray-600">
-                            Manage add-on subcategories
+                            {t("Addon.ManagementTabs.subcategories.description")}
                         </p>
                         <Button onClick={onCreateSubCategory} size="sm">
                             <Plus className="w-4 h-4 mr-2" />
-                            New Subcategory
+                            {t("Addon.ManagementTabs.subcategories.newButton")}
                         </Button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {subCategories?.map((subCategory) => {
-                            return (
-                                <Card key={subCategory.id} className="hover:shadow-lg transition-shadow">
-                                    <CardContent className="p-4">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="flex-1">
-                                                <h3 className="font-semibold text-lg">{subCategory._translations?subCategory._translations.name:subCategory.name}</h3>
-                                            </div>
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                                        <MoreVertical className="w-4 h-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => onEditSubCategory(subCategory)}>
-                                                        <Pencil className="w-4 h-4 mr-2" />
-                                                        Edit
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                         onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, openEdit: false, type: 'subcategory', entityId: subCategory.id }))}
-                                                    >
-                                                        <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
-                                                        Add Translation
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                         onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, openEdit: false, type: 'subcategory', entityId: subCategory.id }))}
-                                                    >
-                                                        <Languages className="w-4 h-4 mr-2 text-green-600" />
-                                                        Check Translations
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        onClick={() => setDeleteDialog({
-                                                            open: true,
-                                                            type: "subcategory",
-                                                            id: subCategory.id,
-                                                            name: subCategory.name
-                                                        })}
-                                                        className="text-red-600"
-                                                    >
-                                                        <Trash2 className="w-4 h-4 mr-2" />
-                                                        Delete
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                        {subCategories?.map((subCategory) => (
+                            <Card key={subCategory.id} className="hover:shadow-lg transition-shadow">
+                                <CardContent className="p-4">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex-1">
+                                            <h3 className="font-semibold text-lg">
+                                                {subCategory._translations ? subCategory._translations.name : subCategory.name}
+                                            </h3>
                                         </div>
-                                        <div className="flex gap-2 mt-2">
-                                            <Badge variant="secondary" className="text-xs">
-                                                {subCategory._translations?subCategory._translations.name:subCategory.name || "Unknown"}
-                                            </Badge>
-                                            <Badge variant="outline" className="text-xs">
-                                                {variants.filter(v => v.subcategoryId === subCategory.id).length} variants
-                                            </Badge>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                    <MoreVertical className="w-4 h-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem onClick={() => onEditSubCategory(subCategory)}>
+                                                    <Pencil className="w-4 h-4 mr-2" />
+                                                    {t("Addon.ManagementTabs.actions.edit")}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, openEdit: false, type: "subcategory", entityId: subCategory.id }))}
+                                                >
+                                                    <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
+                                                    {t("Addon.ManagementTabs.actions.addTranslation")}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, openEdit: false, type: "subcategory", entityId: subCategory.id }))}
+                                                >
+                                                    <Languages className="w-4 h-4 mr-2 text-green-600" />
+                                                    {t("Addon.ManagementTabs.actions.checkTranslations")}
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onClick={() => setDeleteDialog({ open: true, type: "subcategory", id: subCategory.id, name: subCategory.name })}
+                                                    className="text-red-600"
+                                                >
+                                                    <Trash2 className="w-4 h-4 mr-2" />
+                                                    {t("Addon.ManagementTabs.actions.delete")}
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
+                                    <div className="flex gap-2 mt-2">
+                                        <Badge variant="secondary" className="text-xs">
+                                            {subCategory._translations ? subCategory._translations.name : subCategory.name || t("Addon.ManagementTabs.common.unknown")}
+                                        </Badge>
+                                        <Badge variant="outline" className="text-xs">
+                                            {t("Addon.ManagementTabs.subcategories.variantCount", {
+                                                count: variants.filter(v => v.subcategoryId === subCategory.id).length,
+                                            })}
+                                        </Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </div>
                 </TabsContent>
 
+                {/* ── Variants Tab ── */}
                 <TabsContent value="variants" className="space-y-4">
                     <div className="flex justify-between items-center">
                         <p className="text-sm text-gray-600">
-                            Manage add-on variants
+                            {t("Addon.ManagementTabs.variants.description")}
                         </p>
                         <Button onClick={onCreateVariant} size="sm">
                             <Plus className="w-4 h-4 mr-2" />
-                            New Variant
+                            {t("Addon.ManagementTabs.variants.newButton")}
                         </Button>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -276,7 +277,9 @@ export default function ManagementTabs({
                                     <CardContent className="p-4">
                                         <div className="flex justify-between items-start mb-2">
                                             <div className="flex-1">
-                                                <h3 className="font-semibold text-lg">{variant._translations?variant._translations.name:variant.name}</h3>
+                                                <h3 className="font-semibold text-lg">
+                                                    {variant._translations ? variant._translations.name : variant.name}
+                                                </h3>
                                             </div>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -287,38 +290,35 @@ export default function ManagementTabs({
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => onEditVariant(variant)}>
                                                         <Pencil className="w-4 h-4 mr-2" />
-                                                        Edit
+                                                        {t("Addon.ManagementTabs.actions.edit")}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
-                                                         onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, openEdit: false, type: 'variant', entityId: variant.id }))}
+                                                        onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, openEdit: false, type: "variant", entityId: variant.id }))}
                                                     >
                                                         <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
-                                                        Add Translation
+                                                        {t("Addon.ManagementTabs.actions.addTranslation")}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
-                                                         onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, openEdit: false, type: 'variant', entityId: variant.id }))}
+                                                        onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, openEdit: false, type: "variant", entityId: variant.id }))}
                                                     >
                                                         <Languages className="w-4 h-4 mr-2 text-green-600" />
-                                                        Check Translations
+                                                        {t("Addon.ManagementTabs.actions.checkTranslations")}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
-                                                        onClick={() => setDeleteDialog({
-                                                            open: true,
-                                                            type: "variant",
-                                                            id: variant.id,
-                                                            name: variant.name
-                                                        })}
+                                                        onClick={() => setDeleteDialog({ open: true, type: "variant", id: variant.id, name: variant.name })}
                                                         className="text-red-600"
                                                     >
                                                         <Trash2 className="w-4 h-4 mr-2" />
-                                                        Delete
+                                                        {t("Addon.ManagementTabs.actions.delete")}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
                                         <div className="flex flex-col gap-1 mt-2">
                                             <Badge variant="secondary" className="text-xs w-fit">
-                                                {category?._translations?category._translations.name:category?.name || "Unknown"} → {subCategory?._translations?subCategory?._translations.name:subCategory?.name || "Unknown"}
+                                                {category?._translations ? category._translations.name : category?.name || t("Addon.ManagementTabs.common.unknown")}
+                                                {" → "}
+                                                {subCategory?._translations ? subCategory._translations.name : subCategory?.name || t("Addon.ManagementTabs.common.unknown")}
                                             </Badge>
                                         </div>
                                     </CardContent>
@@ -329,51 +329,52 @@ export default function ManagementTabs({
                 </TabsContent>
             </Tabs>
 
-            <AlertDialog open={deleteDialog.open} onOpenChange={(open) => 
+            {/* ── Delete Dialog ── */}
+            <AlertDialog open={deleteDialog.open} onOpenChange={(open) =>
                 setDeleteDialog({ open, type: null, id: null, name: null })
             }>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("Addon.ManagementTabs.deleteDialog.title")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently delete the {deleteDialog.type} "{deleteDialog.name}". 
-                            This action cannot be undone.
+                            {t("Addon.ManagementTabs.deleteDialog.description", {
+                                type: deleteDialog.type,
+                                name: deleteDialog.name,
+                            })}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("Addon.ManagementTabs.deleteDialog.cancel")}</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             className="bg-red-600 hover:bg-red-700"
                         >
-                            Delete
+                            {t("Addon.ManagementTabs.deleteDialog.confirm")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Translation Dialogs */}
+            {/* ── Translation Dialogs — Category ── */}
             {translationDialog.entityId && translationDialog.type === "category" && (
                 <>
                     <AddTranslationDialog
                         open={translationDialog.openAdd}
                         onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
                         entityId={translationDialog.entityId}
-                        title="Add Category Translation"
+                        title={t("Addon.ManagementTabs.translationDialogs.category.addTitle")}
                         fields={[
-                            { key: "name", label: "Category Name", placeholder: "e.g. Comida..." }
+                            { key: "name", label: t("Addon.ManagementTabs.translationDialogs.category.fieldLabel"), placeholder: t("Addon.ManagementTabs.translationDialogs.category.fieldPlaceholder") }
                         ]}
                         allowedLanguageCodes={activeLanguageCodes}
-                        onSave={async (id, locale, data) => {
-                            return await upsertAddonCategoryTranslation(id, { [locale]: data });
-                        }}
+                        onSave={async (id, locale, data) => await upsertAddonCategoryTranslation(id, { [locale]: data })}
                     />
                     <CheckTranslationsDialog
                         open={translationDialog.openCheck}
                         onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
                         entityId={translationDialog.entityId}
-                        title="Category Translations"
-                        displayFields={[{ key: "name", label: "Name" }]}
+                        title={t("Addon.ManagementTabs.translationDialogs.category.checkTitle")}
+                        displayFields={[{ key: "name", label: t("Addon.ManagementTabs.translationDialogs.fieldName") }]}
                         onFetch={getAllAddonCategoryTranslations}
                         onDelete={deleteAddonCategoryTranslationLocale}
                         onEdit={(locale, data) => setTranslationDialog(prev => ({ ...prev, openEdit: true, openCheck: false, editingLocale: locale, editingData: data }))}
@@ -384,33 +385,33 @@ export default function ManagementTabs({
                         entityId={translationDialog.entityId!}
                         locale={translationDialog.editingLocale}
                         initialData={translationDialog.editingData}
-                        title="Edit Category Translation"
-                        fields={[{ key: "name", label: "Category Name", placeholder: "e.g. Comida..." }]}
+                        title={t("Addon.ManagementTabs.translationDialogs.category.editTitle")}
+                        fields={[{ key: "name", label: t("Addon.ManagementTabs.translationDialogs.category.fieldLabel"), placeholder: t("Addon.ManagementTabs.translationDialogs.category.fieldPlaceholder") }]}
                         onSave={async (id, locale, data) => upsertAddonCategoryTranslation(id, { [locale]: data })}
                     />
                 </>
             )}
+
+            {/* ── Translation Dialogs — Subcategory ── */}
             {translationDialog.entityId && translationDialog.type === "subcategory" && (
                 <>
                     <AddTranslationDialog
                         open={translationDialog.openAdd}
                         onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
                         entityId={translationDialog.entityId}
-                        title="Add Subcategory Translation"
+                        title={t("Addon.ManagementTabs.translationDialogs.subcategory.addTitle")}
                         fields={[
-                            { key: "name", label: "Subcategory Name", placeholder: "e.g. Desayuno..." }
+                            { key: "name", label: t("Addon.ManagementTabs.translationDialogs.subcategory.fieldLabel"), placeholder: t("Addon.ManagementTabs.translationDialogs.subcategory.fieldPlaceholder") }
                         ]}
                         allowedLanguageCodes={activeLanguageCodes}
-                        onSave={async (id, locale, data) => {
-                            return await upsertAddonSubCategoryTranslation(id, { [locale]: data });
-                        }}
+                        onSave={async (id, locale, data) => await upsertAddonSubCategoryTranslation(id, { [locale]: data })}
                     />
                     <CheckTranslationsDialog
                         open={translationDialog.openCheck}
                         onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
                         entityId={translationDialog.entityId}
-                        title="Subcategory Translations"
-                        displayFields={[{ key: "name", label: "Name" }]}
+                        title={t("Addon.ManagementTabs.translationDialogs.subcategory.checkTitle")}
+                        displayFields={[{ key: "name", label: t("Addon.ManagementTabs.translationDialogs.fieldName") }]}
                         onFetch={getAllAddonSubCategoryTranslations}
                         onDelete={deleteAddonSubCategoryTranslationLocale}
                         onEdit={(locale, data) => setTranslationDialog(prev => ({ ...prev, openEdit: true, openCheck: false, editingLocale: locale, editingData: data }))}
@@ -421,33 +422,33 @@ export default function ManagementTabs({
                         entityId={translationDialog.entityId!}
                         locale={translationDialog.editingLocale}
                         initialData={translationDialog.editingData}
-                        title="Edit Subcategory Translation"
-                        fields={[{ key: "name", label: "Subcategory Name", placeholder: "e.g. Desayuno..." }]}
+                        title={t("Addon.ManagementTabs.translationDialogs.subcategory.editTitle")}
+                        fields={[{ key: "name", label: t("Addon.ManagementTabs.translationDialogs.subcategory.fieldLabel"), placeholder: t("Addon.ManagementTabs.translationDialogs.subcategory.fieldPlaceholder") }]}
                         onSave={async (id, locale, data) => upsertAddonSubCategoryTranslation(id, { [locale]: data })}
                     />
                 </>
             )}
+
+            {/* ── Translation Dialogs — Variant ── */}
             {translationDialog.entityId && translationDialog.type === "variant" && (
                 <>
                     <AddTranslationDialog
                         open={translationDialog.openAdd}
                         onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
                         entityId={translationDialog.entityId}
-                        title="Add Variant Translation"
+                        title={t("Addon.ManagementTabs.translationDialogs.variant.addTitle")}
                         fields={[
-                            { key: "name", label: "Variant Name", placeholder: "e.g. Grande..." }
+                            { key: "name", label: t("Addon.ManagementTabs.translationDialogs.variant.fieldLabel"), placeholder: t("Addon.ManagementTabs.translationDialogs.variant.fieldPlaceholder") }
                         ]}
                         allowedLanguageCodes={activeLanguageCodes}
-                        onSave={async (id, locale, data) => {
-                            return await upsertAddonVariantTranslation(id, { [locale]: data });
-                        }}
+                        onSave={async (id, locale, data) => await upsertAddonVariantTranslation(id, { [locale]: data })}
                     />
                     <CheckTranslationsDialog
                         open={translationDialog.openCheck}
                         onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
                         entityId={translationDialog.entityId}
-                        title="Variant Translations"
-                        displayFields={[{ key: "name", label: "Name" }]}
+                        title={t("Addon.ManagementTabs.translationDialogs.variant.checkTitle")}
+                        displayFields={[{ key: "name", label: t("Addon.ManagementTabs.translationDialogs.fieldName") }]}
                         onFetch={getAllAddonVariantTranslations}
                         onDelete={deleteAddonVariantTranslationLocale}
                         onEdit={(locale, data) => setTranslationDialog(prev => ({ ...prev, openEdit: true, openCheck: false, editingLocale: locale, editingData: data }))}
@@ -458,8 +459,8 @@ export default function ManagementTabs({
                         entityId={translationDialog.entityId!}
                         locale={translationDialog.editingLocale}
                         initialData={translationDialog.editingData}
-                        title="Edit Variant Translation"
-                        fields={[{ key: "name", label: "Variant Name", placeholder: "e.g. Grande..." }]}
+                        title={t("Addon.ManagementTabs.translationDialogs.variant.editTitle")}
+                        fields={[{ key: "name", label: t("Addon.ManagementTabs.translationDialogs.variant.fieldLabel"), placeholder: t("Addon.ManagementTabs.translationDialogs.variant.fieldPlaceholder") }]}
                         onSave={async (id, locale, data) => upsertAddonVariantTranslation(id, { [locale]: data })}
                     />
                 </>

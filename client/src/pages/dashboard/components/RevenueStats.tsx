@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { IRevenueAnalytics } from '../interface';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
 import { getCurrencySymbol } from '../utils/currencyUtils';
+import { useTranslation } from 'react-i18next';
 
 interface RevenueStatsProps {
   data: IRevenueAnalytics;
@@ -12,6 +13,8 @@ interface RevenueStatsProps {
 }
 
 export default function RevenueStats({ data, currencyCode }: RevenueStatsProps) {
+    const { t } = useTranslation();
+
   const formatCurrency = (amount: number) => {
     const symbol = currencyCode;  // or import formatCurrency from utils
     return `${symbol} ${amount.toLocaleString('en-US', {
@@ -31,31 +34,31 @@ export default function RevenueStats({ data, currencyCode }: RevenueStatsProps) 
           </span>
         </div>
         <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-          Revenue Analytics
+          {t('DashboardStats.revenueAnalytics')}
         </h2>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Revenue"
+          title={t('DashboardStats.totalRevenue')}
           value={formatCurrency(data?.totalRevenue)}
           customIcon={CurrencyIcon}
-          description="All time"
+          description={t('DashboardStats.allTime')}
         />
-        <StatCard
-          title="Today's Revenue"
+         <StatCard
+          title={t('DashboardStats.todaysRevenue')}
           value={formatCurrency(data?.todayRevenue)}
           icon={TrendingUp}
-          description="Revenue today"
+          description={t('DashboardStats.revenueToday')}
         />
         <StatCard
-          title="This Week"
+          title={t('DashboardStats.thisWeek')}
           value={formatCurrency(data?.weekRevenue)}
           icon={TrendingUp}
-          description="Last 7 days"
+          description={t('DashboardStats.last7Days')}
         />
         <StatCard
-          title="This Month"
+          title={t('DashboardStats.thisMonth')}
           value={formatCurrency(data?.monthRevenue)}
           icon={TrendingUp}
           trend={{
@@ -67,29 +70,29 @@ export default function RevenueStats({ data, currencyCode }: RevenueStatsProps) 
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="RevPAR"
+          title={t('DashboardStats.revPAR')}
           value={formatCurrency(data?.revPAR)}
           customIcon={CurrencyIcon}
-          description="Revenue per available room"
+          description={t('DashboardStats.revenuePerAvailableRoom')}
         />
         <StatCard
-          title="Avg Booking Value"
+          title={t('DashboardStats.avgBookingValue')}
           value={formatCurrency(data?.averageRevenuePerBooking)}
           icon={CreditCard}
-          description="Per reservation"
+          description={t('DashboardStats.perReservation')}
         />
         <StatCard
-          title="Pending Payments"
+          title={t('DashboardStats.pendingPayments')}
           value={formatCurrency(data?.pendingPayments.amount)}
           icon={AlertCircle}
-          description={`${data?.pendingPayments.count} payments pending`}
+          description={t('DashboardStats.paymentsPending', { count: data?.pendingPayments.count })}
           className="border-orange-200"
         />
         <StatCard
-          title="Last Month"
+          title={t('DashboardStats.lastMonth')}
           value={formatCurrency(data?.lastMonthRevenue)}
           customIcon={CurrencyIcon}
-          description="Previous month revenue"
+          description={t('DashboardStats.previousMonthRevenue')}
         />
       </div>
 
@@ -99,7 +102,7 @@ export default function RevenueStats({ data, currencyCode }: RevenueStatsProps) 
       {/* Payment Status Breakdown */}
       <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
         <CardHeader>
-          <CardTitle className="text-xl font-bold">Payment Status Breakdown</CardTitle>
+    <CardTitle className="text-xl font-bold">{t('DashboardStats.paymentStatusBreakdown')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -115,7 +118,7 @@ export default function RevenueStats({ data, currencyCode }: RevenueStatsProps) 
                     <span className="font-semibold">{formatCurrency(payment.amount)}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {payment.count} payments
+              {payment.count} {t('DashboardStats.bookingsLabel')}
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div

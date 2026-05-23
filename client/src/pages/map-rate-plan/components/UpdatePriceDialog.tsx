@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Edit, Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
     Dialog, DialogContent, DialogDescription,
@@ -36,6 +37,7 @@ export default function UpdatePriceDialog({
     onSave,
     roomTypes,
 }: UpdatePriceDialogProps) {
+    const { t } = useTranslation();
     const [adultsBase, setAdultsBase] = useState<IBaseGuestAmounts[]>([]);
     const [childrenBase, setChildrenBase] = useState<IBaseGuestAmounts[]>([]);
     const [additionalGuestAmounts, setAdditionalGuestAmounts] = useState<IAdditionalGuestAmount[]>([]);
@@ -86,7 +88,7 @@ export default function UpdatePriceDialog({
     // ── Adults ──────────────────────────────────────────────
     const handleAddAdult = () => {
         if (isAdultLimitReached) {
-            toast.error(`Max adults for this room is ${selectedRoom?.maxNumberOfAdults}`);
+            toast.error(t("MapRatePlan.toast.maxAdultsForRoom", { max: selectedRoom?.maxNumberOfAdults }));
             return;
         }
         setAdultsBase(prev => [
@@ -97,7 +99,7 @@ export default function UpdatePriceDialog({
 
     const handleRemoveAdult = (index: number) => {
         if (adultsBase.length <= 1) {
-            toast.error("At least one adult base amount is required");
+            toast.error(t("MapRatePlan.toast.minOneAdultRequiredError"));
             return;
         }
         setAdultsBase(prev =>
@@ -111,7 +113,7 @@ export default function UpdatePriceDialog({
             if (field === "numberOfGuests") {
                 const n = Number(value) || 1;
                 if (selectedRoom && n > selectedRoom.maxNumberOfAdults) {
-                    toast.error(`Max adults is ${selectedRoom.maxNumberOfAdults}`);
+                    toast.error(t("MapRatePlan.toast.maxAdultsError", { max: selectedRoom.maxNumberOfAdults }));
                     updated[index] = { ...updated[index], numberOfGuests: selectedRoom.maxNumberOfAdults };
                     return updated;
                 }
@@ -126,7 +128,7 @@ export default function UpdatePriceDialog({
     // ── Children ────────────────────────────────────────────
     const handleAddChild = () => {
         if (isChildLimitReached) {
-            toast.error(`Max children for this room is ${selectedRoom?.maxNumberOfChildren}`);
+            toast.error(t("MapRatePlan.toast.maxChildrenForRoom", { max: selectedRoom?.maxNumberOfChildren }));
             return;
         }
         setChildrenBase(prev => [
@@ -147,7 +149,7 @@ export default function UpdatePriceDialog({
             if (field === "numberOfGuests") {
                 const n = Number(value) || 1;
                 if (selectedRoom && n > selectedRoom.maxNumberOfChildren) {
-                    toast.error(`Max children is ${selectedRoom.maxNumberOfChildren}`);
+                    toast.error(t("MapRatePlan.toast.maxChildrenError", { max: selectedRoom.maxNumberOfChildren }));
                     updated[index] = { ...updated[index], numberOfGuests: selectedRoom.maxNumberOfChildren };
                     return updated;
                 }
@@ -164,7 +166,7 @@ export default function UpdatePriceDialog({
         const usedCodes = additionalGuestAmounts.map(a => a.ageQualifyingCode);
         const nextCode = availableAgeCodes.find(c => !usedCodes.includes(c));
         if (!nextCode) {
-            toast.error("All age categories have been added (Adult, Child, Infant)");
+            toast.error(t("MapRatePlan.toast.allAgeCategoriesError"));
             return;
         }
         setAdditionalGuestAmounts(prev => [
@@ -192,7 +194,7 @@ export default function UpdatePriceDialog({
         const combined = [...adultsBase, ...childrenBase];
         const hasInvalid = combined.some(g => parseFloat(String(g.amountBeforeTax)) <= 0);
         if (hasInvalid) {
-            toast.error("All base guest amounts must be greater than 0");
+            toast.error(t("MapRatePlan.toast.baseAmountsPositive"));
             return;
         }
 
@@ -217,10 +219,10 @@ export default function UpdatePriceDialog({
                 <DialogHeader>
                     <DialogTitle className="text-2xl flex items-center gap-2">
                         <Edit className="w-6 h-6" />
-                        Update Price
+                        {t("MapRatePlan.updatePrice.title")}
                     </DialogTitle>
                     <DialogDescription>
-                        Update pricing for {mapping.ratePlanName} - {mapping.roomTypeName}
+                        {t("MapRatePlan.updatePrice.titleDesc", { ratePlan: mapping.ratePlanName, roomType: mapping.roomTypeName })}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -229,14 +231,14 @@ export default function UpdatePriceDialog({
                     {/* Adults */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Base Guest Amounts For Adults *</CardTitle>
-                            <CardDescription>Set pricing based on number of adult guests</CardDescription>
+                            <CardTitle className="text-lg">{t("MapRatePlan.updatePrice.baseGuestAmountsAdults")}</CardTitle>
+                            <CardDescription>{t("MapRatePlan.updatePrice.baseGuestAmountsAdultsDesc")}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {adultsBase.map((item, index) => (
                                 <div key={index} className="flex items-end gap-3">
                                     <div className="flex-1 space-y-2">
-                                        <Label>Number of Adults</Label>
+                                        <Label>{t("MapRatePlan.updatePrice.numberOfAdults")}</Label>
                                         <Input
                                             type="number"
                                             min="1"
@@ -245,7 +247,7 @@ export default function UpdatePriceDialog({
                                         />
                                     </div>
                                     <div className="flex-1 space-y-2">
-                                        <Label>Amount</Label>
+                                        <Label>{t("MapRatePlan.updatePrice.amount")}</Label>
                                         <Input
                                             type="number"
                                             min="0"
@@ -274,8 +276,8 @@ export default function UpdatePriceDialog({
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 {isAdultLimitReached
-                                    ? `Max adults reached (${selectedRoom?.maxNumberOfAdults})`
-                                    : "Add Adult Guest Amount"}
+                                    ? t("MapRatePlan.updatePrice.maxAdultsReached", { max: selectedRoom?.maxNumberOfAdults })
+                                    : t("MapRatePlan.updatePrice.addAdultGuestAmount")}
                             </Button>
                         </CardContent>
                     </Card>
@@ -283,14 +285,14 @@ export default function UpdatePriceDialog({
                     {/* Children */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Base Guest Amount for Children</CardTitle>
-                            <CardDescription>Set pricing based on number of child guests</CardDescription>
+                            <CardTitle className="text-lg">{t("MapRatePlan.updatePrice.baseGuestAmountsChildren")}</CardTitle>
+                            <CardDescription>{t("MapRatePlan.updatePrice.baseGuestAmountsChildrenDesc")}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {childrenBase.map((item, index) => (
                                 <div key={index} className="flex items-end gap-3">
                                     <div className="flex-1 space-y-2">
-                                        <Label>Number of Children</Label>
+                                        <Label>{t("MapRatePlan.updatePrice.numberOfChildren")}</Label>
                                         <Input
                                             type="number"
                                             min="1"
@@ -299,7 +301,7 @@ export default function UpdatePriceDialog({
                                         />
                                     </div>
                                     <div className="flex-1 space-y-2">
-                                        <Label>Amount</Label>
+                                        <Label>{t("MapRatePlan.updatePrice.amount")}</Label>
                                         <Input
                                             type="number"
                                             min="0"
@@ -327,8 +329,8 @@ export default function UpdatePriceDialog({
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 {isChildLimitReached
-                                    ? `Max children reached (${selectedRoom?.maxNumberOfChildren})`
-                                    : "Add Child Guest Amount"}
+                                    ? t("MapRatePlan.updatePrice.maxChildrenReached", { max: selectedRoom?.maxNumberOfChildren })
+                                    : t("MapRatePlan.updatePrice.addChildGuestAmount")}
                             </Button>
                         </CardContent>
                     </Card>
@@ -336,14 +338,14 @@ export default function UpdatePriceDialog({
                     {/* Additional */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Additional Guest Amounts (Optional)</CardTitle>
-                            <CardDescription>Set pricing for additional guests by age category</CardDescription>
+                            <CardTitle className="text-lg">{t("MapRatePlan.updatePrice.additionalGuestAmounts")}</CardTitle>
+                            <CardDescription>{t("MapRatePlan.updatePrice.additionalGuestAmountsDesc")}</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {additionalGuestAmounts.map((item, index) => (
                                 <div key={index} className="flex items-end gap-3">
                                     <div className="flex-1 space-y-2">
-                                        <Label>Age Code</Label>
+                                        <Label>{t("MapRatePlan.updatePrice.ageCode")}</Label>
                                         <Select
                                             value={item.ageQualifyingCode}
                                             onValueChange={value => handleAdditionalChange(index, "ageQualifyingCode", value)}
@@ -359,14 +361,14 @@ export default function UpdatePriceDialog({
                                                     )
                                                     .map(code => (
                                                         <SelectItem key={code} value={code}>
-                                                            {code === "10" ? "Adult" : code === "8" ? "Child" : "Infant"}
+                                                            {code === "10" ? t("MapRatePlan.updatePrice.adult") : code === "8" ? t("MapRatePlan.updatePrice.child") : t("MapRatePlan.updatePrice.infant")}
                                                         </SelectItem>
                                                     ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="flex-1 space-y-2">
-                                        <Label>Amount</Label>
+                                        <Label>{t("MapRatePlan.updatePrice.amount")}</Label>
                                         <Input
                                             type="number"
                                             min="0"
@@ -393,7 +395,7 @@ export default function UpdatePriceDialog({
                                 disabled={additionalGuestAmounts.length >= availableAgeCodes.length}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Add Additional Guest Amount
+                                {t("MapRatePlan.updatePrice.addAdditionalGuestAmount")}
                             </Button>
                         </CardContent>
                     </Card>
@@ -401,10 +403,10 @@ export default function UpdatePriceDialog({
 
                 <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
+                        {t("MapRatePlan.updatePrice.cancel")}
                     </Button>
                     <Button type="button" onClick={handleSave}>
-                        Save Changes
+                        {t("MapRatePlan.updatePrice.saveChanges")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

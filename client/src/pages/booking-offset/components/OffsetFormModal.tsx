@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import type { RatePlan } from "@/pages/tax-system/interface";
+import { useTranslation } from "react-i18next";
 
 const OFFSET_FIELDS: { key: keyof ICBookingOffsetS; label: string }[] = [
   { key: "minimumAdvanceBookingOffset", label: "Min Advance" },
@@ -79,6 +80,7 @@ export default function OffsetFormModal({
   selectedRatePlanId,
   onRatePlanChange,
 }: OffsetFormModalProps) {
+  const { t } = useTranslation();
   const [units, setUnits] = useState<UnitsMap>(() => getInitialUnits(form));
 
   useEffect(() => {
@@ -130,7 +132,7 @@ export default function OffsetFormModal({
               {showDateRange && (
                 <>
                   <div className="space-y-2">
-                    <Label>Start Date</Label>
+                {t("BookingOffset.formModal.startDate")}
                     <Input
                       type="date"
                       value={startDate}
@@ -138,7 +140,7 @@ export default function OffsetFormModal({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>End Date</Label>
+                {t("BookingOffset.formModal.endDate")}
                     <Input
                       type="date"
                       value={endDate}
@@ -153,7 +155,7 @@ export default function OffsetFormModal({
           <div className="grid grid-cols-2 gap-4">
             {OFFSET_FIELDS.map((field) => (
               <div key={field.key} className="space-y-2">
-                <Label>{field.label}</Label>
+                {t(`BookingOffset.formModal.fields.${field.key}`)}
                 <div className="flex gap-2">
                   <Input
                     type="number"
@@ -169,8 +171,8 @@ export default function OffsetFormModal({
                       handleUnitChange(field.key, e.target.value as Unit)
                     }
                   >
-                    <option value="hours">Hours</option>
-                    <option value="days">Days</option>
+                  <option value="hours">{t("BookingOffset.formModal.units.hours")}</option>
+                  <option value="days">{t("BookingOffset.formModal.units.days")}</option>
                   </select>
                 </div>
               </div>
@@ -180,7 +182,7 @@ export default function OffsetFormModal({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("BookingOffset.formModal.cancel")}
           </Button>
           <Button onClick={onSubmit}>{submitLabel}</Button>
         </DialogFooter>

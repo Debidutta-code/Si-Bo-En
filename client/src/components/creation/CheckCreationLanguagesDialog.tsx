@@ -14,12 +14,12 @@ import {
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/Loader/Loader";
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface CheckCreationLanguagesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   creationId: string;
-  /** Optional: when provided, an Edit (pencil) button is shown for each locale row */
   onEdit?: (locale: string, data: Record<string, any>) => void;
 }
 
@@ -29,6 +29,8 @@ export default function CheckCreationLanguagesDialog({
   creationId,
   onEdit,
 }: CheckCreationLanguagesDialogProps) {
+  const { t } = useTranslation();
+
   const [translations, setTranslations] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
@@ -54,12 +56,12 @@ export default function CheckCreationLanguagesDialog({
     setDeleteLoading(locale);
     const res = await deleteCreationTranslationLocaleService(creationId, locale);
     if (res.success) {
-      toast.success("Translation deleted successfully!");
+      toast.success(t("CheckCreationLanguagesDialog.toast.deleteSuccess"));
       const updated = { ...translations };
       delete updated[locale];
       setTranslations(updated);
     } else {
-      toast.error(res.message || "Failed to delete translation.");
+      toast.error(res.message || t("CheckCreationLanguagesDialog.toast.deleteFailed"));
     }
     setDeleteLoading(null);
   };
@@ -71,17 +73,17 @@ export default function CheckCreationLanguagesDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Available Translations</DialogTitle>
+          <DialogTitle>{t("CheckCreationLanguagesDialog.title")}</DialogTitle>
         </DialogHeader>
 
         {loading ? (
           <div className="flex justify-center py-8">
-            <Loader text="Fetching translations..." />
+            <Loader text={t("CheckCreationLanguagesDialog.loader.fetching")} />
           </div>
         ) : (
           <div className="space-y-4 py-4">
             {Object.entries(translations).length === 0 ? (
-              <p className="text-center text-gray-500">No translations found.</p>
+              <p className="text-center text-gray-500">{t("CheckCreationLanguagesDialog.empty.noTranslations")}</p>
             ) : (
               Object.entries(translations).map(([locale, data]) => (
                 <div
@@ -91,7 +93,7 @@ export default function CheckCreationLanguagesDialog({
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-gray-800">{getLangName(locale)}</h4>
                     <p className="text-sm text-gray-600 mt-1">
-                      <span className="font-medium">Name:</span> {data.name}
+                      <span className="font-medium">{t("CheckCreationLanguagesDialog.fields.name")}:</span> {data.name}
                     </p>
                   </div>
 
@@ -101,7 +103,7 @@ export default function CheckCreationLanguagesDialog({
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7"
-                        title="Edit translation"
+                        title={t("CheckCreationLanguagesDialog.tooltips.edit")}
                         onClick={() => onEdit(locale, data)}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

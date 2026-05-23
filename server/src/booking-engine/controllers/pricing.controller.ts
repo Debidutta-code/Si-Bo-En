@@ -7,6 +7,7 @@ import {
 } from '../../utils';
 import { PricingService } from '../service';
 import { Response } from 'express';
+import { PricingInterceptor } from '../../multi-language/interceptors/pricing/pricing.interceptor';
 export class PricingController {
     private pricingService: PricingService;
     constructor() {
@@ -92,7 +93,7 @@ export class PricingController {
             const deviceInfo = getDeviceInfo(req);
             const detectedDeviceType = deviceInfo.deviceType;
 
-            const response = await this.pricingService.getRoomRentService(
+            let response = await this.pricingService.getRoomRentService(
                 propertyId,
                 invTypeCode,
                 toUTC(startDate),
@@ -111,6 +112,9 @@ export class PricingController {
                 promoCode,
                 includedAddons ? includedAddons : []
             );
+
+            const locale = req.headers['accept-language']?.slice(0, 2) || 'en';
+            response = await PricingInterceptor.interceptPricing(response, locale);
 
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {

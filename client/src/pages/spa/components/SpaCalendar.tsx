@@ -1,4 +1,5 @@
-import  { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, addMonths, subMonths, isSameDay } from 'date-fns';
 import { ChevronLeft, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -22,12 +23,11 @@ import {
     createSpaSlotsService,
     deleteSpaDateService,
     deleteSpaSlotService,
-    // markSlotAsBookedService,
-    // markSlotAsAvailableService
 } from '../services';
-import type { ISpaDates, ICSpaSlotS,ISpa } from '../interfaces';
+import type { ISpaDates, ICSpaSlotS, ISpa } from '../interfaces';
 
 export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: string, propertyId: string, spaDetails: ISpa }) {
+   const { t } = useTranslation();
    const navigate = useNavigate();
    const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
    const [spaDates, setSpaDates] = useState<ISpaDates[]>([]);
@@ -52,7 +52,7 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
            setSpaDates(res.data || []);
        } else {
            setSpaDates([]);
-           toast.error(res?.message || 'Failed to fetch spa dates');
+           toast.error(res?.message || t('SpaCalendar.toast.fetchFailed'));
        }
        setIsLoading(false);
    };
@@ -66,19 +66,26 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
    const startDate = startOfWeek(monthStart);
    const endDate = endOfWeek(monthEnd);
    const dayIntervals = eachDayOfInterval({ start: startDate, end: endDate });
-   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+   const weekDays = [
+     t('SpaCalendar.weekDays.sun'),
+     t('SpaCalendar.weekDays.mon'),
+     t('SpaCalendar.weekDays.tue'),
+     t('SpaCalendar.weekDays.wed'),
+     t('SpaCalendar.weekDays.thu'),
+     t('SpaCalendar.weekDays.fri'),
+     t('SpaCalendar.weekDays.sat'),
+   ];
 
    // Actions
    const handleAddSpaDate = async (date: Date) => {
       setIsLoading(true);
-      // Create a floating UTC date strictly at midnight to avoid timezone crossover
       const floatDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0));
       const res = await createSpaDateService(spaId, { date: floatDate });
       if (res?.success) {
-          toast.success('Date marked for spa');
+          toast.success(t('SpaCalendar.toast.dateMarked'));
           await fetchSpaDates();
       } else {
-          toast.error(res?.message || 'Failed to mark date');
+          toast.error(res?.message || t('SpaCalendar.toast.dateMarkFailed'));
       }
       setIsLoading(false);
    };
@@ -92,10 +99,10 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
       setIsLoading(true);
       const res = await deleteSpaDateService(dateDeleteContext);
       if (res?.success) {
-          toast.success('Spa date removed');
+          toast.success(t('SpaCalendar.toast.dateRemoved'));
           await fetchSpaDates();
       } else {
-          toast.error(res?.message || 'Failed to remove date');
+          toast.error(res?.message || t('SpaCalendar.toast.dateRemoveFailed'));
       }
       setIsLoading(false);
       setDateDeleteContext(null);
@@ -111,10 +118,10 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
       setIsLoading(true);
       const res = await createSpaSlotsService(selectedDateContext.spaDateId, data);
       if (res?.success) {
-         toast.success('Slots added successfully');
+         toast.success(t('SpaCalendar.toast.slotsAdded'));
          await fetchSpaDates();
       } else {
-         toast.error(res?.message || 'Failed to add slots');
+         toast.error(res?.message || t('SpaCalendar.toast.slotsAddFailed'));
       }
       setIsLoading(false);
    };
@@ -128,38 +135,14 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
       setIsLoading(true);
       const res = await deleteSpaSlotService(slotDeleteContext);
       if (res?.success) {
-          toast.success('Slot deleted');
+          toast.success(t('SpaCalendar.toast.slotDeleted'));
           await fetchSpaDates();
       } else {
-          toast.error(res?.message || 'Failed to delete slot');
+          toast.error(res?.message || t('SpaCalendar.toast.slotDeleteFailed'));
       }
       setIsLoading(false);
       setSlotDeleteContext(null);
    };
-
-  //  const handleMarkBooked = async (id: string) => {
-  //     setIsLoading(true);
-  //     const res = await markSlotAsBookedService(id);
-  //     if (res?.success) {
-  //         toast.success('Slot marked as booked');
-  //         await fetchSpaDates();
-  //     } else {
-  //         toast.error(res?.message || 'Failed to mark as booked');
-  //     }
-  //     setIsLoading(false);
-  //  };
-
-  //  const handleMarkAvailable = async (id: string) => {
-  //     setIsLoading(true);
-  //     const res = await markSlotAsAvailableService(id);
-  //     if (res?.success) {
-  //         toast.success('Slot marked as available');
-  //         await fetchSpaDates();
-  //     } else {
-  //         toast.error(res?.message || 'Failed to mark as available');
-  //     }
-  //     setIsLoading(false);
-  //  };
 
    return (
      <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border p-4">
@@ -167,7 +150,7 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
          <div className="flex justify-between items-center mb-6">
              <div className="flex items-center space-x-4">
                  <Button variant="outline" size="sm" onClick={() => navigate(`/property/spa/${propertyId}`)}>
-                    <ArrowLeft className="w-4 h-4 mr-2" /> Back to Spas
+                    <ArrowLeft className="w-4 h-4 mr-2" /> {t('SpaCalendar.backToSpas')}
                  </Button>
                  <h2 className="text-2xl font-bold flex items-center gap-2">
                     {format(currentMonth, 'MMMM yyyy')}
@@ -190,7 +173,6 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
          {/* Grid */}
          <div className="flex-1 grid grid-cols-7 auto-rows-fr bg-gray-100 border-x border-b gap-px overflow-y-auto" style={{ minHeight: '600px' }}>
              {dayIntervals.map((day, i) => {
-                 // Match safely ignoring browser timezone offsets
                  const spaDate = spaDates.find(sd => {
                      const d = new Date(sd.date);
                      const localD = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
@@ -220,19 +202,19 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
              serviceTime={spaDetails.serviceTime}
          />
 
-         {/* Delete Spa Date Alert */}
+         {/* Delete SpaCalendar Date Alert */}
          <AlertDialog open={!!dateDeleteContext} onOpenChange={(open) => !open && setDateDeleteContext(null)}>
            <AlertDialogContent>
              <AlertDialogHeader>
-               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+               <AlertDialogTitle>{t('SpaCalendar.deleteDateAlert.title')}</AlertDialogTitle>
                <AlertDialogDescription>
-                 This action cannot be undone. This will permanently delete the Spa Date and all of its associated slots.
+                 {t('SpaCalendar.deleteDateAlert.description')}
                </AlertDialogDescription>
              </AlertDialogHeader>
              <AlertDialogFooter>
-               <AlertDialogCancel>Cancel</AlertDialogCancel>
+               <AlertDialogCancel>{t('SpaCalendar.deleteDateAlert.cancel')}</AlertDialogCancel>
                <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={confirmRemoveSpaDate}>
-                 Delete
+                 {t('SpaCalendar.deleteDateAlert.confirm')}
                </AlertDialogAction>
              </AlertDialogFooter>
            </AlertDialogContent>
@@ -242,15 +224,15 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
          <AlertDialog open={!!slotDeleteContext} onOpenChange={(open) => !open && setSlotDeleteContext(null)}>
            <AlertDialogContent>
              <AlertDialogHeader>
-               <AlertDialogTitle>Delete this slot?</AlertDialogTitle>
+               <AlertDialogTitle>{t('SpaCalendar.deleteSlotAlert.title')}</AlertDialogTitle>
                <AlertDialogDescription>
-                 This action cannot be undone. This will permanently remove the slot from the schedule.
+                 {t('SpaCalendar.deleteSlotAlert.description')}
                </AlertDialogDescription>
              </AlertDialogHeader>
              <AlertDialogFooter>
-               <AlertDialogCancel>Cancel</AlertDialogCancel>
+               <AlertDialogCancel>{t('SpaCalendar.deleteSlotAlert.cancel')}</AlertDialogCancel>
                <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={confirmRemoveSlot}>
-                 Delete Slot
+                 {t('SpaCalendar.deleteSlotAlert.confirm')}
                </AlertDialogAction>
              </AlertDialogFooter>
            </AlertDialogContent>

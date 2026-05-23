@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ interface Upload {
 }
 
 export default function PeriodsManagement() {
+  const { t } = useTranslation('PriceManagement');
   const { propertyId: _propertyId } = useParams();
   const [uploads, setUploads] = useState<Upload[]>([
     {
@@ -67,7 +69,7 @@ export default function PeriodsManagement() {
     <div className="container mx-auto p-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-        <Link to="/app" className="hover:text-gray-900">Home</Link>
+        <Link to="/app" className="hover:text-gray-900">{t('home')}</Link>
         <span>/</span>
         {/* <span>Prices</span>
         <span>/</span>
@@ -78,19 +80,19 @@ export default function PeriodsManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-semibold">Prices per periods</CardTitle>
+          <CardTitle className="text-xl font-semibold">{t('periods.title')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-8">
           {uploads.map((upload, index) => (
             <div key={upload.id} className="space-y-4 border-b pb-6 last:border-0 last:pb-0">
-              <h3 className="font-semibold text-lg text-gray-700">Upload {index + 1}</h3>
+              <h3 className="font-semibold text-lg text-gray-700">{t('periods.upload', { number: index + 1 })}</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor={`room-${upload.id}`}>Room</Label>
+                  <Label htmlFor={`room-${upload.id}`}>{t('periods.room')}</Label>
                   <Select>
                     <SelectTrigger id={`room-${upload.id}`}>
-                      <SelectValue placeholder="Select room" />
+                      <SelectValue placeholder={t('periods.selectRoom')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="deluxe">Deluxe Room</SelectItem>
@@ -101,10 +103,10 @@ export default function PeriodsManagement() {
                 </div>
 
                 <div>
-                  <Label htmlFor={`occupancy-${upload.id}`}>Occupancy</Label>
+                  <Label htmlFor={`occupancy-${upload.id}`}>{t('periods.occupancy')}</Label>
                   <Select>
                     <SelectTrigger id={`occupancy-${upload.id}`}>
-                      <SelectValue placeholder="Select occupancy" />
+                      <SelectValue placeholder={t('periods.selectOccupancy')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="single">Single</SelectItem>
@@ -115,10 +117,10 @@ export default function PeriodsManagement() {
                 </div>
 
                 <div>
-                  <Label htmlFor={`board-${upload.id}`}>Board...</Label>
+                  <Label htmlFor={`board-${upload.id}`}>{t('periods.board')}</Label>
                   <Select>
                     <SelectTrigger id={`board-${upload.id}`}>
-                      <SelectValue placeholder="Select board" />
+                      <SelectValue placeholder={t('periods.selectBoard')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ro">Room Only</SelectItem>
@@ -130,10 +132,10 @@ export default function PeriodsManagement() {
                 </div>
 
                 <div>
-                  <Label htmlFor={`rate-${upload.id}`}>Rate...</Label>
+                  <Label htmlFor={`rate-${upload.id}`}>{t('periods.rate')}</Label>
                   <Select>
                     <SelectTrigger id={`rate-${upload.id}`}>
-                      <SelectValue placeholder="Select rate" />
+                      <SelectValue placeholder={t('periods.selectRate')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="standard">Standard Rate</SelectItem>
@@ -144,7 +146,7 @@ export default function PeriodsManagement() {
                 </div>
 
                 <div>
-                  <Label htmlFor={`from-${upload.id}`}>From</Label>
+                  <Label htmlFor={`from-${upload.id}`}>{t('periods.from')}</Label>
                   <Input
                     id={`from-${upload.id}`}
                     type="date"
@@ -153,7 +155,7 @@ export default function PeriodsManagement() {
                 </div>
 
                 <div>
-                  <Label htmlFor={`until-${upload.id}`}>Until</Label>
+                  <Label htmlFor={`until-${upload.id}`}>{t('periods.until')}</Label>
                   <Input
                     id={`until-${upload.id}`}
                     type="date"
@@ -162,10 +164,10 @@ export default function PeriodsManagement() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <Label htmlFor={`options-${upload.id}`}>Select Some Options</Label>
+                  <Label htmlFor={`options-${upload.id}`}>{t('periods.selectOptions')}</Label>
                   <Select>
                     <SelectTrigger id={`options-${upload.id}`}>
-                      <SelectValue placeholder="Select options" />
+                      <SelectValue placeholder={t('periods.selectOptions')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="option1">Option 1</SelectItem>
@@ -176,11 +178,11 @@ export default function PeriodsManagement() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <Label htmlFor={`price-${upload.id}`}>Price</Label>
+                  <Label htmlFor={`price-${upload.id}`}>{t('periods.price')}</Label>
                   <Input
                     id={`price-${upload.id}`}
                     type="number"
-                    placeholder="Enter price"
+                    placeholder={t('periods.enterPrice')}
                     className="w-full"
                   />
                 </div>
@@ -190,13 +192,13 @@ export default function PeriodsManagement() {
 
           <div className="flex flex-wrap gap-3 pt-4">
             <Button onClick={addPeriod} variant="outline">
-              ADD ANOTHER PERIOD
+              {t('periods.addPeriod')}
             </Button>
             <Button onClick={removePeriod} variant="outline" disabled={uploads.length === 1}>
-              REMOVE PERIOD
+              {t('periods.removePeriod')}
             </Button>
             <Button className="bg-primary hover:bg-primary/90 text-white">
-              PROCESS CHANGES
+              {t('periods.save')}
             </Button>
           </div>
         </CardContent>

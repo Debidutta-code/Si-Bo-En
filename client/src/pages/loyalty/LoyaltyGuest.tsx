@@ -38,6 +38,7 @@ import { getLoyalityByCreationService } from "./services";
 import type { IGetLoyaltyGuestsForCreation } from "./interfaces";
 import BackButton from "@/components/shared/BackButton";
 import Badge from "./components/Badge";
+import { useTranslation } from "react-i18next";
 
 interface ILoader {
   isLoading: boolean;
@@ -54,10 +55,12 @@ interface IPaginationData {
 }
 
 export default function LoyaltyGuest() {
+    const { t } = useTranslation();
+
   const { creationId } = useParams<{ creationId: string }>();
   const [loader, setLoader] = useState<ILoader>({
     isLoading: true,
-    message: "Loading loyalty configuration...",
+    message: t('Loyalty.guestLoading'),
   });
   const [creationLoyaltyId, setCreationLoyaltyId] = useState<string | null>(
     null,
@@ -90,17 +93,17 @@ export default function LoyaltyGuest() {
 
   const fetchCreationLoyalty = async (): Promise<void> => {
     if (!creationId) {
-      toast.error("Creation ID not found");
+      toast.error(t('Loyalty.guestNotFound'));
       return;
     }
 
-    setLoader({ isLoading: true, message: "Loading loyalty configuration..." });
+    setLoader({ isLoading: true, message: t('Loyalty.guestLoading') });
     const response = await getLoyalityByCreationService(creationId);
 
     if (response.success && response.data) {
       setCreationLoyaltyId(response.data.id);
     } else {
-      toast.error(response.message || "Failed to fetch loyalty configuration");
+      toast.error(response.message || t('Loyalty.failedToFetchConfig'));
       setLoader({ isLoading: false, message: "" });
     }
   };
@@ -113,7 +116,7 @@ export default function LoyaltyGuest() {
       return;
     }
 
-    setLoader({ isLoading: true, message: "Loading loyalty guests..." });
+    setLoader({ isLoading: true, message: t('Loyalty.loadingGuests') });
     const skip = (page - 1) * limit;
     const response = await getLoyaltyGuestsForCreationService(
       creationLoyaltyId,
@@ -127,7 +130,7 @@ export default function LoyaltyGuest() {
         setPagination(response.pagination);
       }
     } else {
-      toast.error(response.message || "Failed to fetch loyalty guests");
+      toast.error(response.message || t('Loyalty.failedToFetchGuests'));
       setGuests([]);
     }
     setLoader({ isLoading: false, message: "" });
@@ -150,11 +153,11 @@ export default function LoyaltyGuest() {
   const handleDeleteGuest = async (): Promise<void> => {
     if (!selectedGuestId) return;
 
-    setLoader({ isLoading: true, message: "Deleting loyalty guest..." });
+    setLoader({ isLoading: true, message: t('Loyalty.deletingGuest') });
     const response = await deleteLoyaltyGuestService(selectedGuestId);
 
     if (response.success) {
-      toast.success("Loyalty guest deleted successfully");
+      toast.success(t('Loyalty.guestDeleted'));
       setDeleteDialogOpen(false);
       setSelectedGuestId(null);
       // Refresh the current page or go to previous page if current page becomes empty
@@ -165,7 +168,7 @@ export default function LoyaltyGuest() {
         fetchLoyaltyGuests(pagination.currentPage, pagination.limit);
       }
     } else {
-      toast.error(response.message || "Failed to delete loyalty guest");
+      toast.error(response.message || t('Loyalty.failedToDeleteGuest'));
     }
     setLoader({ isLoading: false, message: "" });
   };
@@ -191,9 +194,9 @@ export default function LoyaltyGuest() {
       <BackButton />
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">Loyalty Guests</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t('Loyalty.loyaltyGuests')}</CardTitle>
           <CardDescription>
-            Manage guests enrolled in the loyalty program
+            {t('Loyalty.manageGuests')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -204,10 +207,10 @@ export default function LoyaltyGuest() {
               </div>
               <div className="text-center space-y-1">
                 <h3 className="text-lg font-semibold text-foreground">
-                  No Loyalty Guests
+                  {t('Loyalty.noGuests')}
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-sm">
-                  No guests have enrolled in this loyalty program yet.
+                  {t('Loyalty.noGuestsEnrolled')}
                 </p>
               </div>
             </div>
@@ -218,24 +221,21 @@ export default function LoyaltyGuest() {
                   ℹ
                 </span>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Guests whose details are marked as{" "}
-                  <strong className="text-foreground">N/A</strong> have
-                  registered as loyalty guests but don't have any reservations
-                  yet.
+                                   {t('Loyalty.guestsNAInfo')}
+
                 </p>
               </div>
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Guest Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Loyality Guest Level</TableHead>
-                      <TableHead>Loyality Fields</TableHead>
-
-                      <TableHead>Enrolled On</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('Loyalty.guestName')}</TableHead>
+                      <TableHead>{t('Loyalty.email')}</TableHead>
+                      <TableHead>{t('Loyalty.phone')}</TableHead>
+                      <TableHead>{t('Loyalty.guestLevel')}</TableHead>
+                      <TableHead>{t('Loyalty.loyaltyFields')}</TableHead>
+                      <TableHead>{t('Loyalty.enrolledOn')}</TableHead>
+                      <TableHead className="text-right">{t('Loyalty.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -283,7 +283,7 @@ export default function LoyaltyGuest() {
                               className="gap-2"
                             >
                               <Eye className="h-4 w-4" />
-                              View
+                              {t('Loyalty.view')}
                             </span>
                           ) : (
                             <span className="text-sm text-muted-foreground">
@@ -332,19 +332,18 @@ export default function LoyaltyGuest() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('Loyalty.deleteGuestConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently remove the
-              guest from the loyalty program.
+              {t('Loyalty.deleteGuestConfirmDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('Loyalty.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteGuest}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t('Loyalty.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -356,9 +355,9 @@ export default function LoyaltyGuest() {
       >
         <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <AlertDialogHeader>
-            <AlertDialogTitle>Loyalty Program Fields</AlertDialogTitle>
+            <AlertDialogTitle>{t('Loyalty.loyaltyProgramFields')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Guest-specific loyalty program information
+              {t('Loyalty.guestInfo')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
@@ -380,12 +379,12 @@ export default function LoyaltyGuest() {
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
-                No metadata available
+                {t('Loyalty.noMetadata')}
               </p>
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogCancel>{t('Loyalty.close')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -39,6 +39,7 @@ import type {
 import Loader from "@/components/Loader/Loader";
 import { useSearchParams } from "react-router-dom";
 import { getCreationId } from "@/pages/property/api/api";
+import { useTranslation } from "react-i18next";
 
 // Zod Validation Schema
 const propertyInfoSchema = z.object({
@@ -66,7 +67,7 @@ const propertyInfoSchema = z.object({
 type FormErrors = z.inferFormattedError<typeof propertyInfoSchema>;
 
 export default function PropertyInfo() {
-  // Get required state and functions from the context
+  const { t } = useTranslation();
   const { propertyId, next, setPropertyIdAndUrl, markStepAsCompleted } = usePropertyForm();
 
   const [propertyDetails, setPropertyDetails] = useState<IPropertyDetails>({
@@ -100,7 +101,7 @@ export default function PropertyInfo() {
         if (categoryRes.success) setPropertyCategories(categoryRes.data);
         if (typeRes.success) setPropertyTypes(typeRes.data);
       } catch (error: any) {
-        toast.error("Failed to load property options.");
+        toast.error(t("PropertyCreate.toast.loadOptions"));
       }
     };
     fetchManagementDetails();
@@ -117,11 +118,11 @@ export default function PropertyInfo() {
           image: response.data.creation.images || [],
         })
       } else {
-        toast.error(response.message || "Could not find property details.");
+        toast.error(response.message || t("PropertyCreate.toast.loadDetails"));
         setIsExistingData(false);
       }
     } catch (error: any) {
-      toast.error(error?.message || "Failed to fetch property details");
+      toast.error(error?.message || t("PropertyCreate.toast.fetchDetails"));
       setIsExistingData(false);
     } finally {
       setIsLoading(false);
@@ -163,11 +164,11 @@ export default function PropertyInfo() {
           setIsExistingData(true);
           // toast.success("Loaded existing property information.");
         } else {
-          toast.error(response.message || "Could not find property details.");
+toast.error(response.message || t("PropertyCreate.toast.loadDetails"));
           setIsExistingData(false);
         }
       } catch (error: any) {
-        toast.error(error?.message || "Failed to fetch property details");
+      toast.error(error?.message || t("PropertyCreate.toast.fetchDetails"));
         setIsExistingData(false);
       } finally {
         setIsLoading(false);
@@ -225,7 +226,7 @@ export default function PropertyInfo() {
     if (!result.success) {
       // console.log(result)
       setErrors(result.error.format());
-      toast.error("Please fix the errors before continuing.");
+      toast.error(t("PropertyCreate.toast.fixErrors"));
       return;
     }
 
@@ -246,14 +247,14 @@ export default function PropertyInfo() {
       }
 
       if (response.success) {
-        toast.success(`Property ${isExistingData ? 'updated' : 'created'} successfully!`);
+        toast.success(isExistingData ? t("PropertyCreate.toast.updatedSuccess") : t("PropertyCreate.toast.createdSuccess"));
         markStepAsCompleted(); // Mark this step as done
         next(); // Proceed to the next step
       } else {
-        toast.error(response.message || "Failed to save property.");
+        toast.error(response.message || t("PropertyCreate.toast.failedSave"));
       }
     } catch (error) {
-      toast.error("An unexpected error occurred.");
+      toast.error(t("PropertyCreate.toast.unexpectedError"));
     } finally {
       setIsSaving(false);
     }
@@ -261,14 +262,14 @@ export default function PropertyInfo() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Loader text="Loading Your Properties" />
+        <Loader text={t("PropertyCreate.toast.loadingProperties")} />
       </div>
     );
   }
   if (isSaving) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Loader text="Saving Property Details" />
+        <Loader text={t("PropertyCreate.toast.savingDetails")} />
       </div>
     );
   }
@@ -287,19 +288,19 @@ export default function PropertyInfo() {
                 <FileText className="w-5 h-5 text-gray-700" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900">
-                Property Information
+                {t("PropertyCreate.propertyInfo.title")}
               </h2>
             </div>
             {/* Basic Contact Information Section */}
             <div className="bg-gray-50 rounded-2xl py-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">{t("PropertyCreate.propertyInfo.basicInfo")}</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="group">
                   <Label
                     htmlFor="name"
                     className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
                   >
-                    <Building2 className="w-4 h-4" /> Property Name *
+                    <Building2 className="w-4 h-4" /> {t("PropertyCreate.propertyInfo.propertyName")} *
                   </Label>
                   <Input
                     id="name"
@@ -326,7 +327,7 @@ export default function PropertyInfo() {
                     htmlFor="email"
                     className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
                   >
-                    <Mail className="w-4 h-4" /> Property Email *
+                    <Mail className="w-4 h-4" /> {t("PropertyCreate.propertyInfo.propertyEmail")} *
                   </Label>
                   <Input
                     id="email"
@@ -354,7 +355,7 @@ export default function PropertyInfo() {
                     htmlFor="contact"
                     className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
                   >
-                    <Phone className="w-4 h-4" /> Property Contact *
+                    <Phone className="w-4 h-4" /> {t("PropertyCreate.propertyInfo.propertyContact")} *
                   </Label>
                   <Input
                     id="contact"
@@ -388,7 +389,7 @@ export default function PropertyInfo() {
                     htmlFor="propertyCategory"
                     className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
                   >
-                    <Tag className="w-4 h-4" /> Property Category *
+                    <Tag className="w-4 h-4" /> {t("PropertyCreate.propertyInfo.propertyCategory")} *
                   </Label>
                   <select
                     id="propertyCategory"
@@ -403,7 +404,7 @@ export default function PropertyInfo() {
                     )}
                   >
                     <option value="" disabled>
-                      Choose a category
+                      {t("PropertyCreate.propertyInfo.chooseCategory")}
                     </option>
                     {propertyCategories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
@@ -423,7 +424,7 @@ export default function PropertyInfo() {
                     htmlFor="propertyType"
                     className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2"
                   >
-                    <House className="w-4 h-4" /> Property Type *
+                    <House className="w-4 h-4" /> {t("PropertyCreate.propertyInfo.propertyType")} *
                   </Label>
                   <select
                     id="propertyType"
@@ -438,7 +439,7 @@ export default function PropertyInfo() {
                     )}
                   >
                     <option value="" disabled>
-                      Select property type
+                      {t("PropertyCreate.propertyInfo.selectPropertyType")}
                     </option>
                     {propertyTypes.map((type) => (
                       <option key={type.id} value={type.id}>
@@ -498,10 +499,10 @@ export default function PropertyInfo() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Property Images *
+                  {t("PropertyCreate.propertyInfo.images")} *
                 </h2>
                 <p className="text-sm text-gray-600">
-                  Showcase your property with photos
+                  {t("PropertyCreate.propertyInfo.showcaseProperty")}
                 </p>
               </div>
             </div>
@@ -514,12 +515,12 @@ export default function PropertyInfo() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    Manage Images
+                    {t("PropertyCreate.propertyInfo.manageImages")}
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {propertyDetails.image.length > 0
-                      ? `${propertyDetails.image.length} image(s) added`
-                      : "No image added yet"}
+                   {propertyDetails.image.length > 0
+                      ? t("PropertyCreate.propertyInfo.imagesAdded", { count: propertyDetails.image.length })
+                      : t("PropertyCreate.propertyInfo.noImageYet")}
                   </p>
                 </div>
                 <Button
@@ -532,9 +533,9 @@ export default function PropertyInfo() {
                   ) : (
                     <Upload className="w-5 h-5 mr-2" />
                   )}
-                  {propertyDetails.image.length > 0
-                    ? "Edit/Add Images"
-                    : "Add Images"}
+                 {propertyDetails.image.length > 0
+                    ? t("PropertyCreate.propertyInfo.editAddImages")
+                    : t("PropertyCreate.propertyInfo.addImages")}
                 </Button>
               </div>
               {propertyDetails.image.length > 0 && (
@@ -575,10 +576,10 @@ export default function PropertyInfo() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  Property Description *
+                  {t("PropertyCreate.propertyInfo.description")} *
                 </h2>
                 <p className="text-sm text-gray-600">
-                  Tell guests what makes your property special
+                  {t("PropertyCreate.propertyInfo.descriptionHint")}
                 </p>
               </div>
             </div>
@@ -586,7 +587,7 @@ export default function PropertyInfo() {
               id="description"
               value={propertyDetails.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Describe your property's unique features..."
+              placeholder={t("PropertyCreate.propertyInfo.placeholder")}
               rows={6}
               className={cn(
                 "border-2 transition-all duration-300 resize-none border-gray-300 focus:border-black hover:border-gray-400 focus:outline-none focus:ring-0",
@@ -618,14 +619,14 @@ export default function PropertyInfo() {
                 disabled
                 className="px-8 py-3 w-full sm:w-auto bg-gray-300 text-gray-500 cursor-not-allowed"
               >
-                <ArrowLeft className="w-5 h-5 mr-2" /> Previous
+                <ArrowLeft className="w-5 h-5 mr-2" /> {t("PropertyCreate.propertyInfo.previous")}
               </Button>
             </div>
             <Button
               onClick={handleSave}
               className="bg-black hover:bg-gray-800 text-white px-8 py-3 w-full sm:w-auto"
             >
-              Continue to Next Step <ArrowRight className="w-5 h-5 ml-2" />
+              {t("PropertyCreate.propertyInfo.continue")} <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
         </div>

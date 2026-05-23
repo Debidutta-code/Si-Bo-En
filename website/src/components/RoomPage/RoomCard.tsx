@@ -279,8 +279,15 @@ const RoomCard: React.FC<RoomCardProps> = ({
       // Step 1: Always try to fetch available addons using the new API
       setFetchingAddons(true);
       try {
+        const currentLanguage = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
+
         const addonResponse = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/addon/addon-datewise/available?propertyCode=${bookingContext.PropertyCode}&startDate=${bookingContext.startDate}&endDate=${bookingContext.endDate}&ratePlanCode=${ratePlan.ratePlanCode}`,
+          {
+            headers: {
+              "Accept-Language": currentLanguage
+            }
+          }
         );
         const addonData = await addonResponse.json();
         //console.log('Addon response:', addonData);
@@ -375,11 +382,15 @@ const RoomCard: React.FC<RoomCardProps> = ({
           (addon: any) => addon.id,
         ) as string[];
       }
+      const currentLanguage = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept-Language": currentLanguage
+          },
           body: JSON.stringify(payload),
         },
       );
@@ -437,7 +448,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       } else {
         newState[key] = {
           addonId: addon.id,
-          addonName: addon.name,
+          addonName: addon._translations?.name || addon.name,
           addonCode: addon.code,
           availabilityId: availability.availabilityId,
           date: availability.date,
@@ -803,7 +814,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                         : "🏷"}
                               </span>
                               <div className="min-w-0">
-                                <p className="text-xs font-semibold text-orange-900 truncate">{promo._translations?.promotionName || promo.promotionName}</p>
+                                <p className="text-xs font-semibold text-orange-900 truncate">{promo._translations?.name || promo._translations?.promotionName || promo.name || promo.promotionName}</p>
                                 <p className="text-[10px] text-orange-600">
                                   {promo.promotionType === "mlos"
                                     ? `Min. ${promo.minLos} nights`
@@ -979,26 +990,28 @@ const RoomCard: React.FC<RoomCardProps> = ({
                               )}
 
                               {/* Applied Discounts inline */}
-                              {combo.appliedDiscounts?.map((discount: any) => (
+                              {combo.appliedDiscounts?.map((discount: any) => {
+                                const promoName = discount._translations?.promotionName || discount._translations?.name || discount.promotionName || discount.name;
+                                return (
                                 <div key={discount.id} className="flex items-center gap-1">
                                   <span className="text-[10px] text-green-700 truncate max-w-[120px]">
-                                    {discount.promotionType === "promocode" ? `🎟 ${discount.promotionName}`
-                                      : discount.promotionType === "early_bird" ? `🐦 ${discount.promotionName}`
-                                        : discount.promotionType === "geo" ? `🌍 ${discount.promotionName}`
-                                          : discount.promotionType === "mlos" ? `🌙 ${discount.promotionName}`
-                                            : `✓ ${discount.promotionName}`}
+                                    {discount.promotionType === "promocode" ? `🎟 ${promoName}`
+                                      : discount.promotionType === "early_bird" ? `🐦 ${promoName}`
+                                        : discount.promotionType === "geo" ? `🌍 ${promoName}`
+                                          : discount.promotionType === "mlos" ? `🌙 ${promoName}`
+                                            : `✓ ${promoName}`}
                                   </span>
                                   <span className="text-[10px] font-bold text-green-600 whitespace-nowrap">
                                     -{currency} {discount.calculatedDiscountAmount.toFixed(2)}
                                   </span>
                                 </div>
-                              ))}
+                              )})}
 
                               {/* Included Addons inline */}
                               {combo.addons?.filter((a: any) => a.price > 0).map((addon: any) => (
                                 <div key={addon.id} className="flex items-center gap-1">
                                   <span className="text-[10px] text-orange-700 truncate max-w-[120px]">
-                                    🍽 {addon.name}
+                                    🍽 {addon._translations?.name || addon.name}
                                   </span>
                                   <span className="text-[10px] font-bold text-orange-600 whitespace-nowrap">
                                     +{currency} {addon.price.toFixed(2)}

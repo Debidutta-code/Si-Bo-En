@@ -50,6 +50,7 @@ import {
   getLoyalityByCreationService,
 } from "./services";
 import type { ILoyalityLevels } from "./interfaces";
+import { useTranslation } from "react-i18next";
 
 interface ILoader {
   isLoading: boolean;
@@ -98,12 +99,14 @@ const getTierStyle = (level: number) =>
 const getTierLabel = (level: number) => `Level ${level}`;
 
 export default function LoyaltyLevels() {
+  const { t } = useTranslation();
+
   const { creationId } = useParams();
   const navigate = useNavigate();
 
   const [loader, setLoader] = useState<ILoader>({
     isLoading: true,
-    message: "Loading loyalty levels...",
+    message: t('Loyalty.levelsLoading'),
   });
   const [submitting, setSubmitting] = useState(false);
   const [levels, setLevels] = useState<ILoyalityLevels[]>([]);
@@ -131,18 +134,18 @@ export default function LoyaltyLevels() {
   // Step 1: resolve the actual loyaltyProgramId (CreationLoyaltyConfig.id)
   const resolveProgramId = async () => {
     if (!creationId) return;
-    setLoader({ isLoading: true, message: "Loading loyalty configuration..." });
+    setLoader({ isLoading: true, message: t('Loyalty.configLoading') });
     try {
       const response = await getLoyalityByCreationService(creationId);
       if (response.success && response.data?.id) {
         setProgramId(response.data.id);
         await fetchLevels(response.data.id);
       } else {
-        toast.error(response.message || "Loyalty configuration not found");
+        toast.error(response.message || t('Loyalty.configNotFound'));
         setLoader({ isLoading: false, message: "" });
       }
     } catch {
-      toast.error("Failed to load loyalty configuration");
+      toast.error(t('Loyalty.failedToLoadConfig'));
       setLoader({ isLoading: false, message: "" });
     }
   };
@@ -151,7 +154,7 @@ export default function LoyaltyLevels() {
   const fetchLevels = async (pid?: string) => {
     const id = pid ?? programId;
     if (!id) return;
-    setLoader({ isLoading: true, message: "Loading loyalty levels..." });
+    setLoader({ isLoading: true, message: t('Loyalty.levelsLoading') });
     try {
       const response = await getLoyalityLevelsService(id);
       if (response.success) {
@@ -160,10 +163,10 @@ export default function LoyaltyLevels() {
         );
         setLevels(sorted);
       } else {
-        toast.error(response.message || "Failed to fetch loyalty levels");
+        toast.error(response.message || t('Loyalty.failedToFetchLevels'));
       }
     } catch {
-      toast.error("Failed to fetch loyalty levels");
+      toast.error(t('Loyalty.failedToFetchLevels'));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -171,7 +174,7 @@ export default function LoyaltyLevels() {
 
   const openCreate = () => {
     if (!programId) {
-      toast.error("Loyalty configuration not loaded yet");
+      toast.error(t('Loyalty.configNotLoaded'));
       return;
     }
     const nextLevel =
@@ -179,7 +182,7 @@ export default function LoyaltyLevels() {
         ? Math.max(...levels.map((l) => l.level)) + 1
         : 1;
     setEditingLevel(null);
-    setForm({ level: nextLevel, discountPercentage: 0 ,noOfReservations: 1});
+    setForm({ level: nextLevel, discountPercentage: 0, noOfReservations: 1 });
     setIsFormOpen(true);
   };
 
@@ -197,11 +200,11 @@ export default function LoyaltyLevels() {
     if (!programId) return;
 
     if (form.level < 1) {
-      toast.error("Level must be 1 or greater");
+      toast.error(t('Loyalty.levelMustBePositive'));
       return;
     }
     if (form.discountPercentage < 0 || form.discountPercentage > 100) {
-      toast.error("Discount percentage must be between 0 and 100");
+      toast.error(t('Loyalty.discountRange'));
       return;
     }
 
@@ -221,16 +224,16 @@ export default function LoyaltyLevels() {
       if (response.success) {
         toast.success(
           editingLevel
-            ? "Level updated successfully"
-            : "Level created successfully"
+            ? t('Loyalty.levelUpdated')
+            : t('Loyalty.levelCreated')
         );
         setIsFormOpen(false);
         await fetchLevels();
       } else {
-        toast.error(response.message || "Operation failed");
+        toast.error(response.message || t('Loyalty.operationFailed'));
       }
     } catch {
-      toast.error("An unexpected error occurred");
+      toast.error(t('Loyalty.unexpectedError'));
     } finally {
       setSubmitting(false);
     }
@@ -242,14 +245,14 @@ export default function LoyaltyLevels() {
     try {
       const response = await deleteLoyalityLevelService(deleteTarget.id);
       if (response.success) {
-        toast.success("Level deleted successfully");
+        toast.success(t('Loyalty.levelDeleted'));
         setDeleteTarget(null);
         await fetchLevels();
       } else {
-        toast.error(response.message || "Failed to delete level");
+        toast.error(response.message || t('Loyalty.failedToDeleteLevel'));
       }
     } catch {
-      toast.error("An unexpected error occurred");
+      toast.error(t('Loyalty.unexpectedError'));
     } finally {
       setSubmitting(false);
     }
@@ -273,7 +276,8 @@ export default function LoyaltyLevels() {
           className="mb-4 -ml-2"
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
-          Back
+          {t('Loyalty.back')}
+
         </Button>
 
         <div className="flex items-start justify-between gap-4">
@@ -282,16 +286,15 @@ export default function LoyaltyLevels() {
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Layers className="w-6 h-6 text-primary" />
               </div>
-              Loyalty Levels
+              {t('Loyalty.loyaltyLevels')}
             </h1>
             <p className="text-muted-foreground mt-2 text-sm">
-              Define membership tiers with associated discount percentages for
-              this loyalty program.
+              {t('Loyalty.levelsDescription')}
             </p>
           </div>
           <Button onClick={openCreate} className="shrink-0">
             <Plus className="w-4 h-4 mr-2" />
-            Add Level
+            {t('Loyalty.addLevel')}
           </Button>
         </div>
       </div>
@@ -301,13 +304,13 @@ export default function LoyaltyLevels() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-1">Total Levels</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('Loyalty.totalLevels')}</p>
               <p className="text-2xl font-bold">{levels.length}</p>
             </CardContent>
           </Card>
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-1">Max Discount</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('Loyalty.maxDiscount')}</p>
               <p className="text-2xl font-bold text-green-700">
                 {Math.max(...levels.map((l) => l.discountPercentage))}%
               </p>
@@ -315,7 +318,7 @@ export default function LoyaltyLevels() {
           </Card>
           <Card className="bg-gradient-to-br from-blue-50 to-sky-50 border-blue-200">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-1">Min Discount</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('Loyalty.minDiscount')}</p>
               <p className="text-2xl font-bold text-blue-700">
                 {Math.min(...levels.map((l) => l.discountPercentage))}%
               </p>
@@ -323,7 +326,7 @@ export default function LoyaltyLevels() {
           </Card>
           <Card className="bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
             <CardContent className="p-4">
-              <p className="text-xs text-muted-foreground mb-1">Highest Tier</p>
+              <p className="text-xs text-muted-foreground mb-1">{t('Loyalty.highestTier')}</p>
               <p className="text-2xl font-bold text-violet-700">
                 {getTierLabel(Math.max(...levels.map((l) => l.level)))}
               </p>
@@ -339,14 +342,13 @@ export default function LoyaltyLevels() {
             <div className="p-4 bg-muted rounded-full mb-4">
               <Award className="w-10 h-10 text-muted-foreground opacity-50" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No levels defined yet</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('Loyalty.noLevelsTitle')}</h3>
             <p className="text-muted-foreground text-sm max-w-sm mb-6">
-              Create your first loyalty level to start defining membership tiers
-              and their associated discounts.
+              {t('Loyalty.noLevelsDescription')}
             </p>
             <Button onClick={openCreate}>
               <Plus className="w-4 h-4 mr-2" />
-              Create First Level
+              {t('Loyalty.createFirstLevel')}
             </Button>
           </CardContent>
         </Card>
@@ -386,30 +388,30 @@ export default function LoyaltyLevels() {
                 </CardHeader>
 
                 <CardContent>
-                 <div className="flex items-center justify-between gap-2 mb-4 p-3 bg-white/60 rounded-lg">
-                   <div className="flex items-center gap-2">
-                    <Percent className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground leading-none mb-0.5">
-                        Discount
-                      </p>
-                      <p className="text-xl font-bold leading-none">
-                        {level.discountPercentage}%
-                      </p>
+                  <div className="flex items-center justify-between gap-2 mb-4 p-3 bg-white/60 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <Percent className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground leading-none mb-0.5">
+                          {t('Loyalty.discount')}
+                        </p>
+                        <p className="text-xl font-bold leading-none">
+                          {level.discountPercentage}%
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <div>
+                        <p className="text-xs text-muted-foreground leading-none mb-0.5">
+                          No. of Reservations
+                        </p>
+                        <p className="text-xl font-bold leading-none">
+                          {level.noOfReservations}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <div>
-                      <p className="text-xs text-muted-foreground leading-none mb-0.5">
-                      No. of Reservations
-                    </p>
-                    <p className="text-xl font-bold leading-none">
-                      {level.noOfReservations}
-                    </p>
-                    </div>
-                  </div>
-                 </div>
 
                   <div className="flex gap-2">
                     <Button
@@ -419,7 +421,7 @@ export default function LoyaltyLevels() {
                       onClick={() => openEdit(level)}
                     >
                       <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                      Edit
+                      {t('Loyalty.edit')}
                     </Button>
                     <Button
                       size="sm"
@@ -428,7 +430,7 @@ export default function LoyaltyLevels() {
                       onClick={() => setDeleteTarget(level)}
                     >
                       <Trash2 className="w-3.5 h-3.5 mr-1.5" />
-                      Delete
+                      {t('Loyalty.delete')}
                     </Button>
                   </div>
                 </CardContent>
@@ -444,21 +446,21 @@ export default function LoyaltyLevels() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Award className="w-5 h-5 text-primary" />
-              {editingLevel ? "Edit Loyalty Level" : "Create Loyalty Level"}
+              {editingLevel ? t('Loyalty.editLoyaltyLevel') : t('Loyalty.createLoyaltyLevel')}
             </DialogTitle>
             <DialogDescription>
               {editingLevel
-                ? "Update the tier number or discount percentage for this level."
-                : "Define a new membership tier and its associated discount."}
+                ? t('Loyalty.updateTierDescription')
+                : t('Loyalty.createTierDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label htmlFor="level-number">
-                Level Number{" "}
+                {t('Loyalty.levelNumber')}{" "}
                 <span className="text-muted-foreground font-normal text-xs">
-                  (1 = lowest tier)
+                  {t('Loyalty.lowestTier')}
                 </span>
               </Label>
               <Input
@@ -472,24 +474,21 @@ export default function LoyaltyLevels() {
                     level: parseInt(e.target.value) || 1,
                   }))
                 }
-                placeholder="e.g. 1"
+                placeholder={t('Loyalty.placeholderLevel')}
               />
               {form.level >= 1 && (
                 <p className="text-xs text-muted-foreground">
-                  This will be the{" "}
-                  <span className="font-medium text-foreground">
-                    {getTierLabel(form.level)}
-                  </span>{" "}
-                  tier
+                  {t('Loyalty.tierWillBe', { tier: getTierLabel(form.level) })}
+
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="discount-pct">
-                Discount Percentage{" "}
+                {t('Loyalty.discountPercentage')}{" "}
                 <span className="text-muted-foreground font-normal text-xs">
-                  (0–100)
+                  {t('Loyalty.range01')}
                 </span>
               </Label>
               <div className="relative">
@@ -506,7 +505,7 @@ export default function LoyaltyLevels() {
                       discountPercentage: parseFloat(e.target.value) || 0,
                     }))
                   }
-                  placeholder="e.g. 10"
+                  placeholder={t('Loyalty.placeholderDiscount')}
                   className="pr-8"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
@@ -551,18 +550,18 @@ export default function LoyaltyLevels() {
               onClick={() => setIsFormOpen(false)}
               disabled={submitting}
             >
-              Cancel
+              {t('Loyalty.cancel')}
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
               {submitting ? (
                 <span className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving...
+                  {t('Loyalty.save')}
                 </span>
               ) : editingLevel ? (
-                "Update Level"
+                t('Loyalty.updateLevel')
               ) : (
-                "Create Level"
+                t('Loyalty.createLevel')
               )}
             </Button>
           </DialogFooter>
@@ -578,25 +577,20 @@ export default function LoyaltyLevels() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-destructive" />
-              Delete{" "}
-              {deleteTarget ? getTierLabel(deleteTarget.level) : ""} Level
+              {t('Loyalty.deleteLevelConfirm', { tier: deleteTarget ? getTierLabel(deleteTarget.level) : '' })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete{" "}
-              <span className="font-medium text-foreground">
-                Level {deleteTarget?.level} ({deleteTarget?.discountPercentage}% discount)
-              </span>
-              . This action cannot be undone.
+              {t('Loyalty.deleteLevelDescription', { level: deleteTarget?.level, discount: deleteTarget?.discountPercentage })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={submitting}>{t('Loyalty.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={submitting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {submitting ? "Deleting..." : "Delete Level"}
+              {submitting ? t('Loyalty.deleteLevelButton') : t('Loyalty.deleteLevelBtn')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +39,7 @@ export default function ManageRateWithAddonsForm({
   propertyId,
   onSuccess,
 }: ManageAddonsDialogProps) {
+  const { t } = useTranslation();
   const [allAddons, setAllAddons] = useState<IAddon[]>([]);
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
@@ -58,7 +60,7 @@ export default function ManageRateWithAddonsForm({
       if (addonsResponse.success) {
         setAllAddons(addonsResponse.data || []);
       } else {
-        toast.error(addonsResponse.message || "Failed to fetch addons");
+        toast.error(addonsResponse.message || t("RatePlanManagement.addons.fetchingAddons"));
       }
 
       // Fetch already assigned addons for this rate plan
@@ -71,7 +73,7 @@ export default function ManageRateWithAddonsForm({
         setSelectedAddonIds(assignedIds);
       }
     } catch (error) {
-      toast.error("Failed to fetch addon data");
+      toast.error(t("RatePlanManagement.addons.addonDataError"));
     } finally {
       setLoading(false);
     }
@@ -134,17 +136,17 @@ export default function ManageRateWithAddonsForm({
       }
 
       if (errorCount === 0) {
-        toast.success("Addons updated successfully");
+        toast.success(t("RatePlanManagement.addons.addonsUpdatedSuccess"));
         onOpenChange(false);
         onSuccess?.();  
       } else if (successCount > 0) {
-        toast.success(`Updated ${successCount} addon(s), ${errorCount} failed`);
+        toast.success(t("RatePlanManagement.addons.updatedWithErrors", { success: successCount, error: errorCount }));
         onSuccess?.();  
       } else {
-        toast.error("Failed to update addons");
+        toast.error(t("RatePlanManagement.addons.failedToUpdateAddons"));
       }
     } catch (error) {
-      toast.error("An error occurred while saving");
+      toast.error(t("RatePlanManagement.addons.saveError"));
     } finally {
       setSaving(false);
     }
@@ -154,9 +156,9 @@ export default function ManageRateWithAddonsForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[85vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle>Manage Addons</DialogTitle>
+          <DialogTitle>{t("RatePlanManagement.addons.title")}</DialogTitle>
           <DialogDescription>
-            Select addons to associate with <span className="font-semibold">{ratePlanName}</span>
+            {t("RatePlanManagement.addons.selectAddons", { name: ratePlanName })}
           </DialogDescription>
         </DialogHeader>
 
@@ -169,9 +171,9 @@ export default function ManageRateWithAddonsForm({
             <ScrollArea className="flex-1 overflow-y-auto px-6">
               {allAddons.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  No addons available for this property.
+                  {t("RatePlanManagement.addons.noAddonsAvailable")}
                   <br />
-                  Create addons first to assign them to rate plans.
+                  {t("RatePlanManagement.addons.createAddonsFirst")}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4 pb-4">
@@ -217,11 +219,11 @@ export default function ManageRateWithAddonsForm({
                           </h4>
                           {addon.isActive ? (
                             <Badge variant="default" className="text-xs shrink-0">
-                              Active
+                              {t("RatePlanManagement.addons.active")}
                             </Badge>
                           ) : (
                             <Badge variant="secondary" className="text-xs shrink-0">
-                              Inactive
+                              {t("RatePlanManagement.addons.inactive")}
                             </Badge>
                           )}
                         </div>
@@ -233,13 +235,13 @@ export default function ManageRateWithAddonsForm({
                         )}
                         
                         <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <span className="font-medium">Code:</span>
+                          <span className="font-medium">{t("RatePlanManagement.addons.code")}:</span>
                           <span className="font-mono">{addon.code}</span>
                         </div>
                         
                         {addon.postingRhythm && (
                           <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                            <span className="font-medium">Rhythm:</span>
+                            <span className="font-medium">{t("RatePlanManagement.addons.rhythm")}:</span>
                             <span className="capitalize">
                               {addon.postingRhythm.replace(/_/g, " ")}
                             </span>
@@ -255,7 +257,7 @@ export default function ManageRateWithAddonsForm({
             {/* Footer with buttons */}
             <div className="flex items-center justify-between px-6 py-4 border-t bg-white">
               <div className="text-sm text-gray-600">
-                {selectedAddonIds.size} addon(s) selected
+                {t("RatePlanManagement.addons.selectedCount", { count: selectedAddonIds.size })}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -264,7 +266,7 @@ export default function ManageRateWithAddonsForm({
                   onClick={() => onOpenChange(false)}
                   disabled={saving}
                 >
-                  Cancel
+                  {t("RatePlanManagement.addons.cancel")}
                 </Button>
                 <Button
                   type="button"
@@ -274,10 +276,10 @@ export default function ManageRateWithAddonsForm({
                   {saving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      {t("RatePlanManagement.addons.saving")}
                     </>
                   ) : (
-                    "Save Changes"
+                    t("RatePlanManagement.addons.saveChanges")
                   )}
                 </Button>
               </div>

@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 import type { IUser, ICreateUser } from '../../pages/members/types/types';
+import { useTranslation } from 'react-i18next';
+
 
 interface EditMemberDialogProps {
   user: IUser | null;
@@ -32,6 +34,8 @@ export default function EditMemberDialog({
   errors,
   loading
 }: EditMemberDialogProps) {
+    const { t } = useTranslation();
+
   const [formData, setFormData] = useState<ICreateUser>({
     firstName: '',
     lastName: '',
@@ -76,16 +80,16 @@ export default function EditMemberDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[70vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Member</DialogTitle>
+          <DialogTitle>{t("ManageMembers.editMember")}</DialogTitle>
           <DialogDescription>
-            Update member account details for {user.firstName} {user.lastName}
+            {t("ManageMembers.deleteConfirm.message", { name: `${user.firstName} ${user.lastName}`, email: user.email })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">{t("ManageMembers.firstName")}</Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
@@ -100,7 +104,7 @@ export default function EditMemberDialog({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">{t("ManageMembers.lastName")}</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
@@ -117,7 +121,7 @@ export default function EditMemberDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("ManageMembers.email")}</Label>
             <Input
               id="email"
               type="email"
@@ -135,7 +139,7 @@ export default function EditMemberDialog({
 
           {/* Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="password">Password (Optional)</Label>
+            <Label htmlFor="password">{t("ManageMembers.passwordOptional")}</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -145,7 +149,7 @@ export default function EditMemberDialog({
                 aria-invalid={!!getErrorMessage('password')}
                 aria-describedby={getErrorMessage('password') ? "password-error" : undefined}
                 className="pr-10"
-                placeholder="Leave blank to keep current password"
+                placeholder={t("ManageMembers.leaveBlankPassword")}
               />
               <button
                 type="button"
@@ -169,7 +173,7 @@ export default function EditMemberDialog({
 
           {/* Confirm Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">{t("ManageMembers.confirmPassword")}</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
@@ -179,7 +183,7 @@ export default function EditMemberDialog({
                 aria-invalid={!!getErrorMessage('confirmPassword')}
                 aria-describedby={getErrorMessage('confirmPassword') ? "confirmPassword-error" : undefined}
                 className="pr-10"
-                placeholder="Confirm new password"
+                placeholder={t("ManageMembers.confirmPasswordPlaceholder")}
               />
               <button
                 type="button"
@@ -207,13 +211,13 @@ export default function EditMemberDialog({
               variant="outline" 
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {t("ManageMembers.cancel")}
             </Button>
             <Button 
               onClick={handleSubmit}
               disabled={loading}
             >
-              {loading ? 'Updating...' : 'Update Member'}
+              {loading ? t("ManageMembers.updating") : t("ManageMembers.updateMemberBtn")}
             </Button>
           </div>
         </div>

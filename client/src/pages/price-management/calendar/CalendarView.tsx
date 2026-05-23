@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ const months = [
 const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export default function CalendarView() {
+  const { t } = useTranslation('PriceManagement');
   const { propertyId } = useParams();
   const [selectedYear, setSelectedYear] = useState(2025);
   const [dateFrom, setDateFrom] = useState('');
@@ -34,15 +36,15 @@ export default function CalendarView() {
     <div className="container mx-auto p-6">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-        <Link to="/app" className="hover:text-gray-900">Home</Link>
+        <Link to="/app" className="hover:text-gray-900">{t('home')}</Link>
         <span>/</span>
-        <span>Prices</span>
+        <span>{t('prices')}</span>
         <span>/</span>
         <Link to={`/property/price-management/seasons/${propertyId}`} className="hover:text-gray-900">
-          Seasons management
+          {t('seasons.title')}
         </Link>
         <span>/</span>
-        <span className="text-gray-900 font-medium">Calendar</span>
+        <span className="text-gray-900 font-medium">{t('calendar.title')}</span>
       </div>
 
       {/* Year Selector */}
@@ -66,17 +68,17 @@ export default function CalendarView() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
               {/* Date Range */}
               <div>
-                <label className="text-sm font-medium mb-2 block">Add dates</label>
+                <label className="text-sm font-medium mb-2 block">{t('calendar.addDates')}</label>
                 <div className="space-y-2">
                   <Input
                     type="date"
-                    placeholder="From"
+                    placeholder={t('calendar.from')}
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
                   />
                   <Input
                     type="date"
-                    placeholder="Until"
+                    placeholder={t('calendar.until')}
                     value={dateUntil}
                     onChange={(e) => setDateUntil(e.target.value)}
                   />
@@ -85,7 +87,7 @@ export default function CalendarView() {
 
               {/* Weekdays */}
               <div>
-                <label className="text-sm font-medium mb-2 block">Weekdays</label>
+                <label className="text-sm font-medium mb-2 block">{t('calendar.weekdays')}</label>
                 <div className="grid grid-cols-7 gap-2">
                   {weekdays.map((day, idx) => (
                     <Button
@@ -104,10 +106,10 @@ export default function CalendarView() {
               {/* Action Buttons */}
               <div className="flex gap-2">
                 <Button className="bg-primary hover:bg-primary/90 text-white flex-1">
-                  SELECT
+                  {t('calendar.apply')}
                 </Button>
                 <Button variant="outline" className="flex-1">
-                  CLEAN CALENDAR
+                  {t('calendar.clear')}
                 </Button>
               </div>
             </div>

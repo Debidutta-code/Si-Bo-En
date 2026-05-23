@@ -1,4 +1,5 @@
 import { protect } from "../../middlewares/auth.middleware";
+import { customerProtect } from "../../middlewares/customer-auth.middleware";
 import { Router } from "express";
 
 import { ReservationController } from '../controllers';
@@ -15,6 +16,10 @@ reservationRoute.route('/').post(
     }),
     reservationController.createReservation.bind(reservationController)
 );
+
+reservationRoute
+    .route('/')
+    .get(customerProtect, reservationController.getMyReservations.bind(reservationController));
 
 
 reservationRoute.route("/date-range")

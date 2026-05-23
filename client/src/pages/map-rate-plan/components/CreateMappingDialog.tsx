@@ -19,6 +19,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ICreateCharges, RatePlan, RoomTypes, IBaseGuestAmounts, IAdditionalGuestAmount, qualifyingAgeCode } from "../types";
 import { currencies } from "@/components/currency-code/cuurency";
@@ -46,9 +48,8 @@ export default function CreateMappingDialog({
     roomTypes,
     filters,
 }: CreateMappingDialogProps) {
-    // Local form state separates adults and children base amounts so UI and validation
-    // can enforce per-room limits. Before submit we will merge them into the
-    // expected ICreateCharges shape and call onSave.
+        const { t } = useTranslation();
+
     type LocalForm = {
         ratePlanCode: string;
         roomTypeCode: string;
@@ -77,7 +78,7 @@ export default function CreateMappingDialog({
         const selectedRoom = roomTypes.find(room => room.id === localForm.roomTypeCode);
         const current = localForm.childrenBase.length;
         if (selectedRoom && selectedRoom.maxNumberOfChildren < current + 1) {
-            toast.error("Cannot add more child guest rows than room allows");
+            toast.error(t("MapRatePlan.toast.maxChildRows"));
             return;
         }
         const nextGuestNumber = current + 1;
@@ -108,7 +109,7 @@ export default function CreateMappingDialog({
                 newValue = 1;
             } else if (selectedRoom && n > selectedRoom.maxNumberOfAdults) {
                 newValue = selectedRoom.maxNumberOfAdults;
-                toast.error(`Number of adults cannot exceed ${selectedRoom.maxNumberOfAdults}`);
+                toast.error(t("MapRatePlan.toast.adultsExceedMax", { max: selectedRoom.maxNumberOfAdults }));
             } else {
                 newValue = n;
             }
@@ -127,7 +128,7 @@ export default function CreateMappingDialog({
                 newValue = 1;
             } else if (selectedRoom && n > selectedRoom.maxNumberOfChildren) {
                 newValue = selectedRoom.maxNumberOfChildren;
-                toast.error(`Number of children cannot exceed ${selectedRoom.maxNumberOfChildren}`);
+                toast.error(t("MapRatePlan.toast.childrenExceedMax", { max: selectedRoom.maxNumberOfChildren }));
             } else {
                 newValue = n;
             }
@@ -156,7 +157,7 @@ export default function CreateMappingDialog({
             children = children
                 .slice(0, selectedRoom.maxNumberOfChildren)
                 .map((c, i) => ({ ...c, numberOfGuests: i + 1 }));
-            toast(`Trimmed children rows to room max (${selectedRoom.maxNumberOfChildren})`);
+            toast(t("MapRatePlan.toast.trimmedAdults", { max: selectedRoom.maxNumberOfAdults }));
         }
 
         setLocalForm(prev => ({ ...prev, adultsBase, childrenBase: children }));
@@ -169,7 +170,7 @@ export default function CreateMappingDialog({
         const nextAgeCode = availableAgeCodes.find(code => !selectedAgeCodes.includes(code));
 
         if (!nextAgeCode) {
-            toast.error("All age categories have been added (Adult, Child, Infant)");
+            toast.error(t("MapRatePlan.toast.allAgeCategoriesAdded"));
             return;
         }
 
@@ -204,28 +205,23 @@ export default function CreateMappingDialog({
 
     const handleSubmit = async () => {
         if (!localForm.ratePlanCode) {
-            toast.error("Please select a rate plan");
+            toast.error(t("MapRatePlan.toast.selectRatePlan"));
             return;
         }
         if (!localForm.roomTypeCode) {
-            toast.error("Please select a room type");
+            toast.error(t("MapRatePlan.toast.selectRoomType"));
             return;
         }
         if (!localForm.startDate || !localForm.endDate) {
-            toast.error("Please select start and end dates");
+            toast.error(t("MapRatePlan.toast.selectDates"));
             return;
         }
         if (localForm.adultsBase.length === 0) {
-            toast.error("At least one adult base amount is required");
+            toast.error(t("MapRatePlan.toast.adultBaseRequired"));
             return;
         }
 
-        // const combinedBase = [...localForm.adultsBase, ...localForm.childrenBase];
-        // const hasInvalidAmount = combinedBase.some((item) => parseFloat(String(item.amountBeforeTax)) <= 0);
-        // if (hasInvalidAmount) {
-        //     toast.error("All base guest amounts must be greater than 0");
-        //     return;
-        // }
+        
         setIsSubmitting(true);
         try {
             const payload: ICreateCharges = {
@@ -282,16 +278,16 @@ export default function CreateMappingDialog({
     return (
         <Dialog open={open} onOpenChange={(open) => {
             if (!open && isSubmitting) {
-                toast.error("Please wait while mapping is being created");
+                toast.error(t("MapRatePlan.toast.waitWhileCreating"));
                 return;
             }
             if (!open) handleClose();
         }}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="text-2xl">Create New Mapping</DialogTitle>
+                    <DialogTitle className="text-2xl">{t("MapRatePlan.createMapping.title")}</DialogTitle>
                     <DialogDescription>
-                        Map a rate plan to a room type and set pricing details
+                        {t("MapRatePlan.createMapping.titleDesc")}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -299,7 +295,7 @@ export default function CreateMappingDialog({
                     {/* Basic Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label>Room Type *</Label>
+                            <Label>{t("MapRatePlan.roomTypeLabel")} *</Label>
                             <Select
                                 value={localForm.roomTypeCode}
                                 onValueChange={(value) =>
@@ -308,7 +304,7 @@ export default function CreateMappingDialog({
                                 disabled={isSubmitting}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select room type" />
+                                    <SelectValue placeholder={t("MapRatePlan.selectRoomType")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {roomTypes.map((room) => (
@@ -320,7 +316,7 @@ export default function CreateMappingDialog({
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label>Rate Plan *</Label>
+                            <Label>{t("MapRatePlan.ratePlanLabel")} *</Label>
                             <Select
                                 value={localForm.ratePlanCode}
                                 onValueChange={(value) =>
@@ -329,7 +325,7 @@ export default function CreateMappingDialog({
                                 disabled={isSubmitting}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select rate plan" />
+                                    <SelectValue placeholder={t("MapRatePlan.selectRatePlan")} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {ratePlans.map((plan) => (
@@ -342,7 +338,7 @@ export default function CreateMappingDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Start Date *</Label>
+                            <Label>{t("MapRatePlan.startDate")} *</Label>
                             <Input
                                 type="date"
                                 value={localForm.startDate}
@@ -355,7 +351,7 @@ export default function CreateMappingDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label>End Date *</Label>
+                            <Label>{t("MapRatePlan.endDate")} *</Label>
                             <Input
                                 type="date"
                                 value={localForm.endDate}
@@ -366,7 +362,7 @@ export default function CreateMappingDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="currencyCode">Currency Code</Label>
+                            <Label htmlFor="currencyCode">{t("MapRatePlan.currencyCode")}</Label>
                             <Select
                                 value={localForm.currencyCode}
                                 onValueChange={(value) => setLocalForm({ ...localForm, currencyCode: value as CurrencyCode })}
@@ -389,9 +385,9 @@ export default function CreateMappingDialog({
                     {/* Base Guest Amounts */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Base Guest Amounts For Adults *</CardTitle>
+                            <CardTitle className="text-lg">{t("MapRatePlan.createMapping.baseGuestAmountsAdults")}</CardTitle>
                             <CardDescription>
-                                Set pricing based on number of adults. All adult counts are pre-filled per room capacity.
+                                {t("MapRatePlan.createMapping.baseGuestAmountsAdultsDesc")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
@@ -403,7 +399,7 @@ export default function CreateMappingDialog({
                                 localForm.adultsBase.map((item, index) => (
                                     <div key={index} className="flex items-end gap-3">
                                         <div className="flex-1 space-y-2">
-                                            <Label>Number of Adults</Label>
+                                        <Label>{t("MapRatePlan.createMapping.numberOfAdults")}</Label>
                                             <Input
                                                 type="number"
                                                 value={item.numberOfGuests}
@@ -412,7 +408,7 @@ export default function CreateMappingDialog({
                                             />
                                         </div>
                                         <div className="flex-1 space-y-2">
-                                            <Label>Amount *</Label>
+                                        <Label>{t("MapRatePlan.createMapping.amount")} </Label>
                                             <Input
                                                 type="number"
                                                 min="0"
@@ -434,16 +430,16 @@ export default function CreateMappingDialog({
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Base Guest Amount for Children</CardTitle>
+                            <CardTitle className="text-lg">{t("MapRatePlan.createMapping.baseGuestAmountsChildren")}</CardTitle>
                             <CardDescription>
-                                Set pricing based on the number of guests for children
+                                {t("MapRatePlan.createMapping.baseGuestAmountsChildrenDesc")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {localForm.childrenBase.map((item, index) => (
                                 <div key={index} className="flex items-end gap-3">
                                     <div className="flex-1 space-y-2">
-                                        <Label>Number of Children</Label>
+                                        <Label>{t("MapRatePlan.createMapping.numberOfChildren")}</Label>
                                         <Input
                                             type="number"
                                             value={item.numberOfGuests}
@@ -452,7 +448,7 @@ export default function CreateMappingDialog({
                                         />
                                     </div>
                                     <div className="flex-1 space-y-2">
-                                        <Label>Amount</Label>
+                                        <Label>{t("MapRatePlan.createMapping.amount")} </Label>
                                         <Input
                                             type="number"
                                             min="0"
@@ -491,16 +487,16 @@ export default function CreateMappingDialog({
                     {/* Additional Guest Amounts */}
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-lg">Additional Guest Amounts (Optional)</CardTitle>
+                            <CardTitle className="text-lg">{t("MapRatePlan.createMapping.additionalGuestAmounts")}</CardTitle>
                             <CardDescription>
-                                Set pricing for additional guests by age category
+                                {t("MapRatePlan.createMapping.additionalGuestAmountsDesc")}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             {localForm.additionalGuestAmounts.map((item, index) => (
                                 <div key={index} className="flex items-end gap-3">
                                     <div className="flex-1 space-y-2">
-                                        <Label>Age Code</Label>
+                                        <Label>{t("MapRatePlan.createMapping.ageCode")}</Label>
                                         <Select
                                             value={item.ageQualifyingCode}
                                             onValueChange={(value) =>
@@ -522,7 +518,7 @@ export default function CreateMappingDialog({
                                                     })
                                                     .map((code) => (
                                                         <SelectItem key={code} value={code}>
-                                                            {code === "10" ? "Adult" : code === "8" ? "Child" : "Infant"}
+                                                            {code === "10" ? t("MapRatePlan.createMapping.adult") : code === "8" ? t("MapRatePlan.createMapping.child") : t("MapRatePlan.createMapping.infant")}
                                                         </SelectItem>
                                                     ))
                                                 }
@@ -530,7 +526,7 @@ export default function CreateMappingDialog({
                                         </Select>
                                     </div>
                                     <div className="flex-1 space-y-2">
-                                        <Label>Amount </Label>
+                                        <Label>{t("MapRatePlan.createMapping.amount")} </Label>
                                         <Input
                                             type="number"
                                             min="0"
@@ -565,7 +561,7 @@ export default function CreateMappingDialog({
                                 disabled={isSubmitting}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Add Additional Guest Amount
+                                {t("MapRatePlan.createMapping.addAdditionalGuestAmount")}
                             </Button>
                         </CardContent>
                     </Card>
@@ -577,7 +573,7 @@ export default function CreateMappingDialog({
                         onClick={handleClose}
                         disabled={isSubmitting}
                     >
-                        Cancel
+                        {t("RatePlanManagement.cancel")}
                     </Button>
                     <Button
                         onClick={handleSubmit}
@@ -589,15 +585,15 @@ export default function CreateMappingDialog({
                             )
                         }
                     >
-                        {isSubmitting ? (
+                          {isSubmitting ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Creating Mapping...
+                                {t("MapRatePlan.createMapping.creatingMapping")}
                             </>
                         ) : (
                             <>
                                 <Plus className="w-4 h-4 mr-2" />
-                                Create Mapping
+                                {t("MapRatePlan.createMapping.createMappingBtn")}
                             </>
                         )}
                     </Button>

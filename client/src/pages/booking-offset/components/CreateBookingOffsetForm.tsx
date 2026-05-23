@@ -7,12 +7,12 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { useTranslation } from "react-i18next";
 
 interface CreateBookingOffsetFormProps {
   propertyId: string;
@@ -71,6 +71,8 @@ export default function CreateBookingOffsetForm({
   onClose,
   onSuccess,
 }: CreateBookingOffsetFormProps) {
+    const { t } = useTranslation();
+
   const [form, setForm] = useState<ICBookingOffsetS>({ ...INITIAL_FORM });
   const [units, setUnits] = useState<UnitsMap>(defaultUnits);
   const [ratePlanId, setRatePlanId] = useState(selectedRatePlan?.id || "");
@@ -90,15 +92,15 @@ export default function CreateBookingOffsetForm({
 
   const handleSubmit = async () => {
     if (!ratePlanId) {
-      toast.error("Please select a rate plan");
+      toast.error(t("BookingOffsetForm.toast.selectRatePlan"));
       return;
     }
     if (!createStartDate || !createEndDate) {
-      toast.error("Please select both start and end dates");
+      toast.error(t("BookingOffsetForm.toast.selectDates"));
       return;
     }
     if (new Date(createStartDate) > new Date(createEndDate)) {
-      toast.error("Start date must be before end date");
+      toast.error(t("BookingOffsetForm.toast.invalidDateRange"));
       return;
     }
     setIsSubmitting(true);
@@ -111,13 +113,13 @@ export default function CreateBookingOffsetForm({
         form,
       );
       if (result.success) {
-        toast.success("Booking offsets created successfully!");
+        toast.success(t("BookingOffsetForm.toast.createdSuccess"));
         onSuccess();
       } else {
-        toast.error(result.message || "Failed to create booking offsets");
+        toast.error(result.message || t("BookingOffsetForm.toast.failedCreate"));
       }
     } catch (error) {
-      toast.error("Failed to create booking offsets");
+      toast.error(t("BookingOffsetForm.toast.failedCreate"));
     } finally {
       setIsSubmitting(false);
     }
@@ -127,19 +129,20 @@ export default function CreateBookingOffsetForm({
     <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create Booking Offsets</DialogTitle>
+            {t("BookingOffsetForm.title")}
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Rate Plan</Label>
+              <Label>              {t("BookingOffsetForm.ratePlan")}
+</Label>
               <select
                 className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 value={ratePlanId}
                 onChange={(e) => setRatePlanId(e.target.value)}
               >
-                <option value="">Select a Rate Plan</option>
+              <option value="">{t("BookingOffsetForm.selectRatePlan")}</option>
            {ratePlans.map((rp) => (
   <option key={rp.id} value={rp.id}>
     {rp._translations?.ratePlanName ?? rp.ratePlanName}
@@ -148,7 +151,8 @@ export default function CreateBookingOffsetForm({
               </select>
             </div>
             <div className="space-y-2">
-              <Label>Start Date</Label>
+              <Label>              {t("BookingOffsetForm.startDate")}
+</Label>
               <Input
                 type="date"
                 value={createStartDate}
@@ -156,7 +160,7 @@ export default function CreateBookingOffsetForm({
               />
             </div>
             <div className="space-y-2">
-              <Label>End Date</Label>
+              <Label>{t("BookingOffsetForm.endDate")}</Label>
               <Input
                 type="date"
                 value={createEndDate}
@@ -168,7 +172,8 @@ export default function CreateBookingOffsetForm({
           <div className="grid grid-cols-2 gap-4">
             {OFFSET_FIELDS.map((field) => (
               <div key={field.key} className="space-y-2">
-                <Label>{field.label}</Label>
+                <Label>                {t(`BookingOffsetForm.fields.${field.key}`)}
+</Label>
                 <div className="flex gap-2">
                   <Input
                     type="number"
@@ -187,8 +192,8 @@ export default function CreateBookingOffsetForm({
                       }))
                     }
                   >
-                    <option value="hours">Hours</option>
-                    <option value="days">Days</option>
+                  <option value="hours">{t("BookingOffsetForm.units.hours")}</option>
+                  <option value="days">{t("BookingOffsetForm.units.days")}</option>
                   </select>
                 </div>
               </div>
@@ -198,10 +203,10 @@ export default function CreateBookingOffsetForm({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-            Cancel
+            {t("BookingOffsetForm.buttons.cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Offsets"}
+            {isSubmitting ? t("BookingOffsetForm.buttons.creating") : t("BookingOffsetForm.buttons.create")}
           </Button>
         </DialogFooter>
       </DialogContent>
