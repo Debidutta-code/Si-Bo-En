@@ -6,22 +6,14 @@ import ZLogo from "@/src/components/assets/revchilli.png";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { RootState } from "@/src/store/store";
 import { clearCustomer } from "@/src/store/customerSlice";
 
 const TEAL = "#1595A2";
 
 const IconDashboard = () => (
-  <svg
-    width="17"
-    height="17"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="7" rx="1" />
     <rect x="14" y="3" width="7" height="7" rx="1" />
     <rect x="14" y="14" width="7" height="7" rx="1" />
@@ -30,16 +22,7 @@ const IconDashboard = () => (
 );
 
 const IconBooking = () => (
-  <svg
-    width="17"
-    height="17"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" />
     <line x1="16" y1="2" x2="16" y2="6" />
     <line x1="8" y1="2" x2="8" y2="6" />
@@ -48,32 +31,14 @@ const IconBooking = () => (
 );
 
 const IconProfile = () => (
-  <svg
-    width="17"
-    height="17"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
 );
 
 const IconMenu = () => (
-  <svg
-    width="22"
-    height="22"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="3" y1="6" x2="21" y2="6" />
     <line x1="3" y1="12" x2="21" y2="12" />
     <line x1="3" y1="18" x2="21" y2="18" />
@@ -81,64 +46,44 @@ const IconMenu = () => (
 );
 
 const IconClose = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
 
 const IconSignOut = () => (
-  <svg
-    width="17"
-    height="17"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
     <polyline points="16 17 21 12 16 7" />
     <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
 );
 
-const NAV = [
-  {
-    section: null,
-    items: [
-      { href: "/profile", label: "My BodyHoliday", Icon: IconDashboard },
-      { href: "/profile/bookings", label: "Reservations", Icon: IconBooking },
-    ],
-  },
-] as const;
-
 export function ProfileSidebar() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const bookingContext = useSelector(
-    (state: RootState) => state.booking
-  );
+  // NAV moved inside component so t() is in scope
+  const NAV = [
+    {
+      section: null,
+      items: [
+        { href: "/profile", label: t("ProfileSidebar.nav.myBodyHoliday"), Icon: IconDashboard },
+        { href: "/profile/bookings", label: t("ProfileSidebar.nav.reservations"), Icon: IconBooking },
+      ],
+    },
+  ] as const;
+
+  const bookingContext = useSelector((state: RootState) => state.booking);
 
   const dynamicLogo =
     bookingContext?.bookingEngineColor?.logo ||
     bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
 
-  const customerData = useSelector(
-    (state: RootState) => state.customer.customer
-  );
+  const customerData = useSelector((state: RootState) => state.customer.customer);
 
   const email = customerData?.email ?? "";
   const firstName = customerData?.firstName ?? "";
@@ -157,18 +102,11 @@ export function ProfileSidebar() {
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
-
       setIsMobile(mobile);
-
-      if (!mobile) {
-        setMobileOpen(false);
-      }
+      if (!mobile) setMobileOpen(false);
     };
-
     checkMobile();
-
     window.addEventListener("resize", checkMobile);
-
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
@@ -177,33 +115,19 @@ export function ProfileSidebar() {
   }, []);
 
   const handleLogout = () => {
-    const storedPropertyCode =
-      sessionStorage.getItem("lastPropertyCode");
-
+    const storedPropertyCode = sessionStorage.getItem("lastPropertyCode");
     if (storedPropertyCode) {
-      sessionStorage.setItem(
-        "customerRedirectUrl",
-        `/Rooms?code=${storedPropertyCode}`
-      );
+      sessionStorage.setItem("customerRedirectUrl", `/Rooms?code=${storedPropertyCode}`);
     }
-
     dispatch(clearCustomer());
-
     router.push("/login");
   };
 
   const toggle = () => {
     setCollapsed((prev) => {
       const next = !prev;
-
       localStorage.setItem(STORAGE_KEY, String(next));
-
-      window.dispatchEvent(
-        new CustomEvent("sidebarToggle", {
-          detail: { collapsed: next },
-        })
-      );
-
+      window.dispatchEvent(new CustomEvent("sidebarToggle", { detail: { collapsed: next } }));
       return next;
     });
   };
@@ -236,13 +160,8 @@ export function ProfileSidebar() {
         }
 
         @media (min-width: 768px) {
-          .bh-sidebar {
-            transform: translateX(0) !important;
-          }
-
-          .mobile-hamburger {
-            display: none !important;
-          }
+          .bh-sidebar { transform: translateX(0) !important; }
+          .mobile-hamburger { display: none !important; }
         }
 
         @media (max-width: 767px) {
@@ -252,66 +171,41 @@ export function ProfileSidebar() {
             z-index: 1000;
             transition: transform 0.3s ease;
           }
-
-          .bh-sidebar.mobile-open {
-            transform: translateX(0);
-          }
-
+          .bh-sidebar.mobile-open { transform: translateX(0); }
           .mobile-hamburger {
             position: fixed;
             top: 16px;
             left: 16px;
             z-index: 1001;
-
             width: 44px;
             height: 44px;
-
             border: none;
             border-radius: 12px;
-
             background: white;
             color: #111827;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             cursor: pointer;
-
             box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-
             transition: all 0.2s ease;
           }
-
-          .mobile-hamburger:hover {
-            background: #f8fafc;
-          }
-
+          .mobile-hamburger:hover { background: #f8fafc; }
           .mobile-close-btn {
             width: 36px;
             height: 36px;
-
             border: none;
             border-radius: 10px;
-
             background: #f1f5f9;
             color: #334155;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             cursor: pointer;
-
             flex-shrink: 0;
-
             transition: all 0.2s ease;
           }
-
-          .mobile-close-btn:hover {
-            background: #e2e8f0;
-          }
-
+          .mobile-close-btn:hover { background: #e2e8f0; }
           .mobile-overlay {
             position: fixed;
             inset: 0;
@@ -320,10 +214,7 @@ export function ProfileSidebar() {
             display: none;
             backdrop-filter: blur(2px);
           }
-
-          .mobile-overlay.show {
-            display: block;
-          }
+          .mobile-overlay.show { display: block; }
         }
 
         .bh-brand {
@@ -380,10 +271,7 @@ export function ProfileSidebar() {
           padding: 10px;
         }
 
-        .bh-nav-item:hover:not(.active) {
-          background: #f4f7fa;
-          color: #1a202c;
-        }
+        .bh-nav-item:hover:not(.active) { background: #f4f7fa; color: #1a202c; }
 
         .bh-nav-item.active {
           background: ${TEAL};
@@ -391,9 +279,7 @@ export function ProfileSidebar() {
           font-weight: 500;
         }
 
-        .bh-nav-item.active svg {
-          stroke: #ffffff;
-        }
+        .bh-nav-item.active svg { stroke: #ffffff; }
 
         .bh-nav-icon {
           display: flex;
@@ -450,10 +336,7 @@ export function ProfileSidebar() {
           transition: color 0.15s, background 0.15s;
         }
 
-        .bh-signout-btn:hover {
-          color: #c0392b;
-          background: #fdf0ee;
-        }
+        .bh-signout-btn:hover { color: #c0392b; background: #fdf0ee; }
 
         .bh-footer {
           padding: 12px 20px 18px;
@@ -461,24 +344,12 @@ export function ProfileSidebar() {
           flex-shrink: 0;
         }
 
-        .bh-footer p {
-          font-size: 10.5px;
-          color: #a0aab4;
-          line-height: 1.7;
-        }
+        .bh-footer p { font-size: 10.5px; color: #a0aab4; line-height: 1.7; }
 
-        .bh-footer a {
-          color: ${TEAL};
-          text-decoration: none;
-        }
+        .bh-footer a { color: ${TEAL}; text-decoration: none; }
+        .bh-footer a:hover { text-decoration: underline; }
 
-        .bh-footer a:hover {
-          text-decoration: underline;
-        }
-
-        .bh-mobile-signout {
-          display: none;
-        }
+        .bh-mobile-signout { display: none; }
       `}</style>
 
       {/* Mobile Hamburger */}
@@ -486,7 +357,7 @@ export function ProfileSidebar() {
         <button
           className="mobile-hamburger"
           onClick={toggleMobileMenu}
-          aria-label="Open Menu"
+          aria-label={t("ProfileSidebar.actions.openMenu")}
         >
           <IconMenu />
         </button>
@@ -500,21 +371,15 @@ export function ProfileSidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`bh-sidebar ${
-          mobileOpen ? "mobile-open" : ""
-        }`}
+        className={`bh-sidebar ${mobileOpen ? "mobile-open" : ""}`}
         style={{ width: collapsed ? 64 : 260 }}
         role="navigation"
-        aria-label="Main navigation"
+        aria-label={t("ProfileSidebar.nav.ariaLabel")}
       >
         {/* Desktop Toggle */}
         <button
           onClick={toggle}
-          aria-label={
-            collapsed
-              ? "Expand sidebar"
-              : "Collapse sidebar"
-          }
+          aria-label={collapsed ? t("ProfileSidebar.actions.expandSidebar") : t("ProfileSidebar.actions.collapseSidebar")}
           className="absolute top-6 -right-4 items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm text-gray-500 z-[51] hover:bg-teal-600 hover:text-white transition-colors duration-150 hidden md:flex"
         >
           <svg
@@ -527,9 +392,7 @@ export function ProfileSidebar() {
             strokeLinecap="round"
             strokeLinejoin="round"
             style={{
-              transform: collapsed
-                ? "rotate(0deg)"
-                : "rotate(180deg)",
+              transform: collapsed ? "rotate(0deg)" : "rotate(180deg)",
               transition: "transform 0.25s",
             }}
           >
@@ -540,24 +403,15 @@ export function ProfileSidebar() {
         {/* Brand */}
         <div
           className="bh-brand"
-          style={{
-            padding: collapsed ? "20px" : "0 20px",
-            minHeight: collapsed ? 0 : "68px",
-          }}
+          style={{ padding: collapsed ? "20px" : "0 20px", minHeight: collapsed ? 0 : "68px" }}
         >
           {!collapsed && (
             <>
               {dynamicLogo ? (
-                <div
-                  style={{
-                    position: "relative",
-                    width: 140,
-                    height: 44,
-                  }}
-                >
+                <div style={{ position: "relative", width: 140, height: 44 }}>
                   <Image
                     src={dynamicLogo}
-                    alt="Hotel Logo"
+                    alt={t("ProfileSidebar.brand.hotelLogoAlt")}
                     fill
                     style={{ objectFit: "contain" }}
                     unoptimized
@@ -566,7 +420,7 @@ export function ProfileSidebar() {
               ) : (
                 <Image
                   src={ZLogo}
-                  alt="Logo"
+                  alt={t("ProfileSidebar.brand.logoAlt")}
                   width={120}
                   height={40}
                   style={{ objectFit: "contain" }}
@@ -577,7 +431,7 @@ export function ProfileSidebar() {
                 <button
                   className="mobile-close-btn"
                   onClick={toggleMobileMenu}
-                  aria-label="Close Menu"
+                  aria-label={t("ProfileSidebar.actions.closeMenu")}
                 >
                   <IconClose />
                 </button>
@@ -593,80 +447,52 @@ export function ProfileSidebar() {
               {group.section && (
                 <span
                   className="bh-section-label"
-                  style={{
-                    opacity: collapsed ? 0 : 1,
-                    transition: "opacity 0.2s ease",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                  }}
+                  style={{ opacity: collapsed ? 0 : 1, transition: "opacity 0.2s ease", overflow: "hidden", whiteSpace: "nowrap" }}
                 >
                   {group.section}
                 </span>
               )}
 
-              {group.items.map(
-                ({ href, label, Icon }) => {
-                  const active = isActive(href);
-
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => {
-                        if (isMobile)
-                          setMobileOpen(false);
-                      }}
-                      className={`bh-nav-item${
-                        active ? " active" : ""
-                      }`}
-                      aria-current={
-                        active ? "page" : undefined
-                      }
-                      title={
-                        collapsed ? label : undefined
-                      }
-                      data-collapsed={collapsed}
+              {group.items.map(({ href, label, Icon }) => {
+                const active = isActive(href);
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => { if (isMobile) setMobileOpen(false); }}
+                    className={`bh-nav-item${active ? " active" : ""}`}
+                    aria-current={active ? "page" : undefined}
+                    title={collapsed ? label : undefined}
+                    data-collapsed={collapsed}
+                  >
+                    <span className="bh-nav-icon">
+                      <Icon />
+                    </span>
+                    <span
+                      style={{ opacity: collapsed ? 0 : 1, transition: "opacity 0.15s ease", overflow: "hidden", whiteSpace: "nowrap" }}
                     >
-                      <span className="bh-nav-icon">
-                        <Icon />
-                      </span>
+                      {label}
+                    </span>
+                  </Link>
+                );
+              })}
 
-                      <span
-                        style={{
-                          opacity: collapsed ? 0 : 1,
-                          transition:
-                            "opacity 0.15s ease",
-                          overflow: "hidden",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {label}
-                      </span>
-                    </Link>
-                  );
-                }
-              )}
+              <button
+                className="bh-mobile-signout"
+                onClick={handleLogout}
+                aria-label={t("ProfileSidebar.actions.signOut")}
+              >
+                <IconSignOut />
+                <span>{t("ProfileSidebar.actions.signOut")}</span>
+              </button>
             </div>
           ))}
-
-          <button
-            className="bh-mobile-signout"
-            onClick={handleLogout}
-            aria-label="Sign out"
-          >
-            <IconSignOut />
-            <span>Sign out</span>
-          </button>
         </nav>
 
         {/* User */}
         <div
           className="bh-user"
-          style={{
-            justifyContent: collapsed
-              ? "center"
-              : "flex-start",
-          }}
+          style={{ justifyContent: collapsed ? "center" : "flex-start" }}
         >
           <div className="bh-user-avatar">
             <IconProfile />
@@ -675,10 +501,7 @@ export function ProfileSidebar() {
           <span
             className="bh-user-name"
             title={name}
-            style={{
-              opacity: collapsed ? 0 : 1,
-              transition: "opacity 0.2s ease",
-            }}
+            style={{ opacity: collapsed ? 0 : 1, transition: "opacity 0.2s ease" }}
           >
             {name}
           </span>
@@ -687,8 +510,8 @@ export function ProfileSidebar() {
             <button
               className="bh-signout-btn"
               onClick={handleLogout}
-              title="Sign out"
-              aria-label="Sign out"
+              title={t("ProfileSidebar.actions.signOut")}
+              aria-label={t("ProfileSidebar.actions.signOut")}
             >
               <IconSignOut />
             </button>
@@ -698,11 +521,9 @@ export function ProfileSidebar() {
         {/* Footer */}
         {!collapsed && (
           <div className="bh-footer">
-            <p>© 2024 Revchill. All Rights Reserved.</p>
+            <p>{t("ProfileSidebar.footer.copyright")}</p>
             <p>
-              <a href="#">
-                Terms and Conditions
-              </a>
+              <a href="#">{t("ProfileSidebar.footer.terms")}</a>
             </p>
           </div>
         )}

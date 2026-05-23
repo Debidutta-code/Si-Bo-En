@@ -256,7 +256,7 @@ const Navbar = () => {
                   color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
                 }}
               >
-                Spa
+                {t("Navbar.spa")}
               </button>
             )}
             {/* Customer Login / User Dropdown */}

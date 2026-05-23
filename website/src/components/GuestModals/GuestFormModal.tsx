@@ -726,15 +726,7 @@ const GuestFormModal: React.FC<Props> = ({
                           </div>
                           {payLaterPromos.length > 0 && (
                             <div className="pl-3 space-y-1 pb-1">
-                              {payLaterPromos.map((promo: any, i: number) => (
-                                <div key={i} className="flex justify-between text-xs text-blue-500">
-                                  <span>
-                                    {promo.name} 
-                                    <span className="ml-1 text-[10px] text-gray-800">{t("GuestForm.payLater")}</span>
-                                  </span>
-                                  <span>{cur} {(promo.discountAmount ?? 0).toFixed(2)}</span>
-                                </div>
-                              ))}
+                              
                               {payLaterPromos.map((promo: any, i: number) => {
                                 const payLaterName = promo._translations?.name || promo.name;
                                 return (

@@ -9,6 +9,7 @@ import {
   Loader2, X, AlertCircle, ChevronLeft, Sparkles,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { getSpaByPropertyCodeApi, createSpaReservationApi, cancelSpaReservationApi } from "../api/spa.api";
 import { ISpa, ISpaDate, ISpaSlot } from "../interface";
 import { useSelector } from "react-redux";
@@ -29,8 +30,8 @@ interface SelectedSlot {
   amount: number;
 }
 
-
 export default function SpaClient() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const propertyCode = searchParams.get("propertyCode") || searchParams.get("code") || "";
   const spaId = searchParams.get("id") || "";
@@ -67,10 +68,10 @@ export default function SpaClient() {
         setSpas(response.data || []);
       } else {
         setSpas([]);
-        toast.error(response.message || "Unable to load spa services");
+        toast.error(response.message || t("SpaClient.toast.loadFailed"));
       }
     } catch {
-      toast.error("Unable to load spa services");
+      toast.error(t("SpaClient.toast.loadFailed"));
       setSpas([]);
     } finally {
       setLoading(false);
@@ -91,7 +92,7 @@ export default function SpaClient() {
   };
 
   const handleToggleSlot = (spa: ISpa, spaDate: ISpaDate, slot: ISpaSlot) => {
-    if (slot.isBooked) { toast.error("This slot is already booked."); return; }
+    if (slot.isBooked) { toast.error(t("SpaClient.toast.slotAlreadyBooked")); return; }
     const uniqueId = getSlotUniqueId(slot.id, spaDate.id);
     const amount = spa.isInclusive ? 0 : spa.discountValue || 0;
     setSelectedSlots(prev => {
@@ -126,15 +127,15 @@ export default function SpaClient() {
     const trimmed = value.trim();
 
     if (field === "name") {
-      if (!trimmed) error = "Full name is required.";
+      if (!trimmed) error = t("SpaClient.validation.nameRequired");
     }
     if (field === "email") {
-      if (!trimmed) error = "Email address is required.";
-      else if (!isValidEmail(trimmed)) error = "Enter a valid email address.";
+      if (!trimmed) error = t("SpaClient.validation.emailRequired");
+      else if (!isValidEmail(trimmed)) error = t("SpaClient.validation.emailInvalid");
     }
     if (field === "phone") {
-      if (!trimmed) error = "Phone number is required.";
-      else if (!isValidPhone(trimmed)) error = "Enter a valid phone number.";
+      if (!trimmed) error = t("SpaClient.validation.phoneRequired");
+      else if (!isValidPhone(trimmed)) error = t("SpaClient.validation.phoneInvalid");
     }
 
     setFormErrors(prev => ({ ...prev, [field]: error }));
@@ -149,17 +150,16 @@ export default function SpaClient() {
   };
 
   const handleConfirmBooking = async () => {
-    if (selectedSlots.size === 0) { toast.error("Please select at least one slot."); return; }
+    if (selectedSlots.size === 0) { toast.error(t("SpaClient.toast.selectAtLeastOne")); return; }
     if (!validateBookingForm()) {
-      toast.error("Please fix the highlighted fields.");
+      toast.error(t("SpaClient.toast.fixFields"));
       return;
     }
 
-    // If not logged in, redirect to login and come back to this SPA page after success
     if (!(customer as any)?.isAuthenticated) {
       const redirectUrl = `/spa/spaid/?id=${encodeURIComponent(spaId)}&propertyCode=${encodeURIComponent(propertyCode)}`;
       sessionStorage.setItem("customerRedirectUrl", redirectUrl);
-      toast.error("Please login to book spa slots");
+      toast.error(t("SpaClient.toast.loginRequired"));
       window.location.href = "/login";
       return;
     }
@@ -176,7 +176,7 @@ export default function SpaClient() {
         currencyCode: spa?.currencyCode as CurrencyCode || "AED",
       });
       if (response.success) {
-        toast.success(`${selectedSlots.size} slot(s) booked!`);
+        toast.success(t("SpaClient.toast.bookSuccess", { count: selectedSlots.size }));
         const bookingId = response.data?.id;
         if (bookingId) {
           selectedSlots.forEach(s => { bookingMapRef.current[s.slotId] = bookingId; });
@@ -190,27 +190,27 @@ export default function SpaClient() {
                 const hit = Array.from(selectedSlots.values()).some(
                   sel => sel.slotId === sl.id && sel.spaDateId === d.id
                 );
-                return hit ? { ...sl, isBooked: true, reservationId: bookingId, SlotBooking: { spaBookingId: bookingId }, Reservation: { bookingCode: sl.Reservation?.bookingCode || "", id: bookingId } as any } : sl;
+                return hit
+                  ? { ...sl, isBooked: true, reservationId: bookingId, SlotBooking: { spaBookingId: bookingId }, Reservation: { bookingCode: sl.Reservation?.bookingCode || "", id: bookingId } as any }
+                  : sl;
               }),
             })),
           }))
         );
-        // Close booking modal and clear form
         setShowBookingModal(false);
         setSelectedSlots(new Map());
         setCustomerName(""); setCustomerEmail(""); setCustomerPhone("");
         await loadSpas(propertyCode.trim());
       } else {
-        toast.error(response.message || "Failed to create booking.");
+        toast.error(response.message || t("SpaClient.toast.bookFailed"));
       }
     } catch {
-      toast.error("Failed to create booking.");
+      toast.error(t("SpaClient.toast.bookFailed"));
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Cancel a booked slot (single slot within booking)
   const openCancelModal = (slot: ISpaSlot, spaDateId: string) => {
     const bookingId =
       bookingMapRef.current[slot.id] ||
@@ -219,7 +219,7 @@ export default function SpaClient() {
       (slot.Reservation as any)?.id;
 
     if (!bookingId) {
-      toast.error("Unable to cancel: booking ID missing.");
+      toast.error(t("SpaClient.toast.cancelMissingId"));
       return;
     }
     setConfirmModal({
@@ -228,41 +228,6 @@ export default function SpaClient() {
       label: formatTime(slot.startTime),
     });
   };
-
-  // const handleConfirmCancel = async () => {
-  //   if (!confirmModal) return;
-  //   const { bookingId, slotId, label } = confirmModal;
-  //   setConfirmModal(null);
-  //   setCancellingSlotId(slotId);
-  //   try {
-  //     // Cancel single slot: pass spaSlotId in body
-  //     const response = await cancelSpaReservationApi(bookingId, slotId);
-  //     if (response.success) {
-  //       toast.success(`Slot cancelled successfully.`);
-  //       // Mark the specific slot as cancelled locally so the UI shows 'Cancelled'
-  //       setSpas(prev =>
-  //         prev.map(s => ({
-  //           ...s,
-  //           SpaDates: s.SpaDates?.map(d => ({
-  //             ...d,
-  //             Slots: d.Slots?.map(sl => {
-  //               if (sl.id === slotId) {
-  //                 return { ...sl, status: 'cancelled', isCancelled: true } as any;
-  //               }
-  //               return sl;
-  //             }),
-  //           })),
-  //         }))
-  //       );
-  //     } else {
-  //       toast.error(response.message || "Failed to cancel slot.");
-  //     }
-  //   } catch {
-  //     toast.error("Failed to cancel slot.");
-  //   } finally {
-  //     setCancellingSlotId(null);
-  //   }
-  // };
 
   const formatDate = (v: string) => {
     try {
@@ -275,6 +240,7 @@ export default function SpaClient() {
       return formatInTimeZone(new Date(v), "UTC", "hh:mm a");
     } catch { return v; }
   };
+
   const spa = useMemo(() => spas.find(item => item.id === spaId), [spas, spaId]);
   const availableSlots = useMemo(
     () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.filter(sl => !sl.isBooked).length || 0) : 0), 0) || 0,
@@ -284,36 +250,6 @@ export default function SpaClient() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-amber-50/30">
-      {/* Cancel Confirm Modal */}
-      {/* {confirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setConfirmModal(null)} />
-          <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-stone-900">Cancel this slot?</h3>
-            <p className="mt-2 text-sm text-stone-500 leading-relaxed">
-              You're about to cancel the <strong>{confirmModal.label}</strong> slot. Other slots in this booking will remain active.
-            </p>
-            <div className="mt-6 flex gap-3">
-              <button
-                onClick={() => setConfirmModal(null)}
-                className="flex-1 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm font-medium text-stone-700 transition hover:bg-stone-100"
-              >
-                Keep it
-              </button>
-              <button
-                onClick={handleConfirmCancel}
-                className="flex-1 rounded-2xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700"
-              >
-                Yes, cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )} */}
-
       <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         {/* Back nav */}
         <div className="mb-8 flex items-center justify-between">
@@ -321,7 +257,7 @@ export default function SpaClient() {
             href={`/spa?propertyCode=${encodeURIComponent(propertyCode)}`}
             className="inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50"
           >
-            <ChevronLeft className="h-4 w-4" /> Back to services
+            <ChevronLeft className="h-4 w-4" /> {t("SpaClient.nav.backToServices")}
           </Link>
         </div>
 
@@ -332,11 +268,11 @@ export default function SpaClient() {
         ) : loading ? (
           <div className="rounded-3xl border border-stone-200 bg-white p-16 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto text-amber-600 mb-3" />
-            <p className="text-sm text-stone-500">Loading…</p>
+            <p className="text-sm text-stone-500">{t("SpaClient.states.loading")}</p>
           </div>
         ) : !spa ? (
           <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-16 text-center text-stone-500">
-            Spa not found for this property code.
+            {t("SpaClient.states.spaNotFound")}
           </div>
         ) : (
           <div className="space-y-6">
@@ -364,19 +300,29 @@ export default function SpaClient() {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-stone-900">{spa.name}</h2>
-                      <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500">{spa.description || "No description available."}</p>
+                      <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500">
+                        {spa.description || t("SpaClient.hero.noDescription")}
+                      </p>
                     </div>
                   </div>
                   <div className="flex-shrink-0 rounded-2xl bg-gradient-to-br from-amber-50 to-stone-50 border border-amber-100 p-4 text-sm min-w-[160px]">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-400 uppercase tracking-widest mb-2">
-                      <Sparkles className="h-3 w-3" /> Details
+                      <Sparkles className="h-3 w-3" /> {t("SpaClient.hero.detailsLabel")}
                     </div>
                     <p className="text-xl font-bold text-stone-900">
-                      {spa.isInclusive ? "Inclusive" : spa.discountValue ? `${spa.currencyCode || "AED"} ${spa.discountValue}` : "—"}
+                      {spa.isInclusive
+                        ? t("SpaClient.hero.inclusive")
+                        : spa.discountValue
+                          ? `${spa.currencyCode || "AED"} ${spa.discountValue}`
+                          : "—"}
                     </p>
                     <div className="mt-2 space-y-1 text-xs text-stone-500">
-                      <p className="flex items-center gap-1"><Clock className="h-3 w-3" />{spa.serviceTime || "TBD"} min session</p>
-                      <p className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />{availableSlots} open slots</p>
+                      <p className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />{spa.serviceTime || t("SpaClient.hero.timeTbd")} {t("SpaClient.hero.minSession")}
+                      </p>
+                      <p className="flex items-center gap-1">
+                        <CalendarDays className="h-3 w-3" />{availableSlots} {t("SpaClient.hero.openSlots")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -387,20 +333,20 @@ export default function SpaClient() {
               {/* Dates & Slots */}
               <div className="rounded-3xl border border-stone-200 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-5">
-                  <h3 className="text-lg font-bold text-stone-900">Available Dates & Slots</h3>
+                  <h3 className="text-lg font-bold text-stone-900">{t("SpaClient.slots.sectionTitle")}</h3>
                   {selectedSlots.size > 0 && (
                     <button
                       onClick={() => setSelectedSlots(new Map())}
                       className="inline-flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 font-medium"
                     >
                       <X className="h-4 w-4" />
-                      Clear ({selectedSlots.size})
+                      {t("SpaClient.slots.clearSelection", { count: selectedSlots.size })}
                     </button>
                   )}
                 </div>
                 {!spa.SpaDates?.length ? (
                   <div className="rounded-2xl border border-dashed border-stone-200 bg-stone-50 p-8 text-center text-sm text-stone-500">
-                    No dates configured for this spa yet.
+                    {t("SpaClient.slots.noDates")}
                   </div>
                 ) : (
                   <div className="space-y-5">
@@ -413,11 +359,13 @@ export default function SpaClient() {
                           <div className="flex items-center justify-between bg-stone-50 px-4 py-3 border-b border-stone-200">
                             <div>
                               <p className="text-sm font-semibold text-stone-900">{formatDate(spaDate.date)}</p>
-                              <p className="text-xs text-stone-500 mt-0.5">{openCount} open · {spaDate.Slots?.length || 0} total</p>
+                              <p className="text-xs text-stone-500 mt-0.5">
+                                {t("SpaClient.slots.openDot", { open: openCount, total: spaDate.Slots?.length || 0 })}
+                              </p>
                             </div>
                             {selectedCount > 0 && (
                               <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
-                                {selectedCount} selected
+                                {t("SpaClient.slots.selectedBadge", { count: selectedCount })}
                               </span>
                             )}
                           </div>
@@ -449,7 +397,9 @@ export default function SpaClient() {
                                           {formatTime(slot.startTime)}
                                         </p>
                                         {slot.endTime && (
-                                          <p className="text-xs text-stone-400">to {formatTime(slot.endTime)}</p>
+                                          <p className="text-xs text-stone-400">
+                                            {t("SpaClient.slots.toTime", { time: formatTime(slot.endTime) })}
+                                          </p>
                                         )}
                                       </div>
                                       <div className="flex items-center gap-1.5">
@@ -458,7 +408,7 @@ export default function SpaClient() {
                                           ? "bg-amber-100 text-amber-800"
                                           : "bg-emerald-100 text-emerald-700"
                                           }`}>
-                                          {isSelected ? "Selected" : "Open"}
+                                          {isSelected ? t("SpaClient.slots.slotSelected") : t("SpaClient.slots.slotOpen")}
                                         </span>
                                       </div>
                                     </div>
@@ -486,10 +436,11 @@ export default function SpaClient() {
                         return;
                       }
                       setShowBookingModal(true);
-                    }} className="inline-flex items-center gap-2 rounded-2xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 hover:shadow-lg"
+                    }}
+                    className="inline-flex items-center gap-2 rounded-2xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 hover:shadow-lg"
                   >
                     <ShoppingCart className="h-5 w-5" />
-                    Review & Book ({selectedSlots.size})
+                    {t("SpaClient.bookingButton", { count: selectedSlots.size })}
                   </button>
                 </div>
               )}
@@ -503,7 +454,7 @@ export default function SpaClient() {
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowBookingModal(false)} />
             <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-stone-900">Complete Your Booking</h2>
+                <h2 className="text-xl font-bold text-stone-900">{t("SpaClient.modal.title")}</h2>
                 <button
                   onClick={() => setShowBookingModal(false)}
                   className="rounded-xl p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition"
@@ -515,7 +466,9 @@ export default function SpaClient() {
               <div className="space-y-4">
                 {/* Selected Slots Summary */}
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-stone-500 mb-3">Selected Slots</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-stone-500 mb-3">
+                    {t("SpaClient.modal.selectedSlotsLabel")}
+                  </p>
                   <div className="max-h-[200px] overflow-y-auto space-y-2 pr-1">
                     {Array.from(selectedSlots.values()).map(slot => (
                       <div key={slot.id} className="rounded-xl border border-stone-100 bg-stone-50 p-3">
@@ -526,7 +479,7 @@ export default function SpaClient() {
                               {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
                             </p>
                             <p className="font-semibold text-emerald-700 mt-1">
-                              {slot.amount === 0 ? "Inclusive" : `${spa?.currencyCode || "AED"} ${slot.amount}`}
+                              {slot.amount === 0 ? t("SpaClient.modal.inclusive") : `${spa?.currencyCode || "AED"} ${slot.amount}`}
                             </p>
                           </div>
                           <button
@@ -546,20 +499,22 @@ export default function SpaClient() {
                 {/* Price Summary */}
                 <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-stone-50 border border-amber-100 p-4 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-stone-500">Slots</span>
+                    <span className="text-stone-500">{t("SpaClient.modal.price.slots")}</span>
                     <span className="font-semibold text-stone-900">{selectedSlots.size}</span>
                   </div>
                   <div className="border-t border-amber-100 pt-2 flex justify-between">
-                    <span className="text-stone-500">Total</span>
+                    <span className="text-stone-500">{t("SpaClient.modal.price.total")}</span>
                     <span className="text-lg font-bold text-stone-900">
-                      {totalAmount === 0 ? "Inclusive" : `${spa?.currencyCode || "AED"} ${totalAmount}`}
+                      {totalAmount === 0 ? t("SpaClient.modal.inclusive") : `${spa?.currencyCode || "AED"} ${totalAmount}`}
                     </span>
                   </div>
                 </div>
 
                 {/* Customer Details */}
                 <div className="space-y-2.5 pt-2">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-stone-500">Your Details</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                    {t("SpaClient.modal.yourDetails")}
+                  </p>
                   <div>
                     <input
                       type="text"
@@ -569,7 +524,7 @@ export default function SpaClient() {
                         if (formErrors.name) validateField("name", e.target.value);
                       }}
                       onBlur={e => validateField("name", e.target.value)}
-                      placeholder="Full name *"
+                      placeholder={t("SpaClient.modal.placeholders.fullName")}
                       className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${formErrors.name
                         ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
                         : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
@@ -588,7 +543,7 @@ export default function SpaClient() {
                         if (formErrors.email) validateField("email", e.target.value);
                       }}
                       onBlur={e => validateField("email", e.target.value)}
-                      placeholder="Email address *"
+                      placeholder={t("SpaClient.modal.placeholders.email")}
                       className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${formErrors.email
                         ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
                         : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
@@ -607,7 +562,7 @@ export default function SpaClient() {
                         if (formErrors.phone) validateField("phone", e.target.value);
                       }}
                       onBlur={e => validateField("phone", e.target.value)}
-                      placeholder="Phone number *"
+                      placeholder={t("SpaClient.modal.placeholders.phone")}
                       className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${formErrors.phone
                         ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
                         : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
@@ -625,7 +580,7 @@ export default function SpaClient() {
                     onClick={() => setShowBookingModal(false)}
                     className="flex-1 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm font-semibold text-stone-700 transition hover:bg-stone-100"
                   >
-                    Cancel
+                    {t("SpaClient.modal.cancel")}
                   </button>
                   <button
                     type="button"
@@ -634,15 +589,17 @@ export default function SpaClient() {
                     className="flex-1 rounded-2xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-stone-700 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {submitting ? (
-                      <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Booking…</span>
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />{t("SpaClient.modal.booking")}
+                      </span>
                     ) : (
-                      `Book ${selectedSlots.size} Slot${selectedSlots.size !== 1 ? "s" : ""}`
+                      selectedSlots.size === 1 ? t("SpaClient.modal.bookSlot", { count: selectedSlots.size }) : t("SpaClient.modal.bookSlots", { count: selectedSlots.size })
                     )}
                   </button>
                 </div>
 
                 <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4 text-xs text-stone-500 text-center">
-                  <p className="font-semibold text-stone-700 mb-1">Available Slots</p>
+                  <p className="font-semibold text-stone-700 mb-1">{t("SpaClient.modal.availableSlotsLabel")}</p>
                   <p className="text-lg font-bold text-stone-900">{availableSlots}</p>
                 </div>
               </div>

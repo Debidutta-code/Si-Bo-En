@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { RootState } from "@/src/store/store";
 import { clearCustomer } from "@/src/store/customerSlice";
 import { getMyProfileApi } from "./api/profile.api";
@@ -19,6 +20,7 @@ interface CustomerProfile {
 }
 
 export default function ProfileHomePage() {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const router = useRouter();
   const customerState = useSelector((state: RootState) => state.customer);
@@ -34,7 +36,7 @@ export default function ProfileHomePage() {
     if (res?.success) {
       setProfile(res.data);
     } else {
-      toast.error(res?.message ?? "Could not load profile");
+      toast.error(res?.message ?? t("ProfileHomePage.toast.loadFailed"));
       if (
         res?.message?.toLowerCase().includes("token") ||
         res?.message?.toLowerCase().includes("auth") ||
@@ -57,9 +59,11 @@ export default function ProfileHomePage() {
     return (
       <div className="flex items-center justify-center py-24">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-4"
-            style={{ borderColor: "#e0e0e0", borderTopColor: "#1595A2" }} />
-          <p className="text-[13px]" style={{ color: "#999" }}>Loading your profile…</p>
+          <div
+            className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-4"
+            style={{ borderColor: "#e0e0e0", borderTopColor: "#1595A2" }}
+          />
+          <p className="text-[13px]" style={{ color: "#999" }}>{t("ProfileHomePage.loading")}</p>
         </div>
       </div>
     );
@@ -68,7 +72,7 @@ export default function ProfileHomePage() {
   return (
     <div className="space-y-6">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-[18px] font-bold text-[#1a1a1a]">My Profile</h2>
+        <h2 className="text-[18px] font-bold text-[#1a1a1a]">{t("ProfileHomePage.header.title")}</h2>
         <button
           onClick={() => {
             const storedPropertyCode = sessionStorage.getItem("lastPropertyCode");
@@ -80,9 +84,11 @@ export default function ProfileHomePage() {
           }}
           className="inline-flex items-center rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 shadow-sm transition hover:bg-stone-50"
         >
-          ← Homepage
+          {t("ProfileHomePage.header.homepage")}
         </button>
-      </div>     {/* ── Member card */}
+      </div>
+
+      {/* ── Member card */}
       <div className="rounded-2xl overflow-hidden" style={{
         boxShadow: "0 8px 32px rgba(21,149,162,0.2)",
         background: "linear-gradient(90deg, #0d7a87 0%, #1fc8d8 40%, #1595A2 60%, #0d7a87 100%)",
@@ -94,26 +100,28 @@ export default function ProfileHomePage() {
             style={{ background: "#fff", transform: "translate(-30%, 30%)" }} />
           <div className="relative z-10">
             <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-white/70 mb-3">
-              Guest Account
+              {t("ProfileHomePage.memberCard.guestAccount")}
             </p>
-            <h2 className="text-[22px] font-semibold text-white mb-0.5"
-              style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-              {name || "Member"}
+            <h2
+              className="text-[22px] font-semibold text-white mb-0.5"
+              style={{ fontFamily: "'Cormorant Garamond', serif" }}
+            >
+              {name || t("ProfileHomePage.memberCard.memberFallback")}
             </h2>
             <p className="text-[13px] text-white/75">{profile?.email}</p>
             <div className="flex items-center gap-4 mt-5">
               <div>
-                <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">Programs</p>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">{t("ProfileHomePage.memberCard.programs")}</p>
                 <p className="text-[13px] font-medium text-white">{profile?.CreationGuest?.length ?? 0}</p>
               </div>
               <div className="w-px h-8 bg-white/20" />
               <div>
-                <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">Properties</p>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">{t("ProfileHomePage.memberCard.properties")}</p>
                 <p className="text-[13px] font-medium text-white">{profile?.PropertyLoyalityGuests?.length ?? 0}</p>
               </div>
               <div className="w-px h-8 bg-white/20" />
               <div>
-                <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">Wishlist</p>
+                <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">{t("ProfileHomePage.memberCard.wishlist")}</p>
                 <p className="text-[13px] font-medium text-white">{profile?.WishList?.length ?? 0}</p>
               </div>
             </div>
@@ -125,10 +133,14 @@ export default function ProfileHomePage() {
       {profile?.CreationGuest && profile.CreationGuest.length > 0 ? (
         <div>
           <h3 className="text-[14px] font-semibold text-[#1a1a1a] mb-3">
-            Loyalty Programs
-            <span className="ml-2 text-[11px] font-normal px-2 py-0.5 rounded-full"
-              style={{ background: "#f0fafa", color: "#1595A2" }}>
-              {profile.CreationGuest.length} program{profile.CreationGuest.length !== 1 ? "s" : ""}
+            {t("ProfileHomePage.loyalty.sectionTitle")}
+            <span
+              className="ml-2 text-[11px] font-normal px-2 py-0.5 rounded-full"
+              style={{ background: "#f0fafa", color: "#1595A2" }}
+            >
+              {profile.CreationGuest.length === 1
+                ? t("ProfileHomePage.loyalty.programCount", { count: profile.CreationGuest.length })
+                : t("ProfileHomePage.loyalty.programCountPlural", { count: profile.CreationGuest.length })}
             </span>
           </h3>
           <div className="space-y-4">
@@ -147,41 +159,56 @@ export default function ProfileHomePage() {
                   : "—";
 
               return (
-                <div key={cg.id} className="bg-white rounded-2xl overflow-hidden transition-shadow hover:shadow-md"
-                  style={{ border: "1px solid #f0f0f0" }}>
-
+                <div
+                  key={cg.id}
+                  className="bg-white rounded-2xl overflow-hidden transition-shadow hover:shadow-md"
+                  style={{ border: "1px solid #f0f0f0" }}
+                >
                   {/* Header */}
                   <div className="px-5 pt-5 pb-4 flex items-center gap-3 border-b border-[#f8f8f8]">
                     {programLogo ? (
-                      <img src={programLogo} alt="Program logo"
-                        className="w-10 h-10 rounded-xl object-contain bg-[#fafafa] border border-[#f0f0f0] flex-shrink-0" />
+                      <img
+                        src={programLogo}
+                        alt="Program logo"
+                        className="w-10 h-10 rounded-xl object-contain bg-[#fafafa] border border-[#f0f0f0] flex-shrink-0"
+                      />
                     ) : (
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg"
-                        style={{ background: "#fdf8ee" }}>🏆</div>
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg"
+                        style={{ background: "#fdf8ee" }}
+                      >🏆</div>
                     )}
                     <p className="text-[13px] font-semibold text-black">
                       {config
                         ? config.loyaltyDiscountType === "percentage"
-                          ? `Up to ${config.discountValue}% off`
-                          : `${config.currencyCode} ${config.discountValue} off`
-                        : "Loyalty Program"}
+                          ? t("ProfileHomePage.loyalty.headerPercentage", { value: config.discountValue })
+                          : t("ProfileHomePage.loyalty.headerCurrency", { currency: config.currencyCode, value: config.discountValue })
+                        : t("ProfileHomePage.loyalty.fallbackName")}
                     </p>
                   </div>
 
                   {/* Stats */}
                   <div className="px-5 py-4 flex items-center gap-6 border-b border-[#f8f8f8]">
                     <div>
-                      <p className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5">Your Discount</p>
-                      <p className="text-[15px] font-bold text-cyan-500">{effectiveDiscount} off</p>
+                      <p className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5">
+                        {t("ProfileHomePage.loyalty.stats.yourDiscount")}
+                      </p>
+                      <p className="text-[15px] font-bold text-cyan-500">
+                        {t("ProfileHomePage.loyalty.stats.discountValue", { value: effectiveDiscount })}
+                      </p>
                     </div>
                     {totalLevels > 1 && (
                       <div>
-                        <p className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5">Level</p>
+                        <p className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5">
+                          {t("ProfileHomePage.loyalty.stats.level")}
+                        </p>
                         <p className="text-[15px] font-bold text-[#1a1a1a]">{cg.guestLevel} / {totalLevels}</p>
                       </div>
                     )}
                     <div>
-                      <p className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5">Bookings</p>
+                      <p className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5">
+                        {t("ProfileHomePage.loyalty.stats.bookings")}
+                      </p>
                       <p className="text-[15px] font-bold text-[#1a1a1a]">{cg.noOfBookings}</p>
                     </div>
                   </div>
@@ -191,20 +218,37 @@ export default function ProfileHomePage() {
                     <div className="px-5 py-3 border-b border-[#f8f8f8]">
                       <div className="flex justify-between mb-1.5">
                         <span className="text-[10px]" style={{ color: "#bbb" }}>
-                          Level {cg.guestLevel} — {currentLevel?.discountPercentage}% off
+                          {t("ProfileHomePage.loyalty.progress.currentLevel", {
+                            level: cg.guestLevel,
+                            pct: currentLevel?.discountPercentage,
+                          })}
                         </span>
                         <span className="text-[10px]" style={{ color: "#bbb" }}>
-                          Level {nextLevel.level} — {nextLevel.discountPercentage}% off →
+                          {t("ProfileHomePage.loyalty.progress.nextLevel", {
+                            level: nextLevel.level,
+                            pct: nextLevel.discountPercentage,
+                          })}
                         </span>
                       </div>
                       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "#f0f0f0" }}>
-                        <div className="h-full rounded-full transition-all" style={{
-                          width: `${Math.min((cg.guestLevel / totalLevels) * 100, 100)}%`,
-                          background: "linear-gradient(90deg, #0d7a87 0%, #1fc8d8 40%, #1595A2 60%, #0d7a87 100%)",
-                        }} />
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${Math.min((cg.guestLevel / totalLevels) * 100, 100)}%`,
+                            background: "linear-gradient(90deg, #0d7a87 0%, #1fc8d8 40%, #1595A2 60%, #0d7a87 100%)",
+                          }}
+                        />
                       </div>
                       <p className="text-[10px] mt-1.5" style={{ color: "#bbb" }}>
-                        {nextLevel.noOfReservations} booking{nextLevel.noOfReservations !== 1 ? "s" : ""} needed to reach Level {nextLevel.level}
+                        {nextLevel.noOfReservations === 1
+                          ? t("ProfileHomePage.loyalty.progress.bookingsNeeded", {
+                              count: nextLevel.noOfReservations,
+                              level: nextLevel.level,
+                            })
+                          : t("ProfileHomePage.loyalty.progress.bookingsNeededPlural", {
+                              count: nextLevel.noOfReservations,
+                              level: nextLevel.level,
+                            })}
                       </p>
                     </div>
                   )}
@@ -213,23 +257,32 @@ export default function ProfileHomePage() {
                   {properties.length > 0 && (
                     <div className="px-5 py-3">
                       <p className="text-[10px] tracking-[0.07em] font-medium mb-2 text-black">
-                        Valid at {properties.length} propert{properties.length !== 1 ? "ies" : "y"}
+                        {properties.length === 1
+                          ? t("ProfileHomePage.loyalty.properties.validAt", { count: properties.length })
+                          : t("ProfileHomePage.loyalty.properties.validAtPlural", { count: properties.length })}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {properties.map((p: any) => (
-                          <div key={p.id} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
-                            style={{ background: "#fafafa", border: "1px solid #f0f0f0" }}>
+                          <div
+                            key={p.id}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl"
+                            style={{ background: "#fafafa", border: "1px solid #f0f0f0" }}
+                          >
                             {p.loyalityConfigLogo && (
-                              <img src={p.loyalityConfigLogo} alt={p.propertyName}
-                                className="w-4 h-4 rounded object-contain" />
+                              <img
+                                src={p.loyalityConfigLogo}
+                                alt={p.propertyName}
+                                className="w-4 h-4 rounded object-contain"
+                              />
                             )}
-                            <span className="text-[11px] font-medium text-[#444]">
-                              {p.propertyName}
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{
-                              background: p.isActive ? "#e8f5e9" : "#fafafa",
-                              color: p.isActive ? "#2e7d32" : "#aaa",
-                            }}>
+                            <span className="text-[11px] font-medium text-[#444]">{p.propertyName}</span>
+                            <span
+                              className="text-[10px] px-1.5 py-0.5 rounded-full"
+                              style={{
+                                background: p.isActive ? "#e8f5e9" : "#fafafa",
+                                color: p.isActive ? "#2e7d32" : "#aaa",
+                              }}
+                            >
                               {p.isActive ? "●" : "○"}
                             </span>
                           </div>
@@ -245,17 +298,15 @@ export default function ProfileHomePage() {
       ) : (
         <div className="bg-white rounded-2xl p-8 text-center" style={{ border: "1px solid #f0f0f0" }}>
           <p className="text-3xl mb-2">🏨</p>
-          <p className="text-[14px] font-medium text-[#1a1a1a] mb-1">No memberships yet</p>
-          <p className="text-[12.5px]" style={{ color: "#aaa" }}>
-            You haven't been enrolled in any property loyalty programs yet.
-          </p>
+          <p className="text-[14px] font-medium text-[#1a1a1a] mb-1">{t("ProfileHomePage.loyalty.empty.title")}</p>
+          <p className="text-[12.5px]" style={{ color: "#aaa" }}>{t("ProfileHomePage.loyalty.empty.description")}</p>
         </div>
       )}
 
       {/* ── Wishlist */}
       {profile?.WishList && profile.WishList.length > 0 && (
         <div>
-          <h3 className="text-[14px] font-semibold text-[#1a1a1a] mb-3">Wishlist</h3>
+          <h3 className="text-[14px] font-semibold text-[#1a1a1a] mb-3">{t("ProfileHomePage.wishlist.sectionTitle")}</h3>
           <div className="grid grid-cols-2 gap-3">
             {profile.WishList.map((w: any) => (
               <div key={w.id} className="bg-white rounded-2xl p-4" style={{ border: "1px solid #f0f0f0" }}>
@@ -266,7 +317,6 @@ export default function ProfileHomePage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

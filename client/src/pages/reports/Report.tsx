@@ -294,12 +294,12 @@ const Report = () => {
                         {isDownloading ? (
                             <>
                                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                                {t('actions.generating')}
+                                {t('Report.actions.generating')}
                             </>
                         ) : (
                             <>
                                 <Download className="w-5 h-5 mr-2" />
-                                {t('actions.exportReport')}
+                                {t('Report.actions.exportReport')}
                             </>
                         )}
                     </Button>

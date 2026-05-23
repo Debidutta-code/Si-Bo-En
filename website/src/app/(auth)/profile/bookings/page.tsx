@@ -3,16 +3,14 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 import { RootState } from "@/src/store/store";
 import { setLoyaltyProfile } from "@/src/store/loyaltyUserSlice";
 import { PropertyLoyaltyConfig } from "@/src/store/loyaltyUserTypes";
 import { getMyProfileApi } from "../api/profile.api";
-import ImageUploadModal from "@/src/components/ImageUploadModal"
+import ImageUploadModal from "@/src/components/ImageUploadModal";
 
-type userIdentityCardType = 'passport'
-  | 'drivers_license'
-  | 'national_id'
-  | 'others';
+type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 
 interface IGuestCheckInDetails {
   address?: string;
@@ -45,12 +43,13 @@ interface MyReservation {
 }
 
 export default function MyBookingsPage() {
+  const { t } = useTranslation();
   const dispatch = useDispatch();
   const loyaltyUser = useSelector((state: RootState) => (state as any).loyaltyUser);
   const customer = useSelector((state: RootState) => (state as any).customer);
 
   const formatStatus = (status: string) => {
-    return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return status.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
   const isSameDay = (dateStr?: string | null): boolean => {
@@ -79,7 +78,7 @@ export default function MyBookingsPage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
 
-  // ─── Fetch all reservations ─────────────────────────────────────────────────
+  // ─── Fetch all reservations ──────────────────────────────────────────────────
   useEffect(() => {
     if (!customer.isAuthenticated) return;
 
@@ -95,7 +94,7 @@ export default function MyBookingsPage() {
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok || !data.success) {
-          throw new Error(data.message ?? "Failed to load reservations");
+          throw new Error(data.message ?? t("MyBookingsPage.toast.loadFailed"));
         }
         return data.data as MyReservation[];
       })
@@ -103,12 +102,12 @@ export default function MyBookingsPage() {
         if (!cancelled) {
           setMyReservations(Array.isArray(list) ? list : []);
           if (list.length === 0) {
-            toast("You have no reservations yet", { icon: "ℹ️" });
+            toast(t("MyBookingsPage.toast.noReservations"), { icon: "ℹ️" });
           }
         }
       })
       .catch((err: any) => {
-        if (!cancelled) toast.error(err.message ?? "Error loading reservations");
+        if (!cancelled) toast.error(err.message ?? t("MyBookingsPage.toast.loadError"));
       })
       .finally(() => {
         if (!cancelled) setMyReservationsLoading(false);
@@ -117,7 +116,7 @@ export default function MyBookingsPage() {
     return () => { cancelled = true; };
   }, [customer.isAuthenticated]);
 
-  // ─── Build property list from loyalty profile ─────────────────────────────────
+  // ─── Build property list from loyalty profile ────────────────────────────────
   useEffect(() => {
     if (loyaltyUser?.profile) {
       const props = Array.from(
@@ -142,16 +141,16 @@ export default function MyBookingsPage() {
     if (res?.success) {
       dispatch(setLoyaltyProfile(res.data));
     } else {
-      toast.error(res?.message ?? "Could not load profile");
+      toast.error(res?.message ?? t("MyBookingsPage.toast.profileLoadFailed"));
     }
   };
 
-  // ─── Check-in ───────────────────────────────────────────────────────────────
+  // ─── Check-in ────────────────────────────────────────────────────────────────
   const handleCheckInSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeReservationId) return;
     if (!checkinForm.identityImage) {
-      toast.error("Add Identity Image");
+      toast.error(t("MyBookingsPage.toast.identityImageRequired"));
       return;
     }
     setIsCheckingIn(true);
@@ -165,20 +164,28 @@ export default function MyBookingsPage() {
         }
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to check-in");
-      toast.success("Successfully checked in!");
+      if (!res.ok) throw new Error(data.message || t("MyBookingsPage.toast.checkinFailed"));
+      toast.success(t("MyBookingsPage.toast.checkinSuccess"));
       setIsCheckinDialogOpen(false);
       setIsImageUploadModalOpen(false);
       setActiveReservationId("");
-      setCheckinForm({ identityCardNumber: "", userIdentityCardType: "passport", city: "", state: "", country: "", address: "", identityImage: "" });
+      setCheckinForm({
+        identityCardNumber: "",
+        userIdentityCardType: "passport",
+        city: "",
+        state: "",
+        country: "",
+        address: "",
+        identityImage: "",
+      });
     } catch (error: any) {
-      toast.error(error.message || "An error occurred during check-in");
+      toast.error(error.message || t("MyBookingsPage.toast.checkinError"));
     } finally {
       setIsCheckingIn(false);
     }
   };
 
-  // ─── Check-out ──────────────────────────────────────────────────────────────
+  // ─── Check-out ───────────────────────────────────────────────────────────────
   const handleCheckOutSubmit = async () => {
     const bookingCode = activeReservationId;
     if (!bookingCode) return;
@@ -192,38 +199,68 @@ export default function MyBookingsPage() {
         }
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to check-out");
-      toast.success("Successfully checked out!");
+      if (!res.ok) throw new Error(data.message || t("MyBookingsPage.toast.checkoutFailed"));
+      toast.success(t("MyBookingsPage.toast.checkoutSuccess"));
       setIsCheckoutDialogOpen(false);
       setActiveReservationId("");
     } catch (error: any) {
-      toast.error(error.message || "An error occurred during check-out");
+      toast.error(error.message || t("MyBookingsPage.toast.checkoutError"));
     } finally {
       setIsCheckingOut(false);
     }
   };
 
-  // ─── Render ─────────────────────────────────────────────────────────────────
+  // ─── Detail rows built inside render so t() is in scope ─────────────────────
+  const getDetailRows = (res: MyReservation) => [
+    {
+      label: t("MyBookingsPage.details.checkIn"),
+      val: (res.checkInDate || res.reservationStartDate)
+        ? new Date(res.checkInDate || res.reservationStartDate).toLocaleDateString()
+        : "—",
+    },
+    {
+      label: t("MyBookingsPage.details.checkOut"),
+      val: (res.checkOutDate || res.reservationEndDate)
+        ? new Date(res.checkOutDate || res.reservationEndDate).toLocaleDateString()
+        : "—",
+    },
+    { label: t("MyBookingsPage.details.roomType"), val: res.roomTypeCode ?? "—" },
+    { label: t("MyBookingsPage.details.ratePlan"), val: res.ratePlanCode ?? "—" },
+    {
+      label: t("MyBookingsPage.details.total"),
+      val: (res.PricingBrakeDown?.totalAmount ?? res.amount ?? res.finalPrice?.totalAmount) != null
+        ? `${res.currencyCode || res.finalPrice?.currencyCode || ""} ${Number(res.PricingBrakeDown?.totalAmount ?? res.amount ?? res.finalPrice?.totalAmount ?? 0).toLocaleString()}`
+        : "—",
+    },
+    {
+      label: t("MyBookingsPage.details.primaryGuest"),
+      val: (res.guests?.[0]?.firstName && res.guests?.[0]?.lastName)
+        ? `${res.guests[0].firstName} ${res.guests[0].lastName}`
+        : (res.reservationGuests?.[0]?.firstName && res.reservationGuests?.[0]?.lastName)
+          ? `${res.reservationGuests[0].firstName} ${res.reservationGuests[0].lastName}`
+          : "—",
+    },
+  ];
+
+  // ─── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6 relative pb-20 md:pb-6">
       <div className="space-y-4">
-        <h3 className="text-[18px] font-bold text-[#1a1a1a]">My Reservations</h3>
-        <p className="text-[12.5px] text-gray-500">
-          All reservations associated with your account.
-        </p>
+        <h3 className="text-[18px] font-bold text-[#1a1a1a]">{t("MyBookingsPage.heading")}</h3>
+        <p className="text-[12.5px] text-gray-500">{t("MyBookingsPage.subtitle")}</p>
 
         {myReservationsLoading && (
           <div className="bg-white rounded-2xl p-10 text-center" style={{ border: "1px solid #f0f0f0" }}>
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto mb-4" />
-            <p className="text-sm text-gray-500">Loading your reservations…</p>
+            <p className="text-sm text-gray-500">{t("MyBookingsPage.loading")}</p>
           </div>
         )}
 
         {!myReservationsLoading && myReservations.length === 0 && (
           <div className="bg-white rounded-2xl p-10 text-center" style={{ border: "1px solid #f0f0f0" }}>
             <p className="text-3xl mb-2">🏖️</p>
-            <p className="text-[14px] font-medium text-[#1a1a1a] mb-1">No reservations found</p>
-            <p className="text-[12px] text-gray-400">When you make a reservation it will appear here.</p>
+            <p className="text-[14px] font-medium text-[#1a1a1a] mb-1">{t("MyBookingsPage.empty.title")}</p>
+            <p className="text-[12px] text-gray-400">{t("MyBookingsPage.empty.description")}</p>
           </div>
         )}
 
@@ -255,7 +292,7 @@ export default function MyBookingsPage() {
                 >
                   <div>
                     <p className="text-[15px] font-bold text-[#1a1a1a]">
-                      🏨 {res.property?.propertyName ?? "Property"}
+                      🏨 {res.property?.propertyName ?? t("MyBookingsPage.card.propertyFallback")}
                     </p>
                     <p className="text-[11.5px] text-gray-400 mt-0.5">
                       {res.property?.propertyCode}
@@ -285,42 +322,14 @@ export default function MyBookingsPage() {
                 {isOpen && (
                   <div className="p-6 border-t border-[#f0f0f0]">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                      {[
-                        {
-                          label: "Check-in",
-                          val: (res.checkInDate || res.reservationStartDate)
-                            ? new Date(res.checkInDate || res.reservationStartDate).toLocaleDateString()
-                            : "—",
-                        },
-                        {
-                          label: "Check-out",
-                          val: (res.checkOutDate || res.reservationEndDate)
-                            ? new Date(res.checkOutDate || res.reservationEndDate).toLocaleDateString()
-                            : "—",
-                        },
-                        { label: "Room type", val: res.roomTypeCode ?? "—" },
-                        { label: "Rate plan", val: res.ratePlanCode ?? "—" },
-                        {
-                          label: "Total",
-                          val: (res.PricingBrakeDown?.totalAmount ?? res.amount ?? res.finalPrice?.totalAmount) != null
-                            ? `${res.currencyCode || res.finalPrice?.currencyCode || ''} ${Number(res.PricingBrakeDown?.totalAmount ?? res.amount ?? res.finalPrice?.totalAmount ?? 0).toLocaleString()}`
-                            : "—",
-                        },
-                        {
-                          label: "Primary Guest",
-                          val: (res.guests?.[0]?.firstName && res.guests?.[0]?.lastName)
-                            ? `${res.guests[0].firstName} ${res.guests[0].lastName}`
-                            : (res.reservationGuests?.[0]?.firstName && res.reservationGuests?.[0]?.lastName)
-                              ? `${res.reservationGuests[0].firstName} ${res.reservationGuests[0].lastName}`
-                              : "—",
-                        },
-                      ].map((row) => (
+                      {getDetailRows(res).map((row) => (
                         <div key={row.label}>
                           <p className="text-[13px] font-bold text-black mb-0.5">{row.label}</p>
                           <p className="text-[12px] text-[#1a1a1a]">{row.val}</p>
                         </div>
                       ))}
                     </div>
+
                     {/* Action buttons */}
                     {(res.bookingStatus === "confirmed" || res.bookingStatus === "modified") && (
                       <div className="pt-3 border-t border-[#f0f0f0] flex flex-col sm:flex-row justify-end gap-2">
@@ -333,10 +342,10 @@ export default function MyBookingsPage() {
                           className="w-full sm:w-auto px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                           style={{
                             background: isSameDay(res.reservationStartDate) ? "#0d7a87" : "#e5e7eb",
-                            color: isSameDay(res.reservationStartDate) ? "white" : "#9ca3af"
+                            color: isSameDay(res.reservationStartDate) ? "white" : "#9ca3af",
                           }}
                         >
-                          Check In Now
+                          {t("MyBookingsPage.actions.checkInNow")}
                         </button>
                       </div>
                     )}
@@ -351,10 +360,10 @@ export default function MyBookingsPage() {
                           className="w-full sm:w-auto px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                           style={{
                             background: isSameDay(res.reservationEndDate) ? "#e53e3e" : "#e5e7eb",
-                            color: isSameDay(res.reservationEndDate) ? "white" : "#9ca3af"
+                            color: isSameDay(res.reservationEndDate) ? "white" : "#9ca3af",
                           }}
                         >
-                          Check Out Now
+                          {t("MyBookingsPage.actions.checkOutNow")}
                         </button>
                       </div>
                     )}
@@ -365,96 +374,133 @@ export default function MyBookingsPage() {
           })}
       </div>
 
-      {/* ── Check-in dialog ─────────────────────────────────────────────────── */}
+      {/* ── Check-in dialog ──────────────────────────────────────────────────── */}
       {isCheckinDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">Online Check-In</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t("MyBookingsPage.checkinDialog.title")}</h3>
               <button onClick={() => setIsCheckinDialogOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
             </div>
 
             <form onSubmit={handleCheckInSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">ID Type <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-semibold text-gray-600">
+                    {t("MyBookingsPage.checkinDialog.idTypeLabel")} <span className="text-red-500">*</span>
+                  </label>
                   <select
                     value={checkinForm.userIdentityCardType}
                     onChange={(e) => setCheckinForm({ ...checkinForm, userIdentityCardType: e.target.value as userIdentityCardType })}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
                     required
                   >
-                    <option value="national_id">National ID</option>
-                    <option value="passport">Passport</option>
-                    <option value="drivers_license">Driver's License</option>
-                    <option value="others">Other</option>
+                    <option value="national_id">{t("MyBookingsPage.checkinDialog.idTypes.nationalId")}</option>
+                    <option value="passport">{t("MyBookingsPage.checkinDialog.idTypes.passport")}</option>
+                    <option value="drivers_license">{t("MyBookingsPage.checkinDialog.idTypes.driversLicense")}</option>
+                    <option value="others">{t("MyBookingsPage.checkinDialog.idTypes.others")}</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">ID Number <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-semibold text-gray-600">
+                    {t("MyBookingsPage.checkinDialog.idNumberLabel")} <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
                     value={checkinForm.identityCardNumber}
                     onChange={(e) => setCheckinForm({ ...checkinForm, identityCardNumber: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
                     required
-                    placeholder="Enter ID number"
+                    placeholder={t("MyBookingsPage.checkinDialog.idNumberPlaceholder")}
                   />
                 </div>
               </div>
+
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-600">Address</label>
+                <label className="text-xs font-semibold text-gray-600">{t("MyBookingsPage.checkinDialog.addressLabel")}</label>
                 <input
-                  type="text" value={checkinForm.address}
+                  type="text"
+                  value={checkinForm.address}
                   onChange={(e) => setCheckinForm({ ...checkinForm, address: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
-                  placeholder="Street address"
+                  placeholder={t("MyBookingsPage.checkinDialog.addressPlaceholder")}
                 />
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">City</label>
-                  <input type="text" value={checkinForm.city}
+                  <label className="text-xs font-semibold text-gray-600">{t("MyBookingsPage.checkinDialog.cityLabel")}</label>
+                  <input
+                    type="text" value={checkinForm.city}
                     onChange={(e) => setCheckinForm({ ...checkinForm, city: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]" />
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">State/Province</label>
-                  <input type="text" value={checkinForm.state}
+                  <label className="text-xs font-semibold text-gray-600">{t("MyBookingsPage.checkinDialog.stateLabel")}</label>
+                  <input
+                    type="text" value={checkinForm.state}
                     onChange={(e) => setCheckinForm({ ...checkinForm, state: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]" />
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  />
                 </div>
               </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">Country</label>
-                  <input type="text" value={checkinForm.country}
+                  <label className="text-xs font-semibold text-gray-600">{t("MyBookingsPage.checkinDialog.countryLabel")}</label>
+                  <input
+                    type="text" value={checkinForm.country}
                     onChange={(e) => setCheckinForm({ ...checkinForm, country: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]" />
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">Zip/Postal Code</label>
-                  <input type="text" value={checkinForm.zipCode}
+                  <label className="text-xs font-semibold text-gray-600">{t("MyBookingsPage.checkinDialog.zipLabel")}</label>
+                  <input
+                    type="text" value={checkinForm.zipCode}
                     onChange={(e) => setCheckinForm({ ...checkinForm, zipCode: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]" />
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  />
                 </div>
               </div>
+
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Identity Image</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t("MyBookingsPage.checkinDialog.identityImageLabel")}
+                </label>
                 <div className="flex gap-2 items-center">
                   {checkinForm.identityImage && (
-                    <img src={checkinForm.identityImage} alt="Identity" className="w-12 h-12 object-cover rounded-md border" />
+                    <img
+                      src={checkinForm.identityImage}
+                      alt={t("MyBookingsPage.checkinDialog.identityImageAlt")}
+                      className="w-12 h-12 object-cover rounded-md border"
+                    />
                   )}
-                  <button onClick={() => setIsImageUploadModalOpen(true)} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors">
-                    Upload
+                  <button
+                    onClick={() => setIsImageUploadModalOpen(true)}
+                    className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+                  >
+                    {t("MyBookingsPage.checkinDialog.uploadButton")}
                   </button>
                 </div>
               </div>
 
               <div className="p-6 border-t bg-gray-50 flex justify-end gap-3 sticky bottom-0">
-                <button type="button" onClick={() => setIsCheckinDialogOpen(false)} className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors">Cancel</button>
-                <button type="submit" disabled={isCheckingIn} className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50" style={{ background: "#0d7a87" }}>
-                  {isCheckingIn ? "Processing..." : "Complete Check-In"}
+                <button
+                  type="button"
+                  onClick={() => setIsCheckinDialogOpen(false)}
+                  className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  {t("MyBookingsPage.checkinDialog.cancel")}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCheckingIn}
+                  className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  style={{ background: "#0d7a87" }}
+                >
+                  {isCheckingIn ? t("MyBookingsPage.checkinDialog.processing") : t("MyBookingsPage.checkinDialog.submit")}
                 </button>
               </div>
             </form>
@@ -467,18 +513,33 @@ export default function MyBookingsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">Confirm Check-Out</h3>
-              <button onClick={() => setIsCheckoutDialogOpen(false)} className="text-gray-400 hover:text-gray-600 text-xl font-bold" disabled={isCheckingOut}>&times;</button>
+              <h3 className="text-lg font-bold text-gray-900">{t("MyBookingsPage.checkoutDialog.title")}</h3>
+              <button
+                onClick={() => setIsCheckoutDialogOpen(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+                disabled={isCheckingOut}
+              >
+                &times;
+              </button>
             </div>
             <div className="p-6 space-y-6">
-              <p className="text-sm text-gray-600">Are you sure you want to check out of this reservation? This action cannot be undone.</p>
+              <p className="text-sm text-gray-600">{t("MyBookingsPage.checkoutDialog.body")}</p>
               <div className="flex gap-3 justify-end">
-                <button type="button" onClick={() => setIsCheckoutDialogOpen(false)}
-                  className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors" disabled={isCheckingOut}>Cancel</button>
-                <button onClick={handleCheckOutSubmit} disabled={isCheckingOut}
+                <button
+                  type="button"
+                  onClick={() => setIsCheckoutDialogOpen(false)}
+                  className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                  disabled={isCheckingOut}
+                >
+                  {t("MyBookingsPage.checkoutDialog.cancel")}
+                </button>
+                <button
+                  onClick={handleCheckOutSubmit}
+                  disabled={isCheckingOut}
                   className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                  style={{ background: "#e53e3e" }}>
-                  {isCheckingOut ? "Processing..." : "Confirm Check-Out"}
+                  style={{ background: "#e53e3e" }}
+                >
+                  {isCheckingOut ? t("MyBookingsPage.checkoutDialog.processing") : t("MyBookingsPage.checkoutDialog.confirm")}
                 </button>
               </div>
             </div>

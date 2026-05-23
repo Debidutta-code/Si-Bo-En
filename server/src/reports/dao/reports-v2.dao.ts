@@ -310,6 +310,7 @@ export class ReportsV2Repository {
                 reservationStartDate: true,
                 reservationEndDate: true,
                 addOns: { select: { totalPrice: true } },
+                PricingBrakeDown: { select: { currencyCode: true } },
             },
             orderBy: { reservationStartDate: 'asc' },
         });
@@ -449,6 +450,7 @@ export class ReportsV2Repository {
                         phoneNumber: true,
                     },
                 },
+                PricingBrakeDown: { select: { currencyCode: true } },
             },
             orderBy: { [dateField]: 'asc' },
         });
@@ -468,12 +470,8 @@ export class ReportsV2Repository {
                 propertyId: { in: propertyIds },
                 reservationStartDate: { gte: start, lte: end },
             },
-            select: {
-                propertyId: true,
-                hotelName: true,
-                propertyCode: true,
-                bookingStatus: true,
-                amount: true,
+            include: {
+                PricingBrakeDown: { select: { currencyCode: true } },
             },
         });
     }
@@ -607,6 +605,7 @@ export class ReportsV2Repository {
                         commissionType: true,
                     },
                 },
+                PricingBrakeDown: { select: { amountBeforeTax:true,taxedAmount:true,totalAmount:true,currentChargeableAmount:true,latterpayableAmount:true,currencyCode:true } },
             },
             orderBy: { bookedAt: 'desc' },
         });

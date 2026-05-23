@@ -87,10 +87,11 @@ export class BookingEngineRoomsInterceptor {
                 }
 
                 // ── 1c. Property address ──────────────────────────────────────
+                // NOTE: translations are stored keyed by propertyId, not the address record's own id
                 const address = data.propertyDetails.address;
-                if (address?.id) {
+                if (address?.propertyId) {
                     const addressTranslation = await PropertyAddressTranslation.getTranslated(
-                        address.id,
+                        address.propertyId,
                         locale
                     );
                     if (addressTranslation) {
