@@ -257,7 +257,7 @@ export class SiteMinderXmlParser {
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>\n` + responseBuilder.build(envelope);  // ← fixed: was builder
+        return responseBuilder.build(envelope);
     }
 
     public static buildAvailResponse(rs: SiteMinderHotelAvailNotifRS): string {
@@ -289,7 +289,7 @@ export class SiteMinderXmlParser {
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>\n` + responseBuilder.build(envelope);  // ← fixed: was builder
+        return responseBuilder.build(envelope);
     }
 
     public static buildRoomsRatesResponse(params: {
@@ -364,7 +364,7 @@ export class SiteMinderXmlParser {
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>\n` + responseBuilder.build(envelope);  // ← fixed: was builder
+        return responseBuilder.build(envelope);
     }
 
     public static buildSoapFault(code: string, message: string): string {
