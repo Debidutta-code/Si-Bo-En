@@ -312,8 +312,7 @@ export class SiteMinderXmlParser {
         error?: { type: number; code?: number; text: string };
     }): string {
         const { echoToken, roomStays, error } = params;
-        const timeStamp = new Date().toISOString();
-
+        const timeStamp = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
         let body: any;
 
         if (error) {
@@ -389,6 +388,6 @@ export class SiteMinderXmlParser {
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);  // ← keeps original builder (no Success tag here)
+        return `<?xml version="1.0" encoding="UTF-8"?>` + responseBuilder.build(envelope);
     }
 }
