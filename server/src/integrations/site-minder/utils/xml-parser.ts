@@ -381,6 +381,6 @@ export class SiteMinderXmlParser {
             },
         };
 
-        return `<?xml version="1.0" encoding="UTF-8"?>` + responseBuilder.build(envelope);
+        return responseBuilder.build(envelope);
     }
 }
