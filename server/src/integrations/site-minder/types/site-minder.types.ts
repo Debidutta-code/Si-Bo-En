@@ -63,7 +63,7 @@ export interface SiteMinderAvailStatusMessage {
     start: string;
     end: string;
     invTypeCode: string;
-    ratePlanCode?: string;
+    ratePlanCode: string;
     bookingLimit?: number;
     lengthsOfStay?: SiteMinderLengthOfStay[];
     restrictionStatuses?: SiteMinderRestrictionStatus[];

@@ -59,7 +59,13 @@ export class SiteMinderAvailabilityService {
                     lengthsOfStay,
                     restrictionStatuses,
                 } = message;
-
+                const exists = await SiteMinderDao.ratePlanExists(ratePlanCode, propertyCode);
+                if (!exists) {
+                    return {
+                        success: false,
+                        errors: [{ type: 12, code: 325, text: `Rate plan ${ratePlanCode} not found for property ${hotelCode}` }],
+                    };
+                }
                 let minLos: number | undefined;
                 let maxLos: number | undefined;
 

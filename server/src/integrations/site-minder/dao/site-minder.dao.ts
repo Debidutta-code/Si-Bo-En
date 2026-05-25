@@ -66,6 +66,19 @@ export class SiteMinderDao {
         if (!room) return 0;
         return Math.max(0, room.maxNumberOfChildren);
     }
+    public static async ratePlanExists(
+        ratePlanCode: string,
+        propertyCode: string
+    ): Promise<boolean> {
+        const rp = await prisma.ratePlan.findUnique({
+            where: {
+                ratePlanCode,
+                property: { propertyCode },
+            },
+            select: { id: true },
+        });
+        return !!rp;
+    }
 
     /**
      * Get property base currency — used for currency conversion check
