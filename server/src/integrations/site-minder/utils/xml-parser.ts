@@ -51,8 +51,8 @@ const builder = new XMLBuilder({
 const responseBuilder = new XMLBuilder({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
-    format: true,
-    suppressEmptyNode: true,  // ← <Success/> self-closing
+    format: false,
+    suppressEmptyNode: true,
 });
 
 

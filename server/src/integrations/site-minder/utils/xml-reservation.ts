@@ -7,7 +7,7 @@ import { SMReservationPushParams, SMReservationResult } from '../types';
 const builder = new XMLBuilder({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
-    format: true,
+    format: false,
     suppressEmptyNode: false,
     attributeValueProcessor: (_name: string, val: unknown) => String(val),
     unpairedTags: [],
@@ -49,7 +49,8 @@ export class SiteMinderReservationXmlBuilder {
         password: string
     ): string {
         const echoToken = uuidv4();
-        const timeStamp = new Date().toISOString();
+        const isoTimestamp = () => new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+        const timeStamp = isoTimestamp();          // in buildReservationRequest
 
         // ── Room Stays ────────────────────────────────────────────────────────
         const roomStayElements = params.roomStays.map((rs, index) => {

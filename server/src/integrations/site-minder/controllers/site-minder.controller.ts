@@ -12,11 +12,11 @@ const logger = new ServiceLogger('SiteMinderARI');
 
 export class SiteMinderController {
     public static async handlePush(req: Request, res: Response) {
-        console.log("request from siteminder",req)
-        console.log("request body from siteminder",req.body)
+        console.log("request from siteminder", req)
+        console.log("request body from siteminder", req.body)
         const rawXml = req.body as string;
         const parsed = (req as any).siteMinderParsed as SiteMinderParsedRequest;
-
+        const isoWithoutMs = () => new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
         const method = parsed.type === 'rates' ? 'ratesUpdate'
             : parsed.type === 'availability' ? 'availabilityUpdate'
                 : 'roomsRates';
@@ -40,8 +40,8 @@ export class SiteMinderController {
                 }, log);
 
                 log.pushMessage('Rooms & rates response built', 'info')
-                   .setMeta({ responseXml: xml })
-                   .save();
+                    .setMeta({ responseXml: xml })
+                    .save();
 
                 return res.status(200).send(xml);
             }
@@ -54,17 +54,17 @@ export class SiteMinderController {
 
                 const xml = SiteMinderXmlParser.buildRatesResponse({
                     echoToken: parsed.ratesPayload.echoToken,
-                    timeStamp: new Date().toISOString(),
+                    timeStamp: isoWithoutMs(),
                     version: parsed.ratesPayload.version,
                     success: result.success,
                     errors: result.errors,
                 });
 
                 log.pushMessage(result.success ? 'Rates update succeeded' : 'Rates update failed', result.success ? 'info' : 'error')
-                   .setMeta({ result, responseXml: xml })
-                   .save();
+                    .setMeta({ result, responseXml: xml })
+                    .save();
 
-                return res.status(result.success ? 200 : 400).send(xml);
+                return res.status(200).send(xml);
             }
 
             // ── Availability Push ─────────────────────────────────────────────
@@ -75,17 +75,17 @@ export class SiteMinderController {
 
                 const xml = SiteMinderXmlParser.buildAvailResponse({
                     echoToken: parsed.availPayload.echoToken,
-                    timeStamp: new Date().toISOString(),
+                    timeStamp: isoWithoutMs(),
                     version: parsed.availPayload.version,
                     success: result.success,
                     errors: result.errors,
                 });
 
                 log.pushMessage(result.success ? 'Availability update succeeded' : 'Availability update failed', result.success ? 'info' : 'error')
-                   .setMeta({ result, responseXml: xml })
-                   .save();
+                    .setMeta({ result, responseXml: xml })
+                    .save();
 
-                return res.status(result.success ? 200 : 400).send(xml);
+                return res.status(200).send(xml);
             }
 
             // ── Unknown type ──────────────────────────────────────────────────
@@ -95,8 +95,8 @@ export class SiteMinderController {
             );
 
             log.pushMessage('Unknown or unsupported OTA message type', 'error')
-               .setMeta({ responseXml: fault })
-               .save();
+                .setMeta({ responseXml: fault })
+                .save();
 
             return res.status(400).send(fault);
 
@@ -109,8 +109,8 @@ export class SiteMinderController {
             );
 
             log.setError(error)
-               .setMeta({ responseXml: fault })
-               .save();
+                .setMeta({ responseXml: fault })
+                .save();
 
             return res.status(500).send(fault);
         }

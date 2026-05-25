@@ -121,7 +121,7 @@ export class SiteMinderRatesService {
                 let roomTypeName: any;
                 const t2 = Date.now();
                 try {
-                    roomTypeName = await SiteMinderDao.getRoomTypeName(roomTypeCode, hotelCode);
+                    roomTypeName = await SiteMinderDao.getRoomTypeName(roomTypeCode, propertyCode);
                     log.addRepoCall({
                         repoName: 'SiteMinderDao',
                         method: 'getRoomTypeName',
@@ -150,9 +150,8 @@ export class SiteMinderRatesService {
                     };
                 }
 
-                // ── Repo: getActiveTaxRulesForRatePlan ────────────────────────
                 const t3 = Date.now();
-                const taxRules = await SiteMinderDao.getActiveTaxRulesForRatePlan(ratePlanCode, hotelCode);
+                const taxRules = await SiteMinderDao.getActiveTaxRulesForRatePlan(ratePlanCode, propertyCode);
                 log.addRepoCall({
                     repoName: 'SiteMinderDao',
                     method: 'getActiveTaxRulesForRatePlan',

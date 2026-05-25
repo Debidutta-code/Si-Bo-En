@@ -17,6 +17,10 @@ const logger = new ServiceLogger('SiteMinderReservationService');
 
 export class SiteMinderReservationService {
 
+    private static isoTimestamp = () =>
+        new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+
+
     private static async pushToSiteMinder(
         xml: string,
         bookingCode: string,
@@ -57,6 +61,7 @@ export class SiteMinderReservationService {
         return date;
     }
 
+    // Then:
     private static buildRoomStays(
         payload: ICReservationS,
         siteMinderHotelCode: string
@@ -215,17 +220,17 @@ export class SiteMinderReservationService {
     }
 
     // ─── Helper to extract payLater promotions (tourist fee etc.) ────────────
-   private static getPayLaterServices(payload: ICReservationS): any[] {
-    const promotions = payload.finalPrice?.promotionBrakeDown ?? [];
-    return promotions
-        .filter((p: any) => p.restrictionType === 'payLater')
-        .map((p: any) => ({
-            name: p.name,                 
-            amount: p.discountAmount,      
-            totalAmount: p.discountAmount, 
-            currencyCode: p.currencyCode ?? payload.currencyCode,
-        }));
-}
+    private static getPayLaterServices(payload: ICReservationS): any[] {
+        const promotions = payload.finalPrice?.promotionBrakeDown ?? [];
+        return promotions
+            .filter((p: any) => p.restrictionType === 'payLater')
+            .map((p: any) => ({
+                name: p.name,
+                amount: p.discountAmount,
+                totalAmount: p.discountAmount,
+                currencyCode: p.currencyCode ?? payload.currencyCode,
+            }));
+    }
 
     public static async pushCommit(
         payload: ICReservationS,
@@ -236,12 +241,12 @@ export class SiteMinderReservationService {
         smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
-            console.log("payload pushCommit",JSON.stringify(payload))
-            console.log("bookingCode pushCommit",bookingCode)
-            console.log("siteMinderHotelCode",siteMinderHotelCode)
-            console.log("channelCode",channelCode)
-            console.log("channelName",channelName)
-            console.log("smEndpoint",smEndpoint)
+            console.log("payload pushCommit", JSON.stringify(payload))
+            console.log("bookingCode pushCommit", bookingCode)
+            console.log("siteMinderHotelCode", siteMinderHotelCode)
+            console.log("channelCode", channelCode)
+            console.log("channelName", channelName)
+            console.log("smEndpoint", smEndpoint)
             const guestDetails = payload.guestDetails?.[0];
             const paymentMethod: SMPaymentMethod =
                 payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
@@ -252,7 +257,7 @@ export class SiteMinderReservationService {
                 hotelCode: siteMinderHotelCode,
                 bookingCode,
                 resStatus: 'Commit',
-                createDateTime: new Date().toISOString(),
+                createDateTime: SiteMinderReservationService.isoTimestamp(),
                 channelCode,
                 channelName,
                 roomStays: SiteMinderReservationService.buildRoomStays(payload, siteMinderHotelCode),
@@ -325,8 +330,7 @@ export class SiteMinderReservationService {
                 bookingCode,
                 resStatus: 'Modify',
                 createDateTime: originalCreateDateTime,
-                lastModifyDateTime: new Date().toISOString(),
-                channelCode,
+                lastModifyDateTime: SiteMinderReservationService.isoTimestamp(), channelCode,
                 channelName,
                 roomStays: SiteMinderReservationService.buildRoomStays(payload, siteMinderHotelCode),
                 primaryGuest: {
@@ -396,7 +400,7 @@ export class SiteMinderReservationService {
                 bookingCode,
                 resStatus: 'Cancel',
                 createDateTime: originalCreateDateTime,
-                lastModifyDateTime: new Date().toISOString(),
+                lastModifyDateTime: SiteMinderReservationService.isoTimestamp(), 
                 channelCode,
                 channelName,
                 roomStays: SiteMinderReservationService.buildRoomStays(payload, siteMinderHotelCode),
