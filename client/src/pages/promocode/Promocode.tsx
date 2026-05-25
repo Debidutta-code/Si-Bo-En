@@ -703,7 +703,7 @@ export default function PromoCodePage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    title="Add Translation"
+                                                    title={t("Common.addTranslation")}
                                                     onClick={() => { setTranslationEntityId(promoCode.id); setAddTranslationOpen(true); }}
                                                 >
                                                     <Plus className="h-4 w-4 text-blue-500" />
@@ -711,7 +711,7 @@ export default function PromoCodePage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    title="Check Translations"
+                                                    title={t("Common.checkTranslation")}
                                                     onClick={() => { setTranslationEntityId(promoCode.id); setCheckTranslationsOpen(true); }}
                                                 >
                                                     <Languages className="h-4 w-4 text-green-600" />

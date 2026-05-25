@@ -41,6 +41,7 @@ import {
   getAllSpaSubCategoryTranslationsService,
   deleteSpaSubCategoryTranslationLocaleService,
 } from '../services/multilanguage.services';
+import { useTranslation } from 'react-i18next';
 
 export default function Spa() {
   const [categories, setCategories] = useState<ISpaCategory[]>([]);
@@ -79,7 +80,7 @@ export default function Spa() {
     categoryId: "",
     isActive: true
   });
-
+  const {t}=useTranslation();
   useEffect(() => {
     fetchData();
   }, []);
@@ -262,10 +263,10 @@ export default function Spa() {
                     <Pencil className="mr-2 h-4 w-4" /> Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setTranslationEntityId(cat.id); setTranslationEntityType('category'); setAddTranslationOpen(true); }}>
-                    <Plus className="mr-2 h-4 w-4" /> Add Translation
+                    <Plus className="mr-2 h-4 w-4" /> {t("Common.addTranslation")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => { setTranslationEntityId(cat.id); setTranslationEntityType('category'); setCheckTranslationsOpen(true); }}>
-                    <Languages className="mr-2 h-4 w-4" /> Check Translations
+                    <Languages className="mr-2 h-4 w-4" /> {t("Common.checkTranslation")}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-red-600"
@@ -334,10 +335,10 @@ export default function Spa() {
                         <Pencil className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => { setTranslationEntityId(sub.id); setTranslationEntityType('subcategory'); setAddTranslationOpen(true); }}>
-                        <Plus className="mr-2 h-4 w-4" /> Add Translation
+                        <Plus className="mr-2 h-4 w-4" /> {t("Common.addTranslation")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => { setTranslationEntityId(sub.id); setTranslationEntityType('subcategory'); setCheckTranslationsOpen(true); }}>
-                        <Languages className="mr-2 h-4 w-4" /> Check Translations
+                        <Languages className="mr-2 h-4 w-4" /> {t("Common.checkTranslation")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-red-600"

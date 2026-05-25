@@ -67,17 +67,6 @@ export default function Loyalty() {
   const [isBasicActive, setIsBasicActive] = useState<boolean>(true);
   const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
 
-  // Advanced Configuration State
-  // const [advanceConfig, setAdvanceConfig] = useState({
-  //   activeInCorporateWeb: false,
-  //   defaultLoginMode: false,
-  //   allowEmailRecovery: true,
-  //   allowNewRequest: true,
-  //   allowNewRequestInCorporate: false,
-  //   roomLimitByBooking: 1,
-  //   externalRegistrationUrl: "",
-  //   blockUserFieldFromForm: false
-  // });
 
   useEffect(() => {
     if (creationId) {
@@ -131,22 +120,7 @@ export default function Loyalty() {
           setLogos([]);
         }
 
-        // Set advance program if exists
-        // if (data.AdvanceLoyaltyProgram) {
-        //   setAdvanceProgram(data.AdvanceLoyaltyProgram as any);
-        //   setAdvanceConfig({
-        //     activeInCorporateWeb: data.AdvanceLoyaltyProgram.activeInCorporateWeb,
-        //     defaultLoginMode: data.AdvanceLoyaltyProgram.defaultLoginMode,
-        //     allowEmailRecovery: data.AdvanceLoyaltyProgram.allowEmailRecovery,
-        //     allowNewRequest: data.AdvanceLoyaltyProgram.allowNewRequest,
-        //     allowNewRequestInCorporate: data.AdvanceLoyaltyProgram.allowNewRequestInCorporate,
-        //     roomLimitByBooking: data.AdvanceLoyaltyProgram.roomLimitByBooking || 1,
-        //     externalRegistrationUrl: data.AdvanceLoyaltyProgram.externalRegistrationUrl || "",
-        //     blockUserFieldFromForm: data.AdvanceLoyaltyProgram.blockUserFieldFromForm || false
-        //   });
-        // } else {
-        //   setAdvanceProgram(null);
-        // }
+
       } else {
         setHasCreationLoyalty(false);
       }
@@ -283,37 +257,6 @@ export default function Loyalty() {
       setLoader({ isLoading: false, message: "" });
     }
   };
-
-  // const handleUpdateAdvanceConfig = async () => {
-  //   if (!creationId || !creationLoyalty) return;
-
-  //   setLoader({ isLoading: true, message: "Updating Advanced Configuration..." });
-  //   try {
-  //     let response;
-
-  //     if (advanceProgram?.id) {
-  //       // Update existing
-  //       response = await updateAdvanceLoyaltyProgramService(advanceProgram.id, advanceConfig);
-  //     } else {
-  //       // Create new
-  //       response = await createAdvanceLoyaltyProgramService({
-  //         loyaltyProgramId: creationLoyalty.id!,
-  //         ...advanceConfig
-  //       });
-  //     }
-
-  //     if (response.success) {
-  //       toast.success("Advanced configuration updated successfully");
-  //       await fetchLoyaltyData();
-  //     } else {
-  //       toast.error(response.message || "Failed to update advanced configuration");
-  //     }
-  //   } catch (error) {
-  //     toast.error("An error occurred while updating advanced configuration");
-  //   } finally {
-  //     setLoader({ isLoading: false, message: "" });
-  //   }
-  // };
 
   const handleImageUploadSuccess = (uploadedUrls: string[]) => {
     setLogos([...logos, ...uploadedUrls]);

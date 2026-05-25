@@ -27,6 +27,7 @@ import type { IAddOn } from "../types/reservation";
 import GuestSelector from "./GuestSelector";
 import GuestDetails from "./GuestDetails";
 import PriceSection from "./PricingModal";
+import { useTranslation } from "react-i18next";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -137,41 +138,49 @@ const buildParsedAddons = (addOns: IAddOn[]): ISelectedAddons[] => {
 
 // ─── Step Indicator ───────────────────────────────────────────────────────────
 
-const steps = [{ label: "Dates & Rooms" }, { label: "Guest Details" }, { label: "Review & Confirm" }];
+const StepIndicator: FC<{ current: AmendStep }> = ({ current }) => {
+  const { t } = useTranslation();
+  const steps = [{ label: t("AmendReservation.datesAndRooms") }, { label: t("AmendReservation.guestDetails") }, { label: t("AmendReservation.reviewAndConfirm") }];
 
-const StepIndicator: FC<{ current: AmendStep }> = ({ current }) => (
-  <div className="flex items-center w-full">
-    {steps.map((step, idx) => {
-      const stepNum = (idx + 1) as AmendStep;
-      const isComplete = current > stepNum;
-      const isActive = current === stepNum;
-      return (
-        <div key={idx} className="flex items-center flex-1 last:flex-none">
-          <div className="flex flex-col items-center gap-1 flex-shrink-0">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all
-              ${isComplete ? "bg-primary text-primary-foreground"
-                : isActive ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
-                  : "bg-muted text-muted-foreground border border-border"}`}>
-              {isComplete ? (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              ) : stepNum}
+  return (
+    <div className="flex items-center w-full">
+      {steps.map((step, idx) => {
+        const stepNum = (idx + 1) as AmendStep;
+        const isComplete = current > stepNum;
+        const isActive = current === stepNum;
+        return (
+          <div key={idx} className="flex-1 flex flex-col items-center relative">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium z-10 transition-colors ${
+                isActive
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : isComplete
+                  ? "bg-primary/80 text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {isComplete ? "✓" : stepNum}
             </div>
-            <span className={`text-[10px] font-medium whitespace-nowrap hidden sm:block
-              ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+            <span
+              className={`mt-2 text-xs font-medium ${
+                isActive ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
               {step.label}
             </span>
+            {idx < steps.length - 1 && (
+              <div
+                className={`absolute top-4 left-1/2 w-full h-[2px] -z-0 transition-colors ${
+                  isComplete ? "bg-primary/80" : "bg-muted"
+                }`}
+              />
+            )}
           </div>
-          {idx < steps.length - 1 && (
-            <div className={`flex-1 h-0.5 mx-2 mb-4 rounded-full transition-all
-              ${isComplete ? "bg-primary" : "bg-border"}`} />
-          )}
-        </div>
-      );
-    })}
-  </div>
-);
+        );
+      })}
+    </div>
+  );
+};
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 
@@ -181,6 +190,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const originalRooms =
       new Set(
         reservation.PricingBrakeDown?.DailyPriceBrakeDown
@@ -224,7 +234,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   };
 
   const handleRemoveRoom = (i: number) => {
-    if (roomConfigs.length <= 1) { toast.error("At least one room is required."); return; }
+    if (roomConfigs.length <= 1) { toast.error(t("AmendReservation.atLeastOneRoom")); return; }
     setRoomConfigs((prev) => prev.filter((_, idx) => idx !== i));
     resetPrice();
   };
@@ -302,7 +312,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
 
     if (!result.success || !result.data) {
       setPriceStatus("error");
-      toast.error(result.message || "Failed to fetch updated price");
+      toast.error(result.message || t("AmendReservation.failedFetchPrice"));
       return;
     }
 
@@ -331,10 +341,10 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
     const checkIn = new Date(checkInDate);
     const checkOut = new Date(checkOutDate);
 
-    if (!checkInDate) errors.checkIn = "Check-in date is required.";
-    else if (!checkInIsPast && checkIn <= today) errors.checkIn = "Check-in must be after today.";
-    if (!checkOutDate) errors.checkOut = "Check-out date is required.";
-    else if (checkOut <= checkIn) errors.checkOut = "Check-out must be after check-in.";
+    if (!checkInDate) errors.checkIn = t("AmendReservation.checkInRequired");
+    else if (!checkInIsPast && checkIn <= today) errors.checkIn = t("AmendReservation.checkInFuture");
+    if (!checkOutDate) errors.checkOut = t("AmendReservation.checkOutRequired");
+    else if (checkOut <= checkIn) errors.checkOut = t("AmendReservation.checkOutAfterCheckIn");
 
     setDateErrors(errors);
     return Object.keys(errors).length === 0;
@@ -375,13 +385,13 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
       const gErr: IGuestFieldErrors = {};
 
       if (isPrimary) {
-        if (!guest.firstName.trim()) { gErr.firstName = "First name is required."; valid = false; }
-        else if (!nameRegex.test(guest.firstName)) { gErr.firstName = "Only letters allowed."; valid = false; }
-        if (!guest.lastName.trim()) { gErr.lastName = "Last name is required."; valid = false; }
-        else if (!nameRegex.test(guest.lastName)) { gErr.lastName = "Only letters allowed."; valid = false; }
+        if (!guest.firstName.trim()) { gErr.firstName = t("AmendReservation.firstNameRequired"); valid = false; }
+        else if (!nameRegex.test(guest.firstName)) { gErr.firstName = t("AmendReservation.firstNameLetters"); valid = false; }
+        if (!guest.lastName.trim()) { gErr.lastName = t("AmendReservation.lastNameRequired"); valid = false; }
+        else if (!nameRegex.test(guest.lastName)) { gErr.lastName = t("AmendReservation.lastNameLetters"); valid = false; }
       } else {
-        if (guest.firstName.trim() && !nameRegex.test(guest.firstName)) { gErr.firstName = "Only letters allowed."; valid = false; }
-        if (guest.lastName.trim() && !nameRegex.test(guest.lastName)) { gErr.lastName = "Only letters allowed."; valid = false; }
+        if (guest.firstName.trim() && !nameRegex.test(guest.firstName)) { gErr.firstName = t("AmendReservation.firstNameLetters"); valid = false; }
+        if (guest.lastName.trim() && !nameRegex.test(guest.lastName)) { gErr.lastName = t("AmendReservation.lastNameLetters"); valid = false; }
       }
 
       if (Object.keys(gErr).length) errors[`guest-${index}`] = gErr;
@@ -393,7 +403,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
 
   const handleStep2Next = async () => {
     if (!validateGuests()) {
-      toast.error("Please fix the guest details before continuing.");
+      toast.error(t("AmendReservation.fixGuestDetails"));
       return;
     }
     setStep(3);
@@ -429,7 +439,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
 
   const handleConfirm = async () => {
     if (priceStatus !== "success") {
-      toast.error("Please wait for availability confirmation.");
+      toast.error(t("AmendReservation.waitForPrice"));
       return;
     }
     setLoading(true);
@@ -456,11 +466,11 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
     setLoading(false);
 
     if (!result.success) {
-      toast.error(result.message || "Failed to amend reservation");
+      toast.error(result.message || t("AmendReservation.failedAmend"));
       return;
     }
 
-    toast.success("Reservation amended successfully!");
+    toast.success(t("AmendReservation.amendSuccess"));
     onSuccess();
     onClose();
   };
@@ -473,7 +483,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
 
         <DialogHeader className="px-6 py-5 border-b border-border">
           <div>
-            <DialogTitle className="text-xl font-bold text-card-foreground">Amend Reservation</DialogTitle>
+            <DialogTitle className="text-xl font-bold text-card-foreground">{t("AmendReservation.title")}</DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground mt-0.5">
               {reservation.bookingCode}
             </DialogDescription>
@@ -487,13 +497,13 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
           <p className="font-semibold text-card-foreground text-sm mb-2">{reservation.hotelName || "Property"}</p>
           <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
             <span>
-              <span className="font-medium text-card-foreground">Stay: </span>
+              <span className="font-medium text-card-foreground">{t("AmendReservation.stay")}: </span>
               {new Date(initialCheckIn).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
               {" → "}
               {new Date(initialCheckOut).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
             </span>
-            <span><span className="font-medium text-card-foreground">Room: </span>{reservation.roomTypeCode}</span>
-            <span><span className="font-medium text-card-foreground">Rate: </span>{reservation.ratePlanCode}</span>
+            <span><span className="font-medium text-card-foreground">{t("AmendReservation.roomLabel")}: </span>{reservation.roomTypeCode}</span>
+            <span><span className="font-medium text-card-foreground">{t("AmendReservation.rateLabel")}: </span>{reservation.ratePlanCode}</span>
           </div>
         </div>
 

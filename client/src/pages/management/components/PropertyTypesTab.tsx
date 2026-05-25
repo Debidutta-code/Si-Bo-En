@@ -127,10 +127,10 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openAddTranslation(type.id)}>
-                        <Plus className="h-4 w-4 mr-2" /> Add Translation
+                        <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openCheckTranslations(type.id)}>
-                        <Languages className="h-4 w-4 mr-2" /> Check Translations
+                        <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600" onClick={() => handleDeletePropertyType(type.propertyTypeName)}>
                         <Trash2 className="h-4 w-4 mr-2" /> Delete

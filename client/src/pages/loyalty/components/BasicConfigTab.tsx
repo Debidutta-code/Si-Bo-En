@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus, Upload, X, CheckCircle, AlertCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface BasicConfigTabProps {
   basicProgram: any;
@@ -29,29 +30,31 @@ export default function BasicConfigTab({
   onCreate,
   onUpdate
 }: BasicConfigTabProps) {
+  const { t } = useTranslation();
+
   if (!basicProgram) {
     return (
       <Card>
         <CardHeader className="text-center">
-          <CardTitle>Basic Configuration</CardTitle>
+          <CardTitle>{t("LoyaltyBasicConfig.title")}</CardTitle>
           <CardDescription>
-            No basic configuration created yet
+            {t("LoyaltyBasicConfig.noConfig")}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-6">
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Basic configuration is optional. Add it to customize logos and service status.
+              {t("LoyaltyBasicConfig.optional")}
             </AlertDescription>
           </Alert>
 
           {/* Upload logos before creating */}
           <div className="w-full space-y-4">
             <div className="space-y-2">
-              <Label>Program Logos</Label>
+              <Label>{t("LoyaltyBasicConfig.programLogos")}</Label>
               <p className="text-sm text-muted-foreground">
-                Upload logos for your loyalty program before creating configuration
+                {t("LoyaltyBasicConfig.uploadBeforeCreate")}
               </p>
               
               {logos.length > 0 && (
@@ -84,16 +87,16 @@ export default function BasicConfigTab({
                 className="w-full"
               >
                 <Upload className="mr-2 h-4 w-4" />
-                Upload Logos
+                {t("LoyaltyBasicConfig.uploadLogos")}
               </Button>
             </div>
 
             {/* Active Status Toggle */}
             <div className="flex items-center justify-between p-4 border rounded-lg">
               <div className="space-y-0.5">
-                <Label htmlFor="basicActive">Active Status</Label>
+                <Label htmlFor="basicActive">{t("LoyaltyBasicConfig.activeStatus")}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Enable or disable this loyalty program
+                  {t("LoyaltyBasicConfig.activeStatusDesc")}
                 </p>
               </div>
               <Switch
@@ -111,7 +114,7 @@ export default function BasicConfigTab({
             disabled={logos.length === 0}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Create Basic Configuration
+            {t("LoyaltyBasicConfig.createConfig")}
           </Button>
         </CardContent>
       </Card>
@@ -121,9 +124,9 @@ export default function BasicConfigTab({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Basic Configuration</CardTitle>
+        <CardTitle>{t("LoyaltyBasicConfig.title")}</CardTitle>
         <CardDescription>
-          Configure basic settings for your loyalty program
+          {t("LoyaltyBasicConfig.configSettings")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -131,9 +134,9 @@ export default function BasicConfigTab({
 
         {/* Program Logo */}
         <div className="space-y-2">
-          <Label>Program Logos</Label>
+          <Label>{t("LoyaltyBasicConfig.programLogos")}</Label>
           <p className="text-sm text-muted-foreground mb-4">
-            Manage logos for your loyalty program
+            {t("LoyaltyBasicConfig.manageLogos")}
           </p>
 
           {/* Logo Grid */}
@@ -165,13 +168,13 @@ export default function BasicConfigTab({
             className="w-full"
           >
             <Upload className="mr-2 h-4 w-4" />
-            Upload More Logos
+            {t("LoyaltyBasicConfig.uploadMore")}
           </Button>
 
           <p className="text-xs text-muted-foreground">
-            Recommended size: 740x525 px. Compress images using{" "}
+            {t("LoyaltyBasicConfig.recommendedSize")} {" "}
             <a href="https://tinypng.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              TinyPNG
+              {t("LoyaltyBasicConfig.tinyPng")}
             </a>
           </p>
         </div>
@@ -179,9 +182,9 @@ export default function BasicConfigTab({
         {/* Active Status Toggle */}
         <div className="flex items-center justify-between p-4 border rounded-lg">
           <div className="space-y-0.5">
-            <Label htmlFor="basicActiveEdit">Active Status</Label>
+            <Label htmlFor="basicActiveEdit">{t("LoyaltyBasicConfig.activeStatus")}</Label>
             <p className="text-sm text-muted-foreground">
-              Enable or disable this loyalty program
+              {t("LoyaltyBasicConfig.activeStatusDesc")}
             </p>
           </div>
           <Switch
@@ -195,7 +198,7 @@ export default function BasicConfigTab({
         <div className="flex justify-end pt-4">
           <Button onClick={onUpdate}>
             <CheckCircle className="mr-2 h-4 w-4" />
-            Save Basic Configuration
+            {t("LoyaltyBasicConfig.saveConfig")}
           </Button>
         </div>
       </CardContent>

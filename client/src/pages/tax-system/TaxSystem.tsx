@@ -866,13 +866,13 @@ export default function TaxSystem() {
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'rule', entityId: rule.id }))}
                                                         >
                                                             <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
-                                                            Add Translation
+                                                            {t("Common.addTranslation")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, type: 'rule', entityId: rule.id }))}
                                                         >
                                                             <Languages className="w-4 h-4 mr-2 text-green-600" />
-                                                            Check Translations
+                                                            {t("Common.checkTranslation")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuSub>
@@ -1109,13 +1109,13 @@ export default function TaxSystem() {
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'group', entityId: group.id }))}
                                                         >
                                                             <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
-                                                            Add Translation
+                                                            {t("Common.addTranslation")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, type: 'group', entityId: group.id }))}
                                                         >
                                                             <Languages className="w-4 h-4 mr-2 text-green-600" />
-                                                            Check Translations
+                                                            {t("Common.checkTranslation")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuSub>
@@ -1358,13 +1358,13 @@ export default function TaxSystem() {
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: true, openCheck: false, type: 'charge', entityId: charge.id }))}
                                                         >
                                                             <PlusCircle className="w-4 h-4 mr-2 text-blue-500" />
-                                                            Add Translation
+                                                            {t("Common.addTranslation")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={() => setTranslationDialog(prev => ({ ...prev, openAdd: false, openCheck: true, type: 'charge', entityId: charge.id }))}
                                                         >
                                                             <Languages className="w-4 h-4 mr-2 text-green-600" />
-                                                            Check Translations
+                                                            {t("Common.checkTranslation")}
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem

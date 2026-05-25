@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Generic Add Translation Dialog
+// Generic {t("Common.addTranslation")} Dialog
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface Field {
@@ -191,7 +191,7 @@ export function EditTranslationDialog({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Generic Check Translations Dialog
+// Generic {t("Common.checkTranslation")} Dialog
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface CheckTranslationsDialogProps {
