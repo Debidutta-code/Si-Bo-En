@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle, Percent  } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface DiscountsTabProps {
   discountType: string;
@@ -25,12 +26,13 @@ export default function DiscountsTab({
   setCurrencyCode,
   onUpdate
 }: DiscountsTabProps) {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Loyalty Discounts</CardTitle>
+        <CardTitle>{t("LoyaltyDiscounts.title")}</CardTitle>
         <CardDescription>
-          Manage discount settings for your loyalty program
+          {t("LoyaltyDiscounts.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -38,28 +40,28 @@ export default function DiscountsTab({
         <Alert>
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
-            Loyalty configuration is active for this creation
+            {t("LoyaltyDiscounts.activeConfig")}
           </AlertDescription>
         </Alert>
 
         {/* Discount Type Selection */}
         <div className="space-y-2">
-          <Label htmlFor="discountType">Discount Type</Label>
+          <Label htmlFor="discountType">{t("LoyaltyDiscounts.discountType")}</Label>
           <Select value={discountType} onValueChange={(value) => setDiscountType(value)}>
             <SelectTrigger>
-              <SelectValue placeholder="Select discount type" />
+              <SelectValue placeholder={t("LoyaltyDiscounts.selectType")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="percentage">
                 <div className="flex items-center gap-2">
                   <Percent className="h-4 w-4" />
-                  <span>Percentage Discount</span>
+                  <span>{t("LoyaltyDiscounts.percentage")}</span>
                 </div>
               </SelectItem>
               {/* <SelectItem value="fixed">
                 <div className="flex items-center gap-2">
                   <DollarSignIcon className="h-4 w-4" />
-                  <span>Fixed Amount</span>
+                  <span>{t("LoyaltyDiscounts.fixed")}</span>
                 </div>
               </SelectItem> */}
             </SelectContent>
@@ -69,7 +71,7 @@ export default function DiscountsTab({
         {/* Discount Value */}
         <div className="space-y-2">
           <Label htmlFor="discountValue">
-            Discount Value {discountType === "percentage" ? "(%)" : "(Amount)"}
+            {t("LoyaltyDiscounts.discountValue")} {discountType === "percentage" ? t("LoyaltyDiscounts.percentageUnit") : t("LoyaltyDiscounts.amountUnit")}
           </Label>
           <Input
             id="discountValue"
@@ -78,29 +80,29 @@ export default function DiscountsTab({
             max={discountType === "percentage" ? 100 : undefined}
             value={discountValue}
             onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
-            placeholder={discountType === "percentage" ? "e.g., 10" : "e.g., 50"}
+            placeholder={discountType === "percentage" ? t("LoyaltyDiscounts.placeholderPercentage") : t("LoyaltyDiscounts.placeholderAmount")}
           />
           <p className="text-sm text-muted-foreground">
             {discountType === "percentage" 
-              ? "Enter percentage between 0-100" 
-              : "Enter fixed discount amount"}
+              ? t("LoyaltyDiscounts.percentageHint") 
+              : t("LoyaltyDiscounts.amountHint")}
           </p>
         </div>
 
         {/* Currency Code (for fixed amount) */}
         {discountType === "fixed" && (
           <div className="space-y-2">
-            <Label htmlFor="currencyCode">Currency Code</Label>
+            <Label htmlFor="currencyCode">{t("LoyaltyDiscounts.currencyCode")}</Label>
             <Input
               id="currencyCode"
               type="text"
               value={currencyCode}
               onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())}
-              placeholder="e.g., USD, EUR, INR"
+              placeholder={t("LoyaltyDiscounts.placeholderCurrency")}
               maxLength={3}
             />
             <p className="text-sm text-muted-foreground">
-              Enter 3-letter currency code (ISO 4217)
+              {t("LoyaltyDiscounts.currencyHint")}
             </p>
           </div>
         )}
@@ -109,7 +111,7 @@ export default function DiscountsTab({
         <div className="flex justify-end pt-4">
           <Button onClick={onUpdate}>
             <CheckCircle className="mr-2 h-4 w-4" />
-            Update Discounts
+            {t("LoyaltyDiscounts.updateButton")}
           </Button>
         </div>
       </CardContent>

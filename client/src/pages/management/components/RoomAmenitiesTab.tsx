@@ -15,6 +15,7 @@ import {
   getAllMasterAmenityTranslationsService,
   deleteMasterAmenityTranslationLocaleService,
 } from "../services/multilanguage.services";
+import { useTranslation } from "react-i18next";
 
 interface RoomAmenitiesTabProps {
   roomAmenities: IAmenity[];
@@ -32,7 +33,7 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
   const [editTranslationOpen, setEditTranslationOpen] = useState(false);
   const [editingLocale, setEditingLocale] = useState<string>("");
   const [editingData, setEditingData] = useState<Record<string, any>>({});
-
+  const {t}=useTranslation();
   const handleAddRoomAmenityToList = () => {
     if (!roomAmenityInput.trim()) return;
     if (amenitiesList.includes(roomAmenityInput.trim())) {
@@ -136,10 +137,10 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => openAddTranslation(amenity.id)}>
-                    <Plus className="h-4 w-4 mr-2" /> Add Translation
+                    <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => openCheckTranslations(amenity.id)}>
-                    <Languages className="h-4 w-4 mr-2" /> Check Translations
+                    <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteRoomAmenity(amenity.amenityName)}>
                     <Trash2 className="h-4 w-4 mr-2" /> Delete

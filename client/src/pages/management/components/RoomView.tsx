@@ -29,6 +29,7 @@ import {
     getAllMasterRoomViewTranslationsService,
     deleteMasterRoomViewTranslationLocaleService,
 } from "../services/multilanguage.services";
+import { useTranslation } from "react-i18next";
 
 interface RoomViewTabProps {
     roomViews: IMasterRoomView[];
@@ -48,7 +49,7 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
     const [editTranslationOpen, setEditTranslationOpen] = useState(false);
     const [editingLocale, setEditingLocale] = useState<string>("");
     const [editingData, setEditingData] = useState<Record<string, any>>({});
-
+    const {t}=useTranslation();
     const sortedRoomViews = useMemo(() => {
         return [...roomViews].sort((a, b) => a.viewName.localeCompare(b.viewName));
     }, [roomViews]);
@@ -167,10 +168,10 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                                         <Pencil className="h-4 w-4 mr-2" /> Edit
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => openAddTranslation(rv.id)}>
-                                        <Plus className="h-4 w-4 mr-2" /> Add Translation
+                                        <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onClick={() => openCheckTranslations(rv.id)}>
-                                        <Languages className="h-4 w-4 mr-2" /> Check Translations
+                                        <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteRoomView(rv.id)}>
                                         <Trash2 className="h-4 w-4 mr-2" /> Delete

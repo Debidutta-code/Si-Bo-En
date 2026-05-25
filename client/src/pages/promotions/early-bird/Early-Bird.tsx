@@ -418,14 +418,14 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                                         className="cursor-pointer"
                                                     >
                                                         <Plus className="w-4 h-4 mr-3 text-blue-500" />
-                                                        Add Translation
+                                                        {t("Common.addTranslation")}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => { setTranslationEntityId(promotion.id); setCheckTranslationsOpen(true); }}
                                                         className="cursor-pointer"
                                                     >
                                                         <Languages className="w-4 h-4 mr-3 text-green-600" />
-                                                        Check Translations
+                                                        {t("Common.checkTranslation")}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => handleDeleteClick(promotion.id)}

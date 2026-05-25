@@ -15,6 +15,7 @@ import {
   getAllMasterLoyaltyRegistrationFieldTranslationsService,
   deleteMasterLoyaltyRegistrationFieldTranslationLocaleService,
 } from "../services/multilanguage.services";
+import { useTranslation } from "react-i18next";
 
 interface LoyaltyFieldsTabProps {
   loyaltyGuestFields: ILoyaltyGuestField[];
@@ -25,7 +26,7 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
   const [isLoyaltyFieldDialogOpen, setIsLoyaltyFieldDialogOpen] = useState<boolean>(false);
   const [loyaltyFieldInput, setLoyaltyFieldInput] = useState("");
   const [loyaltyFieldsList, setLoyaltyFieldsList] = useState<string[]>([]);
-
+  const {t}=useTranslation();
   const [translationEntityId, setTranslationEntityId] = useState<string | null>(null);
   const [addTranslationOpen, setAddTranslationOpen] = useState(false);
   const [checkTranslationsOpen, setCheckTranslationsOpen] = useState(false);
@@ -130,10 +131,10 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => openAddTranslation(field.id)}>
-                    <Plus className="h-4 w-4 mr-2" /> Add Translation
+                    <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => openCheckTranslations(field.id)}>
-                    <Languages className="h-4 w-4 mr-2" /> Check Translations
+                    <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteLoyaltyField(field.id)}>
                     <Trash2 className="h-4 w-4 mr-2" /> Delete

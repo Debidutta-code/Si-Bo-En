@@ -127,10 +127,10 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openAddTranslation(category.id)}>
-                        <Plus className="h-4 w-4 mr-2" /> Add Translation
+                        <Plus className="h-4 w-4 mr-2" /> {t("Common.add")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openCheckTranslations(category.id)}>
-                        <Languages className="h-4 w-4 mr-2" /> Check Translations
+                        <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteCategory(category.categoryName)}>
                         <Trash2 className="h-4 w-4 mr-2" /> Delete

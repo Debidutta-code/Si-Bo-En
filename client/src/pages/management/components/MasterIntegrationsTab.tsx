@@ -25,6 +25,7 @@ import {
   getAllMasterIntegrationTranslationsService,
   deleteMasterIntegrationTranslationLocaleService,
 } from "../services/multilanguage.services";
+import { useTranslation } from "react-i18next";
 
 interface MasterIntegrationsTabProps {
   masterIntegrations: IMasterIntegrations[];
@@ -50,7 +51,7 @@ export default function MasterIntegrationsTab({
   const [editTranslationOpen, setEditTranslationOpen] = useState(false);
   const [editingLocale, setEditingLocale] = useState<string>("");
   const [editingData, setEditingData] = useState<Record<string, any>>({});
-
+const {t}=useTranslation();
   // Form state for creating integration
   const [formData, setFormData] = useState<ICMasterIntegrationsS>({
     name: "",
@@ -393,7 +394,7 @@ export default function MasterIntegrationsTab({
                         <Button
                           variant="ghost"
                           size="icon"
-                          title="Add Translation"
+                          title={t("Common.addTranslation")}
                           onClick={() => { setTranslationEntityId(integration.id); setAddTranslationOpen(true); }}
                         >
                           <Plus className="h-4 w-4 text-blue-500" />
@@ -401,7 +402,7 @@ export default function MasterIntegrationsTab({
                         <Button
                           variant="ghost"
                           size="icon"
-                          title="Check Translations"
+                          title={t("Common.checkTranslation")}
                           onClick={() => { setTranslationEntityId(integration.id); setCheckTranslationsOpen(true); }}
                         >
                           <Languages className="h-4 w-4 text-green-600" />
