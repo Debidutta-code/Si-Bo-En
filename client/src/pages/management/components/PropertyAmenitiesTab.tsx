@@ -33,7 +33,7 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
   const [editTranslationOpen, setEditTranslationOpen] = useState(false);
   const [editingLocale, setEditingLocale] = useState<string>("");
   const [editingData, setEditingData] = useState<Record<string, any>>({});
-  const {t}=useTranslation();
+  const { t } = useTranslation();
   const handleAddPropertyAmenityToList = () => {
     if (!propertyAmenityInput.trim()) return;
     if (amenitiesList.includes(propertyAmenityInput.trim())) {
@@ -47,22 +47,22 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
   const handleCreatePropertyAmenities = async () => {
     const response = await createPropertyAmenitiesService(amenitiesList);
     if (response.success) {
-      toast.success("Property amenities created successfully");
+      toast.success(t("Management.Toast.propertyAmenitiesCreatedSuccessfully", { ns: "translation" }));
       setPropertyAmenities([...response.data]);
       setAmenitiesList([]);
       setIsPropertyAmenityDialogOpen(false);
     } else {
-      toast.error(response.error || "Failed to create amenities");
+      toast.error(response.error || t("Management.Toast.failedToCreatePropertyAmenities", { ns: "translation" }));
     }
   };
 
   const handleDeletePropertyAmenity = async (amenityName: string) => {
     const response = await deletePropertyAmenitiesService([amenityName]);
     if (response.success) {
-      toast.success("Property amenity deleted successfully");
+      toast.success(t("Management.Toast.propertyAmenityDeletedSuccessfully", { ns: "translation" }));
       setPropertyAmenities(propertyAmenities.filter((amenity) => amenity.amenityName !== amenityName));
     } else {
-      toast.error(response.error || "Failed to delete amenity");
+      toast.error(response.error || t("Management.Toast.failedToDeletePropertyAmenity", { ns: "translation" }));
     }
   };
 
@@ -74,8 +74,8 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Property Amenities</CardTitle>
-            <CardDescription>Manage property amenities</CardDescription>
+            <CardTitle>{t("Management.propertyAmenitiesTitle")}</CardTitle>
+            <CardDescription>{t("Management.managePropertyAmenities")}</CardDescription>
           </div>
           <Dialog
             open={isPropertyAmenityDialogOpen}
@@ -87,13 +87,13 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Amenities
+                {t("Management.addAmenities")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Property Amenities</DialogTitle>
-                <DialogDescription>Add new property amenities</DialogDescription>
+                <DialogTitle>{t("Management.createPropertyAmenities")}</DialogTitle>
+                <DialogDescription>{t("Management.addNewPropertyAmenities")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="flex gap-2">
@@ -117,8 +117,8 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => { setIsPropertyAmenityDialogOpen(false); setAmenitiesList([]); }}>Cancel</Button>
-                <Button onClick={handleCreatePropertyAmenities}>Create All</Button>
+                <Button variant="outline" onClick={() => { setIsPropertyAmenityDialogOpen(false); setAmenitiesList([]); }}>{t("Management.Common.cancel", { ns: "translation" })}</Button>
+                <Button onClick={handleCreatePropertyAmenities}>{t("Management.Common.save", { ns: "translation" })}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -137,13 +137,13 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => openAddTranslation(amenity.id)}>
-                    <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
+                    <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation", { ns: "translation" })}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => openCheckTranslations(amenity.id)}>
-                    <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
+                    <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation", { ns: "translation" })}
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-red-600" onClick={() => handleDeletePropertyAmenity(amenity._translations?amenity._translations.amenityName:amenity.amenityName)}>
-                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  <DropdownMenuItem className="text-red-600" onClick={() => handleDeletePropertyAmenity(amenity.amenityName)}>
+                    <Trash2 className="h-4 w-4 mr-2" /> {t("Common.delete", { ns: "translation" })}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -151,7 +151,7 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
           ))}
           {propertyAmenities.length === 0 && (
             <div className="w-full text-center py-12 text-gray-500">
-              No property amenities found. Create your first amenity to get started.
+              {t("Management.noPropertyAmenitiesFound")}
             </div>
           )}
         </div>
@@ -163,10 +163,10 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
             open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
-            title="Add Amenity Translation"
+            title={t("Management.Common.addTranslation", { ns: "translation", defaultValue: "Add Property Amenity Translation" })}
             fields={[
-              { key: "amenityName", label: "Amenity Name", placeholder: "e.g., Piscina" },
-              { key: "description", label: "Description", placeholder: "Describe this amenity" },
+              { key: "amenityName", label: t("Management.propertyAmenitiesTitle"), placeholder: "e.g., Aire acondicionado" },
+              { key: "description", label: t("Management.description"), placeholder: "Describe this amenity" },
             ]}
             onSave={async (id, locale, data) => {
               return await upsertMasterAmenityTranslationService(id, { [locale]: data });
@@ -176,10 +176,10 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title="Amenity Translations"
+            title={t("Management.Common.checkTranslation", { ns: "translation", defaultValue: "Property Amenity Translations" })}
             displayFields={[
-              { key: "amenityName", label: "Name" },
-              { key: "description", label: "Description" },
+              { key: "amenityName", label: t("Management.propertyAmenitiesTitle") },
+              { key: "description", label: t("Management.description") },
             ]}
             onFetch={getAllMasterAmenityTranslationsService}
             onDelete={deleteMasterAmenityTranslationLocaleService}
@@ -191,10 +191,10 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
             entityId={translationEntityId!}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Amenity Translation"
+            title={t("Management.Common.editTranslation", { ns: "translation", defaultValue: "Edit Property Amenity Translation" })}
             fields={[
-              { key: "amenityName", label: "Amenity Name", placeholder: "e.g., Piscina" },
-              { key: "description", label: "Description", placeholder: "Describe this amenity" },
+              { key: "amenityName", label: t("Management.propertyAmenitiesTitle"), placeholder: "e.g., Aire acondicionado" },
+              { key: "description", label: t("Management.description"), placeholder: "Describe this amenity" },
             ]}
             onSave={async (id, locale, data) => upsertMasterAmenityTranslationService(id, { [locale]: data })}
           />
@@ -206,4 +206,3 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
 
 
 
- 

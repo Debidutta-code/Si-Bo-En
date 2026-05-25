@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Generic {t("Common.addTranslation")} Dialog
@@ -33,7 +34,7 @@ export function AddTranslationDialog({ open, onOpenChange, entityId, title, fiel
   const [selectedLang, setSelectedLang] = useState("");
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-
+  const { t } = useTranslation();
   const availableLanguages = allowedLanguageCodes && allowedLanguageCodes.length > 0
     ? languages.filter((l) => allowedLanguageCodes.includes(l.code))
     : languages;
@@ -69,7 +70,7 @@ export function AddTranslationDialog({ open, onOpenChange, entityId, title, fiel
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label>Language</Label>
+            <Label>{t("AddCreationLanguageDialog.form.languageLabel")}</Label>
             <Select value={selectedLang} onValueChange={setSelectedLang}>
               <SelectTrigger><SelectValue placeholder="Select Language" /></SelectTrigger>
               <SelectContent>

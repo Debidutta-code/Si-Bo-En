@@ -6,6 +6,7 @@ import {
   ChevronUp,
   Save,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // Hooks and Components
 import { useInventoryState } from "../hooks/useInventoryState";
@@ -53,6 +54,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   onDataUpdate,
 }) => {
   const state = useInventoryState(days);
+  const { t } = useTranslation();
 
   // Unsaved changes handlers
   const checkChanges = (action: () => void) => {
@@ -153,8 +155,8 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   if (!days || days.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-        <div className="text-lg font-medium">No inventory data available</div>
-        <div className="text-sm">Please check back later for updates</div>
+        <div className="text-lg font-medium">{t('CalendarView.inventoryTable.noData')}</div>
+        <div className="text-sm">{t('CalendarView.inventoryTable.noDataSub')}</div>
       </div>
     );
   }
@@ -168,13 +170,13 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
         <div className="relative bg-gray-50 border-b border-gray-300 py-2">
           <div className="flex items-center justify-between px-3">
             <h2 className="text-sm font-semibold text-gray-800">
-              Inventory Overview
+              {t('CalendarView.inventoryTable.inventoryOverview')}
             </h2>
 
             <div className="flex items-center space-x-3 flex-wrap gap-2">
               {state.pendingChanges.size > 0 && (
                 <div className="flex items-center space-x-2 px-3 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded">
-                  <span>{state.pendingChanges.size} unsaved changes</span>
+                  <span>{t('CalendarView.inventoryTable.unsavedChanges_other', { count: state.pendingChanges.size })}</span>
                 </div>
               )}
 
@@ -187,8 +189,8 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                   className="flex items-center space-x-1 px-3 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
                 >
                   <Save className="w-3 h-3" />
-                  <span className="hidden sm:inline">Save Availability</span>
-                  <span className="sm:hidden">Save</span>
+                  <span className="hidden sm:inline">{t('CalendarView.inventoryTable.saveAvailability')}</span>
+                  <span className="sm:hidden">{t('CalendarView.inventoryTable.save')}</span>
                 </button>
               )}
 
@@ -201,8 +203,8 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                   className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
                 >
                   <Save className="w-3 h-3" />
-                  <span className="hidden sm:inline">Save Pricing</span>
-                  <span className="sm:hidden">Save</span>
+                  <span className="hidden sm:inline">{t('CalendarView.inventoryTable.savePricing')}</span>
+                  <span className="sm:hidden">{t('CalendarView.inventoryTable.save')}</span>
                 </button>
               )}
 
@@ -215,9 +217,9 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                 className="flex items-center space-x-1 px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded hover:bg-purple-600 transition-colors"
               >
                 <span className="hidden sm:inline">
-                  {state.showRestrictions ? "Hide" : "Show"} Restrictions
+                  {state.showRestrictions ? t('CalendarView.inventoryTable.hideRestrictions') : t('CalendarView.inventoryTable.showRestrictions')}
                 </span>
-                <span className="sm:hidden">Restrictions</span>
+                <span className="sm:hidden">{t('CalendarView.inventoryTable.restrictions')}</span>
                 {state.showRestrictions ? (
                   <ChevronUp className="w-3 h-3" />
                 ) : (
@@ -234,9 +236,9 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                 className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
               >
                 <span className="hidden sm:inline">
-                  {state.showRatePlans ? "Hide" : "Show"} Rate Plans
+                  {state.showRatePlans ? t('CalendarView.inventoryTable.hideRatePlans') : t('CalendarView.inventoryTable.showRatePlans')}
                 </span>
-                <span className="sm:hidden">Plans</span>
+                <span className="sm:hidden">{t('CalendarView.inventoryTable.plans')}</span>
                 {state.showRatePlans ? (
                   <ChevronUp className="w-3 h-3" />
                 ) : (
@@ -297,11 +299,11 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
         <div className="bg-gray-50 border-t border-gray-300 px-3 py-1">
           <div className="flex items-center justify-between text-xs text-gray-600">
             <span>
-              Showing {days.length} days across {roomTypes.length} room types
+              {t('CalendarView.inventoryTable.showingSummary', { days: days.length, roomTypes: roomTypes.length })}
             </span>
             <span>
-              {state.showRestrictions && "Restrictions visible • "}
-              {state.showRatePlans && "Rate plans visible"}
+              {state.showRestrictions && `${t('CalendarView.inventoryTable.restrictionsVisible')} • `}
+              {state.showRatePlans && t('CalendarView.inventoryTable.ratePlansVisible')}
             </span>
           </div>
         </div>

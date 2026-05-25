@@ -8,6 +8,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 import { PriceInput } from "./PriceInput";
 import { AdditionalChargeInput } from "./AdditionalChargeInput";
@@ -48,17 +49,20 @@ interface RatePlanSectionProps {
   onDataUpdate?: () => void;
   renderMode: "labels" | "data";
 }
-function getGuestTierLabel(numberOfGuests: number, ageQualifyingCode: string): string {
+function getGuestTierLabel(numberOfGuests: number, ageQualifyingCode: string, t: (key: string, opts?: any) => string): string {
   const ageLabel = AGE_LABELS[ageQualifyingCode] || "Guest";
 
   if (numberOfGuests > 1) {
-    if (ageLabel === "Adult") return `${numberOfGuests} Adults`;
-    if (ageLabel === "Child") return `${numberOfGuests} Children`;
-    if (ageLabel === "Infant") return `${numberOfGuests} Infants`;
-    return `${numberOfGuests} Guests`;
+    if (ageLabel === "Adult") return t('CalendarView.ratePlanSection.guestAdult_other', { count: numberOfGuests });
+    if (ageLabel === "Child") return t('CalendarView.ratePlanSection.guestChild_other', { count: numberOfGuests });
+    if (ageLabel === "Infant") return t('CalendarView.ratePlanSection.guestInfant_other', { count: numberOfGuests });
+    return t('CalendarView.ratePlanSection.guestOther_other', { count: numberOfGuests });
   }
 
-  return `${numberOfGuests} ${ageLabel}`;
+  if (ageLabel === "Adult") return t('CalendarView.ratePlanSection.guestAdult_one', { count: numberOfGuests });
+  if (ageLabel === "Child") return t('CalendarView.ratePlanSection.guestChild_one', { count: numberOfGuests });
+  if (ageLabel === "Infant") return t('CalendarView.ratePlanSection.guestInfant_one', { count: numberOfGuests });
+  return t('CalendarView.ratePlanSection.guestOther_one', { count: numberOfGuests });
 }
 export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   roomType,
@@ -76,6 +80,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
   const hasOccupancy = (ratePlanDetails?.baseByGuestAmts?.length ?? 0) > 0;
   const isExpanded = state.expandedOccupancy.has(`${roomType}-${ratePlanType}`);
+  const { t } = useTranslation();
   
   const fullRatePlan = ratePlansData?.find(rp => rp.ratePlanCode === ratePlanType);
   const displayName = fullRatePlan?._translations?.ratePlanName || ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType;
@@ -301,8 +306,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
   const formatDateForStartStop = (day: InventoryDay): string => {
     const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
+      (t("Common.jan")), (t("Common.feb")), (t("Common.march")), (t("Common.april")), (t("Common.may")), (t("Common.june")),
+     (t("Common.july")), (t("Common.august")), (t("Common.september")), (t("Common.october")), (t("Common.november")), (t("Common.december")),
     ];
     const monthNumber = monthNames.indexOf(day.month) + 1;
     // ✅ Append T00:00:00 to force local time, not UTC
@@ -341,7 +346,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800 transition-colors"
               >
                 <Users className="w-3 h-3" />
-                <span className="font-medium">Occupancy Based</span>
+                <span className="font-medium">{t('CalendarView.ratePlanSection.occupancyBased')}</span>
                 {isExpanded ? (
                   <ChevronUp className="w-3 h-3" />
                 ) : (
@@ -388,7 +393,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
                       if (response.success) {
                         toast.success(
-                          `Rate plan ${checked ? "opened" : "closed"} for ${days.length} dates`,
+                          checked ? t('CalendarView.ratePlanSection.ratePlanOpened', { count: days.length }) : t('CalendarView.ratePlanSection.ratePlanClosed', { count: days.length }),
                         );
                         if (onDataUpdate) await onDataUpdate();
                       } else {
@@ -400,7 +405,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         error,
                       );
                       toast.error(
-                        error.message || "Failed to update rate plan status",
+                        error.message || t('CalendarView.ratePlanSection.failedUpdateStatus'),
                       );
                     }
                   }}
@@ -505,7 +510,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
                     if (response.success) {
                       toast.success(
-                        `Rate plan ${checked ? "opened" : "closed"} for ${days.length} dates`,
+                        checked ? t('CalendarView.ratePlanSection.ratePlanOpened', { count: days.length }) : t('CalendarView.ratePlanSection.ratePlanClosed', { count: days.length }),
                       );
                       if (onDataUpdate) await onDataUpdate();
                     } else {
@@ -552,7 +557,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <div className="w-40 flex items-center justify-between px-2 border-r border-gray-300 bg-purple-50">
                   <div className="flex items-center gap-1">
                     <span className="font-semibold text-purple-700 text-xs">
-                      {getGuestTierLabel(guestTier.numberOfGuests, guestTier.ageQualifyingCode)}
+                      {getGuestTierLabel(guestTier.numberOfGuests, guestTier.ageQualifyingCode, t)}
                     </span>
                     <span className="text-xs text-gray-600">
                       {ratePlanDetails?.currencyCode || "USD"}
@@ -647,10 +652,10 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         }
                         className="text-xs text-purple-700 hover:text-purple-900 font-medium"
                       >
-                        + Adult ({currentMaxAdult}/{maxAdults})
+                        {t('CalendarView.ratePlanSection.addAdult', { current: currentMaxAdult, max: maxAdults })}
                       </button>
                     ) : (
-                      <span className="text-xs text-gray-400">Max Adults ({maxAdults}) reached</span>
+                      <span className="text-xs text-gray-400">{t('CalendarView.ratePlanSection.maxAdultsReached', { max: maxAdults })}</span>
                     )}
 
                     {canAddChild ? (
@@ -665,10 +670,10 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         }
                         className="text-xs text-blue-700 hover:text-blue-900 font-medium"
                       >
-                        + Child ({currentMaxChild}/{maxChildren})
+                        {t('CalendarView.ratePlanSection.addChild', { current: currentMaxChild, max: maxChildren })}
                       </button>
                     ) : maxChildren > 0 ? (
-                      <span className="text-xs text-gray-400">Max Children ({maxChildren}) reached</span>
+                      <span className="text-xs text-gray-400">{t('CalendarView.ratePlanSection.maxChildrenReached', { max: maxChildren })}</span>
                     ) : null}
                   </>
                 );
@@ -684,7 +689,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                   <div className="w-40 flex items-center justify-between px-2 border-r border-gray-300 bg-blue-50">
                     <div className="flex items-center gap-1">
                       <span className="font-semibold text-blue-700 text-xs">
-                        Extra {AGE_LABELS[charge.ageCode] || "Guest"}
+                        {AGE_LABELS[charge.ageCode] === 'Adult' ? t('CalendarView.ratePlanSection.extraAdult') : AGE_LABELS[charge.ageCode] === 'Child' ? t('CalendarView.ratePlanSection.extraChild') : AGE_LABELS[charge.ageCode] === 'Infant' ? t('CalendarView.ratePlanSection.extraInfant') : t('CalendarView.ratePlanSection.extraGuest')}
                       </span>
                       <span className="text-xs text-gray-600">
                         {ratePlanDetails?.currencyCode || "USD"}
@@ -773,16 +778,16 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 defaultValue=""
               >
                 <option value="" disabled>
-                  + Add Charge Type
+                  {t('CalendarView.ratePlanSection.addChargeType')}
                 </option>
                 {!allCharges.some((c) => c.ageCode === "10") && (
-                  <option value="10">Adult</option>
+                  <option value="10">{t('CalendarView.ratePlanSection.adult')}</option>
                 )}
                 {!allCharges.some((c) => c.ageCode === "8") && (
-                  <option value="8">Child</option>
+                  <option value="8">{t('CalendarView.ratePlanSection.child')}</option>
                 )}
                 {!allCharges.some((c) => c.ageCode === "7") && (
-                  <option value="7">Infant</option>
+                  <option value="7">{t('CalendarView.ratePlanSection.infant')}</option>
                 )}
               </select>
             </div>
@@ -795,7 +800,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-12 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Plan CTA
+                  {t('CalendarView.ratePlanSection.planCTA')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -859,7 +864,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-12 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Plan CTD
+                  {t('CalendarView.ratePlanSection.planCTD')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -924,7 +929,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-12 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Plan Min LOS
+                  {t('CalendarView.ratePlanSection.planMinLOS')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -966,7 +971,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-12 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Plan Max LOS
+                  {t('CalendarView.ratePlanSection.planMaxLOS')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -1007,7 +1012,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-10 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-100">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Bulk Cut-off Unit
+                  {t('CalendarView.ratePlanSection.bulkCutoffUnit')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-100">
@@ -1016,13 +1021,13 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                     onClick={() => state.setCutoffUnit("hours")}
                     className={`px-2 py-0.5 text-[10px] font-semibold transition-colors ${state.cutoffUnit === "hours" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
                   >
-                    Hours
+                    {t('CalendarView.ratePlanSection.hours')}
                   </button>
                   <button
                     onClick={() => state.setCutoffUnit("days")}
                     className={`px-2 py-0.5 text-[10px] font-semibold transition-colors ${state.cutoffUnit === "days" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
                   >
-                    Days
+                    {t('CalendarView.ratePlanSection.days')}
                   </button>
                 </div>
               </div>
@@ -1031,7 +1036,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Max Booking Cut-off
+                  {t('CalendarView.ratePlanSection.maxBookingCutoff')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -1075,7 +1080,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   {" "}
-                  Min Booking Cut-off
+                  {t('CalendarView.ratePlanSection.minBookingCutoff')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -1118,7 +1123,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Max Booking Amend Cut-off
+                  {t('CalendarView.ratePlanSection.maxBookingAmendCutoff')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -1162,7 +1167,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   {" "}
-                  Min Booking Amend Cut-off
+                  {t('CalendarView.ratePlanSection.minBookingAmendCutoff')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -1205,7 +1210,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Max Booking Cancel Cut-off
+                  {t('CalendarView.ratePlanSection.maxBookingCancelCutoff')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -1249,7 +1254,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   {" "}
-                  Min Booking Cancel Cut-off
+                  {t('CalendarView.ratePlanSection.minBookingCancelCutoff')}
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
@@ -1296,7 +1301,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             ) && (
                 <div className="h-12 flex items-center px-2 border-b border-gray-300 bg-green-50">
                   <span className="font-semibold text-green-700 text-xs">
-                    Save Rate Plan Changes
+                    {t('CalendarView.ratePlanSection.saveRatePlanChanges')}
                   </span>
                 </div>
               )}
@@ -1355,7 +1360,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
                         if (response.success) {
                           toast.success(
-                            `Rate plan ${checked ? "opened" : "closed"} for ${day.month.slice(0, 3)} ${day.date}`,
+                            checked ? t('CalendarView.ratePlanSection.ratePlanOpenedDate', { date: `${day.month.slice(0,3)} ${day.date}` }) : t('CalendarView.ratePlanSection.ratePlanClosedDate', { date: `${day.month.slice(0,3)} ${day.date}` }),
                           );
                           if (onDataUpdate) await onDataUpdate();
                         } else {
@@ -1367,7 +1372,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                           error,
                         );
                         toast.error(
-                          error.message || "Failed to update rate plan status",
+                          error.message || t('CalendarView.ratePlanSection.failedUpdateStatus'),
                         );
                       }
                     }}
@@ -1401,10 +1406,9 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                           : "text-red-600"
                           }`}
                       >
-                        {ratePlanDetails?.sellStatus ===
-                          "open"
-                          ? "Open"
-                          : "Closed"}
+                        {ratePlanDetails?.sellStatus === "open"
+                          ? t('CalendarView.ratePlanSection.open')
+                          : t('CalendarView.ratePlanSection.closed')}
                       </span>
                     );
                   }
@@ -1934,7 +1938,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 className="w-32 flex-shrink-0 border-r border-gray-300 flex items-center justify-center"
               >
                 <span className="text-[9px] text-purple-600 font-medium italic">
-                  Hr / Day per cell
+                  {t('CalendarView.ratePlanSection.hrDayPerCell')}
                 </span>
               </div>
             ))}
@@ -2025,7 +2029,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         const ratePlanId = ratePlanMap[ratePlanType];
                         if (!ratePlanId) {
                           toast.error(
-                            `No rate plan ID found for ${ratePlanType}`,
+                            t('CalendarView.ratePlanSection.noRatePlanId', { ratePlanType }),
                           );
                           return;
                         }
@@ -2046,7 +2050,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                     className="flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors shadow-lg pointer-events-auto sticky left-1/2 -ml-24"
                   >
                     <Save className="w-3 h-3" />
-                    Save {ratePlanType} Changes
+                    {t('CalendarView.ratePlanSection.saveChangesFor', { ratePlanType })}
                   </button>
                 </div>
               </div>

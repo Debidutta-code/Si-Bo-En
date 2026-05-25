@@ -33,11 +33,11 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
   const [editTranslationOpen, setEditTranslationOpen] = useState(false);
   const [editingLocale, setEditingLocale] = useState<string>("");
   const [editingData, setEditingData] = useState<Record<string, any>>({});
-  const {t}=useTranslation();
+  const { t } = useTranslation();
   const handleAddRoomAmenityToList = () => {
     if (!roomAmenityInput.trim()) return;
     if (amenitiesList.includes(roomAmenityInput.trim())) {
-      toast.error("Amenity already in list");
+      toast.error(t("Management.Toast.amenityAlreadyInList", { ns: "translation" }));
       return;
     }
     setAmenitiesList([...amenitiesList, roomAmenityInput.trim()]);
@@ -47,22 +47,22 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
   const handleCreateRoomAmenities = async () => {
     const response = await createRoomAmenitiesService(amenitiesList);
     if (response.success) {
-      toast.success("Room amenities created successfully");
+      toast.success(t("Management.Toast.roomAmenitiesCreatedSuccessfully", { ns: "translation" }));
       setRoomAmenities([...response.data]);
       setAmenitiesList([]);
       setIsRoomAmenityDialogOpen(false);
     } else {
-      toast.error(response.error || "Failed to create amenities");
+      toast.error(response.error || t("Management.Toast.failedToCreateRoomAmenities", { ns: "translation" }));
     }
   };
 
   const handleDeleteRoomAmenity = async (amenityName: string) => {
     const response = await deleteRoomAmenitiesService([amenityName]);
     if (response.success) {
-      toast.success("Room amenity deleted successfully");
+      toast.success(t("Management.Toast.roomAmenityDeletedSuccessfully", { ns: "translation" }));
       setRoomAmenities(roomAmenities.filter((amenity) => amenity.amenityName !== amenityName));
     } else {
-      toast.error(response.error || "Failed to delete amenity");
+      toast.error(response.error || t("Management.Toast.failedToDeleteRoomAmenity", { ns: "translation" }));
     }
   };
 
@@ -74,8 +74,8 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Room Amenities</CardTitle>
-            <CardDescription>Manage room amenities</CardDescription>
+            <CardTitle>{t("Management.roomAmenitiesTitle")}</CardTitle>
+            <CardDescription>{t("Management.manageRoomAmenities")}</CardDescription>
           </div>
           <Dialog
             open={isRoomAmenityDialogOpen}
@@ -87,13 +87,13 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Amenities
+                {t("Management.addAmenities")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Room Amenities</DialogTitle>
-                <DialogDescription>Add new room amenities</DialogDescription>
+                <DialogTitle>{t("Management.createRoomAmenities")}</DialogTitle>
+                <DialogDescription>{t("Management.addNewRoomAmenities")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="flex gap-2">
@@ -117,8 +117,8 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => { setIsRoomAmenityDialogOpen(false); setAmenitiesList([]); }}>Cancel</Button>
-                <Button onClick={handleCreateRoomAmenities}>Create All</Button>
+                <Button variant="outline" onClick={() => { setIsRoomAmenityDialogOpen(false); setAmenitiesList([]); }}>{t("Management.Common.cancel", { ns: "translation" })}</Button>
+                <Button onClick={handleCreateRoomAmenities}>{t("Management.Common.save", { ns: "translation" })}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -143,7 +143,7 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
                     <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteRoomAmenity(amenity.amenityName)}>
-                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                    <Trash2 className="h-4 w-4 mr-2" /> {t("Common.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -151,7 +151,7 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
           ))}
           {roomAmenities.length === 0 && (
             <div className="w-full text-center py-12 text-gray-500">
-              No room amenities found. Create your first amenity to get started.
+              {t("Management.noRoomAmenitiesFound")}
             </div>
           )}
         </div>
@@ -163,10 +163,10 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
             open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
-            title="Add Room Amenity Translation"
+            title={t("Management.addTranslation", { ns: "translation", defaultValue: "Add Room Amenity Translation" })}
             fields={[
-              { key: "amenityName", label: "Amenity Name", placeholder: "e.g., Aire acondicionado" },
-              { key: "description", label: "Description", placeholder: "Describe this amenity" },
+              { key: "amenityName", label: t("Management.roomAmenitiesTitle"), placeholder: "e.g., Aire acondicionado" },
+              { key: "description", label: t("Management.description"), placeholder: "Describe this amenity" },
             ]}
             onSave={async (id, locale, data) => {
               return await upsertMasterAmenityTranslationService(id, { [locale]: data });
@@ -176,10 +176,10 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title="Room Amenity Translations"
+            title={t("Management.checkTranslation", { ns: "translation", defaultValue: "Room Amenity Translations" })}
             displayFields={[
-              { key: "amenityName", label: "Name" },
-              { key: "description", label: "Description" },
+              { key: "amenityName", label: t("Management.roomAmenitiesTitle") },
+              { key: "description", label: t("Management.description") },
             ]}
             onFetch={getAllMasterAmenityTranslationsService}
             onDelete={deleteMasterAmenityTranslationLocaleService}
@@ -191,10 +191,10 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
             entityId={translationEntityId!}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Room Amenity Translation"
+            title={t("Management.editTranslation", { ns: "translation", defaultValue: "Edit Room Amenity Translation" })}
             fields={[
-              { key: "amenityName", label: "Amenity Name", placeholder: "e.g., Aire acondicionado" },
-              { key: "description", label: "Description", placeholder: "Describe this amenity" },
+              { key: "amenityName", label: t("Management.roomAmenitiesTitle"), placeholder: "e.g., Aire acondicionado" },
+              { key: "description", label: t("Management.description"), placeholder: "Describe this amenity" },
             ]}
             onSave={async (id, locale, data) => upsertMasterAmenityTranslationService(id, { [locale]: data })}
           />

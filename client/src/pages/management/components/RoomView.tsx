@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +36,7 @@ interface RoomViewTabProps {
 }
 
 export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProps) {
+    const { t } = useTranslation();
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [createInput, setCreateInput] = useState<string>("");
@@ -49,7 +49,6 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
     const [editTranslationOpen, setEditTranslationOpen] = useState(false);
     const [editingLocale, setEditingLocale] = useState<string>("");
     const [editingData, setEditingData] = useState<Record<string, any>>({});
-    const {t}=useTranslation();
     const sortedRoomViews = useMemo(() => {
         return [...roomViews].sort((a, b) => a.viewName.localeCompare(b.viewName));
     }, [roomViews]);
@@ -111,23 +110,22 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <div>
-                        <CardTitle>Room Views</CardTitle>
-                        <CardDescription>Manage room views</CardDescription>
+                        <CardTitle>{t("Management.roomViewsTitle")}</CardTitle>
+                        <CardDescription>{t("Management.manageRoomViews")}</CardDescription>
                     </div>
-
                     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                         <DialogTrigger asChild>
                             <Button>
                                 <Plus className="h-4 w-4 mr-2" />
-                                Add Room View
+                                {t("Management.addRoomView")}
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Create Room View</DialogTitle>
-                                <DialogDescription>Add a new room view</DialogDescription>
+                                <DialogTitle>{t("Management.createRoomView")}</DialogTitle>
+                                <DialogDescription>{t("Management.addNewRoomView")}</DialogDescription>
                             </DialogHeader>
-                            <div className="space-y-2">
+                            <div className="space-y-4">
                                 <Input
                                     value={createInput}
                                     onChange={(e) => setCreateInput(e.target.value)}
@@ -138,86 +136,78 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                                 />
                             </div>
                             <DialogFooter>
-                                <Button variant="outline" onClick={() => { setIsCreateDialogOpen(false); setCreateInput(""); }}>Cancel</Button>
-                                <Button onClick={handleCreateRoomView}>Create</Button>
+                                <Button variant="outline" onClick={() => { setIsCreateDialogOpen(false); setCreateInput(""); }}>{t("Common.cancel", { ns: "translation" })}</Button>
+                                <Button onClick={handleCreateRoomView}>{t("Common.save", { ns: "translation" })}</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
                 </div>
             </CardHeader>
-
             <CardContent>
                 <div className="flex flex-wrap gap-2">
-                    {sortedRoomViews.map((rv) => (
+                    {sortedRoomViews.map((view) => (
                         <Badge
-                            key={rv.id}
+                            key={view.id}
                             variant="outline"
                             className="text-sm py-2 px-3 flex items-center gap-2"
                         >
-                            <span className={rv.isActive ? "" : "text-gray-400 line-through"}>
-  {rv._translations?.viewName ?? rv.viewName}
-</span>
+                            {view._translations?.viewName || view.viewName}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button type="button" className="hover:text-blue-600" aria-label={`Actions for ${rv.viewName}`}>
-                                        <MoreVertical className="h-3 w-3" />
+                                    <button className="hover:text-blue-600 ml-1">
+                                        <MoreVertical className="h-4 w-4" />
                                     </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => openEditDialog(rv)}>
-                                        <Pencil className="h-4 w-4 mr-2" /> Edit
+                                    <DropdownMenuItem onClick={() => openEditDialog(view)}>
+                                        <Pencil className="h-4 w-4 mr-2" /> {t("Common.edit", { ns: "translation" })}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => openAddTranslation(rv.id)}>
-                                        <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
+                                    <DropdownMenuItem onClick={() => openAddTranslation(view.id)}>
+                                        <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation", { ns: "translation" })}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => openCheckTranslations(rv.id)}>
-                                        <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
+                                    <DropdownMenuItem onClick={() => openCheckTranslations(view.id)}>
+                                        <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation", { ns: "translation" })}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteRoomView(rv.id)}>
-                                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                                    <DropdownMenuItem
+                                        className="text-red-600"
+                                        onClick={() => handleDeleteRoomView(view.id)}
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" /> {t("Common.delete", { ns: "translation" })}
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </Badge>
                     ))}
-
                     {sortedRoomViews.length === 0 && (
                         <div className="w-full text-center py-12 text-gray-500">
-                            No room views found. Create your first room view to get started.
+                            {t("Management.noRoomViewsFound")}
                         </div>
                     )}
                 </div>
-
-                {/* Edit Dialog */}
-                <Dialog
-                    open={isEditDialogOpen}
-                    onOpenChange={(open) => {
-                        setIsEditDialogOpen(open);
-                        if (!open) { setSelectedRoomView(null); setEditInput(""); }
-                    }}
-                >
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Update Room View</DialogTitle>
-                            <DialogDescription>Edit the selected room view</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-2">
-                            <Input
-                                value={editInput}
-                                onChange={(e) => setEditInput(e.target.value)}
-                                placeholder="e.g., City View"
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") { e.preventDefault(); handleUpdateRoomView(); }
-                                }}
-                            />
-                        </div>
-                        <DialogFooter>
-                            <Button variant="outline" onClick={() => { setIsEditDialogOpen(false); setSelectedRoomView(null); setEditInput(""); }}>Cancel</Button>
-                            <Button onClick={handleUpdateRoomView}>Update</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
             </CardContent>
+
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{t("Management.updateRoomView")}</DialogTitle>
+                        <DialogDescription>{t("Management.editRoomView")}</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Input
+                            value={editInput}
+                            onChange={(e) => setEditInput(e.target.value)}
+                            placeholder="e.g., City View"
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") { e.preventDefault(); handleUpdateRoomView(); }
+                            }}
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => { setIsEditDialogOpen(false); setSelectedRoomView(null); setEditInput(""); }}>{t("Management.Common.cancel", { ns: "translation" })}</Button>
+                        <Button onClick={handleUpdateRoomView}>{t("Common.edit", { ns: "translation" })}</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {translationEntityId && (
                 <>
@@ -225,8 +215,10 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         open={addTranslationOpen}
                         onOpenChange={setAddTranslationOpen}
                         entityId={translationEntityId}
-                        title="Add Room View Translation"
-                        fields={[{ key: "viewName", label: "View Name", placeholder: "e.g., Vista al mar" }]}
+                        title={t("Management.Common.addTranslation", { ns: "translation", defaultValue: "Add Room View Translation" })}
+                        fields={[
+                            { key: "viewName", label: t("Management.roomViewsTitle"), placeholder: "e.g., Vista al mar" }
+                        ]}
                         onSave={async (id, locale, data) => {
                             return await upsertMasterRoomViewTranslationService(id, { [locale]: data });
                         }}
@@ -235,8 +227,10 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         open={checkTranslationsOpen}
                         onOpenChange={setCheckTranslationsOpen}
                         entityId={translationEntityId}
-                        title="Room View Translations"
-                        displayFields={[{ key: "viewName", label: "Name" }]}
+                        title={t("Management.Common.checkTranslation", { ns: "translation", defaultValue: "Room View Translations" })}
+                        displayFields={[
+                            { key: "viewName", label: t("Management.roomViewsTitle") }
+                        ]}
                         onFetch={getAllMasterRoomViewTranslationsService}
                         onDelete={deleteMasterRoomViewTranslationLocaleService}
                         onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
@@ -247,8 +241,10 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         entityId={translationEntityId!}
                         locale={editingLocale}
                         initialData={editingData}
-                        title="Edit Room View Translation"
-                        fields={[{ key: "viewName", label: "View Name", placeholder: "e.g., Vista al mar" }]}
+                        title={t("Management.Common.editTranslation", { ns: "translation", defaultValue: "Edit Room View Translation" })}
+                        fields={[
+                            { key: "viewName", label: t("Management.roomViewsTitle"), placeholder: "e.g., Vista al mar" }
+                        ]}
                         onSave={async (id, locale, data) => upsertMasterRoomViewTranslationService(id, { [locale]: data })}
                     />
                 </>

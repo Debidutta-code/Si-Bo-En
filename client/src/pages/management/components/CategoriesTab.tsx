@@ -155,7 +155,7 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
             open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
-            title="Add Category Translation"
+            title={t("Addon.ManagementTabs.translationDialogs.")}
             fields={[
               { key: "categoryName", label: "Category Name", placeholder: "e.g., Lujo" },
               { key: "categoryDescription", label: "Description", placeholder: "Describe this category" },

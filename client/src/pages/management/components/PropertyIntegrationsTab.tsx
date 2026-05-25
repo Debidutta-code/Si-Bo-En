@@ -9,6 +9,7 @@ import { Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { IPaymentIntegration } from "../types";
 import { createPaymentIntegrationService, deletePaymentIntegrationService } from "../services/management.services";
+import { useTranslation } from "react-i18next";
 
 interface PropertyIntegrationsTabProps {
   propertyIntegrations: IPaymentIntegration[];
@@ -18,37 +19,37 @@ interface PropertyIntegrationsTabProps {
 export default function PropertyIntegrationsTab({ propertyIntegrations, setPropertyIntegrations }: PropertyIntegrationsTabProps) {
   const [isPropertyIntegrationDialogOpen, setIsPropertyIntegrationDialogOpen] = useState<boolean>(false);
   const [propertyIntegrationInput, setPropertyIntegrationInput] = useState("");
-
+  const { t } = useTranslation();
   const formatIntegrationName = (name: string) => {
     return name
-      .split('_')
+      .split('Management._')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
 
   const handleCreatePropertyIntegration = async () => {
     if (!propertyIntegrationInput.trim()) {
-      toast.error("Please enter a property integration name");
+      toast.error(t('Management.toast.pleaseEnterPropertyIntegrationName'));
       return;
     }
     const response = await createPaymentIntegrationService(propertyIntegrationInput);
     if (response.success) {
-      toast.success("Property integration created successfully");
+      toast.success(t('Management.toast.propertyIntegrationCreatedSuccessfully'));
       setPropertyIntegrations([...propertyIntegrations, response.data]);
       setPropertyIntegrationInput("");
       setIsPropertyIntegrationDialogOpen(false);
     } else {
-      toast.error(response.error || "Failed to create property integration");
+      toast.error(response.error || t('Management.toast.pleaseEnterPropertyIntegrationName'));
     }
   };
 
   const handleDeletePropertyIntegration = async (id: string) => {
     const response = await deletePaymentIntegrationService(id);
     if (response.success) {
-      toast.success("Property integration deleted successfully");
+      toast.success(t('Management.toast.propertyIntegrationDeletedSuccessfully'));
       setPropertyIntegrations(propertyIntegrations.filter((integration) => integration.id !== id));
     } else {
-      toast.error(response.error || "Failed to delete property integration");
+      toast.error(response.error || t('Management.toast.propertyIntegrationDeletedSuccessfully'));
     }
   };
 
@@ -57,29 +58,29 @@ export default function PropertyIntegrationsTab({ propertyIntegrations, setPrope
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Property Integrations</CardTitle>
-            <CardDescription>Manage property integration providers</CardDescription>
+            <CardTitle>{t("Management.masterIntegrationsTitle")}</CardTitle>
+            <CardDescription>{t("Management.manageMasterIntegrations")}</CardDescription>
           </div>
           <Dialog open={isPropertyIntegrationDialogOpen} onOpenChange={setIsPropertyIntegrationDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Property Integration
+                {t("Management.addPropertyIntegration")}  
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Property Integration</DialogTitle>
-                <DialogDescription>Add a property integration provider name</DialogDescription>
+                <DialogTitle>{t('Management.addPropertyIntegration')}</DialogTitle>
+                <DialogDescription>{t('Management.propertyIntegrationDialogDescription')}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="propertyIntegrationName">Property Integration Name</Label>
+                  <Label htmlFor="propertyIntegrationName">{t('Management.propertyIntegrationNameLabel')}</Label>
                   <Input
                     id="propertyIntegrationName"
                     value={propertyIntegrationInput}
                     onChange={(e) => setPropertyIntegrationInput(e.target.value)}
-                    placeholder="e.g., Channel Manager, PMS Integration"
+                    placeholder={t('Management.propertyIntegrationNamePlaceholder')}
                     onKeyPress={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -97,9 +98,9 @@ export default function PropertyIntegrationsTab({ propertyIntegrations, setPrope
                     setPropertyIntegrationInput("");
                   }}
                 >
-                  Cancel
+                  {t('Management.cancel')}
                 </Button>
-                <Button onClick={handleCreatePropertyIntegration}>Create</Button>
+                <Button onClick={handleCreatePropertyIntegration}>{t('Management.create')}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -120,7 +121,7 @@ export default function PropertyIntegrationsTab({ propertyIntegrations, setPrope
           ))}
           {propertyIntegrations.length === 0 && (
             <div className="w-full text-center py-12 text-gray-500">
-              No property integrations found. Create your first property integration to get started.
+              {t('Management.noPropertyIntegrationsFound')}
             </div>
           )}
         </div>

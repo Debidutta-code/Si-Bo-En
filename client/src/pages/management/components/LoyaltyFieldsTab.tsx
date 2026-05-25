@@ -47,22 +47,22 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
   const handleCreateLoyaltyFields = async () => {
     const response = await createLoyaltyGuestFieldsService(loyaltyFieldsList);
     if (response.success) {
-      toast.success("Loyalty fields created successfully");
+      toast.success(t("Toast.loyaltyFieldsCreatedSuccessfully"));
       setLoyaltyGuestFields([...loyaltyGuestFields, ...response.data]);
       setLoyaltyFieldsList([]);
       setIsLoyaltyFieldDialogOpen(false);
     } else {
-      toast.error(response.error || "Failed to create loyalty fields");
+      toast.error(response.error || t("Toast.failedToCreateLoyaltyFields"));
     }
   };
 
   const handleDeleteLoyaltyField = async (id: string) => {
     const response = await deleteLoyaltyGuestFieldService(id);
     if (response.success) {
-      toast.success("Loyalty field deleted successfully");
+      toast.success(t("Toast.loyaltyFieldDeletedSuccessfully"));
       setLoyaltyGuestFields(loyaltyGuestFields.filter((field) => field.id !== id));
     } else {
-      toast.error(response.error || "Failed to delete loyalty field");
+      toast.error(response.error || t("Toast.failedToDeleteLoyaltyField"));
     }
   };
 
@@ -74,20 +74,20 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Loyalty Guest Registration Fields</CardTitle>
-            <CardDescription>Manage custom fields for loyalty program registration</CardDescription>
+            <CardTitle>{t("Management.loyaltyGuestFieldsTitle")}</CardTitle>
+            <CardDescription>{t("Management.manageLoyaltyGuestFields")}</CardDescription>
           </div>
           <Dialog open={isLoyaltyFieldDialogOpen} onOpenChange={setIsLoyaltyFieldDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Fields
+                {t("Management.addFields")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create Loyalty Registration Fields</DialogTitle>
-                <DialogDescription>Add new custom fields for guest registration</DialogDescription>
+                <DialogTitle>{t("Management.createLoyaltyFields")}</DialogTitle>
+                <DialogDescription>{t("Management.addNewLoyaltyFields")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="flex gap-2">
@@ -99,7 +99,7 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
                       if (e.key === "Enter") { e.preventDefault(); handleAddLoyaltyFieldToList(); }
                     }}
                   />
-                  <Button onClick={handleAddLoyaltyFieldToList}>Add</Button>
+                  <Button onClick={handleAddLoyaltyFieldToList}>{t("PropertyUpdate.propertyInfo.add")}</Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {loyaltyFieldsList.map((field, index) => (
@@ -111,8 +111,8 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => { setIsLoyaltyFieldDialogOpen(false); setLoyaltyFieldsList([]); }}>Cancel</Button>
-                <Button onClick={handleCreateLoyaltyFields}>Create All</Button>
+                <Button variant="outline" onClick={() => { setIsLoyaltyFieldDialogOpen(false); setLoyaltyFieldsList([]); }}>{t("Common.cancel")}</Button>
+                <Button onClick={handleCreateLoyaltyFields}>{t("Common.createAll")}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

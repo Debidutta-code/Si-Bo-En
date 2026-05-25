@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface DateSelectorProps {
   currentView: 'day' | 'week' | 'month' | 'year';
@@ -22,6 +23,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
   showAdminButton = false,
   onAdminClick
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-3 mb-4">
       {/* View Type Selector - Responsive grid on mobile */}
@@ -36,7 +38,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
-            {view.charAt(0).toUpperCase() + view.slice(1)}
+          {t(`Common.${view}`)}
           </button>
         ))}
       </div>
@@ -71,7 +73,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
               onClick={onToday}
               className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition-colors flex-1 sm:flex-initial"
             >
-              Today
+              {t('CalendarView.dateSelector.today')}
             </button>
           )}
 
@@ -94,7 +96,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
                   d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span className="hidden sm:inline">Property Commission</span>
+              <span className="hidden sm:inline">{t('CalendarView.dateSelector.propertyCommission')}</span>
             </button>
           )}
         </div>

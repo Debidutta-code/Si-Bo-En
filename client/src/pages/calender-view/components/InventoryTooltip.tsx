@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { InventoryDay } from '../types/inventory';
+import { useTranslation } from 'react-i18next';
 
 interface SmartInventoryTooltipProps {
   day: InventoryDay;
@@ -17,6 +18,7 @@ export const InventoryTooltip: React.FC<SmartInventoryTooltipProps> = ({
   onClose,
   onOpen,
 }) => {
+  const { t } = useTranslation();
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [_position, setPosition] = useState<Position>('bottom');
   const [style, setStyle] = useState<React.CSSProperties>({});
@@ -170,7 +172,7 @@ export const InventoryTooltip: React.FC<SmartInventoryTooltipProps> = ({
       {/* Availability Section */}
       <div className="mb-4">
         <h4 className="font-semibold text-xs sm:text-sm mb-2 border-b border-gray-700 pb-1">
-          Availability
+          {t('CalendarView.tooltip.availability')}
         </h4>
         <div className="space-y-1 text-xs">
           {roomTypes.length > 0 ? (
@@ -182,12 +184,12 @@ export const InventoryTooltip: React.FC<SmartInventoryTooltipProps> = ({
                 </div>
               ))}
               <div className="border-t border-gray-700 pt-1 mt-2 font-semibold flex justify-between">
-                <span>Total:</span>
-                <span className="whitespace-nowrap">{day.available} available, {day.sold} sold</span>
+                <span>{t('CalendarView.tooltip.total')}</span>
+                <span className="whitespace-nowrap">{t('CalendarView.tooltip.availableSold', { available: day.available, sold: day.sold })}</span>
               </div>
             </>
           ) : (
-            <div className="text-gray-400">No room data available</div>
+            <div className="text-gray-400">{t('CalendarView.tooltip.noRoomData')}</div>
           )}
         </div>
       </div>
@@ -212,7 +214,7 @@ export const InventoryTooltip: React.FC<SmartInventoryTooltipProps> = ({
       {/* Occupancy Section */}
       <div>
         <h4 className="font-semibold text-xs sm:text-sm mb-2 border-b border-gray-700 pb-1">
-          Occupancy
+          {t('CalendarView.tooltip.occupancy')}
         </h4>
         <div className="space-y-1 text-xs">
           {roomTypes.length > 0 ? (
@@ -224,12 +226,12 @@ export const InventoryTooltip: React.FC<SmartInventoryTooltipProps> = ({
                 </div>
               ))}
               <div className="border-t border-gray-700 pt-1 mt-2 font-semibold flex justify-between">
-                <span>Total:</span>
+                <span>{t('CalendarView.tooltip.total')}</span>
                 <span>{day.occupancyPercent || 0}%</span>
               </div>
             </>
           ) : (
-            <div className="text-gray-400">No occupancy data available</div>
+            <div className="text-gray-400">{t('CalendarView.tooltip.noOccupancyData')}</div>
           )}
         </div>
       </div>

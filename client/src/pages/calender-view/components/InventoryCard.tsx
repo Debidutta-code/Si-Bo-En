@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bed, Users } from 'lucide-react';
 import type { InventoryDay } from '../types/inventory';
+import { useTranslation } from 'react-i18next';
 
 interface InventoryCardProps {
   day: InventoryDay;
@@ -13,6 +14,7 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({
   onMouseEnter,
   onMouseLeave
 }) => {
+  const { t } = useTranslation();
   const occupancyPercent = day.total > 0 ? Math.round((day.sold / day.total) * 100) : 0;
 
   return (
@@ -33,18 +35,18 @@ export const InventoryCard: React.FC<InventoryCardProps> = ({
   <div className={`rounded-b-lg p-2 text-black text-center cursor-pointer transition-colors bg-gray-100`}>
     {day.available !== 0 ? (
       <div className='bg-green-400 rounded text-center text-xs h-4 text-green-800 flex items-center justify-center'>
-        Bookable
+        {t('CalendarView.inventoryCard.bookable')}
       </div>
     ) : (
       <div className='bg-red-400 rounded text-center text-xs h-4 text-red-800 flex items-center justify-center'>
-        Not Bookable
+        {t('CalendarView.inventoryCard.notBookable')}
       </div>
     )}
     
     <Bed className="w-4 h-4 mx-auto my-1 opacity-90" />
 
     <div className="text-xl font-bold">{day.available}</div>
-    <div className="text-xs mb-1">{day.sold} sold</div>
+    <div className="text-xs mb-1">{t('CalendarView.inventoryCard.sold', { count: day.sold })}</div>
     <div className="flex items-center justify-center gap-1 text-xs opacity-75">
       <Users className="w-3 h-3" />
       <span>{occupancyPercent}%</span>

@@ -51,7 +51,7 @@ export default function MasterIntegrationsTab({
   const [editTranslationOpen, setEditTranslationOpen] = useState(false);
   const [editingLocale, setEditingLocale] = useState<string>("");
   const [editingData, setEditingData] = useState<Record<string, any>>({});
-const {t}=useTranslation();
+  const { t } = useTranslation();
   // Form state for creating integration
   const [formData, setFormData] = useState<ICMasterIntegrationsS>({
     name: "",
@@ -77,7 +77,7 @@ const {t}=useTranslation();
         setMasterIntegrations(response.data);
       }
     } catch (error) {
-      toast.error("Failed to fetch master integrations");
+      toast.error(t('Management.toast.failedToFetchMasterIntegrations'));
     }
   };
 
@@ -95,7 +95,7 @@ const {t}=useTranslation();
 
   const handleAddUrlField = () => {
     if (!urlFieldName.trim() || !urlFieldUrl.trim()) {
-      toast.error("Please enter both name and URL for the URL field");
+      toast.error(t('Management.toast.pleaseEnterBothNameAndURL'));
       return;
     }
 
@@ -103,7 +103,7 @@ const {t}=useTranslation();
       (field) => field.name.toLowerCase() === urlFieldName.toLowerCase()
     );
     if (duplicate) {
-      toast.error("URL field name already exists");
+      toast.error(t('Management.toast.urlFieldNameAlreadyExists'));
       return;
     }
 
@@ -124,7 +124,7 @@ const {t}=useTranslation();
 
   const handleAddRequiredField = () => {
     if (!requiredFieldName.trim()) {
-      toast.error("Please enter a field name");
+      toast.error(t('Management.toast.pleaseEnterFieldName'));
       return;
     }
 
@@ -132,7 +132,7 @@ const {t}=useTranslation();
       (field) => field.name.toLowerCase() === requiredFieldName.toLowerCase()
     );
     if (duplicate) {
-      toast.error("Required field name already exists");
+      toast.error(t('Management.toast.requiredFieldNameAlreadyExists'));
       return;
     }
 
@@ -152,17 +152,17 @@ const {t}=useTranslation();
 
   const handleCreateIntegration = async () => {
     if (!formData.name.trim()) {
-      toast.error("Please enter integration name");
+      toast.error(t('Management.toast.pleaseEnterIntegrationName'));
       return;
     }
 
     if (formData.urlFileds.length === 0) {
-      toast.error("Please add at least one URL field");
+      toast.error(t('Management.toast.pleaseAddAtLeastOneURLField'));
       return;
     }
 
     if (formData.requiredFields.length === 0) {
-      toast.error("Please add at least one required field");
+      toast.error(t('Management.toast.pleaseAddAtLeastOneRequiredField'));
       return;
     }
 
@@ -170,15 +170,15 @@ const {t}=useTranslation();
     try {
       const response = await createMasterIntegrationService(formData);
       if (response.success) {
-        toast.success("Master integration created successfully");
+        toast.success(t('Management.toast.masterIntegrationCreatedSuccessfully'));
         await fetchMasterIntegrations();
         setIsCreateDialogOpen(false);
         resetForm();
       } else {
-        toast.error(response.error || "Failed to create master integration");
+        toast.error(response.error || t('Management.toast.failedToFetchMasterIntegrations'));
       }
     } catch (error) {
-      toast.error("Failed to create master integration");
+      toast.error(t('Management.toast.failedToFetchMasterIntegrations'));
     } finally {
       setLoading(false);
     }
@@ -200,13 +200,13 @@ const {t}=useTranslation();
     try {
       const response = await deleteMasterIntegrationService(integrationToDelete.id);
       if (response.success) {
-        toast.success("Master integration deleted successfully");
+        toast.success(t('Management.toast.masterIntegrationDeletedSuccessfully'));
         setMasterIntegrations(masterIntegrations.filter((item) => item.id !== integrationToDelete.id));
       } else {
-        toast.error(response.error || "Failed to delete master integration");
+        toast.error(response.error || t('Management.toast.masterIntegrationDeletedSuccessfully'));
       }
     } catch (error) {
-      toast.error("Failed to delete master integration");
+      toast.error(t('Management.toast.masterIntegrationDeletedSuccessfully'));
     } finally {
       setIsDeleteDialogOpen(false);
       setIntegrationToDelete(null);
@@ -217,7 +217,7 @@ const {t}=useTranslation();
   const handleAddUrlFieldToIntegration = async () => {
     if (!selectedIntegration) return;
     if (!newUrlFieldName.trim() || !newUrlFieldUrl.trim()) {
-      toast.error("Please enter both name and URL");
+      toast.error(t('Management.toast.pleaseEnterBothNameAndURLShort'));
       return;
     }
 
@@ -229,7 +229,7 @@ const {t}=useTranslation();
         masterIntegrationId: selectedIntegration.id,
       });
       if (response.success) {
-        toast.success("URL field added successfully");
+        toast.success(t('Management.toast.urlFieldAddedSuccessfully'));
         await fetchMasterIntegrations();
         setNewUrlFieldName("");
         setNewUrlFieldUrl("");
@@ -238,10 +238,10 @@ const {t}=useTranslation();
         const updated = masterIntegrations.find(i => i.id === selectedIntegration.id);
         if (updated) setSelectedIntegration(updated);
       } else {
-        toast.error(response.error || "Failed to add URL field");
+        toast.error(response.error || t('Management.toast.urlFieldAddedSuccessfully'));
       }
     } catch (error) {
-      toast.error("Failed to add URL field");
+      toast.error(t('Management.toast.urlFieldAddedSuccessfully'));
     } finally {
       setLoading(false);
     }
@@ -252,7 +252,7 @@ const {t}=useTranslation();
     try {
       const response = await deleteUrlFieldService(fieldId);
       if (response.success) {
-        toast.success("URL field deleted successfully");
+        toast.success(t('Management.toast.urlFieldDeletedSuccessfully'));
         await fetchMasterIntegrations();
         // Refresh selected integration if viewing
         if (selectedIntegration) {
@@ -260,10 +260,10 @@ const {t}=useTranslation();
           if (updated) setSelectedIntegration(updated);
         }
       } else {
-        toast.error(response.error || "Failed to delete URL field");
+        toast.error(response.error || t('Management.toast.urlFieldDeletedSuccessfully'));
       }
     } catch (error) {
-      toast.error("Failed to delete URL field");
+      toast.error(t('Management.toast.urlFieldDeletedSuccessfully'));
     }
   };
 
@@ -271,7 +271,7 @@ const {t}=useTranslation();
   const handleAddRequiredFieldToIntegration = async () => {
     if (!selectedIntegration) return;
     if (!newRequiredFieldName.trim()) {
-      toast.error("Please enter field name");
+      toast.error(t('Management.toast.pleaseEnterFieldNameShort'));
       return;
     }
 
@@ -282,7 +282,7 @@ const {t}=useTranslation();
         masterIntegrationId: selectedIntegration.id,
       });
       if (response.success) {
-        toast.success("Required field added successfully");
+        toast.success(t('Management.toast.requiredFieldAddedSuccessfully'));
         await fetchMasterIntegrations();
         setNewRequiredFieldName("");
         setIsAddRequiredFieldDialogOpen(false);
@@ -290,10 +290,10 @@ const {t}=useTranslation();
         const updated = masterIntegrations.find(i => i.id === selectedIntegration.id);
         if (updated) setSelectedIntegration(updated);
       } else {
-        toast.error(response.error || "Failed to add required field");
+        toast.error(response.error || t('Management.toast.requiredFieldAddedSuccessfully'));
       }
     } catch (error) {
-      toast.error("Failed to add required field");
+      toast.error(t('Management.toast.requiredFieldAddedSuccessfully'));
     } finally {
       setLoading(false);
     }
@@ -304,7 +304,7 @@ const {t}=useTranslation();
     try {
       const response = await deleteRequiredFieldService(fieldId);
       if (response.success) {
-        toast.success("Required field deleted successfully");
+        toast.success(t('Management.toast.requiredFieldDeletedSuccessfully'));
         await fetchMasterIntegrations();
         // Refresh selected integration if viewing
         if (selectedIntegration) {
@@ -312,10 +312,10 @@ const {t}=useTranslation();
           if (updated) setSelectedIntegration(updated);
         }
       } else {
-        toast.error(response.error || "Failed to delete required field");
+        toast.error(response.error || t('Management.toast.requiredFieldDeletedSuccessfully'));
       }
     } catch (error) {
-      toast.error("Failed to delete required field");
+      toast.error(t('Management.toast.requiredFieldDeletedSuccessfully'));
     }
   };
 
@@ -331,9 +331,9 @@ const {t}=useTranslation();
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Master Property Integrations</CardTitle>
+            <CardTitle>{t('Management.masterIntegrationsTitle')}</CardTitle>
             <CardDescription>
-              Manage master integration providers (PMS, Channel Managers, etc.)
+              {t('Management.manageMasterIntegrations')}
             </CardDescription>
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
@@ -348,20 +348,20 @@ const {t}=useTranslation();
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>URL Fields</TableHead>
-                <TableHead>Required Fields</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('Management.name')}</TableHead>
+                <TableHead>{t('Management.type')}</TableHead>
+                <TableHead>{t('Management.status')}</TableHead>
+                <TableHead>{t('Management.urlFields')}</TableHead>
+                <TableHead>{t('Management.requiredFields')}</TableHead>
+                <TableHead>{t('Management.createdAt')}</TableHead>
+                <TableHead className="text-right">{t('Management.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {masterIntegrations.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                    No master integrations found. Create your first master integration to get started.
+                    No master integrations found. {t('Management.noMasterIntegrationsFound')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -373,7 +373,7 @@ const {t}=useTranslation();
                     </TableCell>
                     <TableCell>
                       <Badge variant={integration.isActive ? "default" : "secondary"}>
-                        {integration.isActive ? "Active" : "Inactive"}
+                        {integration.isActive ? t('Management.active') : t('Management.inactive')}
                       </Badge>
                     </TableCell>
                     <TableCell>{integration.masterIntegrationURLFields?.length || 0}</TableCell>
@@ -387,7 +387,7 @@ const {t}=useTranslation();
                           variant="ghost"
                           size="icon"
                           onClick={() => handleViewIntegration(integration)}
-                          title="View Details"
+                          title={t('Management.viewDetails')}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -429,9 +429,9 @@ const {t}=useTranslation();
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create Master Integration</DialogTitle>
-            <DialogDescription>
-              Add a new master integration provider with URL fields and required fields
+            <DialogTitle>{t('Management.createMasterIntegrationTitle')}</DialogTitle>
+             <DialogDescription>
+              {t('Management.createMasterIntegrationDescription')}
             </DialogDescription>
           </DialogHeader>
 
@@ -439,17 +439,17 @@ const {t}=useTranslation();
             {/* Basic Information */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="integrationName">Integration Name *</Label>
+                <Label htmlFor="integrationName">{t('Management.integrationNameFieldLabel')} *</Label>
                 <Input
                   id="integrationName"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="e.g., Opera PMS, Booking.com"
+                  placeholder={t('Management.integrationNamePlaceholder')}
                 />
               </div>
 
               <div>
-                <Label htmlFor="integrationType">Integration Type *</Label>
+                <Label htmlFor="integrationType">{t('Management.integrationType')} *</Label>
                 <Select
                   value={formData.type}
                   onValueChange={(value: "pms" | "channel_manager") =>
@@ -469,16 +469,16 @@ const {t}=useTranslation();
 
             {/* URL Fields Section */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold">URL Fields *</Label>
+              <Label className="text-base font-semibold">{t('Management.urlFields')} *</Label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Field Name (e.g., API Endpoint)"
+                  placeholder={t('Management.urlFieldNamePlaceholder')}
                   value={urlFieldName}
                   onChange={(e) => setUrlFieldName(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && e.preventDefault()}
                 />
                 <Input
-                  placeholder="URL (e.g., https://api.example.com)"
+                  placeholder={t('Management.urlPlaceholder')}
                   value={urlFieldUrl}
                   onChange={(e) => setUrlFieldUrl(e.target.value)}
                   onKeyPress={(e) => {
@@ -489,7 +489,7 @@ const {t}=useTranslation();
                   }}
                 />
                 <Button type="button" onClick={handleAddUrlField} size="sm">
-                  Add
+                  {t('Management.add')}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
@@ -513,10 +513,10 @@ const {t}=useTranslation();
 
             {/* Required Fields Section */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold">Required Fields *</Label>
+              <Label className="text-base font-semibold">{t('Management.requiredFields')} *</Label>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Field Name (e.g., API Key, Hotel ID)"
+                  placeholder={t('Management.requiredFieldNamePlaceholder')}
                   value={requiredFieldName}
                   onChange={(e) => setRequiredFieldName(e.target.value)}
                   onKeyPress={(e) => {
@@ -527,7 +527,7 @@ const {t}=useTranslation();
                   }}
                 />
                 <Button type="button" onClick={handleAddRequiredField} size="sm">
-                  Add
+                  {t('Management.add')}
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
@@ -556,10 +556,10 @@ const {t}=useTranslation();
               }}
               disabled={loading}
             >
-              Cancel
+              {t('Management.cancel')}
             </Button>
             <Button onClick={handleCreateIntegration} disabled={loading}>
-              {loading ? "Creating..." : "Create Integration"}
+              {loading ? t('Management.creating') : t('Management.createMasterIntegrationTitle')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -572,7 +572,7 @@ const {t}=useTranslation();
             <DialogTitle className="flex items-center gap-2">
               {selectedIntegration?.name}
               <Badge variant={selectedIntegration?.isActive ? "default" : "secondary"}>
-                {selectedIntegration?.isActive ? "Active" : "Inactive"}
+                {selectedIntegration?.isActive ? t('Management.active') : t('Management.inactive')}
               </Badge>
             </DialogTitle>
             <DialogDescription>
@@ -585,30 +585,30 @@ const {t}=useTranslation();
               {/* URL Fields Table */}
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <Label className="text-base font-semibold">URL Fields</Label>
+                  <Label className="text-base font-semibold">{t('Management.urlFields')}</Label>
                   <Button 
                     size="sm" 
                     variant="outline"
                     onClick={() => setIsAddUrlFieldDialogOpen(true)}
                   >
                     <Plus className="h-3 w-3 mr-1" />
-                    Add URL Field
+                    {t('Management.addURLField')}
                   </Button>
                 </div>
                 <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Field Name</TableHead>
-                        <TableHead>URL</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>{t('Management.fieldName')}</TableHead>
+                        <TableHead>{t('Management.url')}</TableHead>
+                        <TableHead className="text-right">{t('Management.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {selectedIntegration.masterIntegrationURLFields?.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={3} className="text-center py-4 text-gray-500">
-                            No URL fields added yet
+                            {t('Management.noURLFieldsYet')}
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -644,29 +644,29 @@ const {t}=useTranslation();
               {/* Required Fields Table */}
               <div>
                 <div className="flex justify-between items-center mb-3">
-                  <Label className="text-base font-semibold">Required Fields</Label>
+                  <Label className="text-base font-semibold">{t('Management.requiredFields')}</Label>
                   <Button 
                     size="sm" 
                     variant="outline"
                     onClick={() => setIsAddRequiredFieldDialogOpen(true)}
                   >
                     <Plus className="h-3 w-3 mr-1" />
-                    Add Required Field
+                    {t('Management.addRequiredField')}
                   </Button>
                 </div>
                 <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Field Name</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>{t('Management.fieldName')}</TableHead>
+                        <TableHead className="text-right">{t('Management.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {selectedIntegration.requiredFieldsForMasterIntegration?.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={2} className="text-center py-4 text-gray-500">
-                            No required fields added yet
+                            {t('Management.noRequiredFieldsYet')}
                           </TableCell>
                         </TableRow>
                       ) : (
@@ -692,13 +692,13 @@ const {t}=useTranslation();
               </div>
 
               <div className="text-sm text-gray-500">
-                Created: {new Date(selectedIntegration.createdAt).toLocaleString()}
+                {t('Management.created')}: {new Date(selectedIntegration.createdAt).toLocaleString()}
               </div>
             </div>
           )}
 
           <DialogFooter>
-            <Button onClick={() => setIsViewDialogOpen(false)}>Close</Button>
+            <Button onClick={() => setIsViewDialogOpen(false)}>{t('Management.close')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -707,10 +707,9 @@ const {t}=useTranslation();
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogTitle>{t('Management.confirmDelete')}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "<span className="font-semibold">{integrationToDelete?.name}</span>"?
-              This action cannot be undone and will also delete all associated URL fields and required fields.
+              {t('Management.confirmDeleteIntegrationDescription', { name: integrationToDelete?.name })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -721,10 +720,10 @@ const {t}=useTranslation();
                 setIntegrationToDelete(null);
               }}
             >
-              Cancel
+              {t('Management.cancel')}
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+              {t('Management.delete')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -734,28 +733,28 @@ const {t}=useTranslation();
       <Dialog open={isAddUrlFieldDialogOpen} onOpenChange={setIsAddUrlFieldDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add URL Field</DialogTitle>
+            <DialogTitle>{t('Management.addURLField')}</DialogTitle>
             <DialogDescription>
-              Add a new URL field to {selectedIntegration?.name}
+              {t('Management.addURLFieldDialogDescription', { name: selectedIntegration?.name })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="urlFieldName">Field Name *</Label>
+              <Label htmlFor="urlFieldName">{t('Management.fieldName')} *</Label>
               <Input
                 id="urlFieldName"
                 value={newUrlFieldName}
                 onChange={(e) => setNewUrlFieldName(e.target.value)}
-                placeholder="e.g., API Endpoint"
+                placeholder={t('Management.apiEndpointPlaceholder')}
               />
             </div>
             <div>
-              <Label htmlFor="urlFieldUrl">URL *</Label>
+              <Label htmlFor="urlFieldUrl">{t('Management.url')} *</Label>
               <Input
                 id="urlFieldUrl"
                 value={newUrlFieldUrl}
                 onChange={(e) => setNewUrlFieldUrl(e.target.value)}
-                placeholder="e.g., https://api.example.com"
+                placeholder={t('Management.apiUrlPlaceholder')}
               />
             </div>
           </div>
@@ -769,10 +768,10 @@ const {t}=useTranslation();
               }}
               disabled={loading}
             >
-              Cancel
+              {t('Management.cancel')}
             </Button>
             <Button onClick={handleAddUrlFieldToIntegration} disabled={loading}>
-              {loading ? "Adding..." : "Add Field"}
+              {loading ? t('Management.adding') : t('Management.addURLField')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -782,19 +781,19 @@ const {t}=useTranslation();
       <Dialog open={isAddRequiredFieldDialogOpen} onOpenChange={setIsAddRequiredFieldDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Required Field</DialogTitle>
+            <DialogTitle>{t('Management.addRequiredField')}</DialogTitle>
             <DialogDescription>
-              Add a new required field to {selectedIntegration?.name}
+              {t('Management.addRequiredFieldDialogDescription', { name: selectedIntegration?.name })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="requiredFieldName">Field Name *</Label>
+              <Label htmlFor="requiredFieldName">{t('Management.fieldName')} *</Label>
               <Input
                 id="requiredFieldName"
                 value={newRequiredFieldName}
                 onChange={(e) => setNewRequiredFieldName(e.target.value)}
-                placeholder="e.g., API Key, Hotel ID"
+                placeholder={t('Management.apiKeyPlaceholder')}
               />
             </div>
           </div>
@@ -807,10 +806,10 @@ const {t}=useTranslation();
               }}
               disabled={loading}
             >
-              Cancel
+              {t('Management.cancel')}
             </Button>
             <Button onClick={handleAddRequiredFieldToIntegration} disabled={loading}>
-              {loading ? "Adding..." : "Add Field"}
+              {loading ? t('Management.adding') : t('Management.addRequiredField')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -822,8 +821,8 @@ const {t}=useTranslation();
             open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
-            title="Add Integration Translation"
-            fields={[{ key: "name", label: "Integration Name", placeholder: "e.g., Opera PMS" }]}
+            title={t('Management.addIntegrationTranslationTitle')}
+            fields={[{ key: "name", label: t('Management.integrationNameFieldLabel'), placeholder: t('Management.integrationNameFieldPlaceholder') }]}
             onSave={async (id, locale, data) => {
               return await upsertMasterIntegrationTranslationService(id, { [locale]: data });
             }}
@@ -832,8 +831,8 @@ const {t}=useTranslation();
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title="Integration Translations"
-            displayFields={[{ key: "name", label: "Name" }]}
+            title={t('Management.integrationTranslationsTitle')}
+            displayFields={[{ key: "name", label: t('Management.name') }]}
             onFetch={getAllMasterIntegrationTranslationsService}
             onDelete={deleteMasterIntegrationTranslationLocaleService}
             onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
@@ -844,8 +843,8 @@ const {t}=useTranslation();
             entityId={translationEntityId!}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Integration Translation"
-            fields={[{ key: "name", label: "Integration Name", placeholder: "e.g., Opera PMS" }]}
+            title={t('Management.editIntegrationTranslationTitle')}
+            fields={[{ key: "name", label: t('Management.integrationNameFieldLabel'), placeholder: t('Management.integrationNameFieldPlaceholder') }]}
             onSave={async (id, locale, data) => upsertMasterIntegrationTranslationService(id, { [locale]: data })}
           />
         </>

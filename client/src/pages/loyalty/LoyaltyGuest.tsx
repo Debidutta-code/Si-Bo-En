@@ -209,9 +209,7 @@ export default function LoyaltyGuest() {
                 <h3 className="text-lg font-semibold text-foreground">
                   {t('Loyalty.noGuests')}
                 </h3>
-                <p className="text-sm text-muted-foreground max-w-sm">
-                  {t('Loyalty.noGuestsEnrolled')}
-                </p>
+                
               </div>
             </div>
           ) : (
@@ -343,7 +341,7 @@ export default function LoyaltyGuest() {
               onClick={handleDeleteGuest}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {t('Loyalty.delete')}
+              {t('Common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -9,6 +9,7 @@ import { Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import type { IPaymentIntegration } from "../types";
 import { createPaymentIntegrationService, deletePaymentIntegrationService } from "../services/management.services";
+import { useTranslation } from "react-i18next";
 
 interface PaymentIntegrationsTabProps {
   paymentIntegrations: IPaymentIntegration[];
@@ -18,37 +19,34 @@ interface PaymentIntegrationsTabProps {
 export default function PaymentIntegrationsTab({ paymentIntegrations, setPaymentIntegrations }: PaymentIntegrationsTabProps) {
   const [isPaymentIntegrationDialogOpen, setIsPaymentIntegrationDialogOpen] = useState<boolean>(false);
   const [paymentIntegrationInput, setPaymentIntegrationInput] = useState("");
+  const { t } = useTranslation();
 
-  const formatPaymentIntegrationName = (name: string) => {
-    return name
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
+  const handleAddPaymentIntegration = async () => {
+    if (!paymentIntegrationInput.trim()) return;
 
-  const handleCreatePaymentIntegration = async () => {
-    if (!paymentIntegrationInput.trim()) {
-      toast.error("Please enter a payment integration name");
+    if (paymentIntegrations.some((integration) => integration.name === paymentIntegrationInput.trim())) {
+      toast.error(t("Management.Toast.amenityAlreadyInList", { ns: "translation", defaultValue: "Field already in list" }));
       return;
     }
-    const response = await createPaymentIntegrationService(paymentIntegrationInput);
+
+    const response = await createPaymentIntegrationService(paymentIntegrationInput.trim());
     if (response.success) {
-      toast.success("Payment integration created successfully");
-      setPaymentIntegrations([...paymentIntegrations, response.data]);
+      toast.success(t("Management.Toast.paymentIntegrationCreatedSuccessfully", { ns: "translation" }));
+      setPaymentIntegrations([...response.data]);
       setPaymentIntegrationInput("");
       setIsPaymentIntegrationDialogOpen(false);
     } else {
-      toast.error(response.error || "Failed to create payment integration");
+      toast.error(response.error || t("Management.Toast.failedToCreatePaymentIntegration", { ns: "translation" }));
     }
   };
 
-  const handleDeletePaymentIntegration = async (id: string) => {
-    const response = await deletePaymentIntegrationService(id);
+  const handleDeletePaymentIntegration = async (integrationName: string) => {
+    const response = await deletePaymentIntegrationService(integrationName);
     if (response.success) {
-      toast.success("Payment integration deleted successfully");
-      setPaymentIntegrations(paymentIntegrations.filter((integration) => integration.id !== id));
+      toast.success(t("Management.Toast.fieldDeletedSuccessfully", { ns: "translation", defaultValue: "Integration deleted successfully" }));
+      setPaymentIntegrations(paymentIntegrations.filter((integration) => integration.name !== integrationName));
     } else {
-      toast.error(response.error || "Failed to delete payment integration");
+      toast.error(response.error || t("Management.Toast.failedToDeleteField", { ns: "translation", defaultValue: "Failed to delete logic" }));
     }
   };
 
@@ -57,49 +55,43 @@ export default function PaymentIntegrationsTab({ paymentIntegrations, setPayment
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>Payment Integrations</CardTitle>
-            <CardDescription>Manage payment integration providers</CardDescription>
+            <CardTitle>{t("Management.paymentIntegrationsTitle")}</CardTitle>
+            <CardDescription>{t("Management.managePaymentIntegrations")}</CardDescription>
           </div>
           <Dialog open={isPaymentIntegrationDialogOpen} onOpenChange={setIsPaymentIntegrationDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Payment Integration
+                {t("Management.addPaymentIntegration")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Payment Integration</DialogTitle>
-                <DialogDescription>Add a payment integration provider name</DialogDescription>
+                <DialogTitle>{t("Management.addPaymentIntegrationTitle")}</DialogTitle>
+                <DialogDescription>{t("Management.addPaymentIntegrationDescription")}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="paymentIntegrationName">Payment Integration Name</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="integrationName">{t("Management.paymentIntegrationName")}</Label>
                   <Input
-                    id="paymentIntegrationName"
+                    id="integrationName"
                     value={paymentIntegrationInput}
                     onChange={(e) => setPaymentIntegrationInput(e.target.value)}
-                    placeholder="e.g., Stripe Payment, PayPal Gateway"
+                    placeholder="e.g., Stripe, PayPal, Razorpay"
                     onKeyPress={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
-                        handleCreatePaymentIntegration();
+                        handleAddPaymentIntegration();
                       }
                     }}
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsPaymentIntegrationDialogOpen(false);
-                    setPaymentIntegrationInput("");
-                  }}
-                >
-                  Cancel
+                <Button variant="outline" onClick={() => setIsPaymentIntegrationDialogOpen(false)}>
+                  {t("Common.cancel", { ns: "translation" })}
                 </Button>
-                <Button onClick={handleCreatePaymentIntegration}>Create</Button>
+                <Button onClick={handleAddPaymentIntegration}>{t("Management.addPaymentIntegration")}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -108,11 +100,12 @@ export default function PaymentIntegrationsTab({ paymentIntegrations, setPayment
       <CardContent>
         <div className="flex flex-wrap gap-2">
           {paymentIntegrations.map((integration) => (
-            <Badge key={integration.id} variant="outline" className="text-sm py-2 px-3">
-              {formatPaymentIntegrationName(integration.name)}
+            <Badge key={integration.id} variant="outline" className="text-sm py-2 px-3 flex items-center gap-2">
+              {integration.name}
               <button
-                onClick={() => handleDeletePaymentIntegration(integration.id)}
-                className="ml-2 hover:text-red-500"
+                onClick={() => handleDeletePaymentIntegration(integration.name)}
+                className="hover:text-red-500 ml-1 transition-colors"
+                title={t("Common.delete", { ns: "translation" })}
               >
                 <Trash2 className="h-3 w-3" />
               </button>
@@ -120,7 +113,7 @@ export default function PaymentIntegrationsTab({ paymentIntegrations, setPayment
           ))}
           {paymentIntegrations.length === 0 && (
             <div className="w-full text-center py-12 text-gray-500">
-              No payment integrations found. Create your first payment integration to get started.
+              {t("Management.noPaymentIntegrationsFound")}
             </div>
           )}
         </div>

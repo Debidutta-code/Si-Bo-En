@@ -104,9 +104,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     setShowRatePlanDropdown(false);
   };
   const getRatePlanButtonText = () => {
-    if (selectedRatePlans.length === 0) return 'No Rate Plans';
-    if (selectedRatePlans.length === ratePlans.length) return 'All Rate Plans';
-    return `${selectedRatePlans.length} Rate Plan${selectedRatePlans.length > 1 ? 's' : ''}`;
+    if (selectedRatePlans.length === 0) return t('CalendarView.filterBar.noRatePlans');
+    if (selectedRatePlans.length === ratePlans.length) return t('CalendarView.filterBar.allRatePlans');
+    return `${selectedRatePlans.length} ${t('CalendarView.filterBar.ratePlans')}`;
   };
   // Handle individual room type selection (local state only)
   const handleRoomTypeToggle = (invTypeCode: string) => {
@@ -200,12 +200,12 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                 <div className="fixed sm:absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:top-[calc(100%+0.5rem)] sm:left-0 sm:translate-x-0 sm:translate-y-0 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-[calc(100%-2rem)] sm:w-80 max-w-md">
                   <div className="p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-4">Select Date Range</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-4">{t('CalendarView.filterBar.selectDateRangeTitle')}</h3>
 
                     <div className="space-y-4">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                          Start Date
+                          {t('CalendarView.filterBar.startDate')}
                         </label>
                         <input
                           type="date"
@@ -217,7 +217,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                          End Date
+                          {t('CalendarView.filterBar.endDate')}
                         </label>
                         <input
                           type="date"
@@ -234,14 +234,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         onClick={handleClearDateRange}
                         className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                       >
-                        Clear
+                        {t('CalendarView.filterBar.clear')}
                       </button>
                       <button
                         onClick={handleApplyDateRange}
                         disabled={!tempStartDate || !tempEndDate}
                         className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Apply
+                        {t('CalendarView.filterBar.apply')}
                       </button>
                     </div>
                   </div>
@@ -279,7 +279,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                 <div className="fixed sm:absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:top-[calc(100%+0.5rem)] sm:left-0 sm:translate-x-0 sm:translate-y-0 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-[calc(100%-2rem)] sm:w-80 max-w-md max-h-[80vh] sm:max-h-96 overflow-hidden flex flex-col">
                   <div className="p-3 border-b border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-900">Select Room Types</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">{t('CalendarView.filterBar.selectRoomTypes')}</h3>
                   </div>
 
                   <div className="overflow-y-auto flex-1 p-3">
@@ -290,7 +290,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         onChange={handleSelectAllRoomTypes}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                       />
-                      <span className="text-sm font-semibold text-gray-900">Select All</span>
+                      <span className="text-sm font-semibold text-gray-900">{t('CalendarView.filterBar.selectAll')}</span>
                     </label>
 
                     <div className="space-y-2">
@@ -322,14 +322,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         onClick={handleClearRoomTypes}
                         className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                       >
-                        Clear
+                        {t('CalendarView.filterBar.clear')}
                       </button>
                       <button
                         onClick={handleApplyRoomTypes}
                         disabled={tempSelectedRoomTypes.length === 0}
                         className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Apply
+                        {t('CalendarView.filterBar.apply')}
                       </button>
                     </div>
                   </div>
@@ -365,7 +365,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
                 <div className="fixed sm:absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:top-[calc(100%+0.5rem)] sm:left-0 sm:translate-x-0 sm:translate-y-0 bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-[calc(100%-2rem)] sm:w-80 max-w-md max-h-[80vh] sm:max-h-96 overflow-hidden flex flex-col">
                   <div className="p-3 border-b border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-900">Select Rate Plans</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">{t('CalendarView.filterBar.selectRatePlans')}</h3>
                   </div>
 
                   <div className="overflow-y-auto flex-1 p-3">
@@ -376,7 +376,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         onChange={handleSelectAllRatePlans}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                       />
-                      <span className="text-sm font-semibold text-gray-900">Select All</span>
+                      <span className="text-sm font-semibold text-gray-900">{t('CalendarView.filterBar.selectAll')}</span>
                     </label>
 
                     <div className="space-y-2">
@@ -406,14 +406,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                         onClick={handleClearRatePlans}
                         className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
                       >
-                        Clear
+                        {t('CalendarView.filterBar.clear')}
                       </button>
                       <button
                         onClick={handleApplyRatePlans}
                         disabled={tempSelectedRatePlans.length === 0}
                         className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Apply
+                        {t('CalendarView.filterBar.apply')}
                       </button>
                     </div>
                   </div>
@@ -435,7 +435,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                 className="flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition whitespace-nowrap"
               >
                 <X className="w-4 h-4" />
-                <span>Clear All</span>
+                <span>{t('CalendarView.filterBar.clearAll')}</span>
               </button>
             )}
         </div>
@@ -445,7 +445,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           (selectedRatePlans.length > 0 && selectedRatePlans.length < ratePlans.length)) && (
             <div className="pt-3 border-t border-gray-200">
               <div className="flex flex-wrap gap-2 items-start">
-                <span className="text-xs font-medium text-gray-500 py-1">Active filters:</span>
+                <span className="text-xs font-medium text-gray-500 py-1">{t('CalendarView.filterBar.activeFilters')}</span>
                 <div className="flex flex-wrap gap-1.5 flex-1">
                   {/* Room Type Badges */}
                   {selectedRoomTypes.map(roomType => (

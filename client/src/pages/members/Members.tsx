@@ -300,9 +300,9 @@ export default function MembersPage() {
     <div className="p-4 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Member Management</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t("Members.title")}</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Manage member accounts and their property associations
+            {t("Members.description")}
           </p>
         </div>
 
@@ -337,9 +337,9 @@ export default function MembersPage() {
       {/* Members Table */}
       <div className="bg-white p-6 rounded-lg shadow">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">All Members</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t("Members.allMembers")}</h2>
           <p className="text-sm text-gray-600">
-            View and manage all member accounts
+            {t("Members.allMembersDescription")}
           </p>
         </div>
 

@@ -559,7 +559,7 @@ export default function LoyaltyContent() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('Loyalty.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteCondition}>{t('Loyalty.delete')}</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteCondition}>{t('Common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -575,7 +575,7 @@ export default function LoyaltyContent() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('Loyalty.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteSpecialCondition}>{t('Loyalty.delete')}</AlertDialogAction>
+            <AlertDialogAction onClick={handleDeleteSpecialCondition}>{t('Common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

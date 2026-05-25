@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface AdditionalChargeInputProps {
   roomType: string;
@@ -37,6 +38,7 @@ export const AdditionalChargeInput: React.FC<AdditionalChargeInputProps> = ({
   commissionAmount = 0,
   totalAfterCommission = 0,
 }) => {
+  const { t } = useTranslation();
   const key = generateKey(roomType, ratePlan, dayIndex, ageQualifyingCode);
   const edit = priceEdits.get(key);
   const displayValue = edit !== undefined ? edit.value : (currentAmount || "");
@@ -72,14 +74,14 @@ export const AdditionalChargeInput: React.FC<AdditionalChargeInputProps> = ({
         {/* Commission (Read-only) - Only show if exists */}
         {commissionAmount > 0 && (
           <span className="text-[10px] text-blue-600 font-medium">
-            Comm: +{commissionAmount.toFixed(2)}
+            {t('CalendarView.priceInput.commission', { amount: commissionAmount.toFixed(2) })}
           </span>
         )}
 
         {/* Total (Read-only) - Only show if commission exists */}
         {totalAfterCommission > 0 && commissionAmount > 0 && (
           <span className="text-[10px] text-green-700 font-semibold">
-            Sell Rate: {totalAfterCommission.toFixed(2)}
+            {t('CalendarView.priceInput.sellRate', { amount: totalAfterCommission.toFixed(2) })}
           </span>
         )}
       </div>

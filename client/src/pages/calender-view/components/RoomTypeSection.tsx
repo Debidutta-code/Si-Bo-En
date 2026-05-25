@@ -3,6 +3,7 @@
 import React from "react";
 import { ArrowRight, Save } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 import { RatePlanSection } from "./RatePlanSection";
 import {
@@ -55,6 +56,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
   onMouseLeave,
   onDataUpdate,
 }) => {
+  const { t } = useTranslation();
   const roomTypeData = getRoomTypeData(roomType, days);
   const matchedRoom = roomSetupData?.find((r) => r.roomType === roomType);
   const displayName = matchedRoom ? ((matchedRoom as any)._translations?.roomName || matchedRoom.roomName) : roomType;
@@ -82,12 +84,12 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
               <span className="truncate whitespace-nowrap overflow-hidden">{displayName}</span>
             </div>
             <div className="w-40 flex items-center justify-center px-2 bg-blue-100 text-blue-800 font-bold text-sm">
-              BULK
+              {t('CalendarView.roomTypeSection.bulk')}
             </div>
           </div>
 
           {/* Basic Info Rows */}
-          {["Status", "Availability", "Sold", "Occupancy %"].map((label) => (
+          {[t('CalendarView.roomTypeSection.status'), t('CalendarView.roomTypeSection.availability'), t('CalendarView.roomTypeSection.sold'), t('CalendarView.roomTypeSection.occupancyPercent')].map((label) => (
             <div key={label} className="h-9 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-gray-50">
                 <span className="font-semibold text-gray-700 text-xs">
@@ -116,7 +118,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         });
                         state.setAvailabilityEdits(newEdits);
                         state.setPendingChanges(newPending);
-                        toast.success("Bulk availability applied to all dates");
+                        toast.success(t('CalendarView.roomTypeSection.bulkAvailabilityApplied'));
                       }
                     }}
                   />
@@ -132,7 +134,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
               <div className="h-12 flex border-b border-gray-300">
                 <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-blue-50">
                   <span className="font-semibold text-blue-700 text-xs">
-                    Room CTA
+                    {t('CalendarView.roomTypeSection.roomCTA')}
                   </span>
                 </div>
                 <div className="w-40 flex items-center justify-center px-2 bg-blue-50">
@@ -166,7 +168,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
               <div className="h-12 flex border-b border-gray-300">
                 <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-blue-50">
                   <span className="font-semibold text-blue-700 text-xs">
-                    Room CTD
+                    {t('CalendarView.roomTypeSection.roomCTD')}
                   </span>
                 </div>
                 <div className="w-40 flex items-center justify-center px-2 bg-blue-50">
@@ -200,7 +202,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
               <div className="h-12 flex border-b border-gray-300">
                 <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-blue-50">
                   <span className="font-semibold text-blue-700 text-xs">
-                    Room Min LOS
+                    {t('CalendarView.roomTypeSection.roomMinLOS')}
                   </span>
                 </div>
                 <div className="w-40 flex items-center justify-center px-2 bg-blue-50">
@@ -241,7 +243,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
               <div className="h-12 flex border-b border-gray-300">
                 <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-blue-50">
                   <span className="font-semibold text-blue-700 text-xs">
-                    Room Max LOS
+                    {t('CalendarView.roomTypeSection.roomMaxLOS')}
                   </span>
                 </div>
                 <div className="w-40 flex items-center justify-center px-2 bg-blue-50">
@@ -286,7 +288,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
               ) && (
                   <div className="h-12 flex items-center px-2 border-b border-gray-300 bg-green-50">
                     <span className="font-semibold text-green-700 text-xs">
-                      Save Changes
+                      {t('CalendarView.roomTypeSection.saveChanges')}
                     </span>
                   </div>
                 )}
@@ -341,7 +343,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 const badgeClass = isBookable
                   ? "bg-green-100 border border-green-300 text-green-700"
                   : "bg-red-100 border border-red-300 text-red-700";
-                const message = isBookable ? "Bookable" : "Sell Stopped";
+                const message = isBookable ? t('CalendarView.roomTypeSection.bookable') : t('CalendarView.roomTypeSection.sellStopped');
 
                 return (
                   <div
@@ -614,7 +616,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                           className="flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors shadow-lg pointer-events-auto sticky left-1/2 -ml-24"
                         >
                           <Save className="w-3 h-3" />
-                          Save Room Type Changes
+                          {t('CalendarView.roomTypeSection.saveRoomTypeChanges')}
                         </button>
                       </div>
                     </div>

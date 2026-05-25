@@ -1,12 +1,12 @@
-export interface ICMasterRoomView{
+export interface ICMasterRoomView {
     viewName: string;
 }
-export interface IMasterRoomView extends ICMasterRoomView{
+export interface IMasterRoomView extends ICMasterRoomView {
     id: string;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
-     _translations: {
-                viewName: string;
-            }
+    _translations: {
+        viewName: string;
+    }
 }
