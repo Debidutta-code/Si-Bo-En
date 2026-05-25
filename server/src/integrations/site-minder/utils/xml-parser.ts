@@ -41,13 +41,6 @@ const parser = new XMLParser({
     trimValues: true,
 });
 
-const builder = new XMLBuilder({
-    ignoreAttributes: false,
-    attributeNamePrefix: '@_',
-    format: true,
-    suppressEmptyNode: false,
-});
-
 const responseBuilder = new XMLBuilder({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
