@@ -19,9 +19,10 @@ model PropertyConfigs {
   commission                      Boolean      @default(false)
   timezone                        String       @default("Asia/Kolkata") @map("timezone")
   baseCurrency                    CurrencyCode @default(INR) @map("base_currency")
-  reservationResetMinutes         Int          @default(570) @map("reservation_reset_minutes")
   isAvailableForBooking           Boolean      @default(true) @map("is_available_for_booking")
   isAvailableForOTA               Boolean      @default(true) @map("is_available_for_ota")
+  isAvailableForBookingEngine     Boolean      @default(true) @map("is_available_for_booking_engine")
+  isSpaModuleEnabled              Boolean      @default(true) @map("is_spa_module_enabled")
 
   createdAt                       DateTime     @default(now())
   updatedAt                       DateTime     @updatedAt

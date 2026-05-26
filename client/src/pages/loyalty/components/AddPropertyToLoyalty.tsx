@@ -54,11 +54,10 @@ import { toast } from "sonner";
 import {
   createPropertyLoyalityConfigService,
   deletePropertyLoyalityConfigService,
-  // getPropertiesByLoyaltyProgramService,
   updatePropertyLoyalityConfigService,
-  getActiveLoyaltyConfigByPropertyIdService
 } from "../services";
 import type{ IPropertyLoyaltyConfig } from "../interfaces";
+import { getPropertiesByLoyaltyProgramService } from "../services/property-loyality.service";
 
 interface Property {
   id: string;
@@ -109,7 +108,7 @@ export default function AddPropertyToLoyalty({
   const fetchAssignedProperties = async (): Promise<void> => {
     try {
       const response =
-        await getActiveLoyaltyConfigByPropertyIdService(loyaltyProgramId);
+        await getPropertiesByLoyaltyProgramService(loyaltyProgramId);
       if (response.success && response.data) {
         setAssignedProperties(response.data);
       }
