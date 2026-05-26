@@ -71,7 +71,7 @@ export class SiteMinderRatesService {
                 log.pushMessage(`Property ${hotelCode} not found`, 'error');
                 return {
                     success: false,
-                    errors: [{ type: 3, code: 392, text: `Property ${hotelCode} not found` }],
+                    errors: [{ type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` }],
                 };
             }
 
@@ -113,7 +113,7 @@ export class SiteMinderRatesService {
                     log.pushMessage(`Rate plan ${ratePlanCode} not found`, 'error');
                     return {
                         success: false,
-                        errors: [{ type: 12, code: 325, text: `Rate plan ${ratePlanCode} not found` }],
+                        errors: [{ type: 12, code: 249, text: 'Rate code not found for this hotel' }],
                     };
                 }
 
@@ -146,10 +146,29 @@ export class SiteMinderRatesService {
                     log.pushMessage(`Room type ${roomTypeCode} not found`, 'error');
                     return {
                         success: false,
-                        errors: [{ type: 12, code: 321, text: `Room type ${roomTypeCode} not found for property ${hotelCode}` }],
+                        errors: [{ type: 12, code: 402, text: 'Room type code not found for this hotel' }],
+                    };
+                }
+                const maxOccupancy = await SiteMinderDao.getRoomMaxAdults(roomTypeCode, propertyCode);
+
+                if (maxOccupancy === null || maxOccupancy === undefined) {
+                    log.pushMessage(`Max occupancy not configured for room ${roomTypeCode}`, 'error');
+                    return {
+                        success: false,
+                        errors: [{ type: 12, code: 397, text: 'Invalid number of adults' }],
                     };
                 }
 
+                if (rates.baseByGuestAmts.length !== maxOccupancy) {
+                    log.pushMessage(
+                        `Invalid number of adults: got ${rates.baseByGuestAmts.length}, expecting ${maxOccupancy}`,
+                        'error'
+                    );
+                    return {
+                        success: false,
+                        errors: [{ type: 12, code: 397, text: `Invalid number of adults: expecting ${maxOccupancy}` }],
+                    };
+                }
                 const t3 = Date.now();
                 const taxRules = await SiteMinderDao.getActiveTaxRulesForRatePlan(ratePlanCode, propertyCode);
                 log.addRepoCall({
@@ -175,7 +194,7 @@ export class SiteMinderRatesService {
                     a => String(a.ageQualifyingCode) === '8'
                 )?.amount ?? 0;
                 const convertedChildAmount = reverseTax(convert(childBaseAmount), taxRules, { skipFixed: true });
-                const maxChildren = await SiteMinderDao.getRoomMaxChildren(roomTypeCode, hotelCode);
+                const maxChildren = await SiteMinderDao.getRoomMaxChildren(roomTypeCode, propertyCode);
 
                 const childBaseAmounts = (convertedChildAmount > 0 && maxChildren > 0)
                     ? Array.from({ length: maxChildren }, (_, i) => ({
@@ -239,7 +258,7 @@ export class SiteMinderRatesService {
             log.setError(error);
             return {
                 success: false,
-                errors: [{ type: 3, text: error?.message ?? 'Failed to process rate update' }],
+                errors: [{ type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` }],
             };
         }
     }

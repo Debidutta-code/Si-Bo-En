@@ -89,30 +89,39 @@ export class SiteMinderController {
             }
 
             // ── Unknown type ──────────────────────────────────────────────────
-            const fault = SiteMinderXmlParser.buildSoapFault(
-                'SOAP-ENV:Client',
+            const xml = SiteMinderXmlParser.buildGenericError(
+                'roomsRates',
+                '',
                 'Unknown or unsupported OTA message type'
             );
-
             log.pushMessage('Unknown or unsupported OTA message type', 'error')
-                .setMeta({ responseXml: fault })
+                .setMeta({ responseXml: xml })
                 .save();
+            return res.status(200).send(xml);
 
-            return res.status(400).send(fault);
 
         } catch (error: any) {
             console.error('[SiteMinder] Unhandled error:', error);
 
-            const fault = SiteMinderXmlParser.buildSoapFault(
-                'SOAP-ENV:Server',
+            const typeMap: Record<string, 'avail' | 'rates' | 'roomsRates'> = {
+                availability: 'avail',
+                rates: 'rates',
+                roomsRates: 'roomsRates',
+            };
+            const echoToken =
+                parsed?.availPayload?.echoToken ??
+                parsed?.ratesPayload?.echoToken ??
+                parsed?.roomsRatesPayload?.echoToken ??
+                '';
+            const xml = SiteMinderXmlParser.buildGenericError(
+                typeMap[parsed?.type ?? 'roomsRates'] ?? 'roomsRates',
+                echoToken,
                 error?.message ?? 'Internal server error'
             );
-
             log.setError(error)
-                .setMeta({ responseXml: fault })
+                .setMeta({ responseXml: xml })
                 .save();
-
-            return res.status(500).send(fault);
+            return res.status(200).send(xml);
         }
     }
 }

@@ -24,7 +24,22 @@ export class SiteMinderDao {
             throw new Error('Failed to verify property existence');
         }
     }
-
+    public static async getRoomMaxAdults(
+        roomTypeCode: string,
+        propertyCode: string
+    ): Promise<number> {
+        const room = await prisma.room.findFirst({
+            where: {
+                roomType: roomTypeCode,
+                property: { propertyCode },
+            },
+            select: {
+                maxNumberOfAdults: true
+            },
+        });
+        if (!room) return 0;
+        return Math.max(0, room.maxNumberOfAdults);
+    }
     public static async getProperty(siteMinderPropertyCode: string): Promise<{ propertyId: string; propertyCode: string } | null> {
         try {
             const integration = await prisma.propertyIntegrations.findFirst({
@@ -79,7 +94,19 @@ export class SiteMinderDao {
         });
         return !!rp;
     }
-
+ public static async roomTypeExists(
+        roomTypeCode: string,
+        propertyCode: string
+    ): Promise<boolean> {
+        const rt = await prisma.room.findFirst({
+            where: {
+                roomType:roomTypeCode,
+                property:{propertyCode}
+            },
+            select: { id: true },
+        });
+        return !!rt;
+    }
     /**
      * Get property base currency — used for currency conversion check
      */

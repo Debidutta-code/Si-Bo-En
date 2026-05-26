@@ -51,6 +51,47 @@ const responseBuilder = new XMLBuilder({
 
 export class SiteMinderXmlParser {
 
+    public static buildCredentialsError(
+        messageType: 'avail' | 'rates' | 'roomsRates',
+        echoToken: string
+    ): string {
+        const timeStamp = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+        const error = {
+            Errors: {
+                Error: {
+                    '@_Type': 4,
+                    '@_Code': 448,
+                    '#text': 'Invalid Username and/or Password',
+                },
+            },
+        };
+
+        const rsTagMap = {
+            avail: 'OTA_HotelAvailNotifRS',
+            rates: 'OTA_HotelRateAmountNotifRS',
+            roomsRates: 'OTA_HotelAvailRS',
+        };
+
+        const rsTag = rsTagMap[messageType];
+
+        const envelope = {
+            'SOAP-ENV:Envelope': {
+                '@_xmlns:SOAP-ENV': 'http://schemas.xmlsoap.org/soap/envelope/',
+                'SOAP-ENV:Header': '',
+                'SOAP-ENV:Body': {
+                    [rsTag]: {
+                        '@_xmlns': 'http://www.opentravel.org/OTA/2003/05',
+                        '@_EchoToken': echoToken,
+                        '@_TimeStamp': timeStamp,
+                        '@_Version': '1.0',
+                        ...error,
+                    },
+                },
+            },
+        };
+
+        return responseBuilder.build(envelope);
+    }
     public static parseIncoming(rawXml: string): SiteMinderParsedRequest {
         const parsed = parser.parse(rawXml);
 
@@ -367,20 +408,43 @@ export class SiteMinderXmlParser {
         return responseBuilder.build(envelope);
     }
 
-    public static buildSoapFault(code: string, message: string): string {
-        const envelope = {
-            'SOAP-ENV:Envelope': {
-                '@_xmlns:SOAP-ENV': 'http://schemas.xmlsoap.org/soap/envelope/',
-                'SOAP-ENV:Header': '',
-                'SOAP-ENV:Body': {
-                    'SOAP-ENV:Fault': {
-                        faultcode: code,
-                        faultstring: message,
+public static buildGenericError(
+    messageType: 'avail' | 'rates' | 'roomsRates',
+    echoToken: string,
+    errorText: string,
+    type: number = 12,      // ← add type param
+    code?: number           // ← add code param
+): string {
+    const timeStamp = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+
+    const rsTagMap = {
+        avail: 'OTA_HotelAvailNotifRS',
+        rates: 'OTA_HotelRateAmountNotifRS',
+        roomsRates: 'OTA_HotelAvailRS',
+    };
+
+    const envelope = {
+        'SOAP-ENV:Envelope': {
+            '@_xmlns:SOAP-ENV': 'http://schemas.xmlsoap.org/soap/envelope/',
+            'SOAP-ENV:Header': '',
+            'SOAP-ENV:Body': {
+                [rsTagMap[messageType]]: {
+                    '@_xmlns': 'http://www.opentravel.org/OTA/2003/05',
+                    '@_EchoToken': echoToken,
+                    '@_TimeStamp': timeStamp,
+                    '@_Version': '1.0',
+                    Errors: {
+                        Error: {
+                            '@_Type': type,
+                            ...(code !== undefined && { '@_Code': code }),
+                            '#text': errorText,
+                        },
                     },
                 },
             },
-        };
+        },
+    };
 
-        return responseBuilder.build(envelope);
-    }
+    return responseBuilder.build(envelope);
+}
 }

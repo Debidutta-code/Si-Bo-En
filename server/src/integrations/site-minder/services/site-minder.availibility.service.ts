@@ -43,7 +43,7 @@ export class SiteMinderAvailabilityService {
                 log.pushMessage(`Property ${hotelCode} not found`, 'error');
                 return {
                     success: false,
-                    errors: [{ type: 3, code: 392, text: `Property ${hotelCode} not found` }],
+                    errors: [{ type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` }],
                 };
             }
 
@@ -63,7 +63,14 @@ export class SiteMinderAvailabilityService {
                 if (!exists) {
                     return {
                         success: false,
-                        errors: [{ type: 12, code: 325, text: `Rate plan ${ratePlanCode} not found for property ${hotelCode}` }],
+                        errors: [{ type: 12, code: 249, text: 'Rate code not found for this hotel' }],
+                    };
+                }
+                const roomExists = await SiteMinderDao.roomTypeExists(roomTypeCode, propertyCode);
+                if (!roomExists) {
+                    return {
+                        success: false,
+                        errors: [{ type: 12, code: 402, text: 'Room type code not found for this hotel' }],
                     };
                 }
                 let minLos: number | undefined;
@@ -71,8 +78,10 @@ export class SiteMinderAvailabilityService {
 
                 if (lengthsOfStay && lengthsOfStay.length > 0) {
                     for (const los of lengthsOfStay) {
-                        if (los.minMaxMessageType === 'SetMinLOS') minLos = parseInt(los.time) || 1;
-                        if (los.minMaxMessageType === 'SetMaxLOS') maxLos = los.time ? parseInt(los.time) : 0;
+                        if (los.minMaxMessageType === 'SetMinLOS' || los.minMaxMessageType === 'SetForwardMinStay')
+                            minLos = parseInt(los.time) || 1;
+                        if (los.minMaxMessageType === 'SetMaxLOS' || los.minMaxMessageType === 'SetForwardMaxStay')
+                            maxLos = los.time ? parseInt(los.time) : 0;
                     }
                 }
 
@@ -165,7 +174,7 @@ export class SiteMinderAvailabilityService {
             log.setError(error);
             return {
                 success: false,
-                errors: [{ type: 3, text: error?.message ?? 'Failed to process availability update' }],
+                errors: [{ type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` }],
             };
         }
     }
