@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ReviewService } from '../services';
-import { errorResponse, IApiResponse, IOtaCustomRequest } from '../../../utils';
+import { CustomRequest, errorResponse, IApiResponse } from '../../../utils';
 
 export class ReviewController {
     private reviewService: ReviewService;
@@ -10,12 +10,12 @@ export class ReviewController {
     }
 
     public async createReview(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -62,7 +62,7 @@ export class ReviewController {
                 propertyId,
                 propertyCode,
                 propertyName,
-                customerId: otaUser.id,
+                customerId: customer.id,
                 reservationId,
                 rating,
                 review,
@@ -86,12 +86,12 @@ export class ReviewController {
     }
 
     public async updateReview(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -113,7 +113,7 @@ export class ReviewController {
 
             const result = await this.reviewService.updateReview(
                 reviewId,
-                otaUser.id,
+                customer.id,
                 { rating, review }
             );
             return res.status(result.success ? 200 : 404).json(result);
@@ -134,12 +134,12 @@ export class ReviewController {
     }
 
     public async deleteReview(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -154,7 +154,7 @@ export class ReviewController {
 
             const result = await this.reviewService.deleteReview(
                 reviewId,
-                otaUser.id
+                customer.id
             );
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error) {
@@ -216,12 +216,12 @@ export class ReviewController {
         }
     }
     public async getReviewForCustomer(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -236,7 +236,7 @@ export class ReviewController {
             const limit = parseInt(req.query.limit as string) || 10;
 
             const result = await this.reviewService.getCustomerReview(
-                otaUser.id,
+                customer.id,
                 page,
                 limit
             );
@@ -264,12 +264,12 @@ export class ReviewController {
     }
 
     public async getReservationReview(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(

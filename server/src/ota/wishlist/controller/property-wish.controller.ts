@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { PropertyWishService } from '../services';
-import { errorResponse, IApiResponse } from '../../../utils';
-import { IOtaCustomRequest } from '../../../utils/customRequest';
+import { CustomRequest, errorResponse, IApiResponse } from '../../../utils';
 
 export class PropertyWishController {
     private propertyWishService: PropertyWishService;
@@ -11,12 +10,12 @@ export class PropertyWishController {
     }
 
     public async addToWishlist(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -41,7 +40,7 @@ export class PropertyWishController {
 
             const result = await this.propertyWishService.addToWishlist(
                 propertyId,
-                otaUser.id
+                customer.id
             );
             return res.status(result.success ? 201 : 400).json(result);
         } catch (error) {
@@ -67,12 +66,12 @@ export class PropertyWishController {
     }
 
     public async removeFromWishlist(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -97,7 +96,7 @@ export class PropertyWishController {
 
             const result = await this.propertyWishService.removeFromWishlist(
                 propertyId,
-                otaUser.id
+                customer.id
             );
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
@@ -123,12 +122,12 @@ export class PropertyWishController {
     }
 
     public async getWishlistForUser(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -140,7 +139,7 @@ export class PropertyWishController {
             }
 
             const result = await this.propertyWishService.getWishlistForUser(
-                otaUser.id
+                customer.id
             );
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {

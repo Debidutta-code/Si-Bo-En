@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { RoomWishService } from '../services';
-import { errorResponse, IApiResponse } from '../../../utils';
-import { IOtaCustomRequest } from '../../../utils/customRequest';
+import { CustomRequest, errorResponse, IApiResponse } from '../../../utils';
 
 export class RoomWishController {
     private roomWishService: RoomWishService;
@@ -11,12 +10,12 @@ export class RoomWishController {
     }
 
     public async addRoomToWishlist(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -38,7 +37,7 @@ export class RoomWishController {
 
             const result = await this.roomWishService.addRoomToWishlist(
                 roomId,
-                otaUser.id
+                customer.id
             );
             return res.status(result.success ? 201 : 400).json(result);
         } catch (error) {
@@ -64,12 +63,12 @@ export class RoomWishController {
     }
 
     public async removeRoomFromWishlist(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(
@@ -91,7 +90,7 @@ export class RoomWishController {
 
             const result = await this.roomWishService.removeRoomFromWishlist(
                 roomId,
-                otaUser.id
+                customer.id
             );
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
@@ -117,12 +116,12 @@ export class RoomWishController {
     }
 
     public async getRoomsInWishlist(
-        req: IOtaCustomRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response<IApiResponse>> {
         try {
-            const otaUser = req.otaUser;
-            if (!otaUser) {
+            const customer = req.customer;
+            if (!customer) {
                 return res
                     .status(401)
                     .json(

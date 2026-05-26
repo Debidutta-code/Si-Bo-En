@@ -1,11 +1,10 @@
 import { Router } from 'express';
 import { RoomWishController } from '../controller/room-wish.controller';
-import { otaProtect } from '../../../middlewares/ota-user.middleware';
-
+import { customerProtect } from '../../../middlewares/customer-auth.middleware';
 const roomWishlistRouter = Router();
 const roomWishController = new RoomWishController();
 
-roomWishlistRouter.use(otaProtect);
+roomWishlistRouter.use(customerProtect);
 
 roomWishlistRouter
     .route('/')

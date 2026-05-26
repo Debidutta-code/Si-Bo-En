@@ -61,7 +61,6 @@ export class LoyalityUserController {
         }
     }
 
-    /** Flow 2 — Step 1: Send OTP to registered email (passwordless) */
     public async loginWithEmail(
         req: Request,
         res: Response
@@ -95,7 +94,6 @@ export class LoyalityUserController {
         }
     }
 
-    /** Step 3: Update (set) password after OTP is verified */
     public async updatePassword(
         req: Request,
         res: Response

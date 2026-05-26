@@ -1,14 +1,11 @@
 import { PropertyWishList, RoomWishList } from '../repository';
 import { IApiResponse, successResponse, errorResponse } from '../../../utils';
-import { OtaUserRepository } from '../../user/repository';
 import { IRoomWishlistWRooms } from '../types';
 export class RoomWishService {
     private propertyWishList: PropertyWishList;
-    private otaUserRepository: OtaUserRepository;
     private roomWishList: RoomWishList;
     constructor() {
         this.propertyWishList = new PropertyWishList();
-        this.otaUserRepository = new OtaUserRepository();
         this.roomWishList = new RoomWishList();
     }
 

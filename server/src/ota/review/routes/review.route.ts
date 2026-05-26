@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ReviewController } from '../controllers';
-import { otaProtect } from '../../../middlewares/ota-user.middleware';
+import { customerProtect } from '../../../middlewares/customer-auth.middleware';
 
 const reviewRouter = Router();
 const reviewController = new ReviewController();
@@ -11,21 +11,21 @@ reviewRouter
 
 reviewRouter
     .route('/')
-    .post(otaProtect, reviewController.createReview.bind(reviewController))
+    .post(customerProtect, reviewController.createReview.bind(reviewController))
     .get(
-        otaProtect,
+        customerProtect,
         reviewController.getReviewForCustomer.bind(reviewController)
     );
 
 reviewRouter
     .route('/:reviewId')
-    .put(otaProtect, reviewController.updateReview.bind(reviewController))
-    .delete(otaProtect, reviewController.deleteReview.bind(reviewController));
+    .put(customerProtect, reviewController.updateReview.bind(reviewController))
+    .delete(customerProtect, reviewController.deleteReview.bind(reviewController));
 
 reviewRouter
     .route('/reservation/:reservationId')
     .get(
-        otaProtect,
+        customerProtect,
         reviewController.getReservationReview.bind(reviewController)
     );
 
