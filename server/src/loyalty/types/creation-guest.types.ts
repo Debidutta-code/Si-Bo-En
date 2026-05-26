@@ -18,9 +18,4 @@ export interface ICreationLoyaltyGuestWG extends ICreationLoyaltyGuest {
 }
 export interface ICreationLoyaltyGuestWDP extends ICreationLoyaltyGuest {
     LoyalityGuest: ILoyalityGuestsWDP;
-    // Property: {
-    //     id: string;
-    //     propertyName: string;
-    //     propertyCode: string;
-    // };
 }

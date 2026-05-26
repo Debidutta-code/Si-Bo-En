@@ -7,12 +7,13 @@ export interface IUPropertyConfig {
     commission: boolean;
     isB2cAvailable: boolean;
     isB2bAvailable: boolean;
-    reservationResetMinutes: number;
     selfAriActive: boolean;
     timezone: string;
     showVideo: boolean;
     isAvailableForBooking: boolean;
     isAvailableForOTA: boolean;
+    isAvailableForBookingEngine: boolean;
+    isSpaModuleEnabled: boolean;
 }
 export interface IPropertyConfig extends IUPropertyConfig {
     id: string;

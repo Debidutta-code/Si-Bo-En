@@ -35,7 +35,6 @@ export class CustomerRepository {
                                 include: {
                                     LoyalityLevels: true,
                                     BasicLoyaltyProgram: true,
-                                    AdvanceLoyaltyProgram: true,
                                     PropertyLoyaltyConfig: {
                                         include: {
                                             Property: {

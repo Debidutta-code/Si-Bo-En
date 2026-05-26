@@ -1,7 +1,6 @@
 import { successResponse, errorResponse } from '../../utils';
 import { IApiResponse } from '../../utils';
 import {
-    AdvanceLoyaltyProgramRepository,
     LoyaltyProgramRepository,
 } from '../repository';
 import {
@@ -209,131 +208,6 @@ export class LoyalityProgramService {
                 );
             }
             return errorResponse('failed to retrieve property loyalty program');
-        }
-    }
-}
-
-export class AdvanceLoyaltyProgramService {
-    private advanceLoyaltyProgramRepository: AdvanceLoyaltyProgramRepository;
-
-    constructor() {
-        this.advanceLoyaltyProgramRepository =
-            new AdvanceLoyaltyProgramRepository();
-    }
-    public async createAdvanceLoyaltyProgram(
-        data: ICAdvanceLoyaltyprogram
-    ): Promise<IApiResponse> {
-        try {
-            const result =
-                await this.advanceLoyaltyProgramRepository.createAdvanceLoyaltyProgram(
-                    data
-                );
-            return successResponse(
-                'Successfully created advance loyalty program',
-                result
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'failed to create advance loyalty program',
-                    error.message
-                );
-            }
-            return errorResponse('failed to create advance loyalty program');
-        }
-    }
-    public async getAdvanceLoyaltyPrograms(
-        loyaltyProgramId: string
-    ): Promise<IApiResponse> {
-        try {
-            const result =
-                await this.advanceLoyaltyProgramRepository.getAdvanceLoyaltyProgramById(
-                    loyaltyProgramId
-                );
-            if (!result) {
-                return errorResponse(
-                    'Failed to retrieve advance loyalty program'
-                );
-            }
-            return successResponse(
-                'Successfully retrieved advance loyalty program',
-                result
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'failed to retrieve advance loyalty programs',
-                    error.message
-                );
-            }
-            return errorResponse('failed to retrieve advance loyalty programs');
-        }
-    }
-
-    public async updateAdvaceLoyaltyPrograms(
-        id: string,
-        data: IUAdvanceLoyaltyprogram
-    ): Promise<IApiResponse> {
-        try {
-            const existingProgram =
-                await this.advanceLoyaltyProgramRepository.getById(id);
-            if (!existingProgram) {
-                return errorResponse('Failed to find advance loyalty program');
-            }
-            const result =
-                await this.advanceLoyaltyProgramRepository.updateAdvanceLoyaltyProgram(
-                    id,
-                    data
-                );
-            if (!result) {
-                return errorResponse(
-                    'Failed to update advance loyalty program'
-                );
-            }
-            return successResponse(
-                'Successfully updated advance loyalty program',
-                result
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'failed to update advance loyalty programs',
-                    error.message
-                );
-            }
-            return errorResponse('failed to update advance loyalty programs');
-        }
-    }
-    public async deleteAdvanceLoyaltyPrograms(
-        id: string
-    ): Promise<IApiResponse> {
-        try {
-            const existingProgram =
-                await this.advanceLoyaltyProgramRepository.getById(id);
-            if (!existingProgram) {
-                return errorResponse('Failed to find advance loyalty program');
-            }
-            const result =
-                await this.advanceLoyaltyProgramRepository.deleteAdvanceLoyaltyProgram(
-                    id
-                );
-            if (!result) {
-                return errorResponse(
-                    'Failed to delete advance loyalty program'
-                );
-            }
-            return successResponse(
-                'Successfully deleted advance loyalty program',
-                result
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'failed to delete advance loyalty programs',
-                    error.message
-                );
-            }
-            return errorResponse('failed to delete advance loyalty programs');
         }
     }
 }

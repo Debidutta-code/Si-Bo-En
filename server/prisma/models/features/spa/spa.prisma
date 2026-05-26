@@ -30,21 +30,4 @@ model Spa {
   @@map("spa_module")
 }
 
-model SpaBooking {
-  id                String  @id @default(uuid())
-  userId            String? @map("user_id")
-  userEmail         String  @map("user_email")
-  userContactNumber String  @map("user_contact_number")
 
-  totalAmount  Float   @map("total_amount")
-  currencyCode String? @default("AED") @map("currency_code")
-  status       String  @default("confirmed") @map("status")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  SlotBookings SlotBooking[]
-  Customer     Customers?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@map("spa_bookings")
-}

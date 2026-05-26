@@ -6,7 +6,6 @@ model CreationLoyaltyConfig {
   currencyCode              CurrencyCode?               @default(INR) @map("currency_code")
   createdAt                 DateTime                    @default(now())
   LoyaltyProgramFieldConfig LoyaltyProgramFieldConfig[]
-  AdvanceLoyaltyProgram     AdvanceLoyaltyProgram?
   BasicLoyaltyProgram       BasicLoyaltyProgram?
   CreationGuest             CreationGuest[]
   loyaltyConditions         LoyaltyConditions[]

@@ -58,7 +58,6 @@ export class LoyaltyProgramRepository {
                 where: { creationId },
                 include: {
                     BasicLoyaltyProgram: true,
-                    AdvanceLoyaltyProgram: true,
                 },
             });
         } catch (error) {
@@ -93,70 +92,4 @@ export class LoyaltyProgramRepository {
         }
     }
 }
-export class AdvanceLoyaltyProgramRepository {
-    public async createAdvanceLoyaltyProgram(
-        data: ICAdvanceLoyaltyprogram
-    ): Promise<IAdvanceLoyaltyprogram> {
-        try {
-            return await prisma.advanceLoyaltyProgram.create({
-                data,
-            });
-        } catch (error) {
-            throw new Error('Error creating advance loyalty program');
-        }
-    }
 
-    public async updateAdvanceLoyaltyProgram(
-        id: string,
-        data: IUAdvanceLoyaltyprogram
-    ): Promise<IUAdvanceLoyaltyprogram> {
-        try {
-            return await prisma.advanceLoyaltyProgram.update({
-                where: { id },
-                data: {
-                    activeInCorporateWeb: data.activeInCorporateWeb,
-                    blockUserFieldFromForm: data.blockUserFieldFromForm,
-                    defaultLoginMode: data.defaultLoginMode,
-                    externalRegistrationUrl: data.externalRegistrationUrl,
-                    roomLimitByBooking: data.roomLimitByBooking,
-                },
-            });
-        } catch (error) {
-            throw new Error('Error updating advance loyalty program');
-        }
-    }
-
-    public async getById(id: string): Promise<IAdvanceLoyaltyprogram | null> {
-        try {
-            return await prisma.advanceLoyaltyProgram.findUnique({
-                where: { id },
-            });
-        } catch (error) {
-            throw new Error('Error fetching advance loyalty program by id');
-        }
-    }
-
-    public async getAdvanceLoyaltyProgramById(
-        loyaltyProgramId: string
-    ): Promise<IAdvanceLoyaltyprogram | null> {
-        try {
-            return await prisma.advanceLoyaltyProgram.findUnique({
-                where: { loyaltyProgramId },
-            });
-        } catch (error) {
-            throw new Error('Error fetching advance loyalty program');
-        }
-    }
-
-    public async deleteAdvanceLoyaltyProgram(
-        id: string
-    ): Promise<IAdvanceLoyaltyprogram> {
-        try {
-            return await prisma.advanceLoyaltyProgram.delete({
-                where: { id },
-            });
-        } catch (error) {
-            throw new Error('Error deleting advance loyalty program');
-        }
-    }
-}

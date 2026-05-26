@@ -8,7 +8,6 @@ const router = Router();
 // Initialize controller
 const creationLoyalityController = new CreationLoyalityController();
 
-// ===== Creation Loyalty Routes =====
 router
     .route('/')
     .post(

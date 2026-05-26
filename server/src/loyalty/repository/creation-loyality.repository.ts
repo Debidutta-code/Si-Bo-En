@@ -59,7 +59,6 @@ export class creationLoyalityRepository {
                     id: creationLoyalityId,
                 },
                 include: {
-                    AdvanceLoyaltyProgram: true,
                     BasicLoyaltyProgram: true,
                     loyaltyConditions: true,
                     LoyaltyProgramFieldConfig: true,
@@ -81,7 +80,6 @@ export class creationLoyalityRepository {
                 },
                 include: {
                     BasicLoyaltyProgram: true,
-                    AdvanceLoyaltyProgram: true,
                     LoyaltyProgramFieldConfig: true,
                     loyaltyConditions: true,
                     loyaltySpecialConditions: true,
@@ -102,7 +100,6 @@ export class creationLoyalityRepository {
                 },
                 include: {
                     BasicLoyaltyProgram: true,
-                    AdvanceLoyaltyProgram: true,
                     LoyaltyProgramFieldConfig: true,
                     loyaltyConditions: true,
                     loyaltySpecialConditions: true,

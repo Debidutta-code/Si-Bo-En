@@ -26,7 +26,6 @@ export interface IUCreationLoyalty {
 }
 export interface ICreationLoyality extends ICCreationLoyality {
     id: string;
-    AdvanceLoyaltyProgram: IAdvanceLoyaltyprogram | null;
     BasicLoyaltyProgram: IloyaltyProgram | null;
     loyaltyConditions: ILoyalityCondition[] | null;
     LoyaltyProgramFieldConfig: ILoyaltyField[] | null;

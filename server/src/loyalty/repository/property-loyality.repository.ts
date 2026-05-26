@@ -26,7 +26,6 @@ export class propertyLoyalityRepository {
                     PropertyLoyalityGuests: true,
                     CreationLoyaltyConfig: {
                         include:{
-                            AdvanceLoyaltyProgram:true,
                             BasicLoyaltyProgram:true,
                         }
                     },
