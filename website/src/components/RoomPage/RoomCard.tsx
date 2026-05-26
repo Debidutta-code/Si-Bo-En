@@ -23,6 +23,7 @@ import { useBookingStorage } from "../../hooks/useBookingStorage";
 import toast from "react-hot-toast";
 import { IPropertyLoyalityWithLoyality } from "@/src/app/(unauth)/Rooms/interface";
 import { useTranslation } from "react-i18next";
+import axios from "axios";
 
 interface RoomCardProps {
   room: Room;
@@ -192,7 +193,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   const [expandedRatePlan, setExpandedRatePlan] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Record<string, any>>({});
-  const [showAllAddons, setShowAllAddons] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedRatePlanForDetails, setSelectedRatePlanForDetails] =
     useState<any>(null);
@@ -320,103 +320,129 @@ const RoomCard: React.FC<RoomCardProps> = ({
   };
 
   // Helper function to proceed with booking after addon selection
-  const proceedWithBooking = async (
-    ratePlan: any,
-    selectedAddonsList: any[],
-  ) => {
-    setLoadingPriceFor(`${ratePlan.ratePlanCode}-${ratePlan.comboLabel}`);
-    try {
-      const childAges = bookingContext.guests.roomsArray
-        ? bookingContext.guests.roomsArray.flatMap((room: any) => room.childAges || [])
-        : Array(bookingContext.guests.children || 0).fill(0);
+const proceedWithBooking = async (
+  ratePlan: any,
+  selectedAddonsList: any[],
+) => {
+  setLoadingPriceFor(
+    `${ratePlan.ratePlanCode}-${ratePlan.comboLabel}`,
+  );
 
-      const payload: any = {
-        propertyCode: bookingContext.PropertyCode,
-        invTypeCode: room.roomType,
-        ratePlanCode: ratePlan.ratePlanCode,
-        startDate: bookingContext.startDate,
-        endDate: bookingContext.endDate,
-        noOfAdults,
-        noOfChildren: noOfChildrens,
-        noOfRooms,
-        childAges,
-        promoCode: bookingContext.promocode,
-        guestDistribution: bookingContext.guests.roomsArray,
-      };
+  try {
+    const childAges = bookingContext.guests.roomsArray
+      ? bookingContext.guests.roomsArray.flatMap(
+          (room: any) => room.childAges || [],
+        )
+      : Array(bookingContext.guests.children || 0).fill(0);
 
-      // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
-      if (loyaltyMemberEmail) {
-        payload.guestEmail = loyaltyMemberEmail;
-      }
+    const payload: any = {
+      propertyCode: bookingContext.PropertyCode,
+      invTypeCode: room.roomType,
+      ratePlanCode: ratePlan.ratePlanCode,
+      startDate: bookingContext.startDate,
+      endDate: bookingContext.endDate,
+      noOfAdults,
+      noOfChildren: noOfChildrens,
+      noOfRooms,
+      childAges,
+      promoCode: bookingContext.promocode,
+      guestDistribution:
+        bookingContext.guests.roomsArray,
+    };
 
-      // ✅ ADD SELECTED PROMOTION TO PAYLOAD
-      // Around line 223 - Update to send array of promotions:
-      const selectedPromotionsList =
-        selectedPromotions[ratePlan.ratePlanCode] || [];
-      if (selectedPromotionsList.length > 0) {
-        payload.promotions = selectedPromotionsList.map((promotions) => ({
-          id: promotions.id,
-          promotionType: promotions.type === "mlos" ? "mlos" : "normal",
-        }));
-      }
+    // ✅ ADD SELECTED PROMOTIONS TO PAYLOAD
+    const selectedPromotionsList =
+      selectedPromotions[ratePlan.ratePlanCode] || [];
 
-      if (selectedAddonsList && selectedAddonsList.length > 0) {
-        const addonMap: Record<string, any> = {};
-        selectedAddonsList.forEach((addon: any) => {
-          if (!addonMap[addon.addonId]) {
-            addonMap[addon.addonId] = {
-              addOnId: addon.addonId,
-              availability: [],
-            };
-          }
-          addonMap[addon.addonId].availability.push({
-            date: addon.date,
-            quantity: addon.quantity,
-          });
-        });
-        payload.parsedAddons = Object.values(addonMap);
-      }
-
-      if (ratePlan.addons && ratePlan.addons.length > 0) {
-        payload.includedAddons = ratePlan.addons.map(
-          (addon: any) => addon.id,
-        ) as string[];
-      }
-      const currentLanguage = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
-        {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Accept-Language": currentLanguage
-          },
-          body: JSON.stringify(payload),
-        },
+    if (selectedPromotionsList.length > 0) {
+      payload.promotions = selectedPromotionsList.map(
+        (promotion: any) => ({
+          id: promotion.id,
+          promotionType:
+            promotion.type === "mlos"
+              ? "mlos"
+              : "normal",
+        }),
       );
-
-      const data = await response.json();
-      if (!response.ok || data.success === false) {
-        throw new Error(data.message || "Failed to fetch price");
-      }
-      setLatestPrice(data.data);
-
-      // Proceed to booking with selected addons, passing price data up
-      onBookNow(
-        room,
-        ratePlan,
-        selectedAddonsList,
-        selectedPromotionsList,
-        data.data,
-      );
-    } catch (error) {
-      console.error("Error fetching price:", error);
-      toast.error(t("RoomCard.errors.failedToFetchPrice"));
-    } finally {
-      setLoadingPriceFor(null);
     }
-  };
 
+    // ✅ ADD SELECTED ADDONS
+    if (
+      selectedAddonsList &&
+      selectedAddonsList.length > 0
+    ) {
+      const addonMap: Record<string, any> = {};
+
+      selectedAddonsList.forEach((addon: any) => {
+        if (!addonMap[addon.addonId]) {
+          addonMap[addon.addonId] = {
+            addOnId: addon.addonId,
+            availability: [],
+          };
+        }
+
+        addonMap[addon.addonId].availability.push({
+          date: addon.date,
+          quantity: addon.quantity,
+        });
+      });
+
+      payload.parsedAddons = Object.values(addonMap);
+    }
+
+    // ✅ INCLUDED ADDONS
+    if (ratePlan.addons && ratePlan.addons.length > 0) {
+      payload.includedAddons = ratePlan.addons.map(
+        (addon: any) => addon.id,
+      ) as string[];
+    }
+
+    const currentLanguage =
+      typeof window !== "undefined"
+        ? localStorage.getItem("i18nextLng") || "en"
+        : "en";
+
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "Accept-Language": currentLanguage,
+        },
+        withCredentials: true,
+      },
+    );
+
+    const data = response.data;
+
+    if (!data.success) {
+      throw new Error(
+        data.message || "Failed to fetch price",
+      );
+    }
+
+    setLatestPrice(data.data);
+
+    // Proceed to booking with selected addons
+    onBookNow(
+      room,
+      ratePlan,
+      selectedAddonsList,
+      selectedPromotionsList,
+      data.data,
+    );
+  } catch (error: any) {
+    console.error("Error fetching price:", error);
+
+    toast.error(
+      error?.response?.data?.message ||
+        t("RoomCard.errors.failedToFetchPrice"),
+    );
+  } finally {
+    setLoadingPriceFor(null);
+  }
+};
   // Handle addon modal continue
   const handleAddonContinue = (selectedAddonsList: any[]) => {
     setAddonModalOpen(false);

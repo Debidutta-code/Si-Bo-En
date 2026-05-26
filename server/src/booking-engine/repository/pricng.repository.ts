@@ -265,12 +265,12 @@ export class PricingRepository {
         }
     }
     public async findLoyaltyDiscountData(
-        guestEmail: string,
+        id: string,
         propertyId: string
     ): Promise<ILoyaltyDiscountData | null> {
         try {
             const customer = await prisma.customers.findUnique({
-                where: { email: guestEmail },
+                where: { id },
                 include: {
                     PropertyLoyalityGuests: {
                         where: {

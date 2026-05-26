@@ -76,6 +76,15 @@
     "november": "नवंबर",
     "december": "दिसंबर"
   },
+    "BookingStatus": {
+    "confirmed": "पुष्टि की गई",
+    "cancelled": "रद्द किया गया",
+    "pending": "लंबित",
+    "modified": "संशोधित",
+    "no_show": "नहीं आए",
+    "checked_in": "चेक-इन किया गया",
+    "checked_out": "चेक-आउट किया गया"
+    },
   "Navigation": {
     "dashboard": "डैशबोर्ड",
     "properties": "संपत्तियाँ",
@@ -4555,5 +4564,61 @@
       "failedToDelete": "हटाने में विफल",
       "anErrorOccurred": "एक त्रुटि हुई"
     }
+  },
+  
+  "PropertyConfigDialog": {
+    "title": "प्रॉपर्टी कॉन्फ़िगरेशन",
+    "description": "प्रॉपर्टी सेटिंग्स और इंटीग्रेशन अपडेट करें। केवल सुपर एडमिन ही इन सेटिंग्स को संशोधित कर सकता है।",
+
+    "switches": {
+      "channelManager": {
+        "label": "चैनल मैनेजर इंटीग्रेशन",
+        "description": "चैनल मैनेजर इंटीग्रेशन सक्षम करें"
+      },
+      "pmsIntegration": {
+        "label": "PMS इंटीग्रेशन",
+        "description": "PMS इंटीग्रेशन सक्षम करें"
+      },
+      "selfAri": {
+        "label": "सेल्फ ARI",
+        "description": "स्वयं उपलब्धता, दरें और इन्वेंटरी सक्षम करें"
+      },
+      "b2bAvailability": {
+        "label": "B2B उपलब्धता",
+        "description": "B2B बुकिंग चैनल सक्षम करें"
+      },
+      "b2cAvailability": {
+        "label": "B2C उपलब्धता",
+        "description": "B2C बुकिंग चैनल सक्षम करें"
+      },
+      "commission": {
+        "label": "कमीशन",
+        "description": "बुकिंग पर कमीशन सक्षम करें"
+      },
+      "showVideo": {
+        "label": "बुकिंग इंजन में वीडियो दिखाएँ",
+        "description": "बुकिंग इंजन में प्रॉपर्टी वीडियो दिखाने के लिए इसे सक्षम करें"
+      }
+    },
+
+    "partnerSections": {
+      "channelManager": "उपलब्ध चैनल मैनेजर पार्टनर्स",
+      "pms": "उपलब्ध PMS पार्टनर्स"
+    },
+
+    "form": {
+      "reservationResetTime": "आरक्षण रीसेट समय",
+      "reservationResetTimeHint": "वह समय जब दैनिक आरक्षण रीसेट होते हैं",
+      "timezone": "समय क्षेत्र",
+      "timezonePlaceholder": "समय क्षेत्र चुनें",
+      "currencyCode": "मुद्रा कोड"
+    },
+
+    "footer": {
+      "cancel": "रद्द करें",
+      "save": "कॉन्फ़िगरेशन सहेजें",
+      "saving": "सहेजा जा रहा है..."
+    }
   }
+
 }

@@ -1,4 +1,4 @@
-import { ILoyalityGuests, ILoyalityGuestsWDP } from '.';
+import { ICustomer } from '../../customer/types';
 import { CurrencyCode } from '../../tax-system/interfaces';
 
 export interface ICCreationLoyaltyGuest {
@@ -14,8 +14,8 @@ export interface ICreationLoyaltyGuest extends ICCreationLoyaltyGuest {
 }
 
 export interface ICreationLoyaltyGuestWG extends ICreationLoyaltyGuest {
-    LoyalityGuest: ILoyalityGuests;
+    Customer: ICustomer;
 }
 export interface ICreationLoyaltyGuestWDP extends ICreationLoyaltyGuest {
-    LoyalityGuest: ILoyalityGuestsWDP;
+    Customer: ICustomer;
 }

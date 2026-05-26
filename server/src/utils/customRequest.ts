@@ -40,6 +40,14 @@ export interface CustomRequest extends ExpressRequest {
     };
     jwt?: string;
     permission?: IUserRolesAndAccess;
+    property?: {
+        id: string;
+        propertyName: string;
+        propertyCode: string;
+        creationId: string;
+        timezone?: string;
+        currencyCode?: string;
+    };
 }
 
 export interface RateTigerRequest extends ExpressRequest {

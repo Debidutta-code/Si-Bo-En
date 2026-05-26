@@ -61,7 +61,6 @@ export class LoyalityFormFieldRepository {
         }
     }
 
-    // for bulk operations
     public async getAllFieldsByProgramId(
         loyaltyProgramId: string
     ): Promise<ILoyaltyField[]> {

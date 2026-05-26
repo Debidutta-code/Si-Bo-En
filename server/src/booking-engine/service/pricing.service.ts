@@ -54,7 +54,7 @@ export class PricingService {
         guestDistribution: IGuestDistribution[],
         children?: number,
         childAges?: number[],
-        guestEmail?: string,
+        customerId?: string,
         userCountryCode?: string,
         detectedDeviceType?: string,
         promotions?: ISelectedPromotion[],
@@ -62,6 +62,7 @@ export class PricingService {
         promoCode?: string,
         includedAddons?: string[]
     ): Promise<IApiResponse<PriceBrakeDown>> {
+        console.log(customerId)
         try {
             const parsedStartDate: Date =
                 startDate instanceof Date ? startDate : new Date(startDate);
@@ -113,9 +114,9 @@ export class PricingService {
                 promoCode
                     ? this.pricingRepository.findPromoCode(promoCode)
                     : Promise.resolve(null),
-                guestEmail
+                customerId
                     ? this.pricingRepository.findLoyaltyDiscountData(
-                        guestEmail,
+                        customerId,
                         propertyId
                     )
                     : Promise.resolve(null),
@@ -179,7 +180,7 @@ export class PricingService {
                 priceBrakedowns = deviceDiscountClass.findPromoCodeDiscount();
             }
 
-            if (guestEmail && loyaltyDiscountData) {
+            if (customerId && loyaltyDiscountData) {
                 const loyalityDiscountClass = new LoyalityDiscountClass(
                     priceBrakedowns,
                     loyaltyDiscountData

@@ -47,13 +47,13 @@ router
         )
     );
 
-router
-    .route('/with-property/:creationId')
-    .get(
-        protect,
-        creationLoyalityController.getAllCreationLoyalityWithProperty.bind(
-            creationLoyalityController
-        )
-    );
+// router
+//     .route('/with-property/:creationId')
+//     .get(
+//         protect,
+//         creationLoyalityController.getAllCreationLoyalityWithProperty.bind(
+//             creationLoyalityController
+//         )
+//     );
 
 export default router;

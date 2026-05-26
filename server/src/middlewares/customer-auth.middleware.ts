@@ -10,6 +10,7 @@ export const customerProtect = async (
     next: NextFunction
 ) => {
     const token = req.cookies?.customerToken;
+    console.log(JSON.stringify(req.cookies));
     if (!token) {
         return res
             .status(401)

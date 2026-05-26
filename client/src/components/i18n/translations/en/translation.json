@@ -61,6 +61,15 @@
     "createAll":"Create All"
    
   },
+  "BookingStatus":{
+    "confirmed": "Confirmed",
+    "cancelled": "Cancelled",
+    "pending": "Pending",
+    "modified": "Modified",
+    "no_show": "No-show",
+  "checked_in": "Checked-in",
+  "checked_out": "Checked-out"
+  },
   "Navigation": {
     "dashboard": "Dashboard",
     "properties": "Properties",
@@ -4574,6 +4583,60 @@
       "deletedSuccessfully": "Deleted successfully",
       "failedToDelete": "Failed to delete",
       "anErrorOccurred": "An error occurred"
+    }
+  },
+  "PropertyConfigDialog": {
+    "title": "Property Configuration",
+    "description": "Update property settings and integrations. Only Super Admin can modify these settings.",
+
+    "switches": {
+      "channelManager": {
+        "label": "Channel Manager Integration",
+        "description": "Enable channel manager integration"
+      },
+      "pmsIntegration": {
+        "label": "PMS Integration",
+        "description": "Enable PMS integration"
+      },
+      "selfAri": {
+        "label": "Self ARI",
+        "description": "Enable self availability, rates, and inventory"
+      },
+      "b2bAvailability": {
+        "label": "B2B Availability",
+        "description": "Enable B2B booking channel"
+      },
+      "b2cAvailability": {
+        "label": "B2C Availability",
+        "description": "Enable B2C booking channel"
+      },
+      "commission": {
+        "label": "Commission",
+        "description": "Enable commission on bookings"
+      },
+      "showVideo": {
+        "label": "Show Video In Booking Engine",
+        "description": "Enable this to show property video in booking engine"
+      }
+    },
+
+    "partnerSections": {
+      "channelManager": "Available Channel Manager Partners",
+      "pms": "Available PMS Partners"
+    },
+
+    "form": {
+      "reservationResetTime": "Reservation Reset Time",
+      "reservationResetTimeHint": "Time when daily reservations reset",
+      "timezone": "Timezone",
+      "timezonePlaceholder": "Select timezone",
+      "currencyCode": "Currency Code"
+    },
+
+    "footer": {
+      "cancel": "Cancel",
+      "save": "Save Configuration",
+      "saving": "Saving..."
     }
   }
 }

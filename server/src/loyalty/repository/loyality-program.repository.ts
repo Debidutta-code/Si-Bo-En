@@ -1,10 +1,7 @@
 import { prisma } from '../../config';
 import {
-    IAdvanceLoyaltyprogram,
-    ICAdvanceLoyaltyprogram,
     ICloyaltyProgram,
     IPropertyLoyaltyConfig,
-    IUAdvanceLoyaltyprogram,
     IULoyalityProgram,
     IloyaltyProgram,
 } from '../types';

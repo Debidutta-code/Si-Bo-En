@@ -3,18 +3,19 @@ import { protect } from '../../middlewares/auth.middleware';
 import { checkRoleBased } from '../../middlewares/checkRole.middleware';
 import { LoyaltyGuestController } from '../controllers';
 import { attachPropertyDetails } from '../../middlewares/property.middleware';
+import { customerProtect } from '../../middlewares/customer-auth.middleware';
 
 const router = Router();
 
 // Initialize controller
 const loyaltyGuestController = new LoyaltyGuestController();
 
-router
-    .route('/:id')
-    .delete(
-        protect,
-        loyaltyGuestController.deleteLoyaltyGuest.bind(loyaltyGuestController)
-    );
+// router
+//     .route('/:id')
+//     .delete(
+//         protect,
+//         loyaltyGuestController.deleteLoyaltyGuest.bind(loyaltyGuestController)
+//     );
 
 router
     .route('/property/:propertyId')
@@ -40,6 +41,7 @@ router.route('/register').post(
         key: 'propertyId',
         source: 'body',
     }),
+    customerProtect,
     loyaltyGuestController.registerGuestFromBookingEngine.bind(
         loyaltyGuestController
     )
@@ -48,15 +50,19 @@ router.route('/register').post(
 router
     .route('/check-discount')
     .post(
+        customerProtect,
         loyaltyGuestController.checkLoyaltyDiscount.bind(loyaltyGuestController)
     );
-
 router
-    .route('/by-email/:propertyId/:email')
-    .get(
-        loyaltyGuestController.getLoyaltyGuestByEmail.bind(
-            loyaltyGuestController
-        )
-    );
+    .route("/signout")
+    .delete(loyaltyGuestController.signoutLoyalityMember.bind(loyaltyGuestController))
+
+// router
+//     .route('/by-email/:propertyId/:email')
+//     .get(
+//         loyaltyGuestController.getLoyaltyGuestByEmail.bind(
+//             loyaltyGuestController
+//         )
+//     );
 
 export default router;

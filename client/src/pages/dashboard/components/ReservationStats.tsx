@@ -80,7 +80,7 @@ export default function ReservationStats({ data }: ReservationStatsProps) {
         data={data?.statusBreakdown.map((status, index) => {
           const colors = ['#3b82f6', '#10b981', '#f97316', '#a855f7', '#ec4899', '#14b8a6'];
           return {
-            label: status.status.replace('_', ' '),
+            label: t(`BookingStatus.${status.status}`),
             value: status.count,
             color: colors[index % colors.length]
           };

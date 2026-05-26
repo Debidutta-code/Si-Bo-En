@@ -29,9 +29,6 @@ export class propertyLoyalityRepository {
                             BasicLoyaltyProgram:true,
                         }
                     },
-                    
-                    
-                    
                 },
             });
         } catch (error) {

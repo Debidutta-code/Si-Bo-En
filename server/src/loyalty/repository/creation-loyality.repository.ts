@@ -90,7 +90,7 @@ export class creationLoyalityRepository {
         }
     }
 
-    public async getAllCreationLoyalityWithProperty(
+    public async getAllCreationLoyalityWithCreation(
         creationId: string
     ): Promise<ICreationLoyalityWithProperty | null> {
         try {
