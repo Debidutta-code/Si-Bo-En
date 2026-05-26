@@ -1,1 +1,0 @@
-export * from './ota-user.repository';

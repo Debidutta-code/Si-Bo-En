@@ -1,17 +1,32 @@
 import { prisma } from '../../config';
-import { ICustomerLoginResponse } from '../types';
+import { ICustomer, ICustomerwp } from '../types';
 
 export class CustomerRepository {
-    public async findByEmail(email: string): Promise<ICustomerLoginResponse | null> {
+    public async findByEmail(email: string): Promise<ICustomer | null> {
         try {
             return await prisma.customers.findUnique({
                 where: { email },
                 select: {
                     id: true,
                     email: true,
-                    password: true,
                     firstName: true,
                     lastName: true,
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occurred while finding customer');
+        }
+    }
+    public async loginUser(email: string): Promise<ICustomerwp | null> {
+        try {
+            return await prisma.customers.findUnique({
+                where: { email },
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    password: true,
                 },
             });
         } catch (error) {
@@ -63,7 +78,7 @@ export class CustomerRepository {
         lastName: string;
         email: string;
         password: string;
-    }) {
+    }):Promise<ICustomer> {
         try {
             return await prisma.customers.create({
                 data,
