@@ -23,7 +23,6 @@ app.use(
     })
 );
 
-// Increase the payload size limit
 
 app.use(globalActivityLogger);
 app.use(express.static('public'));
