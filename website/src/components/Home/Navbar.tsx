@@ -11,6 +11,8 @@ import { setSenderUrl } from "@/src/store/bookingSlice";
 import { RootState } from "../../store/store";
 import LanguageSwitcher from "../languageSwitcher/LanguageSwitcher";
 import { clearCustomer } from "@/src/store/customerSlice";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const { t } = useTranslation();
@@ -32,7 +34,19 @@ const Navbar = () => {
   const customer = useSelector((state: RootState) => (state as any).customer);
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const customerDropdownRef = useRef<HTMLDivElement>(null);
-
+  const signout = async () => {
+    try {
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/customer/logout`,
+        {},
+        { withCredentials: true }
+      );
+      dispatch(clearCustomer());
+      router.push("/");
+    } catch (error) {
+      toast.error("Failed to sign out");
+    }
+  }
   useEffect(() => {
     const updateLogo = () => {
       const logoFromContext =
@@ -206,19 +220,6 @@ const Navbar = () => {
             >
               {t("Navbar.partnerLogin")}
             </button>
-            {/* <button
-              onClick={() => router.push(`/loyalty-login`)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{
-                backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                  ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                  : "#F4EFE6",
-                color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-              }}
-            >
-              {t("Navbar.loyaltyGuestLogin")}
-            </button> */}
-            {/* My Booking */}
             {!isHomePage && !isMyTripPage && propertyCode && (
 
               <button
@@ -241,12 +242,6 @@ const Navbar = () => {
                 onClick={() => {
                   const target = `/spa?propertyCode=${propertyCode}`;
                   router.push(target);
-                  // if (customer.isAuthenticated) {
-                  //   router.push(target);
-                  // } else {
-                  //   sessionStorage.setItem("customerRedirectUrl", target);
-                  //   router.push("/login");
-                  // }
                 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 style={{
@@ -425,7 +420,7 @@ const Navbar = () => {
                   {t("Navbar.profile")}
                 </button>
                 <button
-                  onClick={() => { setIsMenuOpen(false); dispatch(clearCustomer()); router.push(window.location.href); }}
+                  onClick={() => { signout(); router.push(window.location.href); }}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium text-red-500"
                   style={{ backgroundColor: "#FEF2F2" }}
                 >

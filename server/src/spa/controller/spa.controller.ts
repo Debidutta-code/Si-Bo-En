@@ -101,8 +101,11 @@ export class SpaController {
     ): Promise<Response> {
         try {
             const propertyCode = req.params.propertyCode;
-            const response =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            let response =
                 await this.spaService.getSpaForPropertyCode(propertyCode);
+                
+            response = await SpaInterceptor.intercept(response, locale);
                 
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {

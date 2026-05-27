@@ -331,9 +331,9 @@ export default function SpaPage() {
                   </div>
                 ) : (
                   <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                    {upcomingSpas.map((spa) => {
+                    {upcomingSpas.map((spa:ISpa) => {
                       const availableSlots = getUpcomingSpaSlots(spa);
-                      const coverImage = (spa as any).images?.[0];
+                      const coverImage = spa.images?.[0];
 
                       return (
                         <div
@@ -356,7 +356,7 @@ export default function SpaPage() {
                             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                             {spa.Category?.name && (
                               <span className="absolute left-3 top-3 rounded-full bg-white/90 backdrop-blur-sm px-2.5 py-1 text-xs font-bold text-amber-700 shadow-sm">
-                                {spa.Category.name}
+                                {spa.Category._translations?spa.Category._translations.name:spa.Category.name}
                               </span>
                             )}
                             <span className="absolute bottom-3 right-3 rounded-full bg-black/60 backdrop-blur-sm px-3 py-1 text-xs font-bold text-white">
@@ -372,10 +372,10 @@ export default function SpaPage() {
                           <div className="flex flex-1 flex-col gap-3 p-4">
                             <div>
                               <h3 className="text-base font-bold leading-snug text-stone-900 line-clamp-1">
-                                {spa.name}
+                                {spa._translations?spa._translations.name:spa.name}
                               </h3>
                               <p className="mt-1 text-xs leading-relaxed text-stone-500 line-clamp-2">
-                                {spa.description || t("SpaPage.allTab.noDescription")}
+                                {spa._translations?spa._translations.description:spa.description}
                               </p>
                             </div>
 
@@ -384,7 +384,7 @@ export default function SpaPage() {
                               {spa.location && (
                                 <span className="flex items-center gap-1 text-stone-500 min-w-0">
                                   <MapPin className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-                                  <span className="truncate">{spa.location}</span>
+                                  <span className="truncate">{spa._translations?spa._translations.location:spa.location}</span>
                                 </span>
                               )}
                               <span className="flex items-center gap-1 text-stone-600 font-medium ml-auto shrink-0">

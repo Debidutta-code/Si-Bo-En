@@ -34,8 +34,8 @@ export class PricingController {
                 childAges,
                 guestDistribution,
             } = req.body;
-            const customerId=req.cookies.loyalty_token.split("split")[0];
-            const LpropertyId=req.cookies.loyalty_token.split("split")[1];
+            const customerId=req?.cookies?.loyalty_token?.split("split")[0];
+            const LpropertyId=req?.cookies?.loyalty_token?.split("split")[1];
             const propertyId = req.property?.id;
 
             if (!propertyId) {

@@ -63,9 +63,6 @@ export const LoyaltyContainer = ({
   };
 
   const handleToggle = () => {
-    if (isRegistered) {
-      return;
-    }
 
     const next = !isToggleOn;
     if (next) {
@@ -133,7 +130,7 @@ const verifyLoyaltyMembership = async () => {
 };
 
     verifyLoyaltyMembership();
-  }, [loyaltyProgram, onToggleChange]);
+  }, []);
 
   if (!loyaltyProgram || !loyaltyProgram.CreationLoyaltyConfig) return null;
 
@@ -147,8 +144,11 @@ const verifyLoyaltyMembership = async () => {
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
   };
 
-  const handleLogout = async() => {
-    await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/signout`)
+  const handleLogout = async () => {
+await axios.delete(
+  `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/signout`,
+  { withCredentials: true }
+);
     setIsRegistered(false);
     setRegisteredEmail("");
     setDiscountInfo(null);
@@ -178,41 +178,19 @@ const verifyLoyaltyMembership = async () => {
       const data = await response.data;
 
       if (!data.success) {
-        const errorMsg =
-          data.message || "Failed to register for loyalty program";
-        if (errorMsg.includes("already registered")) {
-          const email = formData.email || "";
-          setRegisteredEmail(email);
-          setIsRegistered(true);
-          if (data.data?.discount) setDiscountInfo(data.data.discount);
-          setIsToggleOn(true);
-          onToggleChange?.(true);
-          toast.success(t("LoyaltyContainer.modal.alreadyRegistered"));
-          setShowSignUpModal(false);
-          setFormData({});
-          return;
-        }
-        toast.error(errorMsg);
+        console.log(data)
         return;
       }
 
-      const email = formData.email || "";
-      setRegisteredEmail(email);
       setIsRegistered(true);
       setIsToggleOn(true);
       onToggleChange?.(true);
-      if (data.data?.discountType && data.data?.discountValue) {
-        setDiscountInfo({
-          type: data.data.discountType,
-          value: data.data.discountValue,
-          currencyCode: data.data.currencyCode || program.currencyCode,
-        });
-      }
       toast.success(t("LoyaltyContainer.modal.registerSuccess"));
       setShowSignUpModal(false);
       setFormData({});
-    } catch {
-      toast.error(t("LoyaltyContainer.modal.failedRetry"));
+    } catch (error:any) {
+      console.log(error.response.data.message)
+      toast.error(t(error.response.data.message));
     } finally {
       setIsSubmitting(false);
     }
@@ -336,15 +314,7 @@ const verifyLoyaltyMembership = async () => {
                       </button>
                     </div>
 
-                    <p className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap text-right">
-                      {t("LoyaltyContainer.areYouRegistered")}{" "}
-                      <button
-                        onClick={() => setShowSignUpModal(true)}
-                        className="underline text-gray-700 font-medium hover:text-gray-900 transition-colors"
-                      >
-                        {t("LoyaltyContainer.identifyYourself")}
-                      </button>
-                    </p>
+                   
                   </>
                 ) : (
                   <div className="flex flex-col items-end gap-2">

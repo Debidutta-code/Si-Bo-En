@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { customerRegisterApi } from "../login/api";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconUser = () => (
@@ -50,6 +51,7 @@ type Step = 1 | 2;
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function CustomerRegisterPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
@@ -62,16 +64,16 @@ export default function CustomerRegisterPage() {
   const handleSubmit = async () => {
     // Step 1 validation
     if (step === 1) {
-      if (!form.firstName.trim()) { toast.error("First name is required"); return; }
-      if (!form.lastName.trim()) { toast.error("Last name is required"); return; }
-      if (!form.email.trim()) { toast.error("Email is required"); return; }
+      if (!form.firstName.trim()) { toast.error(t("CustomerRegisterPage.toast.firstNameRequired")); return; }
+      if (!form.lastName.trim()) { toast.error(t("CustomerRegisterPage.toast.lastNameRequired")); return; }
+      if (!form.email.trim()) { toast.error(t("CustomerRegisterPage.toast.emailRequired")); return; }
       setStep(2);
       return;
     }
     // Step 2 validation
-    if (!form.password.trim()) { toast.error("Password is required"); return; }
-    if (form.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
-    if (form.password !== form.confirmPassword) { toast.error("Passwords do not match"); return; }
+    if (!form.password.trim()) { toast.error(t("CustomerRegisterPage.toast.passwordRequired")); return; }
+    if (form.password.length < 8) { toast.error(t("CustomerRegisterPage.toast.passwordLength")); return; }
+    if (form.password !== form.confirmPassword) { toast.error(t("CustomerRegisterPage.toast.passwordsDoNotMatch")); return; }
 
     setLoading(true);
     try {
@@ -82,13 +84,13 @@ export default function CustomerRegisterPage() {
         password: form.password,
       });
       if (res.success) {
-        toast.success("Account created! Please sign in.");
+        toast.success(t("CustomerRegisterPage.toast.accountCreated"));
         router.push("/login");
       } else {
-        toast.error(res.message ?? "Registration failed");
+        toast.error(res.message ?? t("CustomerRegisterPage.toast.registrationFailed"));
       }
     } catch {
-      toast.error("Something went wrong, please try again");
+      toast.error(t("CustomerRegisterPage.toast.somethingWentWrong"));
     } finally {
       setLoading(false);
     }
@@ -114,9 +116,9 @@ export default function CustomerRegisterPage() {
   };
 
   const ctaLabel = () => {
-    if (loading) return "Creating account…";
-    if (step === 1) return "Continue";
-    return "Create Account";
+    if (loading) return t("CustomerRegisterPage.cta.creatingAccount");
+    if (step === 1) return t("CustomerRegisterPage.cta.continue");
+    return t("CustomerRegisterPage.cta.createAccount");
   };
 
   return (
@@ -197,31 +199,31 @@ export default function CustomerRegisterPage() {
               </div>
               <div>
                 <p className="text-[19px] font-medium leading-none tracking-[0.06em] text-white"
-                  style={{ fontFamily: "'Cormorant', serif" }}>Revchill</p>
+                  style={{ fontFamily: "'Cormorant', serif" }}>{t("CustomerRegisterPage.leftPanel.brand")}</p>
                 <p className="text-[9.5px] tracking-[0.22em] uppercase mt-0.5"
-                  style={{ color: "rgba(255,255,255,0.65)" }}>Guest Account</p>
+                  style={{ color: "rgba(255,255,255,0.65)" }}>{t("CustomerRegisterPage.leftPanel.guestAccount")}</p>
               </div>
             </div>
 
             <div className="mb-10">
               <h1 className="font-light leading-[1.15] text-white mb-3"
                 style={{ fontFamily: "'Cormorant', serif", fontSize: "clamp(36px, 3.8vw, 52px)", letterSpacing: "-0.01em" }}>
-                Start your<br />
-                journey<br />
-                <em className="not-italic font-normal" style={{ color: "rgba(255,255,255,0.9)", textShadow: "0 0 40px rgba(255,255,255,0.3)" }}>with us.</em>
+                {t("CustomerRegisterPage.leftPanel.headline.part1")}<br />
+                {t("CustomerRegisterPage.leftPanel.headline.part2")}<br />
+                <em className="not-italic font-normal" style={{ color: "rgba(255,255,255,0.9)", textShadow: "0 0 40px rgba(255,255,255,0.3)" }}>{t("CustomerRegisterPage.leftPanel.headline.part3")}</em>
               </h1>
               <p className="text-[13px] leading-[1.8] font-light"
                 style={{ color: "rgba(255,255,255,0.55)", maxWidth: "320px" }}>
-                Create your free account in under a minute and unlock seamless booking across all properties.
+                {t("CustomerRegisterPage.leftPanel.description")}
               </p>
             </div>
 
             {/* Steps visual */}
             <div className="space-y-4">
               {[
-                { n: "01", label: "Personal details", desc: "Name & email address" },
-                { n: "02", label: "Secure password", desc: "Set a password for your account" },
-                { n: "03", label: "You're all set", desc: "Start booking instantly" },
+                { n: "01", label: t("CustomerRegisterPage.leftPanel.stepsInfo.step1.label"), desc: t("CustomerRegisterPage.leftPanel.stepsInfo.step1.desc") },
+                { n: "02", label: t("CustomerRegisterPage.leftPanel.stepsInfo.step2.label"), desc: t("CustomerRegisterPage.leftPanel.stepsInfo.step2.desc") },
+                { n: "03", label: t("CustomerRegisterPage.leftPanel.stepsInfo.step3.label"), desc: t("CustomerRegisterPage.leftPanel.stepsInfo.step3.desc") },
               ].map(({ n, label, desc }) => (
                 <div key={n} className="flex items-center gap-4">
                   <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[11px] font-medium"
@@ -250,7 +252,7 @@ export default function CustomerRegisterPage() {
                 <LogoMark size={18} />
               </div>
               <span className="text-[16px] tracking-[0.06em]"
-                style={{ color: "#0d4a52", fontFamily: "'Cormorant', serif" }}>Revchill</span>
+                style={{ color: "#0d4a52", fontFamily: "'Cormorant', serif" }}>{t("CustomerRegisterPage.rightPanel.brand")}</span>
             </div>
 
             {/* Badge */}
@@ -258,7 +260,7 @@ export default function CustomerRegisterPage() {
               style={{ background: "rgba(21,149,162,0.08)", border: "1px solid rgba(21,149,162,0.2)" }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#1595A2" }} />
               <span className="text-[10px] font-medium tracking-[0.1em] uppercase" style={{ color: "#1595A2" }}>
-                New Account
+                {t("CustomerRegisterPage.rightPanel.newAccount")}
               </span>
             </div>
 
@@ -266,10 +268,10 @@ export default function CustomerRegisterPage() {
             <div className="mb-6">
               <h2 className="text-[32px] font-light leading-tight mb-2"
                 style={{ fontFamily: "'Cormorant', serif", letterSpacing: "-0.01em", color: "#0a3a42" }}>
-                {step === 1 ? "Create account" : "Set your password"}
+                {step === 1 ? t("CustomerRegisterPage.rightPanel.headings.step1") : t("CustomerRegisterPage.rightPanel.headings.step2")}
               </h2>
               <p className="text-[13px] font-light" style={{ color: "#5a8a92" }}>
-                {step === 1 ? "Step 1 of 2 — Your personal details." : "Step 2 of 2 — Choose a secure password."}
+                {step === 1 ? t("CustomerRegisterPage.rightPanel.subheadings.step1") : t("CustomerRegisterPage.rightPanel.subheadings.step2")}
               </p>
             </div>
 
@@ -304,8 +306,8 @@ export default function CustomerRegisterPage() {
                 {/* First + Last side by side */}
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { label: "First Name", key: "firstName", placeholder: "Jane" },
-                    { label: "Last Name", key: "lastName", placeholder: "Smith" },
+                    { label: t("CustomerRegisterPage.rightPanel.form.firstNameLabel"), key: "firstName", placeholder: t("CustomerRegisterPage.rightPanel.form.firstNamePlaceholder") },
+                    { label: t("CustomerRegisterPage.rightPanel.form.lastNameLabel"), key: "lastName", placeholder: t("CustomerRegisterPage.rightPanel.form.lastNamePlaceholder") },
                   ].map(({ label, key, placeholder }) => (
                     <div key={key}>
                       <label className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
@@ -330,11 +332,11 @@ export default function CustomerRegisterPage() {
                 {/* Email */}
                 <div>
                   <label className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
-                    style={{ color: "#5a8a92" }}>Email Address</label>
+                    style={{ color: "#5a8a92" }}>{t("CustomerRegisterPage.rightPanel.form.emailLabel")}</label>
                   <div className="relative">
                     <input
                       type="email"
-                      placeholder="you@email.com"
+                      placeholder={t("CustomerRegisterPage.rightPanel.form.emailPlaceholder")}
                       className={inputCls}
                       style={inputStyle}
                       onFocus={onFocus}
@@ -353,8 +355,8 @@ export default function CustomerRegisterPage() {
             {step === 2 && (
               <div className="slide-in space-y-4">
                 {[
-                  { label: "Password", key: "password", show: showPass, toggle: () => setShowPass(!showPass), placeholder: "Min. 8 characters" },
-                  { label: "Confirm Password", key: "confirmPassword", show: showConfirm, toggle: () => setShowConfirm(!showConfirm), placeholder: "Repeat your password" },
+                  { label: t("CustomerRegisterPage.rightPanel.form.passwordLabel"), key: "password", show: showPass, toggle: () => setShowPass(!showPass), placeholder: t("CustomerRegisterPage.rightPanel.form.passwordPlaceholder") },
+                  { label: t("CustomerRegisterPage.rightPanel.form.confirmPasswordLabel"), key: "confirmPassword", show: showConfirm, toggle: () => setShowConfirm(!showConfirm), placeholder: t("CustomerRegisterPage.rightPanel.form.confirmPasswordPlaceholder") },
                 ].map(({ label, key, show, toggle, placeholder }) => (
                   <div key={key}>
                     <label className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
@@ -380,7 +382,7 @@ export default function CustomerRegisterPage() {
                 ))}
 
                 {form.password && form.confirmPassword && form.password !== form.confirmPassword && (
-                  <p className="text-[11.5px]" style={{ color: "#e05555" }}>Passwords do not match</p>
+                  <p className="text-[11.5px]" style={{ color: "#e05555" }}>{t("CustomerRegisterPage.rightPanel.form.passwordsDoNotMatch")}</p>
                 )}
               </div>
             )}
@@ -395,7 +397,7 @@ export default function CustomerRegisterPage() {
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M19 12H5M12 19l-7-7 7-7" />
                 </svg>
-                Back to details
+                {t("CustomerRegisterPage.rightPanel.backToDetails")}
               </button>
             )}
 
@@ -426,7 +428,7 @@ export default function CustomerRegisterPage() {
             {/* Divider */}
             <div className="flex items-center gap-3 my-5">
               <div className="flex-1 h-px" style={{ background: "rgba(21,149,162,0.12)" }} />
-              <span className="text-[10px] uppercase tracking-[0.12em]" style={{ color: "rgba(21,149,162,0.4)" }}>or</span>
+              <span className="text-[10px] uppercase tracking-[0.12em]" style={{ color: "rgba(21,149,162,0.4)" }}>{t("CustomerRegisterPage.rightPanel.or")}</span>
               <div className="flex-1 h-px" style={{ background: "rgba(21,149,162,0.12)" }} />
             </div>
 
@@ -455,7 +457,7 @@ export default function CustomerRegisterPage() {
                 <polyline points="10 17 15 12 10 7" />
                 <line x1="15" y1="12" x2="3" y2="12" />
               </svg>
-              Already have an account? Sign in
+              {t("CustomerRegisterPage.rightPanel.signIn")}
             </button>
 
           </div>

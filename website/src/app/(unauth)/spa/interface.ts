@@ -8,8 +8,18 @@ export interface ISpaApiResponse<T = any> {
 
 export interface ISpaCategory {
   name?: string;
+  _translations?:{
+    name: string;
+  }
 }
-
+export interface ISpaSubCategory{
+  name?: string;
+  categoryId?: string;
+  isActive?: boolean;
+  _translations?:{
+    name: string;
+  }
+}
 export interface ISpaSlotReservation {
   id?: string;
   bookingCode: string;
@@ -37,13 +47,20 @@ export interface ISpa {
   id: string;
   name: string;
   description?: string | null;
-  location?: string | null;
-  Category?: ISpaCategory | null;
+  location: string | null;
+  Category: ISpaCategory;
+  SubCategory: ISpaSubCategory;
   isInclusive?: boolean;
   discountValue?: number | null;
   currencyCode?: string | null;
-  serviceTime?: number | null;
+  serviceTime: number | null;
+  images:string[]
   SpaDates?: ISpaDate[];
+  _translations?:{
+    name: string;
+    description: string;
+    location: string;
+  }
 }
 
 export interface ICreateSpaReservationSlot {
