@@ -322,6 +322,7 @@ export interface IRoom {
     roomUnit: string;
     roomView: string;
     description: string;
+    numberOfBedrooms:number;
     images: string[];
     amenities: IRoomAmenityDetail[];
     hasValidRate: boolean;

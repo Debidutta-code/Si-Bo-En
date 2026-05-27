@@ -35,6 +35,11 @@ export class RoomBookingRepository {
                     include: {
                         roomAmenities: { include: { amenity: true } },
                         roomVideos: true,
+                        RoomViews:{
+                            include:{
+                                MasterRoomView:true
+                            }
+                        }
                     },
                 },
                 ratePlans: {
