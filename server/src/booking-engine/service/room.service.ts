@@ -187,7 +187,6 @@ export class RoomBookingService {
                 )
             )
         );
-
         const roomPrice: IRoomPrice[] = ratePlanResults
             .filter((r): r is IRoomPrice[] => r !== null)
             .flat();
@@ -199,7 +198,7 @@ export class RoomBookingService {
             roomSize: Number(room.roomSize),
             roomUnit: room.roomUnit,
             priority: room.priority,
-            roomView: room.roomView,
+            roomView: room.RoomViews?.MasterRoomView.viewName||"others",
             numberOfBedrooms: room.numberOfBedrooms,
             maxOccupancy: room.maxOccupancy,
             description: room.description || '',

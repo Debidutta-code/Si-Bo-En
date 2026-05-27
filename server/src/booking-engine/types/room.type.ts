@@ -76,6 +76,22 @@ export interface IRoomAmenity {
     };
 }
 
+export interface IMasterRoomView {
+    id: string;
+    viewName: string;
+    isActive: boolean;
+    metaData: any | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+export interface IMRoomView {
+    id: string;
+    roomId: string;
+    masterRoomViewId: string;
+    MasterRoomView: IMasterRoomView;
+}
+
 export interface IPropertyRoom {
     id: string;
     roomName: string;
@@ -90,12 +106,13 @@ export interface IPropertyRoom {
     maxOccupancy: number;
     maxNumberOfAdults: number;
     maxNumberOfChildren: number;
-    numberOfBedrooms: number; // ✅ add this
+    numberOfBedrooms: number;
     description: string | null;
     image: string[];
     available: boolean;
     roomAmenities: IRoomAmenity[];
     roomVideos: IRoomVideo | null;
+    RoomViews: IMRoomView | null;  // ✅ add this
 }
 
 export interface IRoomPolicy {
