@@ -22,8 +22,11 @@ import EditAgentDialog from './components/EditAgentDialog';
 import DeleteConfirmDialog from './components/DeleteConfirmDialog';
 import { Search } from 'lucide-react';
 import type { ILoader } from '../dashboard/interface';
+import { useTranslation } from 'react-i18next';
 
 const AgencyAgentsPage: React.FC = () => {
+  const { t } = useTranslation();
+
   const { agencyId } = useParams<{ agencyId: string }>();
   const navigate = useNavigate();
   
@@ -32,7 +35,7 @@ const AgencyAgentsPage: React.FC = () => {
   const [filteredAgents, setFilteredAgents] = useState<IAgents[]>([]);
   const [loading, setLoading] = useState<ILoader>({
     isLoading: true,
-    message: 'Loading agents...',
+    message: t('AgencyAgentsPage.loader.loadingAgents'),
   });
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -61,7 +64,7 @@ const AgencyAgentsPage: React.FC = () => {
 
     setLoading({
       isLoading: true,
-      message: 'Loading agents...',
+      message: t('AgencyAgentsPage.loader.loadingAgents'),
     });
     try {
       const response = await getAgencyById(agencyId);
@@ -94,7 +97,8 @@ const AgencyAgentsPage: React.FC = () => {
       console.error('Failed to delete agent:', error);
     }
   };
-if (loading.isLoading) {
+
+  if (loading.isLoading) {
     return (
       <div className="min-h-screen w-full flex justify-center items-center">
         <Loader text={loading.message} />
@@ -106,9 +110,9 @@ if (loading.isLoading) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
-          <p className="text-gray-500">Agency not found</p>
+          <p className="text-gray-500">{t('AgencyAgentsPage.notFound.message')}</p>
           <Button onClick={() => navigate('/app/agency')} className="mt-4">
-            Back to Agencies
+            {t('AgencyAgentsPage.notFound.backToAgencies')}
           </Button>
         </div>
       </div>
@@ -128,13 +132,15 @@ if (loading.isLoading) {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold">Agents - {agency.agencyName}</h1>
-            <p className="text-gray-500 mt-1">Manage agents for this agency</p>
+            <h1 className="text-3xl font-bold">
+              {t('AgencyAgentsPage.header.title', { agencyName: agency.agencyName })}
+            </h1>
+            <p className="text-gray-500 mt-1">{t('AgencyAgentsPage.header.subtitle')}</p>
           </div>
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Agent
+          {t('AgencyAgentsPage.header.addAgent')}
         </Button>
       </div>
 
@@ -142,7 +148,9 @@ if (loading.isLoading) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Total Agents</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">
+              {t('AgencyAgentsPage.stats.totalAgents')}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{agents.length}</div>
@@ -150,7 +158,9 @@ if (loading.isLoading) {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Active Agents</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">
+              {t('AgencyAgentsPage.stats.activeAgents')}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -160,7 +170,9 @@ if (loading.isLoading) {
         </Card>
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-gray-500">Inactive Agents</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500">
+              {t('AgencyAgentsPage.stats.inactiveAgents')}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -176,7 +188,7 @@ if (loading.isLoading) {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search by name, email, or phone..."
+              placeholder={t('AgencyAgentsPage.search.placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -191,18 +203,20 @@ if (loading.isLoading) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Agent Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>{t('AgencyAgentsPage.table.agentName')}</TableHead>
+                <TableHead>{t('AgencyAgentsPage.table.email')}</TableHead>
+                <TableHead>{t('AgencyAgentsPage.table.phone')}</TableHead>
+                <TableHead>{t('AgencyAgentsPage.table.status')}</TableHead>
+                <TableHead>{t('AgencyAgentsPage.table.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredAgents.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                    {searchTerm ? 'No agents found matching your search' : 'No agents added yet'}
+                    {searchTerm
+                      ? t('AgencyAgentsPage.table.noResultsSearch')
+                      : t('AgencyAgentsPage.table.noAgents')}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -223,7 +237,7 @@ if (loading.isLoading) {
                     </TableCell>
                     <TableCell>
                       <Badge variant={agent.isDeleted ? 'secondary' : 'default'}>
-                        {agent.isDeleted ? 'Inactive' : 'Active'}
+                        {agent.isDeleted ? t('AgencyAgentsPage.table.inactive') : t('AgencyAgentsPage.table.active')}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -235,7 +249,7 @@ if (loading.isLoading) {
                             setSelectedAgent(agent);
                             setIsEditDialogOpen(true);
                           }}
-                          title="Edit Agent"
+                          title={t('AgencyAgentsPage.tooltips.editAgent')}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -246,7 +260,7 @@ if (loading.isLoading) {
                             setSelectedAgent(agent);
                             setIsDeleteDialogOpen(true);
                           }}
-                          title="Delete Agent"
+                          title={t('AgencyAgentsPage.tooltips.deleteAgent')}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -282,8 +296,8 @@ if (loading.isLoading) {
             open={isDeleteDialogOpen}
             onOpenChange={setIsDeleteDialogOpen}
             onConfirm={handleDelete}
-            title="Delete Agent"
-            description={`Are you sure you want to delete agent "${selectedAgent.agentName}"? This action cannot be undone.`}
+            title={t('AgencyAgentsPage.deleteDialog.title')}
+            description={t('AgencyAgentsPage.deleteDialog.description', { agentName: selectedAgent.agentName })}
           />
         </>
       )}

@@ -58,17 +58,16 @@
     "addPromotion": "Add Promotion Translation",
     "promotionName": "Promotion Name",
     "editTranslation": "Edit Promotion Translation",
-    "createAll":"Create All"
-   
+    "createAll": "Create All"
   },
-  "BookingStatus":{
+  "BookingStatus": {
     "confirmed": "Confirmed",
     "cancelled": "Cancelled",
     "pending": "Pending",
     "modified": "Modified",
     "no_show": "No-show",
-  "checked_in": "Checked-in",
-  "checked_out": "Checked-out"
+    "checked_in": "Checked-in",
+    "checked_out": "Checked-out"
   },
   "Navigation": {
     "dashboard": "Dashboard",
@@ -86,22 +85,22 @@
     "management": "Management",
     "restrictions": "Restrictions",
     "promotions": "Promotions",
-    "day":"Day",
-    "week":"Week",
-    "month":"Month",
-    "year":"Year",
-    "jan":"January",
-    "feb":"February",
-    "march":"March",
-    "april":"April",
-    "may":"May",
-    "june":"June",
-    "july":"July",
-    "august":"August",
-    "september":"September",
-    "october":"October",
-    "november":"November",
-    "december":"December"
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "jan": "January",
+    "feb": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -155,7 +154,7 @@
     "spaConfiguration": "Spa Configuration",
     "mySpa": "My Spa",
     "reports": "Reports",
-     "apiLogs": "Api Logs",
+    "apiLogs": "Api Logs",
     "serviceLogs": "Service logs"
   },
   "Auth": {
@@ -541,7 +540,19 @@
     "manageYourHotelProperty": "Manage your hotel property and its performance",
     "completeYourPropertySetup": "Complete your property setup to start managing",
     "propertyConfiguration": "Property Configuration",
-    "translations": "Translations"
+    "translations": "Translations",
+    "updatePropertyTitle": "Update Property",
+    "updatePropertyDescription": "Update basic property details.",
+    "noUsersAssigned": "No users assigned to this property yet.",
+    "languageAdded": "Language added",
+    "failedToAddLanguage": "Failed to add language",
+    "languageRemoved": "Language removed",
+    "failedToRemoveLanguage": "Failed to remove language",
+    "noAdditionalLanguages": "No additional languages added yet.",
+    "englishLanguage": "English",
+    "editTranslationTitle": "Edit Property Translation",
+    "translationFieldName": "Property Name",
+    "translationFieldNamePlaceholder": "e.g., Hotel Sol"
   },
   "PropertySuper": {
     "title": "Hotels & Properties",
@@ -640,8 +651,11 @@
     "propertyInfo": {
       "title": "Property Information",
       "propertyName": "Property Name",
+      "propertyNamePlaceholder": "e.g. Mountain View Villa",
       "email": "Email",
+      "emailPlaceholder": "contact@example.com",
       "contact": "Contact",
+      "contactPlaceholder": "9876543210",
       "category": "Category",
       "chooseCategory": "Choose category",
       "type": "Type",
@@ -783,7 +797,7 @@
     "hotelManager": "Hotel Manager",
     "staff": "Staff",
     "revenueManager": "Revenue Manager",
-    "spaManager":"Spa Manager"
+    "spaManager": "Spa Manager"
   },
   "Booking": {
     "title": "Bookings",
@@ -1854,19 +1868,16 @@
     "promoCode": "Promo Code",
     "addOn": "Add On",
     "taxSystem": "Tax System",
-    "spa":  "Spa Type",
-    "addPropertyIntegration":"Add Property Integration",
-
+    "spa": "Spa Type",
+    "addPropertyIntegration": "Add Property Integration",
     "name": "Name",
     "type": "Type",
     "status": "Status",
     "active": "Active",
     "inactive": "Inactive",
-
     "noURLFieldsYet": "No URL fields added yet",
     "noRequiredFieldsYet": "No required fields added yet",
     "created": "Created",
-
     "integrationNamePlaceholder": "e.g., Opera PMS, Booking.com",
     "urlFieldNamePlaceholder": "Field Name (e.g., API Endpoint)",
     "urlPlaceholder": "URL (e.g., https://api.example.com)",
@@ -1874,29 +1885,24 @@
     "apiEndpointPlaceholder": "e.g., API Endpoint",
     "apiUrlPlaceholder": "e.g., https://api.example.com",
     "apiKeyPlaceholder": "e.g., API Key, Hotel ID",
-
     "addURLFieldDialogDescription": "Add a new URL field to {{name}}",
     "addRequiredFieldDialogDescription": "Add a new required field to {{name}}",
     "confirmDeleteIntegrationDescription": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone and will also delete all associated URL fields and required fields.",
-
     "addIntegrationTranslationTitle": "Add Integration Translation",
     "integrationNameFieldLabel": "Integration Name",
     "integrationNameFieldPlaceholder": "e.g., Opera PMS",
     "integrationTranslationsTitle": "Integration Translations",
     "editIntegrationTranslationTitle": "Edit Integration Translation",
-
     "add": "Add",
     "adding": "Adding...",
     "cancel": "Cancel",
     "close": "Close",
     "create": "Create",
     "creating": "Creating...",
-
     "propertyIntegrationDialogDescription": "Add a property integration provider name",
     "propertyIntegrationNameLabel": "Property Integration Name",
     "propertyIntegrationNamePlaceholder": "e.g., Channel Manager, PMS Integration",
     "noPropertyIntegrationsFound": "No property integrations found. Create your first property integration to get started.",
-
     "toast": {
       "failedToFetchMasterIntegrations": "Failed to fetch master integrations",
       "pleaseEnterBothNameAndURL": "Please enter both name and URL for the URL field",
@@ -1920,88 +1926,84 @@
     }
   },
   "Loyalty": {
-
-  "loadingFields": "Loading registration form fields...",
-  "addFields": "Add Fields",
-  "addFieldsToForm": "Add Fields to Registration Form",
-  "selectFieldsDescription": "Select fields from the master list to add to your loyalty program registration form",
-  "allFieldsAdded": "All available fields have been added to the registration form",
-  "saveChanges": "Save Changes",
-  "field": "Field",
-  "visibleInRegistration": "Visible in Registration Form",
-  "required": "Required",
-  "noFieldsConfigured": "No fields available. Please configure master registration fields first.",
-  "creationIdMissing": "Creation ID is missing",
-  "loyaltyNotFound": "Loyalty program not found for this creation",
-  "failedToLoadFields": "Failed to load fields",
-  "loyaltyIdRequired": "Loyalty program ID is required",
-  "selectAtLeastOne": "Please select at least one field",
-  "addingFields": "Adding fields...",
-  "fieldsAdded": "{{count}} fields added successfully",
-  "failedToAddFields": "Failed to add fields",
-  "errorAddingFields": "An error occurred while adding fields",
-  "savingConfiguration": "Saving field configuration...",
-  "formUpdated": "Registration form updated successfully",
-  "failedToUpdateForm": "Failed to update form",
-  "errorSaving": "An error occurred while saving",
-  "contentLoading": "Loading loyalty program...",
-  "noLoyaltyProgramFound": "No loyalty program found",
-  "failedToFetchProgram": "Failed to fetch loyalty program",
-  "conditionTextRequired": "Condition text is required",
-  "creatingCondition": "Creating condition...",
-  "conditionCreated": "Condition created successfully",
-  "updatingCondition": "Updating condition...",
-  "conditionUpdated": "Condition updated successfully",
-  "deletingCondition": "Deleting condition...",
-  "conditionDeleted": "Condition deleted successfully",
-  "conditionActivated": "Condition activated",
-  "conditionDeactivated": "Condition deactivated",
-  "updateStatus": "Updating status...",
-  "titleRequired": "Title is required",
-  "creatingSpecial": "Creating special condition...",
-  "specialCreated": "Special condition created successfully",
-  "updatingSpecial": "Updating special condition...",
-  "specialUpdated": "Special condition updated successfully",
-  "deletingSpecial": "Deleting special condition...",
-  "specialDeleted": "Special condition deleted successfully",
-  "specialActivated": "Special condition activated",
-  "specialDeactivated": "Special condition deactivated",
-  "termsConditions": "Terms & Conditions",
-  "specialConditionsTab": "Special Conditions",
-  "addCondition": "Add Condition",
-  "noConditions": "No conditions added yet. Click \"Add Condition\" to create one.",
-  "addSpecialCondition": "Add Special Condition",
-  "noSpecialConditions": "No special conditions added yet. Click \"Add Special Condition\" to create one.",
-  "editCondition": "Edit Condition",
-  "addNewCondition": "Add New Condition",
-  "conditionText": "Condition Text",
-  "enterConditionText": "Enter condition text...",
-  "cancel": "Cancel",
-  "update": "Update",
-  "create": "Create",
-  "editSpecialCondition": "Edit Special Condition",
-  "addNewSpecialCondition": "Add New Special Condition",
-  "conditionTitle": "Title",
-  "enterTitle": "Enter title...",
-  "subTitleOptional": "Subtitle (Optional)",
-  "enterSubtitle": "Enter subtitle...",
-  "deleteConfirmTitle": "Are you sure?",
-  "deleteConditionDesc": "This will permanently delete this condition. This action cannot be undone.",
-  "deleteSpecialDesc": "This will permanently delete this special condition. This action cannot be undone.",
-  "guestLoading": "Loading loyalty configuration...",
-  "guestNotFound": "Creation ID not found",
-  "failedToFetchConfig": "Failed to fetch loyalty configuration",
-  "loadingGuests": "Loading loyalty guests...",
-  "failedToFetchGuests": "Failed to fetch loyalty guests",
-  "deletingGuest": "Deleting loyalty guest...",
-  "guestDeleted": "Loyalty guest deleted successfully",
-  "failedToDeleteGuest": "Failed to delete loyalty guest",
-  "loyaltyGuests": "Loyalty Guests",
-  "manageGuests": "Manage guests enrolled in the loyalty program",
-  "noGuests": "No loyalty guests",
-
-   
-  
+    "loadingFields": "Loading registration form fields...",
+    "addFields": "Add Fields",
+    "addFieldsToForm": "Add Fields to Registration Form",
+    "selectFieldsDescription": "Select fields from the master list to add to your loyalty program registration form",
+    "allFieldsAdded": "All available fields have been added to the registration form",
+    "saveChanges": "Save Changes",
+    "field": "Field",
+    "visibleInRegistration": "Visible in Registration Form",
+    "required": "Required",
+    "noFieldsConfigured": "No fields available. Please configure master registration fields first.",
+    "creationIdMissing": "Creation ID is missing",
+    "loyaltyNotFound": "Loyalty program not found for this creation",
+    "failedToLoadFields": "Failed to load fields",
+    "loyaltyIdRequired": "Loyalty program ID is required",
+    "selectAtLeastOne": "Please select at least one field",
+    "addingFields": "Adding fields...",
+    "fieldsAdded": "{{count}} fields added successfully",
+    "failedToAddFields": "Failed to add fields",
+    "errorAddingFields": "An error occurred while adding fields",
+    "savingConfiguration": "Saving field configuration...",
+    "formUpdated": "Registration form updated successfully",
+    "failedToUpdateForm": "Failed to update form",
+    "errorSaving": "An error occurred while saving",
+    "contentLoading": "Loading loyalty program...",
+    "noLoyaltyProgramFound": "No loyalty program found",
+    "failedToFetchProgram": "Failed to fetch loyalty program",
+    "conditionTextRequired": "Condition text is required",
+    "creatingCondition": "Creating condition...",
+    "conditionCreated": "Condition created successfully",
+    "updatingCondition": "Updating condition...",
+    "conditionUpdated": "Condition updated successfully",
+    "deletingCondition": "Deleting condition...",
+    "conditionDeleted": "Condition deleted successfully",
+    "conditionActivated": "Condition activated",
+    "conditionDeactivated": "Condition deactivated",
+    "updateStatus": "Updating status...",
+    "titleRequired": "Title is required",
+    "creatingSpecial": "Creating special condition...",
+    "specialCreated": "Special condition created successfully",
+    "updatingSpecial": "Updating special condition...",
+    "specialUpdated": "Special condition updated successfully",
+    "deletingSpecial": "Deleting special condition...",
+    "specialDeleted": "Special condition deleted successfully",
+    "specialActivated": "Special condition activated",
+    "specialDeactivated": "Special condition deactivated",
+    "termsConditions": "Terms & Conditions",
+    "specialConditionsTab": "Special Conditions",
+    "addCondition": "Add Condition",
+    "noConditions": "No conditions added yet. Click \"Add Condition\" to create one.",
+    "addSpecialCondition": "Add Special Condition",
+    "noSpecialConditions": "No special conditions added yet. Click \"Add Special Condition\" to create one.",
+    "editCondition": "Edit Condition",
+    "addNewCondition": "Add New Condition",
+    "conditionText": "Condition Text",
+    "enterConditionText": "Enter condition text...",
+    "cancel": "Cancel",
+    "update": "Update",
+    "create": "Create",
+    "editSpecialCondition": "Edit Special Condition",
+    "addNewSpecialCondition": "Add New Special Condition",
+    "conditionTitle": "Title",
+    "enterTitle": "Enter title...",
+    "subTitleOptional": "Subtitle (Optional)",
+    "enterSubtitle": "Enter subtitle...",
+    "deleteConfirmTitle": "Are you sure?",
+    "deleteConditionDesc": "This will permanently delete this condition. This action cannot be undone.",
+    "deleteSpecialDesc": "This will permanently delete this special condition. This action cannot be undone.",
+    "guestLoading": "Loading loyalty configuration...",
+    "guestNotFound": "Creation ID not found",
+    "failedToFetchConfig": "Failed to fetch loyalty configuration",
+    "loadingGuests": "Loading loyalty guests...",
+    "failedToFetchGuests": "Failed to fetch loyalty guests",
+    "deletingGuest": "Deleting loyalty guest...",
+    "guestDeleted": "Loyalty guest deleted successfully",
+    "failedToDeleteGuest": "Failed to delete loyalty guest",
+    "loyaltyGuests": "Loyalty Guests",
+    "manageGuests": "Manage guests enrolled in the loyalty program",
+    "noGuests": "No loyalty guests",
     "title": "Loyalty Configuration",
     "subtitle": "No loyalty configuration found for this creation",
     "description": "Create a loyalty configuration to start offering discounts and benefits to your customers",
@@ -2014,7 +2016,7 @@
     "placeholderPercentage": "e.g., 10",
     "placeholderAmount": "e.g., 50",
     "currencyCode": "Currency Code",
-     "registerFormTitle": "Registration Form",
+    "registerFormTitle": "Registration Form",
     "registerFormDescription": "Configure which fields appear in the loyalty program registration and customer forms",
     "placeholderCurrency": "USD, EUR, GBP",
     "createButton": "Create Loyalty Configuration",
@@ -2171,7 +2173,7 @@
     "delete": "Delete",
     "createLoyaltyLevel": "Create Loyalty Level",
     "editLoyaltyLevel": "Edit Loyalty Level",
-    "noOfReservation":"No. of Reservations",
+    "noOfReservation": "No. of Reservations",
     "updateTierDescription": "Update the tier number or discount percentage for this level.",
     "createTierDescription": "Define a new membership tier and its associated discount.",
     "levelNumber": "Level Number",
@@ -4533,13 +4535,10 @@
     "filterByCategory": "Filter by Category:",
     "allCategories": "All Categories",
     "unknownCategory": "Unknown Category",
-
     "active": "Active",
     "inactive": "Inactive",
-
     "dropdownEdit": "Edit",
     "dropdownDelete": "Delete",
-
     "editCategory": "Edit Spa Category",
     "createCategory": "Create Spa Category",
     "editSubCategory": "Edit Sub-Category",
@@ -4549,16 +4548,13 @@
     "subCategoryNamePlaceholder": "e.g. Deep Tissue",
     "parentCategory": "Parent Category",
     "activeStatus": "Active Status",
-
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving...",
     "delete": "Delete",
     "deleting": "Deleting...",
-
     "confirmDeletion": "Confirm Deletion",
     "confirmDeleteDescription": "Are you sure you want to delete the {{type}} \"{{name}}\"? This action cannot be undone.",
-
     "addCategoryTranslationTitle": "Add Spa Category Translation",
     "addSubCategoryTranslationTitle": "Add Spa Sub-Category Translation",
     "categoryTranslationsTitle": "Spa Category Translations",
@@ -4567,7 +4563,6 @@
     "editSubCategoryTranslationTitle": "Edit Spa Sub-Category Translation",
     "translationNameLabel": "Name",
     "translationNamePlaceholder": "e.g., Masajes",
-
     "toast": {
       "failedToFetchSubCategories": "Failed to fetch sub-categories",
       "failedToFetchData": "Failed to fetch Spa data",
@@ -4588,7 +4583,6 @@
   "PropertyConfigDialog": {
     "title": "Property Configuration",
     "description": "Update property settings and integrations. Only Super Admin can modify these settings.",
-
     "switches": {
       "channelManager": {
         "label": "Channel Manager Integration",
@@ -4619,12 +4613,10 @@
         "description": "Enable this to show property video in booking engine"
       }
     },
-
     "partnerSections": {
       "channelManager": "Available Channel Manager Partners",
       "pms": "Available PMS Partners"
     },
-
     "form": {
       "reservationResetTime": "Reservation Reset Time",
       "reservationResetTimeHint": "Time when daily reservations reset",
@@ -4632,11 +4624,271 @@
       "timezonePlaceholder": "Select timezone",
       "currencyCode": "Currency Code"
     },
-
     "footer": {
       "cancel": "Cancel",
       "save": "Save Configuration",
       "saving": "Saving..."
+    }
+  },
+  "CreateAgencyDialog": {
+    "title": "Create New Agency",
+    "description": "Add a new travel agency or corporate partner to the system.",
+    "form": {
+      "agencyName": "Agency Name",
+      "agencyType": "Agency Type",
+      "email": "Email",
+      "contactNumber": "Contact Number",
+      "taxNumber": "Tax Number",
+      "iataCode": "IATA Code",
+      "commissionType": "Commission Type",
+      "commissionValue": "Commission Value",
+      "commissionValuePercent": "Commission Value * (%)",
+      "currencyCode": "Currency Code",
+      "address": "Address",
+      "agencyTypeOptions": {
+        "travelAgency": "Travel Agency",
+        "corporate": "Corporate"
+      },
+      "commissionTypeOptions": {
+        "percentage": "Percentage",
+        "fixed": "Fixed Amount"
+      }
+    },
+    "footer": {
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "createAgency": "Create Agency"
+    }
+  },
+  "AgencyDetailsPage": {
+    "loader": {
+      "loadingDetails": "Loading agency details..."
+    },
+    "notFound": {
+      "message": "Agency not found",
+      "backToAgencies": "Back to Agencies"
+    },
+    "header": {
+      "subtitle": "Agency Details & Management",
+      "editAgency": "Edit Agency"
+    },
+    "cards": {
+      "agencyType": "Agency Type",
+      "commission": "Commission",
+      "properties": "Properties",
+      "agents": "Agents",
+      "travelAgency": "Travel Agency",
+      "corporate": "Corporate"
+    },
+    "contactInfo": {
+      "title": "Contact Information",
+      "email": "Email",
+      "contactNumber": "Contact Number",
+      "address": "Address",
+      "iataCode": "IATA Code",
+      "taxNumber": "Tax Number"
+    },
+    "agentsSection": {
+      "title": "Agents ({{count}})",
+      "manageAgents": "Manage Agents",
+      "active": "Active",
+      "inactive": "Inactive",
+      "viewAll": "View all {{count}} agents",
+      "noAgents": "No agents assigned yet"
+    },
+    "propertiesSection": {
+      "title": "Assigned Properties ({{count}})",
+      "assignProperty": "Assign Property",
+      "tableHead": {
+        "propertyName": "Property Name",
+        "commission": "Commission",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "viewDetails": "View Details",
+      "noProperties": "No properties assigned yet"
+    },
+    "reservationsSection": {
+      "title": "Recent Reservations",
+      "tableHead": {
+        "bookingId": "Booking ID",
+        "guestName": "Guest Name",
+        "property": "Property",
+        "checkIn": "Check-in",
+        "checkOut": "Check-out",
+        "status": "Status"
+      },
+      "noReservations": "No reservations yet"
+    }
+  },
+  "AgencyAgentsPage": {
+    "loader": {
+      "loadingAgents": "Loading agents..."
+    },
+    "notFound": {
+      "message": "Agency not found",
+      "backToAgencies": "Back to Agencies"
+    },
+    "header": {
+      "title": "Agents - {{agencyName}}",
+      "subtitle": "Manage agents for this agency",
+      "addAgent": "Add Agent"
+    },
+    "stats": {
+      "totalAgents": "Total Agents",
+      "activeAgents": "Active Agents",
+      "inactiveAgents": "Inactive Agents"
+    },
+    "search": {
+      "placeholder": "Search by name, email, or phone..."
+    },
+    "table": {
+      "agentName": "Agent Name",
+      "email": "Email",
+      "phone": "Phone",
+      "status": "Status",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "noResultsSearch": "No agents found matching your search",
+      "noAgents": "No agents added yet"
+    },
+    "tooltips": {
+      "editAgent": "Edit Agent",
+      "deleteAgent": "Delete Agent"
+    },
+    "deleteDialog": {
+      "title": "Delete Agent",
+      "description": "Are you sure you want to delete agent \"{{agentName}}\"? This action cannot be undone."
+    }
+  },
+  "CreateAgentDialog": {
+    "title": "Create New Agent",
+    "description": "Add a new agent to this agency. The agent will receive login credentials.",
+    "form": {
+      "agentName": "Agent Name",
+      "email": "Email",
+      "phoneNumber": "Phone Number",
+      "password": "Password"
+    },
+    "footer": {
+      "cancel": "Cancel",
+      "creating": "Creating...",
+      "createAgent": "Create Agent"
+    }
+  },
+  "EditAgentDialog": {
+    "title": "Edit Agent",
+    "description": "Update agent information. Leave password empty to keep current password.",
+    "form": {
+      "agentName": "Agent Name",
+      "email": "Email",
+      "phoneNumber": "Phone Number",
+      "newPassword": "New Password (optional)",
+      "passwordPlaceholder": "Leave empty to keep current password"
+    },
+    "footer": {
+      "cancel": "Cancel",
+      "updating": "Updating...",
+      "updateAgent": "Update Agent"
+    }
+  },
+  "AssignPropertyDialog": {
+    "title": "Assign Property to Agency",
+    "description": "Select a property to assign to this agency.",
+    "loader": {
+      "loadingProperties": "Loading available properties..."
+    },
+    "form": {
+      "selectProperty": "Select Property",
+      "noAvailableProperties": "No available properties to assign",
+      "selectPlaceholder": "Select a property",
+      "setAsActive": "Set as active"
+    },
+    "footer": {
+      "cancel": "Cancel",
+      "assigning": "Assigning...",
+      "assignProperty": "Assign Property"
+    }
+  },
+  "EditAgencyDialog": {
+    "title": "Edit Agency",
+    "description": "Update agency information.",
+    "form": {
+      "agencyName": "Agency Name",
+      "agencyType": "Agency Type",
+      "email": "Email",
+      "contactNumber": "Contact Number",
+      "taxNumber": "Tax Number",
+      "iataCode": "IATA Code",
+      "commissionType": "Commission Type",
+      "commissionValue": "Commission Value",
+      "commissionValuePercent": "Commission Value * (%)",
+      "currencyCode": "Currency Code",
+      "address": "Address",
+      "agencyTypeOptions": {
+        "travelAgency": "Travel Agency",
+        "corporate": "Corporate"
+      },
+      "commissionTypeOptions": {
+        "percentage": "Percentage",
+        "fixed": "Fixed Amount"
+      }
+    },
+    "footer": {
+      "cancel": "Cancel",
+      "updating": "Updating...",
+      "updateAgency": "Update Agency"
+    }
+  },
+  "AgenticPropertyDetailsPage": {
+    "loader": {
+      "loadingDetails": "Loading property details..."
+    },
+    "notFound": {
+      "message": "Property not found",
+      "backToAgency": "Back to Agency"
+    },
+    "header": {
+      "subtitle": "Property Management",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "cards": {
+      "propertyCode": "Property Code",
+      "commission": "Commission",
+      "allocatedRooms": "Allocated Rooms",
+      "reservations": "Reservations"
+    },
+    "roomsSection": {
+      "title": "Allocated Rooms ({{count}})",
+      "addRooms": "Add Rooms",
+      "tableHead": {
+        "roomType": "Room Type",
+        "roomName": "Room Name",
+        "status": "Status",
+        "availability": "Availability"
+      },
+      "active": "Active",
+      "inactive": "Inactive",
+      "available": "Available",
+      "unavailable": "Unavailable",
+      "noRooms": "No rooms allocated yet. Click \"Add Rooms\" to assign rooms to this property."
+    },
+    "reservationsSection": {
+      "title": "Recent Reservations",
+      "tableHead": {
+        "bookingId": "Booking ID",
+        "guestName": "Guest Name",
+        "room": "Room",
+        "checkIn": "Check-in",
+        "checkOut": "Check-out",
+        "status": "Status",
+        "amount": "Amount"
+      },
+      "noReservations": "No reservations yet"
     }
   }
 }

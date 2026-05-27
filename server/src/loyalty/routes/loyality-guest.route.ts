@@ -10,12 +10,6 @@ const router = Router();
 // Initialize controller
 const loyaltyGuestController = new LoyaltyGuestController();
 
-// router
-//     .route('/:id')
-//     .delete(
-//         protect,
-//         loyaltyGuestController.deleteLoyaltyGuest.bind(loyaltyGuestController)
-//     );
 
 router
     .route('/property/:propertyId')
