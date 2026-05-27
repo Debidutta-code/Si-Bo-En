@@ -72,65 +72,62 @@ export const LoyaltyContainer = ({
       onToggleChange?.(false);
     }
   };
+  const verifyLoyaltyMembership = async () => {
+        if (!loyaltyProgram) return;
 
-  useEffect(() => {
-    if (!loyaltyProgram) return;
-
-const verifyLoyaltyMembership = async () => {
-  setIsVerifying(true);
-
-  try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
-      {
-        propertyId: loyaltyProgram.propertyId,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
+    setIsVerifying(true);
+  
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
+        {
+          propertyId: loyaltyProgram.propertyId,
         },
-        withCredentials: true, 
-      }
-    );
-
-    const data = response.data;
-
-    if (data.success && data.data?.isLoyaltyMember) {
-      setIsRegistered(true);
-
-      setDiscountInfo(
-        data.data.discount || {
-          type: data.data.discountType,
-          value: data.data.discountValue,
-          currencyCode:
-            data.data.currencyCode || program.currencyCode,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, 
         }
       );
-
-      setIsToggleOn(true);
-      onToggleChange?.(true);
-    } else {
+  
+      const data = response.data;
+  
+      if (data.success && data.data?.isLoyaltyMember) {
+        setIsRegistered(true);
+  
+        setDiscountInfo(
+          data.data.discount || {
+            type: data.data.discountType,
+            value: data.data.discountValue,
+            currencyCode:
+              data.data.currencyCode || program.currencyCode,
+          }
+        );
+  
+        setIsToggleOn(true);
+        onToggleChange?.(true);
+      } else {
+        setIsRegistered(false);
+        setDiscountInfo(null);
+        setIsToggleOn(false);
+        onToggleChange?.(false);
+      }
+    } catch (error) {
+      console.error("Failed to verify loyalty membership:", error);
+  
       setIsRegistered(false);
       setDiscountInfo(null);
       setIsToggleOn(false);
       onToggleChange?.(false);
+  
+      toast.error(t("LoyaltyContainer.modal.failedRetry"));
+    } finally {
+      setIsVerifying(false);
     }
-  } catch (error) {
-    console.error("Failed to verify loyalty membership:", error);
+  };
 
-    setIsRegistered(false);
-    setDiscountInfo(null);
-    setIsToggleOn(false);
-    onToggleChange?.(false);
 
-    toast.error(t("LoyaltyContainer.modal.failedRetry"));
-  } finally {
-    setIsVerifying(false);
-  }
-};
-
-    verifyLoyaltyMembership();
-  }, []);
 
   if (!loyaltyProgram || !loyaltyProgram.CreationLoyaltyConfig) return null;
 
@@ -188,6 +185,7 @@ await axios.delete(
       toast.success(t("LoyaltyContainer.modal.registerSuccess"));
       setShowSignUpModal(false);
       setFormData({});
+      verifyLoyaltyMembership()
     } catch (error:any) {
       console.log(error.response.data.message)
       toast.error(t(error.response.data.message));
