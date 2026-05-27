@@ -4894,5 +4894,73 @@
       },
       "noReservations": "No reservations yet"
     }
+  },
+  "ActivePropertyLoyalty": {
+    "loading": "Loading loyalty details...",
+    "errorFetching": "Failed to fetch loyalty details",
+    "noConfigFound": "No Loyalty Configuration Found",
+    "noConfigDesc": "This property doesn't have an active loyalty configuration.",
+    "backToPrograms": "Back to Loyalty Programs",
+    "incompleteConfig": "Incomplete Loyalty Configuration",
+    "incompleteDesc": "This loyalty configuration is missing required data.",
+    "programTitle": "{{name}} Loyalty Program",
+    "propertyCode": "Property Code: {{code}}",
+    "active": "Active",
+    "inactive": "Inactive",
+    "loyaltyGuests": "Loyalty Guests",
+    "viewGuests": "View",
+    "manageGuests": "Manage guests enrolled in this program",
+    "tabs": {
+      "overview": "Overview",
+      "basicConfig": "Basic Config",
+      "advancedConfig": "Advanced Config"
+    },
+    "overview": {
+      "title": "Discount Information",
+      "desc": "Current loyalty discount configuration",
+      "discountType": "Discount Type",
+      "discountValue": "Discount Value",
+      "currency": "Currency"
+    },
+    "basic": {
+      "title": "Basic Configuration",
+      "desc": "Loyalty program branding and basic settings",
+      "status": "Status",
+      "logos": "Logos",
+      "noConfig": "No basic configuration set up yet"
+    },
+    "advanced": {
+      "title": "Advanced Configuration",
+      "desc": "Advanced loyalty program settings and features",
+      "activeCorporate": "Active in Corporate Web",
+      "yes": "Yes",
+      "no": "No",
+      "defaultLoginMode": "Default Login Mode",
+      "blockUserField": "Block User Field",
+      "roomLimit": "Room Limit Per Booking",
+      "externalUrl": "External Registration URL",
+      "noConfig": "No advanced configuration set up yet"
+    }
+  },
+  "PropertyLoyaltyGuests": {
+    "loading": "Loading loyalty guests...",
+    "errorFetching": "Failed to fetch loyalty guests",
+    "backToPrograms": "Back to Loyalty Programs",
+    "title": "Loyalty Guests",
+    "subtitle": "{{count}} guest enrolled in this program",
+    "subtitlePlural": "{{count}} guests enrolled in this program",
+    "noGuests": "No guests enrolled in this loyalty program yet",
+    "table": {
+      "guestName": "Guest Name",
+      "email": "Email",
+      "loyaltyFields": "Loyality Fields"
+    },
+    "modal": {
+      "title": "Loyalty Program Fields",
+      "desc": "Guest-specific loyalty program information",
+      "noMetadata": "No metadata available",
+      "close": "Close"
+    },
+    "na": "N/A"
   }
 }

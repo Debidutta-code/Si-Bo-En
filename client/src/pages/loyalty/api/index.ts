@@ -55,7 +55,7 @@ export {
 } from "./creation-loyality.api";
 
 export {
-    createLoyaltyGuest,
+    // createLoyaltyGuest,
     deleteLoyaltyGuest,
     getLoyaltyGuestsForCreation,
     getLoyaltyGuestsForProperty,

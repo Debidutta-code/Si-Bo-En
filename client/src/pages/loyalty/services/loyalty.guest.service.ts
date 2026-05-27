@@ -1,26 +1,14 @@
 import {
-    createLoyaltyGuest,
     deleteLoyaltyGuest,
     getLoyaltyGuestsForProperty,
     getLoyaltyGuestsForCreation
 } from "../api";
 
-import type { ICloyalityGuests } from "../interfaces";
 
 export { getLoyaltyGuestsForProperty, getLoyaltyGuestsForCreation };
 
 // ===== Loyalty Guest Services =====
-export const createLoyaltyGuestService = async (data: ICloyalityGuests) => {
-    try {
-        if (!data.guestId || data.guestId.trim() === "") {
-            return { success: false, message: "Guest ID is required." };
-        }
-        const response = await createLoyaltyGuest(data);
-        return response;
-    } catch (error) {
-        return { success: false, message: "Failed to create loyalty guest." };
-    }
-};
+
 
 export const deleteLoyaltyGuestService = async (loyaltyGuestId: string) => {
     try {
