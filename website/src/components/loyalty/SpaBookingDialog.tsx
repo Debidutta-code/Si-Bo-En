@@ -10,6 +10,7 @@ import {
 import { format } from "date-fns";
 import { Check, Search, Clock, MapPin, Tag } from "lucide-react";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 interface SpaBookingDialogProps {
   bookingCode: string;
@@ -35,6 +36,7 @@ export default function SpaBookingDialog({
   guestName,
   onClose,
 }: SpaBookingDialogProps) {
+  const { t } = useTranslation();
   const [spas, setSpas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -62,10 +64,10 @@ export default function SpaBookingDialog({
         setSpas(res.data);
         if (res.data.length > 0) setActiveSpa(res.data[0]);
       } else {
-        toast.error(res.message || "Failed to fetch spas");
+        toast.error(res.message || t("SpaBookingDialog.toast.fetchSpasFailed"));
       }
     } catch {
-      toast.error("Failed to fetch spas");
+      toast.error(t("SpaBookingDialog.toast.fetchSpasFailed"));
     } finally {
       setLoading(false);
     }
@@ -142,7 +144,7 @@ export default function SpaBookingDialog({
   const handleConfirmBooking = async () => {
     if (selectedSlots.length === 0) return;
     if (!userName.trim()) {
-      toast.error("Please enter a guest name");
+      toast.error(t("SpaBookingDialog.toast.enterGuestName"));
       nameInputRef.current?.focus();
       return;
     }
@@ -160,16 +162,16 @@ export default function SpaBookingDialog({
 
       const failed = results.find((r) => !r.success);
       if (failed) {
-        toast.error(failed.message || "Failed to book one or more activities");
+        toast.error(failed.message || t("SpaBookingDialog.toast.bookActivitiesFailedOneOrMore"));
         return;
       }
 
-      toast.success("Activities included in your stay");
+      toast.success(t("SpaBookingDialog.toast.activitiesIncluded"));
       setSelectedSlots([]);
       setConfirmOpen(false);
       fetchAvailableSpas();
     } catch {
-      toast.error("Failed to book activities");
+      toast.error(t("SpaBookingDialog.toast.bookActivitiesFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -181,15 +183,15 @@ export default function SpaBookingDialog({
     try {
       const res = await markSlotAsAvailableApi(cancelSlot.slotId);
       if (res.success) {
-        toast.success("Activity removed from your stay.");
+        toast.success(t("SpaBookingDialog.toast.activityRemoved"));
         setCancelSlot(null);
         setConfirmOpen(false);
         fetchAvailableSpas();
       } else {
-        toast.error(res.message || "Failed to remove activity");
+        toast.error(res.message || t("SpaBookingDialog.toast.removeActivityFailed"));
       }
     } catch {
-      toast.error("Failed to remove activity");
+      toast.error(t("SpaBookingDialog.toast.removeActivityFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -216,7 +218,7 @@ export default function SpaBookingDialog({
 
         {/* ── Top bar ── */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0 bg-white">
-          <h2 className="text-[15px] font-semibold text-gray-900">Spa & Activities</h2>
+          <h2 className="text-[15px] font-semibold text-gray-900">{t("SpaBookingDialog.title")}</h2>
         </div>
 
         {loading ? (
@@ -225,7 +227,7 @@ export default function SpaBookingDialog({
           </div>
         ) : spas.length === 0 ? (
           <div className="text-center py-16 text-sm text-gray-400">
-            No spas or activities available for these dates.
+            {t("SpaBookingDialog.loading.noSpas")}
           </div>
         ) : (
           <div className="flex flex-1 overflow-hidden">
@@ -268,7 +270,7 @@ export default function SpaBookingDialog({
                           {activeSpa.serviceTime && (
                             <>
                               <Clock className="h-3 w-3 flex-shrink-0" />
-                              Duration: {activeSpa.serviceTime} Minutes
+                              {t("SpaBookingDialog.detail.duration")} {activeSpa.serviceTime} {t("SpaBookingDialog.detail.minutes")}
                             </>
                           )}
                         </div>
@@ -277,13 +279,13 @@ export default function SpaBookingDialog({
                       {activeSpa.discountValue && !activeSpa.isInclusive && (
                         <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                           <Tag className="h-3 w-3 flex-shrink-0" />
-                          Charges: {activeSpa.discountValue} {activeSpa.currencyCode}
+                          {t("SpaBookingDialog.detail.charges")} {activeSpa.discountValue} {activeSpa.currencyCode}
                         </div>
                       )}
                     </div>
                     {activeSpa.description && (
                       <p className="text-xs text-gray-500 leading-relaxed">
-                        <span className="font-medium text-gray-700">Description: </span>
+                        <span className="font-medium text-gray-700">{t("SpaBookingDialog.detail.description")} </span>
                         {activeSpa.description}
                       </p>
                     )}
@@ -337,9 +339,11 @@ export default function SpaBookingDialog({
 
                       <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-2">
                         <p className="text-xs font-medium text-gray-700">
-                          {selectedSlots.length} {selectedSlots.length === 1 ? "activity" : "activities"} selected                        </p>
+                          {selectedSlots.length === 1
+                            ? t("SpaBookingDialog.confirmPanel.activitySelected", { count: selectedSlots.length })
+                            : t("SpaBookingDialog.confirmPanel.activitiesSelected", { count: selectedSlots.length })}                        </p>
                         <div>
-                          <label className="text-[11px] text-gray-500 mb-1 block">Guest name</label>
+                          <label className="text-[11px] text-gray-500 mb-1 block">{t("SpaBookingDialog.confirmPanel.guestNameLabel")}</label>
                           <input
                             ref={nameInputRef}
                             type="text"
@@ -348,7 +352,7 @@ export default function SpaBookingDialog({
                             onKeyDown={(e) => {
                               if (e.key === "Enter") handleConfirmBooking();
                             }}
-                            placeholder="Enter guest name…"
+                            placeholder={t("SpaBookingDialog.confirmPanel.guestNamePlaceholder")}
                             className="w-full h-8 px-2.5 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-teal-400"
                           />
                         </div>
@@ -360,7 +364,7 @@ export default function SpaBookingDialog({
                             style={{ background: TEAL }}
                           >
                             <Check className="h-3 w-3" />
-                            {submitting ? "Booking…" : "BOOK ALL"}
+                            {submitting ? t("SpaBookingDialog.confirmPanel.booking") : t("SpaBookingDialog.confirmPanel.bookAll")}
                           </button>
                           <button
                             onClick={() => {
@@ -370,7 +374,7 @@ export default function SpaBookingDialog({
                             disabled={submitting}
                             className="px-3 h-8 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50"
                           >
-                            CANCEL
+                            {t("SpaBookingDialog.confirmPanel.cancel")}
                           </button>
                         </div>
                       </div>
@@ -380,7 +384,7 @@ export default function SpaBookingDialog({
                     {confirmOpen && cancelSlot && (
                       <div className="mt-2 rounded-xl border border-red-100 bg-red-50/50 p-3 space-y-2">
                         <p className="text-xs font-medium text-gray-700">
-                          Cancel: {cancelSlot.spaName} · {cancelSlot.dateLabel} · {formatTime(cancelSlot.startTime)}
+                          {t("SpaBookingDialog.cancelPanel.cancelPrefix")} {cancelSlot.spaName} · {cancelSlot.dateLabel} · {formatTime(cancelSlot.startTime)}
                         </p>
                         <div className="flex gap-2">
                           <button
@@ -388,13 +392,13 @@ export default function SpaBookingDialog({
                             disabled={submitting}
                             className="flex-1 h-8 rounded-lg text-white text-xs font-medium bg-red-500 hover:bg-red-600 disabled:opacity-50"
                           >
-                            {submitting ? "Cancelling…" : "Yes, Cancel"}
+                            {submitting ? t("SpaBookingDialog.cancelPanel.cancelling") : t("SpaBookingDialog.cancelPanel.yesCancel")}
                           </button>
                           <button
                             onClick={() => { setConfirmOpen(false); setCancelSlot(null); }}
                             className="px-3 h-8 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50"
                           >
-                            Keep
+                            {t("SpaBookingDialog.cancelPanel.keep")}
                           </button>
                         </div>
                       </div>
@@ -420,7 +424,7 @@ export default function SpaBookingDialog({
                         : { background: "#fff", color: "#6b7280", borderColor: "#e5e7eb" }
                     }
                   >
-                    {cat}
+                    {cat === "All" ? t("SpaBookingDialog.list.categoryAll") : cat}
                   </button>
                 ))}
               </div>
@@ -433,7 +437,7 @@ export default function SpaBookingDialog({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search"
+                    placeholder={t("SpaBookingDialog.list.searchPlaceholder")}
                     className="flex-1 text-xs bg-transparent outline-none text-gray-700 placeholder-gray-400"
                   />
                 </div>
@@ -443,7 +447,9 @@ export default function SpaBookingDialog({
               <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
                 {Object.entries(grouped).map(([categoryName, categorySpas]) => (
                   <div key={categoryName}>
-                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">{categoryName}</p>
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                      {categoryName === "All" ? t("SpaBookingDialog.list.categoryAll") : categoryName}
+                    </p>
                     <div className="space-y-2">
                       {categorySpas.map((spa) => {
                         const isActive = activeSpa?.id === spa.id;
@@ -484,10 +490,10 @@ export default function SpaBookingDialog({
                                       : { background: "#f5f5f5", color: "#6b7280" }
                                   }
                                 >
-                                  {spa.isInclusive ? "Included" : "Paid"}
+                                  {spa.isInclusive ? t("SpaBookingDialog.list.included") : t("SpaBookingDialog.list.paid")}
                                 </span>
                                 <span className="text-[10px] text-gray-400">
-                                  {availableSlots}/{totalSlots} slots free
+                                  {t("SpaBookingDialog.list.slotsFree", { available: availableSlots, total: totalSlots })}
                                 </span>
                               </div>
                             </div>
@@ -500,7 +506,7 @@ export default function SpaBookingDialog({
 
                 {filteredSpas.length === 0 && (
                   <div className="text-center py-8 text-xs text-gray-400">
-                    No results found. Try a different search or category.
+                    {t("SpaBookingDialog.list.noResults")}
                   </div>
                 )}
 

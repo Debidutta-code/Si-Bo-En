@@ -452,14 +452,14 @@ export default function MyTripPage() {
         }
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to check-in");
+      if (!res.ok) throw new Error(data.message || t("MyTrip.toast.checkinFailed"));
 
-      toast.success("Successfully checked in!");
+      toast.success(t("MyTrip.toast.checkinSuccess"));
       setIsCheckinDialogOpen(false);
       setBookingData({ ...bookingData, bookingStatus: "checked_in" });
       dispatch(setBookingViewData({ ...bookingData, bookingStatus: "checked_in" }));
     } catch (error: any) {
-      toast.error(error.message || "An error occurred during check-in");
+      toast.error(error.message || t("MyTrip.toast.checkinError"));
     } finally {
       setIsCheckingIn(false);
     }
@@ -480,14 +480,14 @@ export default function MyTripPage() {
         }
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to check-out");
+      if (!res.ok) throw new Error(data.message || t("MyTrip.toast.checkoutFailed"));
 
-      toast.success("Successfully checked out!");
+      toast.success(t("MyTrip.toast.checkoutSuccess"));
       setIsCheckoutDialogOpen(false);
       setBookingData({ ...bookingData, bookingStatus: "checkedOut" });
       dispatch(setBookingViewData({ ...bookingData, bookingStatus: "checkedOut" }));
     } catch (error: any) {
-      toast.error(error.message || "An error occurred during check-out");
+      toast.error(error.message || t("MyTrip.toast.checkoutError"));
     } finally {
       setIsCheckingOut(false);
     }
@@ -628,7 +628,7 @@ export default function MyTripPage() {
                 style={{ background: "#0d7a87" }}
               >
                 <span>🧖</span>
-                View & Book Spa Services ({availableSpas.length} available)
+                {t("MyTrip.actions.viewBookSpa", { count: availableSpas.length })}
               </button>
             </div>
           )}
@@ -652,7 +652,7 @@ export default function MyTripPage() {
                   className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
                   style={{ background: colors.primaryColor }}
                 >
-                  Check In Now
+                  {t("MyTrip.actions.checkInNow")}
                 </button>
               )}
               {bookingData.bookingStatus === "checked_in" && (
@@ -661,7 +661,7 @@ export default function MyTripPage() {
                   className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
                   style={{ background: "#e53e3e" }}
                 >
-                  Check Out Now
+                  {t("MyTrip.actions.checkOutNow")}
                 </button>
               )}
             </div>
@@ -1123,7 +1123,7 @@ export default function MyTripPage() {
                       className="px-4 py-3 rounded-md text-white font-medium hover:opacity-90 w-full flex items-center justify-center gap-2"
                       style={{ background: colors.primaryColor }}
                     >
-                      Check In Now
+                      {t("MyTrip.actions.checkInNow")}
                     </button>
                   </div>
                 )}
@@ -1134,7 +1134,7 @@ export default function MyTripPage() {
                       className="px-4 py-3 rounded-md text-white font-medium hover:opacity-90 w-full flex items-center justify-center gap-2"
                       style={{ background: "#e53e3e" }}
                     >
-                      Check Out Now
+                      {t("MyTrip.actions.checkOutNow")}
                     </button>
                   </div>
                 )}
@@ -1204,7 +1204,7 @@ export default function MyTripPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">Online Check-In</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t("MyTrip.checkinDialog.title")}</h3>
               <button
                 onClick={() => setIsCheckinDialogOpen(false)}
                 className="text-gray-400 hover:text-gray-600 text-xl font-bold"
@@ -1215,47 +1215,47 @@ export default function MyTripPage() {
 
             <form id="checkin-form" onSubmit={handleCheckInSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-600">ID Type <span className="text-red-500">*</span></label>
+                <label className="text-xs font-semibold text-gray-600">{t("MyTrip.checkinDialog.idTypeLabel")} <span className="text-red-500">*</span></label>
                 <select
                   value={checkinForm.userIdentityCardType}
                   onChange={(e) => setCheckinForm({ ...checkinForm, userIdentityCardType: e.target.value as userIdentityCardType })}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
                   required
                 >
-                  <option value="national_id">National ID</option>
-                  <option value="passport">Passport</option>
-                  <option value="drivers_license">Driver's License</option>
-                  <option value="others">Other</option>
+                  <option value="national_id">{t("MyTrip.checkinDialog.idTypes.nationalId")}</option>
+                  <option value="passport">{t("MyTrip.checkinDialog.idTypes.passport")}</option>
+                  <option value="drivers_license">{t("MyTrip.checkinDialog.idTypes.driversLicense")}</option>
+                  <option value="others">{t("MyTrip.checkinDialog.idTypes.others")}</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-600">ID Number <span className="text-red-500">*</span></label>
+                <label className="text-xs font-semibold text-gray-600">{t("MyTrip.checkinDialog.idNumberLabel")} <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   value={checkinForm.identityCardNumber}
                   onChange={(e) => setCheckinForm({ ...checkinForm, identityCardNumber: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
                   required
-                  placeholder="Enter ID number"
+                  placeholder={t("MyTrip.checkinDialog.idNumberPlaceholder")}
                 />
               </div>
             </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-600">Address</label>
+                <label className="text-xs font-semibold text-gray-600">{t("MyTrip.checkinDialog.addressLabel")}</label>
                 <input
                   type="text"
                   value={checkinForm.address}
                   onChange={(e) => setCheckinForm({ ...checkinForm, address: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
-                  placeholder="Street address"
+                  placeholder={t("MyTrip.checkinDialog.addressPlaceholder")}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">City</label>
+                  <label className="text-xs font-semibold text-gray-600">{t("MyTrip.checkinDialog.cityLabel")}</label>
                   <input
                     type="text"
                     value={checkinForm.city}
@@ -1264,7 +1264,7 @@ export default function MyTripPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">State/Province</label>
+                  <label className="text-xs font-semibold text-gray-600">{t("MyTrip.checkinDialog.stateLabel")}</label>
                   <input
                     type="text"
                     value={checkinForm.state}
@@ -1276,7 +1276,7 @@ export default function MyTripPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">Country</label>
+                  <label className="text-xs font-semibold text-gray-600">{t("MyTrip.checkinDialog.countryLabel")}</label>
                   <input
                     type="text"
                     value={checkinForm.country}
@@ -1285,7 +1285,7 @@ export default function MyTripPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-600">Zip/Postal Code</label>
+                  <label className="text-xs font-semibold text-gray-600">{t("MyTrip.checkinDialog.zipLabel")}</label>
                   <input
                     type="text"
                     value={checkinForm.zipCode}
@@ -1295,17 +1295,17 @@ export default function MyTripPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-gray-600">Identity Image</label>
+                <label className="text-xs font-semibold text-gray-600">{t("MyTrip.checkinDialog.identityImageLabel")}</label>
                 <div className="flex gap-2 items-center">
                   {checkinForm.identityCardImage && (
-                    <img src={checkinForm.identityCardImage} alt="Identity" className="w-12 h-12 object-cover rounded-md border" />
+                    <img src={checkinForm.identityCardImage} alt={t("MyTrip.checkinDialog.identityImageAlt")} className="w-12 h-12 object-cover rounded-md border" />
                   )}
                   <button
                     type="button"
                     onClick={() => setIsImageUploadModalOpen(true)}
                     className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm"
                   >
-                    Upload
+                    {t("MyTrip.checkinDialog.uploadButton")}
                   </button>
                 </div>
               </div>
@@ -1319,7 +1319,7 @@ export default function MyTripPage() {
                 onClick={() => setIsCheckinDialogOpen(false)}
                 className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
               >
-                Cancel
+                {t("MyTrip.checkinDialog.cancel")}
               </button>
               <button
                 type="submit"
@@ -1328,7 +1328,7 @@ export default function MyTripPage() {
                 className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                 style={{ background: colors.primaryColor }}
               >
-                {isCheckingIn ? "Processing..." : "Complete Check-In"}
+                {isCheckingIn ? t("MyTrip.checkinDialog.processing") : t("MyTrip.checkinDialog.submit")}
               </button>
             </div>
           </div>
@@ -1339,7 +1339,7 @@ export default function MyTripPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-gray-900">Confirm Check-Out</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t("MyTrip.checkoutDialog.title")}</h3>
               <button
                 onClick={() => setIsCheckoutDialogOpen(false)}
                 className="text-gray-400 hover:text-gray-600 text-xl font-bold"
@@ -1350,7 +1350,7 @@ export default function MyTripPage() {
             </div>
             <div className="p-6 space-y-6">
               <p className="text-sm text-gray-600">
-                Are you sure you want to check out of this reservation? This action cannot be undone.
+                {t("MyTrip.checkoutDialog.body")}
               </p>
 
               <div className="flex gap-3 justify-end">
@@ -1360,7 +1360,7 @@ export default function MyTripPage() {
                   className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
                   disabled={isCheckingOut}
                 >
-                  Cancel
+                  {t("MyTrip.checkoutDialog.cancel")}
                 </button>
                 <button
                   onClick={handleCheckOutSubmit}
@@ -1368,7 +1368,7 @@ export default function MyTripPage() {
                   className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                   style={{ background: "#e53e3e" }}
                 >
-                  {isCheckingOut ? "Processing..." : "Confirm Check-Out"}
+                  {isCheckingOut ? t("MyTrip.checkoutDialog.processing") : t("MyTrip.checkoutDialog.confirm")}
                 </button>
               </div>
             </div>

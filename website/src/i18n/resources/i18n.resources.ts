@@ -1,6 +1,6 @@
 import enTranslation from '../translations/en/translation.json';
 import arTranslation from '../translations/ar/translation.json';
-
+import hiTranslation from '../translations/hi/translation.json';
 /**
  * i18n Resources
  * 
@@ -12,6 +12,9 @@ export const resources = {
   },
   ar: {
     translation: arTranslation,
+  },
+  hi: {
+    translation: hiTranslation,
   },
 } as const;
 
