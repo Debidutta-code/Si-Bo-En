@@ -3014,7 +3014,11 @@
     "cancel": "Cancel",
     "saving": "Saving...",
     "create": "Create",
-    "update": "Update"
+    "update": "Update",
+    "addRatePlan":"Add Rate Plan",
+    "removeRatePlan":"Remove Rate Plan",
+    "noAvailableRatePlans": "No rate plans available",
+    "noRatePlanAdded": "No rate plan added"
   },
   "TaxGroupDialog": {
     "createTitle": "Create Tax Group",

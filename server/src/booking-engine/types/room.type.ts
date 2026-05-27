@@ -337,7 +337,7 @@ export interface IRoom {
     roomSize: number;
     maxOccupancy: number;
     roomUnit: string;
-    roomView: string;
+    roomView: IMRoomView | null;
     description: string;
     numberOfBedrooms:number;
     images: string[];

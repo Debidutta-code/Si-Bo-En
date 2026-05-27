@@ -661,18 +661,28 @@ const proceedWithBooking = async (
             <div className="flex flex-wrap gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3">
               <div className="flex items-center gap-1.5">
                 <Users size={16} className="text-orange-500 flex-shrink-0" />
-                <span className="font-medium">{room.maxOccupancy} Guests</span>
+                <span className="font-medium">
+                  {room.maxOccupancy} {t("RoomCard.guests", { defaultValue: "Guests" })}
+                </span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Ruler size={16} className="text-orange-500 flex-shrink-0" />
                 <span className="font-medium">
-                  {room.roomSize} {room.roomUnit}
+                  {room.roomSize} {room.roomUnit ? t(`RoomCard.units.${room.roomUnit.toLowerCase()}`, { defaultValue: room.roomUnit }) : ''}
                 </span>
               </div>
               {room.roomView && (
                 <div className="flex items-center gap-1.5">
                   <Eye size={16} className="text-orange-500 flex-shrink-0" />
-                  <span className="font-medium">{room.roomView}</span>
+                  <span className="font-medium">{room.roomView._translations?room.roomView._translations.viewName:room.roomView.MasterRoomView.viewName}</span>
+                </div>
+              )}
+              {room.numberOfBedrooms && (
+                <div className="flex items-center gap-1.5">
+                  <Eye size={16} className="text-orange-500 flex-shrink-0" />
+                  <span className="font-medium">
+                    {room.numberOfBedrooms} {t("RoomCard.bedrooms", { defaultValue: "Bedrooms" })}
+                  </span>
                 </div>
               )}
             </div>

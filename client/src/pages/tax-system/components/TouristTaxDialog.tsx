@@ -19,6 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 import type { ICTouristTax, ITouristTax, DiscountType } from "../interface";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 import { currencies } from "@/components/currency-code/cuurency";
@@ -41,6 +42,7 @@ export default function TouristTaxDialog({
     mode,
     roomTypes,
 }: TouristTaxDialogProps) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState<ICTouristTax>({
         roomId: "",
         discountType: "flat",
@@ -104,22 +106,22 @@ export default function TouristTaxDialog({
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">
-                        {mode === "create" ? "Create Additional Charge" : "Edit Additional Charge"}
+                        {mode === "create" ? t("TouristTaxDialog.createTitle") : t("TouristTaxDialog.editTitle")}
                     </DialogTitle>
                     <DialogDescription>
                         {mode === "create"
-                            ? "Create a new tourist tax for your property"
-                            : "Update the tourist tax details"}
+                            ? t("TouristTaxDialog.createDesc")
+                            : t("TouristTaxDialog.editDesc")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                     {/* Rate Plan Selection */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">Tourist Tax name *</Label>
+                        <Label htmlFor="name">{t("TouristTaxDialog.touristTaxName")}</Label>
                         <Input
                             id="name"
-                            placeholder={"Tourism Dhiram"}
+                            placeholder={t("TouristTaxDialog.touristTaxNamePlaceholder")}
                             value={formData.name || ""}
                             onChange={(e) =>
                                 setFormData({
@@ -131,7 +133,7 @@ export default function TouristTaxDialog({
 
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="room">Room Type *</Label>
+                        <Label htmlFor="room">{t("TouristTaxDialog.roomType")}</Label>
                         <Select
                             value={formData.roomId}
                             onValueChange={(value) =>
@@ -140,7 +142,7 @@ export default function TouristTaxDialog({
                             disabled={mode === "edit"}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a Room Type" />
+                                <SelectValue placeholder={t("TouristTaxDialog.selectRoomType")} />
                             </SelectTrigger>
                             <SelectContent>
                                 {roomTypes.map((roomType) => (
@@ -155,7 +157,7 @@ export default function TouristTaxDialog({
                     {/* Discount Type and Value */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="discountType">Discount Type *</Label>
+                            <Label htmlFor="discountType">{t("TouristTaxDialog.discountType")}</Label>
                             <Select
                                 value={formData.discountType}
                                 onValueChange={(value: DiscountType) =>
@@ -166,15 +168,15 @@ export default function TouristTaxDialog({
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="flat">Flat Amount</SelectItem>
-                                    <SelectItem value="percentage">Percentage (%)</SelectItem>
+                                    <SelectItem value="flat">{t("TouristTaxDialog.flatAmount")}</SelectItem>
+                                    <SelectItem value="percentage">{t("TouristTaxDialog.percentage")}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="discountValue">
-                                {formData.discountType === "percentage" ? "Value (%)" : "Amount"} *
+                                {formData.discountType === "percentage" ? t("TouristTaxDialog.valuePercent") : t("TouristTaxDialog.valueAmount")} *
                             </Label>
                             <Input
                                 id="discountValue"
@@ -199,7 +201,7 @@ export default function TouristTaxDialog({
                         formData.discountType === "flat" && (
 
                             <div className="space-y-2">
-                                <Label htmlFor="currencyCode">Currency Code</Label>
+                                <Label htmlFor="currencyCode">{t("TouristTaxDialog.currencyCode")}</Label>
                                 <Select
                                     value={formData.currencyCode || "AED"}
                                     onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
@@ -223,10 +225,10 @@ export default function TouristTaxDialog({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
-                        Cancel
+                        {t("TouristTaxDialog.cancel")}
                     </Button>
                     <Button onClick={handleSave} disabled={isSubmitting}>
-                        {isSubmitting ? "Saving..." : mode === "create" ? "Create" : "Update"}
+                        {isSubmitting ? t("TouristTaxDialog.saving") : mode === "create" ? t("TouristTaxDialog.create") : t("TouristTaxDialog.update")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

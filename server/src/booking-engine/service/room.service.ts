@@ -198,7 +198,7 @@ export class RoomBookingService {
             roomSize: Number(room.roomSize),
             roomUnit: room.roomUnit,
             priority: room.priority,
-            roomView: room.RoomViews?.MasterRoomView.viewName||"others",
+            roomView: room.RoomViews,
             numberOfBedrooms: room.numberOfBedrooms,
             maxOccupancy: room.maxOccupancy,
             description: room.description || '',

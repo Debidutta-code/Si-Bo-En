@@ -5,7 +5,7 @@ import { RatePlanTranslation } from '../../models/ari/rate-plan.model';
 import { PolicyTranslation } from '../../models/ari/policy.model';
 import { PromotionTranslation } from '../../models/features/promotions/promotion.model';
 import { TouristTaxTranslation } from '../../models/features/tax-system/tourist-tax.model';
-import { MasterAmenityTranslation } from '../../models/property/property-masters.model';
+import { MasterAmenityTranslation, MasterRoomViewTranslation } from '../../models/property/property-masters.model';
 import {
     LoyaltyConditionsTranslation,
     LoyaltySpecialConditionTranslation,
@@ -127,6 +127,13 @@ export class BookingEngineRoomsInterceptor {
         const roomTranslation = await RoomTranslation.getTranslated(room.id, locale);
         if (roomTranslation) {
             result._translations = roomTranslation;
+        }
+        const roomViewTranslation = await MasterRoomViewTranslation.getTranslated(
+            room.roomView?.MasterRoomView.id,
+            locale
+        );
+        if (roomViewTranslation) {
+            result.roomView = { ...room.roomView, _translations: roomViewTranslation };
         }
 
         // Amenities

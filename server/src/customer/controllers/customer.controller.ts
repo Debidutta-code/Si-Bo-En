@@ -162,6 +162,9 @@ export class CustomerController {
 
     public async logout(req: Request, res: Response): Promise<Response<IApiResponse>> {
         res.clearCookie('customerToken');
+                res.clearCookie('loyalty_token');
+
+        
         return res.status(200).json(successResponse('Logged out successfully'));
     }
 }

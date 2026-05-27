@@ -759,7 +759,7 @@ export default function TaxSystem() {
                     <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="rules">{t("TaxSystem.taxRules")}</TabsTrigger>
                         <TabsTrigger value="groups">{t("TaxSystem.taxGroups")}</TabsTrigger>
-                        <TabsTrigger value="additional-charges">{t("TaxSystem.additionalCharges")}</TabsTrigger>
+                        <TabsTrigger value="additional-charges">{t("TouristTaxDialog.createTitle")}</TabsTrigger>
                     </TabsList>
 
                     {/* Tax Rules Tab */}
@@ -1276,7 +1276,7 @@ export default function TaxSystem() {
                                         }
                                     >
                                         <Plus className="w-4 h-4 mr-2" />
-                                        {t("TaxSystem.addCharges")}
+                    {t("TouristTaxDialog.createTitle")}
                                     </Button>
                                 </div>
                             </CardContent>

@@ -17,13 +17,14 @@ export interface Room {
   roomSize: number;
   maxOccupancy: number;
   roomPrice: room_price[];
+  numberOfBedrooms:number;
   currencyCode: string;
   ratePlanCode: string;
   hasValidRate: boolean;
   images:string[];
   description:string;
   roomUnit: string
-  roomView: string;
+  roomView: {MasterRoomView:{viewName:string},_translations?:{viewName:string}};
   roomVideos:IRoomVideo|null;
   _translations?:{
     roomName:string;

@@ -660,15 +660,6 @@ const Rooms = () => {
 
   const { primaryColor } = useBookingColors();
 
-  const availableBoardTypes = Array.from(
-    new Set(
-      roomsData
-        .filter((room: Room) => room.hasValidRate)
-        .flatMap((room: Room) =>
-          room.roomPrice.map((rp: any) => rp.ratePlanName),
-        ),
-    ),
-  );
 
   if (initialLoading) {
     return (
