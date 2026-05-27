@@ -24,4 +24,3 @@ model PropertyLoyalityGuests {
   @@map("property_loyality_guests")
 }
 
-// property_loyality_guests

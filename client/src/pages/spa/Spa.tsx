@@ -325,7 +325,7 @@ const [editIsActive,setEditIsActive]=useState(false)
           ))}
         </div>
         <Button variant="outline" onClick={() => setIsImageUploadOpen(true)} type="button">
-          {t('Spa.form.uploadImages')}
+          {t('Spa.createDialog.uploadImages')}
         </Button>
       </div>
     </div>
@@ -372,7 +372,7 @@ const [editIsActive,setEditIsActive]=useState(false)
           </TableHeader>
           <TableBody>
             {spas.map((spa) => (
-              <TableRow key={(spa as any).id}>
+              <TableRow key={spa.id}>
                 <TableCell className="font-medium">{spa._translations ? spa._translations.name : spa.name}</TableCell>
                 <TableCell>{spa.itemCode}</TableCell>
                 <TableCell>{spa.Category?._translations ? spa.Category._translations.name : spa.Category?.name || t('Spa.table.na')}</TableCell>
@@ -449,35 +449,35 @@ const [editIsActive,setEditIsActive]=useState(false)
           {/* Reusing fields for brevity in this block */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Name</Label>
+        <Label>{t('Spa.form.name')}</Label>
               <Input value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Item Code</Label>
+        <Label>{t('Spa.form.itemCode')}</Label>
               <Input value={formData.itemCode} onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })} />
             </div>
             <div className="space-y-2 col-span-2">
-              <Label>Description</Label>
+        <Label>{t('Spa.form.description')}</Label>
               <Textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Service Time (mins)</Label>
+        <Label>{t('Spa.form.serviceTime')}</Label>
               <Input type="number" value={formData.serviceTime} onChange={(e) => setFormData({ ...formData, serviceTime: Number(e.target.value) })} />
             </div>
             <div className="space-y-2">
-              <Label>Location</Label>
+        <Label>{t('Spa.form.location')}</Label>
               <Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
             </div>
             {!formData.isInclusive && (
               <>
                 <div className="space-y-2">
-                  <Label>Discount Value</Label>
+            <Label>{t('Spa.form.discountValue')}</Label>
                   <Input type="number" value={formData.discountValue || ''} onChange={(e) => setFormData({ ...formData, discountValue: e.target.value ? Number(e.target.value) : null })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Currency Code</Label>
+            <Label>{t('Spa.form.currencyCode')}</Label>
                   <select className="w-full border rounded-md p-2" value={formData.currencyCode || ''} onChange={(e) => setFormData({ ...formData, currencyCode: e.target.value as CurrencyCode || null })}>
-                    <option value="">Select Currency</option>
+            <Label>{t('Spa.form.currencyCode')}</Label>
                     {currencies.map(c => <option key={c.code} value={c.code}>{c.code} - {c.name} ({c.symbol})</option>)}
                   </select>
                 </div>
@@ -486,15 +486,15 @@ const [editIsActive,setEditIsActive]=useState(false)
             <div className="col-span-2 flex items-center space-x-6">
               <div className="flex items-center space-x-2">
                 <Switch checked={formData.isInclusive} onCheckedChange={(checked) => setFormData({ ...formData, isInclusive: checked })} />
-                <Label>Is Inclusive</Label>
+          <Label>{t('Spa.form.isInclusive')}</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Switch checked={formData.isActive} onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })} />
-                <Label>Is Active</Label>
+          <Label>{t('Spa.form.isActive')}</Label>
               </div>
             </div>
             <div className="space-y-2 col-span-2">
-              <Label>Images</Label>
+        <Label>{t('Spa.form.images')}</Label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {formData.images.map((img, i) => (
                   <div key={i} className="relative w-20 h-20 border rounded-md overflow-hidden">
@@ -510,7 +510,7 @@ const [editIsActive,setEditIsActive]=useState(false)
                 ))}
               </div>
               <Button variant="outline" onClick={() => setIsImageUploadOpen(true)} type="button">
-                Upload Images
+          {t('Spa.createDialog.uploadImages')}
               </Button>
             </div>
           </div>

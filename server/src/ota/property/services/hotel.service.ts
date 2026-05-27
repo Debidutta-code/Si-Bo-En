@@ -1,18 +1,22 @@
+import { errorResponse, IApiResponse, paginatedSuccessResponse, successResponse } from '../../../utils';
 import { HotelRepository } from '../repository';
-import { HotelFilterQuery } from '../types';
+import { HotelFilterQuery, IProperties, IRepoProperty } from '../types';
 
 export class HotelService {
-    private static formatProperties(properties: any[]) {
-        return properties.map((prop: any) => ({
+    private hotelRepository: HotelRepository;
+    constructor() {
+        this.hotelRepository = new HotelRepository();
+    }
+    private formatProperties(properties: IRepoProperty[]): IProperties[] {
+        return properties.map((prop: IRepoProperty) => ({
             id: prop.id,
             propertyCode: prop.propertyCode,
             propertyName: prop.propertyName,
             propertyEmail: prop.propertyEmail,
             propertyContact: prop.propertyContact,
-            starRating: prop.starRating,
             description: prop.description,
-            image: prop.image, // Array of images
-            address: prop.propertyAddress ? {
+            image: prop.image,
+            propertyAddress: prop.propertyAddress ? {
                 city: prop.propertyAddress.city,
                 state: prop.propertyAddress.state,
                 country: prop.propertyAddress.country,
@@ -21,37 +25,55 @@ export class HotelService {
             } : null,
             propertyType: prop.propertyType?.masterPropertyType?.propertyTypeName || null,
             amenities: prop.propertyAmenities.map((pa: any) => ({
-                id: pa.amenity.id,
-                name: pa.amenity.amenityName,
-                icon: pa.amenity.icon,
+                id: pa.id,
+                name: pa.amenityName,
+                icon: pa.icon,
             })),
         }));
     }
 
-    public static async fetchPaginatedHotels(filters: HotelFilterQuery) {
+    public async fetchPaginatedHotels(filters: HotelFilterQuery): Promise<IApiResponse<IProperties[]>> {
         try {
-            const result = await HotelRepository.getPaginatedHotels(filters);
-            return {
-                ...result,
-                properties: this.formatProperties(result.properties)
-            };
-        } catch (error: any) {
-            console.error('Error in HotelService.fetchPaginatedHotels', error);
-            throw new Error(`Failed to fetch hotels: ${error.message}`);
+            const result = await this.hotelRepository.getPaginatedHotels(filters);
+            const properties = this.formatProperties(result.properties);
+            return paginatedSuccessResponse("Properties fetched successfully", properties, {
+
+                currentPage: result.pagination.currentPage,
+                totalPages: result.pagination.totalPages,
+                totalCount: result.pagination.totalCount,
+                hasNextPage: result.pagination.currentPage < result.pagination.totalPages,
+                hasPrevPage: result.pagination.currentPage > 1,
+                limit: result.pagination.pageSize
+
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to fetch properties", error.message);
+            }
+            return errorResponse("Failed to fetch properties", "Unknown error");
         }
     }
 
 
-    public static async fetchAutocompleteLocations(filters: HotelFilterQuery) {
+    public async fetchAutocompleteLocations(filters: HotelFilterQuery): Promise<IApiResponse<IProperties[]>> {
         try {
-            const result = await HotelRepository.getAutocompleteLocations(filters);
-            return {
-                ...result,
-                properties: this.formatProperties(result.properties)
-            };
+            const result = await this.hotelRepository.getAutocompleteLocations(filters);
+            const properties = this.formatProperties(result.properties);
+            return paginatedSuccessResponse("Properties fetched successfully", properties,
+                {
+                    currentPage: result.pagination.currentPage,
+                    totalPages: result.pagination.totalPages,
+                    totalCount: result.pagination.totalCount,
+                    hasNextPage: result.pagination.currentPage < result.pagination.totalPages,
+                    hasPrevPage: result.pagination.currentPage > 1,
+                    limit: result.pagination.pageSize
+                });
         } catch (error: any) {
             console.error("Error in HotelService.fetchAutocompleteLocations", error);
-            throw new Error(`Failed to fetch autocomplete locations: ${error.message}`);
+            if (error instanceof Error) {
+                return errorResponse("Failed to fetch autocomplete locations", error.message);
+            }
+            return errorResponse("Failed to fetch autocomplete locations", "Unknown error");
         }
     }
 }

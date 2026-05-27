@@ -34,6 +34,7 @@ import type {
 } from "./types/types";
 import type {IPropertyDetails} from "../types/types"
 import Loader from "@/components/Loader/Loader";
+import { useTranslation } from "react-i18next";
 
 // Zod Validation Schema
 const propertyInfoSchema = z.object({
@@ -75,6 +76,8 @@ export default function PropertyInfo({
   modifyPropertyDetails: Dispatch<SetStateAction<IPropertyDetails>>;
   isLoading:boolean
 }) {
+  const { t } = useTranslation();
+
   const [propertyTypes, setPropertyTypes] = useState<IPropertyType[]>([]);
   const [propertyCategories, setPropertyCategories] = useState<
     IPropertyCategory[]
@@ -100,7 +103,7 @@ export default function PropertyInfo({
         if (categoryRes.success) setPropertyCategories(categoryRes.data);
         if (typeRes.success) setPropertyTypes(typeRes.data);
       } catch (error: any) {
-        toast.error("Failed to load property options.");
+        toast.error(t('PropertyUpdate.toast.loadOptions'));
       }
     };
     fetchManagementDetails();
@@ -157,6 +160,7 @@ export default function PropertyInfo({
     }));
     setModalOpen(false);
   };
+
   const handleRemoveImage = (indexToRemove: number) => {
     modifyPropertyDetails((prev) => ({
       ...prev,
@@ -165,7 +169,7 @@ export default function PropertyInfo({
   };
   
   if (isLoading) {
-    return <Loader text="Loading Property Details" />;
+    return <Loader text={t('PropertyUpdate.toast.loadingDetails')} />;
   }
   
 
@@ -176,7 +180,7 @@ export default function PropertyInfo({
         <div className="flex items-center gap-2 mb-4">
           <FileText className="w-5 h-5 text-gray-700" />
           <h3 className="text-lg font-semibold text-gray-900">
-            Property Information
+            {t('PropertyUpdate.propertyInfo.title')}
           </h3>
         </div>
 
@@ -184,14 +188,14 @@ export default function PropertyInfo({
           {/* Property Name */}
           <div>
             <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-              <Building2 className="w-4 h-4" /> Property Name *
+              <Building2 className="w-4 h-4" /> {t('PropertyUpdate.propertyInfo.propertyName')} *
             </Label>
             <Input
               value={property.propertyName}
               onChange={(e) =>
                 handleInputChange("propertyName", e.target.value)
               }
-              placeholder="e.g. Mountain View Villa"
+              placeholder={t('PropertyUpdate.propertyInfo.propertyNamePlaceholder')}
               className={cn(
                 "h-10 border-gray-300 focus:border-black focus:ring-0",
                 errors?.propertyName && "border-red-500 focus:border-red-600"
@@ -208,7 +212,7 @@ export default function PropertyInfo({
           {/* Email */}
           <div>
             <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-              <Mail className="w-4 h-4" /> Email *
+              <Mail className="w-4 h-4" /> {t('PropertyUpdate.propertyInfo.email')} *
             </Label>
             <Input
               type="email"
@@ -216,7 +220,7 @@ export default function PropertyInfo({
               onChange={(e) =>
                 handleInputChange("propertyEmail", e.target.value)
               }
-              placeholder="contact@example.com"
+              placeholder={t('PropertyUpdate.propertyInfo.emailPlaceholder')}
               className={cn(
                 "h-10 border-gray-300 focus:border-black focus:ring-0",
                 errors?.propertyEmail && "border-red-500 focus:border-red-600"
@@ -233,7 +237,7 @@ export default function PropertyInfo({
           {/* Contact */}
           <div>
             <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-              <Phone className="w-4 h-4" /> Contact *
+              <Phone className="w-4 h-4" /> {t('PropertyUpdate.propertyInfo.contact')} *
             </Label>
             <Input
               type="tel"
@@ -241,7 +245,7 @@ export default function PropertyInfo({
               onChange={(e) =>
                 handleInputChange("propertyContact", e.target.value)
               }
-              placeholder=" 9876543210"
+              placeholder={t('PropertyUpdate.propertyInfo.contactPlaceholder')}
               className={cn(
                 "h-10 border-gray-300 focus:border-black focus:ring-0",
                 errors?.propertyContact && "border-red-500 focus:border-red-600"
@@ -258,7 +262,7 @@ export default function PropertyInfo({
           {/* Category */}
           <div>
             <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-              <Tag className="w-4 h-4" /> Category *
+              <Tag className="w-4 h-4" /> {t('PropertyUpdate.propertyInfo.category')} *
             </Label>
             <select
               value={property.propertyCategory?.masterCategory?.id || ""}
@@ -272,7 +276,7 @@ export default function PropertyInfo({
               )}
             >
               <option value="" disabled>
-                Choose category
+                {t('PropertyUpdate.propertyInfo.chooseCategory')}
               </option>
               {propertyCategories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -291,7 +295,7 @@ export default function PropertyInfo({
           {/* Type */}
           <div>
             <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-              <House className="w-4 h-4" /> Type *
+              <House className="w-4 h-4" /> {t('PropertyUpdate.propertyInfo.type')} *
             </Label>
             <select
               value={property.propertyType?.masterPropertyType?.id || ""}
@@ -304,7 +308,7 @@ export default function PropertyInfo({
               )}
             >
               <option value="" disabled>
-                Select type
+                {t('PropertyUpdate.propertyInfo.selectType')}
               </option>
               {propertyTypes.map((type) => (
                 <option key={type.id} value={type.id}>
@@ -329,9 +333,9 @@ export default function PropertyInfo({
           <Camera className="w-5 h-5 text-gray-700" />
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              Property Images *
+              {t('PropertyUpdate.propertyInfo.images')} *
             </h3>
-            <p className="text-sm text-gray-600">Add or edit property photos</p>
+            <p className="text-sm text-gray-600">{t('PropertyUpdate.propertyInfo.addOrEditPhotos')}</p>
           </div>
         </div>
 
@@ -344,7 +348,7 @@ export default function PropertyInfo({
           <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
             <div>
               <span className="text-sm font-medium text-gray-900">
-                {property.image.length} image(s)
+                {t('PropertyUpdate.propertyInfo.imagesCount', { count: property.image.length })}
               </span>
             </div>
             <Button
@@ -356,11 +360,11 @@ export default function PropertyInfo({
             >
               {property.image.length > 0 ? (
                 <>
-                  <Camera className="w-4 h-4 mr-1.5" /> Edit
+                  <Camera className="w-4 h-4 mr-1.5" /> {t('PropertyUpdate.propertyInfo.edit')}
                 </>
               ) : (
                 <>
-                  <Upload className="w-4 h-4 mr-1.5" /> Add
+                  <Upload className="w-4 h-4 mr-1.5" /> {t('PropertyUpdate.propertyInfo.add')}
                 </>
               )}
             </Button>
@@ -413,10 +417,10 @@ export default function PropertyInfo({
           <FileText className="w-5 h-5 text-gray-700" />
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              Description *
+              {t('PropertyUpdate.propertyInfo.description')} *
             </h3>
             <p className="text-sm text-gray-600">
-              Describe your property in detail
+              {t('PropertyUpdate.propertyInfo.describeProperty')}
             </p>
           </div>
         </div>
@@ -424,7 +428,7 @@ export default function PropertyInfo({
         <Textarea
           value={property.description}
           onChange={(e) => handleInputChange("description", e.target.value)}
-          placeholder="e.g. A luxurious villa with mountain views, private pool, and modern amenities..."
+          placeholder={t('PropertyUpdate.propertyInfo.placeholder')}
           rows={4}
           className={cn(
             "resize-none border-gray-300 focus:border-black focus:ring-0",
@@ -448,7 +452,7 @@ export default function PropertyInfo({
                 : "text-gray-500"
             }`}
           >
-            {property.description?.length || 0}/5000
+            {t('PropertyUpdate.propertyInfo.characters', { count: property.description?.length || 0 })}
           </p>
         </div>
       </div>

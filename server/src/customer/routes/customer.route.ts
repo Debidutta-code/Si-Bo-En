@@ -17,7 +17,6 @@ customerRouter
     .route('/logout')
     .post(customerController.logout.bind(customerController));
 
-// Protected — customer must be logged in
 customerRouter
     .route('/me')
     .get(customerProtect, customerController.getMe.bind(customerController));

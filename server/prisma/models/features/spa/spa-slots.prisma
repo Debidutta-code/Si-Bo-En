@@ -26,17 +26,4 @@ model SpaSlots {
   @@map("spa_slots")
 }
 
-model SlotBooking {
-  id           String @id @default(uuid())
-  spaBookingId String @map("spa_booking_id")
-  spaId        String @map("spa_id")
-  amount Float @map("amount")
 
-  createdAt  DateTime   @default(now()) @map("created_at")
-  spaSlots   SpaSlots?  @relation(fields: [spaSlotsId], references: [id])
-  spaSlotsId String
-  spa        Spa        @relation(fields: [spaId], references: [id])
-  spaBooking SpaBooking @relation(fields: [spaBookingId], references: [id])
-
-  @@map("slot_bookings")
-}

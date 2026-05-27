@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { createAgent } from '../api/agent.api';
 import type { ICAgents } from '../interfaces';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface CreateAgentDialogProps {
   open: boolean;
@@ -27,6 +28,8 @@ const CreateAgentDialog: React.FC<CreateAgentDialogProps> = ({
   agencyId,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState<ICAgents>({
@@ -70,9 +73,9 @@ const CreateAgentDialog: React.FC<CreateAgentDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Agent</DialogTitle>
+          <DialogTitle>{t('CreateAgentDialog.title')}</DialogTitle>
           <DialogDescription>
-            Add a new agent to this agency. The agent will receive login credentials.
+            {t('CreateAgentDialog.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -80,7 +83,7 @@ const CreateAgentDialog: React.FC<CreateAgentDialogProps> = ({
           <div className="grid gap-4 py-4">
             {/* Agent Name */}
             <div className="grid gap-2">
-              <Label htmlFor="agentName">Agent Name *</Label>
+              <Label htmlFor="agentName">{t('CreateAgentDialog.form.agentName')} *</Label>
               <Input
                 id="agentName"
                 value={formData.agentName}
@@ -91,7 +94,7 @@ const CreateAgentDialog: React.FC<CreateAgentDialogProps> = ({
 
             {/* Email */}
             <div className="grid gap-2">
-              <Label htmlFor="agentEmail">Email *</Label>
+              <Label htmlFor="agentEmail">{t('CreateAgentDialog.form.email')} *</Label>
               <Input
                 id="agentEmail"
                 type="email"
@@ -103,7 +106,7 @@ const CreateAgentDialog: React.FC<CreateAgentDialogProps> = ({
 
             {/* Phone */}
             <div className="grid gap-2">
-              <Label htmlFor="agentPhone">Phone Number *</Label>
+              <Label htmlFor="agentPhone">{t('CreateAgentDialog.form.phoneNumber')} *</Label>
               <Input
                 id="agentPhone"
                 value={formData.agentPhone}
@@ -114,7 +117,7 @@ const CreateAgentDialog: React.FC<CreateAgentDialogProps> = ({
 
             {/* Password */}
             <div className="grid gap-2">
-              <Label htmlFor="agentPassword">Password *</Label>
+              <Label htmlFor="agentPassword">{t('CreateAgentDialog.form.password')} *</Label>
               <div className="relative">
                 <Input
                   id="agentPassword"
@@ -138,11 +141,11 @@ const CreateAgentDialog: React.FC<CreateAgentDialogProps> = ({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('CreateAgentDialog.footer.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Agent
+              {loading ? t('CreateAgentDialog.footer.creating') : t('CreateAgentDialog.footer.createAgent')}
             </Button>
           </DialogFooter>
         </form>

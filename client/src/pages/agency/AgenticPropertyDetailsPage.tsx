@@ -20,8 +20,11 @@ import { updateAgenticRoomAvailability } from './api/agentic-room.api';
 import type { IAgencyWD, IAgenticPropertyWR, IAgenticRoom } from './interfaces';
 import AddRoomsDialog from './components/AddRoomsDialog';
 import type { ILoader } from '../dashboard/interface';
+import { useTranslation } from 'react-i18next';
 
 const AgenticPropertyDetailsPage: React.FC = () => {
+    const { t } = useTranslation();
+
     const { agencyId, propertyId } = useParams<{ agencyId: string; propertyId: string }>();
     const navigate = useNavigate();
 
@@ -31,7 +34,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
     const [reservations, setReservations] = useState<any[]>([]);
     const [loading, setLoading] = useState<ILoader>({
         isLoading: true,
-        message: 'Loading property details...',
+        message: t('AgenticPropertyDetailsPage.loader.loadingDetails'),
     });
     const [isAddRoomsOpen, setIsAddRoomsOpen] = useState(false);
 
@@ -46,7 +49,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
 
         setLoading({
             isLoading: true,
-            message: 'Loading property details...',
+            message: t('AgenticPropertyDetailsPage.loader.loadingDetails'),
         });
         try {
             // First get agency to find the agenticPropertyId
@@ -111,9 +114,9 @@ const AgenticPropertyDetailsPage: React.FC = () => {
         return (
             <div className="p-6">
                 <div className="text-center py-12">
-                    <p className="text-gray-500">Property not found</p>
+                    <p className="text-gray-500">{t('AgenticPropertyDetailsPage.notFound.message')}</p>
                     <Button onClick={() => navigate(`/app/agency/${agencyId}`)} className="mt-4">
-                        Back to Agency
+                        {t('AgenticPropertyDetailsPage.notFound.backToAgency')}
                     </Button>
                 </div>
             </div>
@@ -134,11 +137,13 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                     </Button>
                     <div>
                         <h1 className="text-3xl font-bold">{agenticProperty.propertyName}</h1>
-                        <p className="text-gray-500 mt-1">{agency.agencyName} • Property Management</p>
+                        <p className="text-gray-500 mt-1">
+                            {agency.agencyName} • {t('AgenticPropertyDetailsPage.header.subtitle')}
+                        </p>
                     </div>
                 </div>
                 <Badge variant={agenticProperty.isActive ? 'default' : 'secondary'}>
-                    {agenticProperty.isActive ? 'Active' : 'Inactive'}
+                    {agenticProperty.isActive ? t('AgenticPropertyDetailsPage.header.active') : t('AgenticPropertyDetailsPage.header.inactive')}
                 </Badge>
             </div>
 
@@ -148,7 +153,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
                             <Building2 className="h-4 w-4" />
-                            Property Code
+                            {t('AgenticPropertyDetailsPage.cards.propertyCode')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -160,7 +165,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
                             <DollarSign className="h-4 w-4" />
-                            Commission
+                            {t('AgenticPropertyDetailsPage.cards.commission')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -176,7 +181,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
                             <Bed className="h-4 w-4" />
-                            Allocated Rooms
+                            {t('AgenticPropertyDetailsPage.cards.allocatedRooms')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -188,7 +193,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                     <CardHeader className="pb-3">
                         <CardTitle className="text-sm font-medium text-gray-500 flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
-                            Reservations
+                            {t('AgenticPropertyDetailsPage.cards.reservations')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -200,10 +205,10 @@ const AgenticPropertyDetailsPage: React.FC = () => {
             {/* Rooms Section */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>Allocated Rooms ({rooms.length})</CardTitle>
+                    <CardTitle>{t('AgenticPropertyDetailsPage.roomsSection.title', { count: rooms.length })}</CardTitle>
                     <Button onClick={() => setIsAddRoomsOpen(true)}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Add Rooms
+                        {t('AgenticPropertyDetailsPage.roomsSection.addRooms')}
                     </Button>
                 </CardHeader>
                 <CardContent>
@@ -211,10 +216,10 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Room Type</TableHead>
-                                    <TableHead>Room Name</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Availability</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.roomsSection.tableHead.roomType')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.roomsSection.tableHead.roomName')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.roomsSection.tableHead.status')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.roomsSection.tableHead.availability')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -224,7 +229,9 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                                         <TableCell>{room.roomName}</TableCell>
                                         <TableCell>
                                             <Badge variant={room.isActive ? 'default' : 'secondary'}>
-                                                {room.isActive ? 'Active' : 'Inactive'}
+                                                {room.isActive
+                                                    ? t('AgenticPropertyDetailsPage.roomsSection.active')
+                                                    : t('AgenticPropertyDetailsPage.roomsSection.inactive')}
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
@@ -234,7 +241,9 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                                                     onCheckedChange={() => handleRoomAvailabilityToggle(room.id, room.isActive)}
                                                 />
                                                 <span className="text-sm text-gray-500">
-                                                    {room.isActive ? 'Available' : 'Unavailable'}
+                                                    {room.isActive
+                                                        ? t('AgenticPropertyDetailsPage.roomsSection.available')
+                                                        : t('AgenticPropertyDetailsPage.roomsSection.unavailable')}
                                                 </span>
                                             </div>
                                         </TableCell>
@@ -244,7 +253,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                         </Table>
                     ) : (
                         <div className="text-center py-8 text-gray-500">
-                            No rooms allocated yet. Click "Add Rooms" to assign rooms to this property.
+                            {t('AgenticPropertyDetailsPage.roomsSection.noRooms')}
                         </div>
                     )}
                 </CardContent>
@@ -253,20 +262,20 @@ const AgenticPropertyDetailsPage: React.FC = () => {
             {/* Reservations Section */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Reservations</CardTitle>
+                    <CardTitle>{t('AgenticPropertyDetailsPage.reservationsSection.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {reservations.length > 0 ? (
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Booking ID</TableHead>
-                                    <TableHead>Guest Name</TableHead>
-                                    <TableHead>Room</TableHead>
-                                    <TableHead>Check-in</TableHead>
-                                    <TableHead>Check-out</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Amount</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.reservationsSection.tableHead.bookingId')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.reservationsSection.tableHead.guestName')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.reservationsSection.tableHead.room')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.reservationsSection.tableHead.checkIn')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.reservationsSection.tableHead.checkOut')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.reservationsSection.tableHead.status')}</TableHead>
+                                    <TableHead>{t('AgenticPropertyDetailsPage.reservationsSection.tableHead.amount')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -289,7 +298,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                         </Table>
                     ) : (
                         <div className="text-center py-8 text-gray-500">
-                            No reservations yet
+                            {t('AgenticPropertyDetailsPage.reservationsSection.noReservations')}
                         </div>
                     )}
                 </CardContent>

@@ -1,14 +1,11 @@
 import { PropertyWishList } from '../repository';
 import { IApiResponse, successResponse, errorResponse } from '../../../utils';
-import { OtaUserRepository } from '../../user/repository';
 import { IRoomWishlistWRooms } from '../types';
 export class PropertyWishService {
     private propertyWishList: PropertyWishList;
-    private otaUserRepository: OtaUserRepository;
 
     constructor() {
         this.propertyWishList = new PropertyWishList();
-        this.otaUserRepository = new OtaUserRepository();
     }
 
     public async addToWishlist(

@@ -181,13 +181,15 @@ export class NewReservationService {
                 primaryGuestId = newGuest.id;
             }
 
-            const [bookingCode, loyalityGuestRepo, rateplan, propertyConfig] =
+            const [bookingCode, 
+                // loyalityGuestRepo,
+                 rateplan, propertyConfig] =
                 await Promise.all([
                     await this.generateBookingCode(propertyCode),
-                    await this.loyalityGuestRepo.addGuestTOLoyalty(
-                        bookingUserEmail,
-                        primaryGuestId
-                    ),
+                    // await this.loyalityGuestRepo.addGuestTOLoyalty(
+                    //     bookingUserEmail,
+                    //     primaryGuestId
+                    // ),
                     await this.ariManupulationRepo.getRatePlanName(
                         ratePlanCode,
                         propertyDetails.id

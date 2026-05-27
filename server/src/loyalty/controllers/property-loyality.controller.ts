@@ -269,7 +269,7 @@ export class PropertyLoyalityController {
         }
     }
 
-    public async getActiveLoyaltyConfigByPropertyId(
+    public async    getActiveLoyaltyConfigByPropertyId(
         req: CustomRequest,
         res: Response
     ): Promise<Response> {

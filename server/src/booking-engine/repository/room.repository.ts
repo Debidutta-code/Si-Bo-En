@@ -22,7 +22,6 @@ export class RoomBookingRepository {
                                 loyaltyConditions: true,
                                 loyaltySpecialConditions: true,
                                 LoyaltyProgramFieldConfig: true,
-                                AdvanceLoyaltyProgram: true,
                                 PropertyLoyaltyConfig: true,
                             },
                         },

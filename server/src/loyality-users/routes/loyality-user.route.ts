@@ -7,16 +7,6 @@ const loyalityUserController = new LoyalityUserController();
 
 loyalityGuestRouter.use('/verification', verificationRouter);
 
-loyalityGuestRouter
-    .route('/login')
-    .post(loyalityUserController.loginUser.bind(loyalityUserController));
-loyalityGuestRouter
-    .route('/login-with-email')
-    .post(loyalityUserController.loginWithEmail.bind(loyalityUserController));
-loyalityGuestRouter
-    .route('/update-password')
-    .patch(loyalityUserController.updatePassword.bind(loyalityUserController));
-
 // Protected: reads loyaltyToken cookie via loyaltyProtect middleware
 loyalityGuestRouter
     .route('/me')

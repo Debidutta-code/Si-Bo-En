@@ -30,49 +30,20 @@ export class CreationGuestRepository {
         }
     }
     public async checkIfGuestExist(
-        propertyId: string,
+        creationLoyaltyConfigId: string,
         customerId: string
     ): Promise<ICreationLoyaltyGuest | null> {
         try {
             return await prisma.creationGuest.findUnique({
                 where: {
                     creationLoyaltyConfigId_customerId: {
-                        creationLoyaltyConfigId: propertyId,
+                        creationLoyaltyConfigId: creationLoyaltyConfigId,
                         customerId,
                     },
                 },
             });
         } catch (error) {
             throw new Error('Failed to check if guest registered for property');
-        }
-    }
-    public async guestExistForProperty(
-        propertyLoyalityId: string,
-        customerId: string
-    ): Promise<IPropertyLoyalityGuest | null> {
-        try {
-            return await prisma.propertyLoyalityGuests.findUnique({
-                where: {
-                    propertyLoyalityId_customerId: {
-                        propertyLoyalityId,
-                        customerId,
-                    },
-                },
-            });
-        } catch (error) {
-            throw new Error('Failed to check if guest registered for property');
-        }
-    }
-    public async createPropertyLoyaltyGuest(data: {
-        propertyLoyalityId: string;
-        customerId: string;
-    }): Promise<IPropertyLoyalityGuest> {
-        try {
-            return await prisma.propertyLoyalityGuests.create({
-                data,
-            });
-        } catch (error) {
-            throw new Error('Failed to create property loyalty guest');
         }
     }
 }

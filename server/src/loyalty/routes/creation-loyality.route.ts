@@ -8,7 +8,6 @@ const router = Router();
 // Initialize controller
 const creationLoyalityController = new CreationLoyalityController();
 
-// ===== Creation Loyalty Routes =====
 router
     .route('/')
     .post(
@@ -48,13 +47,13 @@ router
         )
     );
 
-router
-    .route('/with-property/:creationId')
-    .get(
-        protect,
-        creationLoyalityController.getAllCreationLoyalityWithProperty.bind(
-            creationLoyalityController
-        )
-    );
+// router
+//     .route('/with-property/:creationId')
+//     .get(
+//         protect,
+//         creationLoyalityController.getAllCreationLoyalityWithProperty.bind(
+//             creationLoyalityController
+//         )
+//     );
 
 export default router;

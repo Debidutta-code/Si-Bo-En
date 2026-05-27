@@ -23,6 +23,7 @@ import type { IAgency, AgencyType, AgentCommissionType } from '../interfaces';
 import { Loader2 } from 'lucide-react';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
 import { currencies } from '@/components/currency-code/cuurency';
+import { useTranslation } from 'react-i18next';
 
 interface EditAgencyDialogProps {
   open: boolean;
@@ -37,6 +38,8 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
   agency,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
+
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<IAgency>(agency);
 
@@ -61,15 +64,15 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Agency</DialogTitle>
-          <DialogDescription>Update agency information.</DialogDescription>
+          <DialogTitle>{t('EditAgencyDialog.title')}</DialogTitle>
+          <DialogDescription>{t('EditAgencyDialog.description')}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             {/* Agency Name */}
             <div className="grid gap-2">
-              <Label htmlFor="agencyName">Agency Name *</Label>
+              <Label htmlFor="agencyName">{t('EditAgencyDialog.form.agencyName')} *</Label>
               <Input
                 id="agencyName"
                 value={formData.agencyName}
@@ -80,7 +83,7 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
 
             {/* Agency Type */}
             <div className="grid gap-2">
-              <Label htmlFor="agencyType">Agency Type *</Label>
+              <Label htmlFor="agencyType">{t('EditAgencyDialog.form.agencyType')} *</Label>
               <Select
                 value={formData.agencyType}
                 onValueChange={(value: AgencyType) => setFormData({ ...formData, agencyType: value })}
@@ -89,8 +92,8 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="travel_agency">Travel Agency</SelectItem>
-                  <SelectItem value="corporate">Corporate</SelectItem>
+                  <SelectItem value="travel_agency">{t('EditAgencyDialog.form.agencyTypeOptions.travelAgency')}</SelectItem>
+                  <SelectItem value="corporate">{t('EditAgencyDialog.form.agencyTypeOptions.corporate')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -98,7 +101,7 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
             {/* Email and Contact */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="agencyEmail">Email *</Label>
+                <Label htmlFor="agencyEmail">{t('EditAgencyDialog.form.email')} *</Label>
                 <Input
                   id="agencyEmail"
                   type="email"
@@ -108,7 +111,7 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="contactNo">Contact Number *</Label>
+                <Label htmlFor="contactNo">{t('EditAgencyDialog.form.contactNumber')} *</Label>
                 <Input
                   id="contactNo"
                   value={formData.contactNo}
@@ -121,7 +124,7 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
             {/* Tax No and IATA Code */}
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="taxNo">Tax Number *</Label>
+                <Label htmlFor="taxNo">{t('EditAgencyDialog.form.taxNumber')} *</Label>
                 <Input
                   id="taxNo"
                   value={formData.taxNo}
@@ -130,7 +133,7 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="iataCode">IATA Code *</Label>
+                <Label htmlFor="iataCode">{t('EditAgencyDialog.form.iataCode')} *</Label>
                 <Input
                   id="iataCode"
                   value={formData.iataCode}
@@ -142,7 +145,7 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
 
             {/* Commission Type */}
             <div className="grid gap-2">
-              <Label htmlFor="commissionType">Commission Type *</Label>
+              <Label htmlFor="commissionType">{t('EditAgencyDialog.form.commissionType')} *</Label>
               <Select
                 value={formData.commissionType}
                 onValueChange={(value: AgentCommissionType) =>
@@ -153,8 +156,8 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="percentage">Percentage</SelectItem>
-                  <SelectItem value="fixed">Fixed Amount</SelectItem>
+                  <SelectItem value="percentage">{t('EditAgencyDialog.form.commissionTypeOptions.percentage')}</SelectItem>
+                  <SelectItem value="fixed">{t('EditAgencyDialog.form.commissionTypeOptions.fixed')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -163,7 +166,9 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="commissionValue">
-                  Commission Value * {formData.commissionType === 'percentage' ? '(%)' : ''}
+                  {formData.commissionType === 'percentage'
+                    ? t('EditAgencyDialog.form.commissionValuePercent')
+                    : `${t('EditAgencyDialog.form.commissionValue')} *`}
                 </Label>
                 <Input
                   id="commissionValue"
@@ -178,7 +183,7 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
               </div>
               {formData.commissionType === 'fixed' && (
                 <div className="space-y-2">
-                  <Label htmlFor="currencyCode">Currency Code</Label>
+                  <Label htmlFor="currencyCode">{t('EditAgencyDialog.form.currencyCode')}</Label>
                   <Select
                     value={formData.commissionCurrency || 'USD'}
                     onValueChange={(value: CurrencyCode) =>
@@ -202,7 +207,7 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
 
             {/* Address */}
             <div className="grid gap-2">
-              <Label htmlFor="address">Address *</Label>
+              <Label htmlFor="address">{t('EditAgencyDialog.form.address')} *</Label>
               <Textarea
                 id="address"
                 value={formData.address}
@@ -215,11 +220,11 @@ const EditAgencyDialog: React.FC<EditAgencyDialogProps> = ({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('EditAgencyDialog.footer.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Update Agency
+              {loading ? t('EditAgencyDialog.footer.updating') : t('EditAgencyDialog.footer.updateAgency')}
             </Button>
           </DialogFooter>
         </form>

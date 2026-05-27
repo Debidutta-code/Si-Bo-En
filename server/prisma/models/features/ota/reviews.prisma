@@ -20,5 +20,3 @@ model Review {
 
   @@map("customer_reviews")
 }
-
-//delete loyality_guests

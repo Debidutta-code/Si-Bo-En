@@ -76,6 +76,15 @@
     "november": "नवंबर",
     "december": "दिसंबर"
   },
+  "BookingStatus": {
+    "confirmed": "पुष्टि की गई",
+    "cancelled": "रद्द किया गया",
+    "pending": "लंबित",
+    "modified": "संशोधित",
+    "no_show": "नहीं आए",
+    "checked_in": "चेक-इन किया गया",
+    "checked_out": "चेक-आउट किया गया"
+  },
   "Navigation": {
     "dashboard": "डैशबोर्ड",
     "properties": "संपत्तियाँ",
@@ -531,7 +540,19 @@
     "manageYourHotelProperty": "अपने होटल संपत्ति और उसके प्रदर्शन का प्रबंधन करें",
     "completeYourPropertySetup": "प्रबंधन शुरू करने के लिए अपना संपत्ति सेटअप पूरा करें",
     "propertyConfiguration": "संपत्ति विन्यास",
-    "translations": "अनुवाद"
+    "translations": "अनुवाद",
+    "updatePropertyTitle": "प्रॉपर्टी अपडेट करें",
+    "updatePropertyDescription": "मूल प्रॉपर्टी विवरण अपडेट करें।",
+    "noUsersAssigned": "इस प्रॉपर्टी को अभी तक कोई उपयोगकर्ता असाइन नहीं किया गया है।",
+    "languageAdded": "भाषा जोड़ी गई",
+    "failedToAddLanguage": "भाषा जोड़ने में विफल",
+    "languageRemoved": "भाषा हटाई गई",
+    "failedToRemoveLanguage": "भाषा हटाने में विफल",
+    "noAdditionalLanguages": "अभी तक कोई अतिरिक्त भाषा नहीं जोड़ी गई है।",
+    "englishLanguage": "अंग्रेज़ी",
+    "editTranslationTitle": "प्रॉपर्टी अनुवाद संपादित करें",
+    "translationFieldName": "प्रॉपर्टी नाम",
+    "translationFieldNamePlaceholder": "उदाहरण: Hotel Sol"
   },
   "PropertySuper": {
     "title": "होटल और संपत्तियाँ",
@@ -1909,6 +1930,10 @@
     "allFieldsAdded": "सभी उपलब्ध फ़ील्ड पंजीकरण फॉर्म में जोड़ दिए गए हैं",
     "saveChanges": "परिवर्तन सहेजें",
     "field": "फ़ील्ड",
+      "guestName": "अतिथि का नाम",
+  "email": "ईमेल",
+  "guestLevel": "अतिथि स्तर",
+  "loyaltyFields": "लॉयल्टी फ़ील्ड्स",
     "visibleInRegistration": "पंजीकरण फॉर्म में दृश्यमान",
     "required": "आवश्यक",
     "noFieldsConfigured": "कोई फ़ील्ड उपलब्ध नहीं। कृपया पहले मास्टर पंजीकरण फ़ील्ड कॉन्फ़िगर करें।",
@@ -4554,6 +4579,317 @@
       "deletedSuccessfully": "सफलतापूर्वक हटा दिया गया",
       "failedToDelete": "हटाने में विफल",
       "anErrorOccurred": "एक त्रुटि हुई"
+    }
+  },
+  "PropertyConfigDialog": {
+    "title": "प्रॉपर्टी कॉन्फ़िगरेशन",
+    "description": "प्रॉपर्टी सेटिंग्स और इंटीग्रेशन अपडेट करें। केवल सुपर एडमिन ही इन सेटिंग्स को संशोधित कर सकता है।",
+    "switches": {
+      "channelManager": {
+        "label": "चैनल मैनेजर इंटीग्रेशन",
+        "description": "चैनल मैनेजर इंटीग्रेशन सक्षम करें"
+      },
+      "pmsIntegration": {
+        "label": "PMS इंटीग्रेशन",
+        "description": "PMS इंटीग्रेशन सक्षम करें"
+      },
+      "selfAri": {
+        "label": "सेल्फ ARI",
+        "description": "स्वयं उपलब्धता, दरें और इन्वेंटरी सक्षम करें"
+      },
+      "b2bAvailability": {
+        "label": "B2B उपलब्धता",
+        "description": "B2B बुकिंग चैनल सक्षम करें"
+      },
+      "b2cAvailability": {
+        "label": "B2C उपलब्धता",
+        "description": "B2C बुकिंग चैनल सक्षम करें"
+      },
+      "commission": {
+        "label": "कमीशन",
+        "description": "बुकिंग पर कमीशन सक्षम करें"
+      },
+      "showVideo": {
+        "label": "बुकिंग इंजन में वीडियो दिखाएँ",
+        "description": "बुकिंग इंजन में प्रॉपर्टी वीडियो दिखाने के लिए इसे सक्षम करें"
+      }
+    },
+    "partnerSections": {
+      "channelManager": "उपलब्ध चैनल मैनेजर पार्टनर्स",
+      "pms": "उपलब्ध PMS पार्टनर्स"
+    },
+    "form": {
+      "reservationResetTime": "आरक्षण रीसेट समय",
+      "reservationResetTimeHint": "वह समय जब दैनिक आरक्षण रीसेट होते हैं",
+      "timezone": "समय क्षेत्र",
+      "timezonePlaceholder": "समय क्षेत्र चुनें",
+      "currencyCode": "मुद्रा कोड"
+    },
+    "footer": {
+      "cancel": "रद्द करें",
+      "save": "कॉन्फ़िगरेशन सहेजें",
+      "saving": "सहेजा जा रहा है..."
+    }
+  },
+  "CreateAgencyDialog": {
+    "title": "नई एजेंसी बनाएँ",
+    "description": "सिस्टम में नई ट्रैवल एजेंसी या कॉर्पोरेट पार्टनर जोड़ें।",
+    "form": {
+      "agencyName": "एजेंसी का नाम",
+      "agencyType": "एजेंसी प्रकार",
+      "email": "ईमेल",
+      "contactNumber": "संपर्क नंबर",
+      "taxNumber": "कर संख्या",
+      "iataCode": "IATA कोड",
+      "commissionType": "कमीशन प्रकार",
+      "commissionValue": "कमीशन मूल्य",
+      "commissionValuePercent": "कमीशन मूल्य * (%)",
+      "currencyCode": "मुद्रा कोड",
+      "address": "पता",
+      "agencyTypeOptions": {
+        "travelAgency": "ट्रैवल एजेंसी",
+        "corporate": "कॉर्पोरेट"
+      },
+      "commissionTypeOptions": {
+        "percentage": "प्रतिशत",
+        "fixed": "निश्चित राशि"
+      }
+    },
+    "footer": {
+      "cancel": "रद्द करें",
+      "creating": "बनाया जा रहा है...",
+      "createAgency": "एजेंसी बनाएँ"
+    }
+  },
+  "AgencyDetailsPage": {
+    "loader": {
+      "loadingDetails": "एजेंसी विवरण लोड हो रहे हैं..."
+    },
+    "notFound": {
+      "message": "एजेंसी नहीं मिली",
+      "backToAgencies": "एजेंसियों पर वापस जाएँ"
+    },
+    "header": {
+      "subtitle": "एजेंसी विवरण और प्रबंधन",
+      "editAgency": "एजेंसी संपादित करें"
+    },
+    "cards": {
+      "agencyType": "एजेंसी प्रकार",
+      "commission": "कमीशन",
+      "properties": "प्रॉपर्टीज़",
+      "agents": "एजेंट्स",
+      "travelAgency": "ट्रैवल एजेंसी",
+      "corporate": "कॉर्पोरेट"
+    },
+    "contactInfo": {
+      "title": "संपर्क जानकारी",
+      "email": "ईमेल",
+      "contactNumber": "संपर्क नंबर",
+      "address": "पता",
+      "iataCode": "IATA कोड",
+      "taxNumber": "कर संख्या"
+    },
+    "agentsSection": {
+      "title": "एजेंट्स ({{count}})",
+      "manageAgents": "एजेंट्स प्रबंधित करें",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "viewAll": "सभी {{count}} एजेंट्स देखें",
+      "noAgents": "अभी तक कोई एजेंट असाइन नहीं किया गया"
+    },
+    "propertiesSection": {
+      "title": "असाइन की गई प्रॉपर्टीज़ ({{count}})",
+      "assignProperty": "प्रॉपर्टी असाइन करें",
+      "tableHead": {
+        "propertyName": "प्रॉपर्टी नाम",
+        "commission": "कमीशन",
+        "status": "स्थिति",
+        "actions": "क्रियाएँ"
+      },
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "viewDetails": "विवरण देखें",
+      "noProperties": "अभी तक कोई प्रॉपर्टी असाइन नहीं की गई"
+    },
+    "reservationsSection": {
+      "title": "हाल की बुकिंग्स",
+      "tableHead": {
+        "bookingId": "बुकिंग आईडी",
+        "guestName": "अतिथि का नाम",
+        "property": "प्रॉपर्टी",
+        "checkIn": "चेक-इन",
+        "checkOut": "चेक-आउट",
+        "status": "स्थिति"
+      },
+      "noReservations": "अभी तक कोई बुकिंग नहीं"
+    }
+  },
+  "AgencyAgentsPage": {
+    "loader": {
+      "loadingAgents": "एजेंट्स लोड हो रहे हैं..."
+    },
+    "notFound": {
+      "message": "एजेंसी नहीं मिली",
+      "backToAgencies": "एजेंसियों पर वापस जाएँ"
+    },
+    "header": {
+      "title": "एजेंट्स - {{agencyName}}",
+      "subtitle": "इस एजेंसी के एजेंट्स प्रबंधित करें",
+      "addAgent": "एजेंट जोड़ें"
+    },
+    "stats": {
+      "totalAgents": "कुल एजेंट्स",
+      "activeAgents": "सक्रिय एजेंट्स",
+      "inactiveAgents": "निष्क्रिय एजेंट्स"
+    },
+    "search": {
+      "placeholder": "नाम, ईमेल, या फोन द्वारा खोजें..."
+    },
+    "table": {
+      "agentName": "एजेंट का नाम",
+      "email": "ईमेल",
+      "phone": "फोन",
+      "status": "स्थिति",
+      "actions": "क्रियाएँ",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "noResultsSearch": "आपकी खोज से मेल खाने वाले कोई एजेंट नहीं मिले",
+      "noAgents": "अभी तक कोई एजेंट नहीं जोड़ा गया"
+    },
+    "tooltips": {
+      "editAgent": "एजेंट संपादित करें",
+      "deleteAgent": "एजेंट हटाएँ"
+    },
+    "deleteDialog": {
+      "title": "एजेंट हटाएँ",
+      "description": "क्या आप वाकई एजेंट \"{{agentName}}\" को हटाना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।"
+    }
+  },
+  "CreateAgentDialog": {
+    "title": "नया एजेंट बनाएँ",
+    "description": "इस एजेंसी में एक नया एजेंट जोड़ें। एजेंट को लॉगिन क्रेडेंशियल्स प्राप्त होंगे।",
+    "form": {
+      "agentName": "एजेंट का नाम",
+      "email": "ईमेल",
+      "phoneNumber": "फोन नंबर",
+      "password": "पासवर्ड"
+    },
+    "footer": {
+      "cancel": "रद्द करें",
+      "creating": "बनाया जा रहा है...",
+      "createAgent": "एजेंट बनाएँ"
+    }
+  },
+  "EditAgentDialog": {
+    "title": "एजेंट संपादित करें",
+    "description": "एजेंट की जानकारी अपडेट करें। वर्तमान पासवर्ड बनाए रखने के लिए पासवर्ड खाली छोड़ दें।",
+    "form": {
+      "agentName": "एजेंट का नाम",
+      "email": "ईमेल",
+      "phoneNumber": "फोन नंबर",
+      "newPassword": "नया पासवर्ड (वैकल्पिक)",
+      "passwordPlaceholder": "वर्तमान पासवर्ड बनाए रखने के लिए खाली छोड़ें"
+    },
+    "footer": {
+      "cancel": "रद्द करें",
+      "updating": "अपडेट किया जा रहा है...",
+      "updateAgent": "एजेंट अपडेट करें"
+    }
+  },
+  "AssignPropertyDialog": {
+    "title": "एजेंसी को प्रॉपर्टी असाइन करें",
+    "description": "इस एजेंसी को असाइन करने के लिए एक प्रॉपर्टी चुनें।",
+    "loader": {
+      "loadingProperties": "उपलब्ध प्रॉपर्टीज़ लोड हो रही हैं..."
+    },
+    "form": {
+      "selectProperty": "प्रॉपर्टी चुनें",
+      "noAvailableProperties": "असाइन करने के लिए कोई उपलब्ध प्रॉपर्टी नहीं है",
+      "selectPlaceholder": "एक प्रॉपर्टी चुनें",
+      "setAsActive": "सक्रिय के रूप में सेट करें"
+    },
+    "footer": {
+      "cancel": "रद्द करें",
+      "assigning": "असाइन किया जा रहा है...",
+      "assignProperty": "प्रॉपर्टी असाइन करें"
+    }
+  },
+  "EditAgencyDialog": {
+    "title": "एजेंसी संपादित करें",
+    "description": "एजेंसी की जानकारी अपडेट करें।",
+    "form": {
+      "agencyName": "एजेंसी का नाम",
+      "agencyType": "एजेंसी प्रकार",
+      "email": "ईमेल",
+      "contactNumber": "संपर्क नंबर",
+      "taxNumber": "कर संख्या",
+      "iataCode": "IATA कोड",
+      "commissionType": "कमीशन प्रकार",
+      "commissionValue": "कमीशन मूल्य",
+      "commissionValuePercent": "कमीशन मूल्य * (%)",
+      "currencyCode": "मुद्रा कोड",
+      "address": "पता",
+      "agencyTypeOptions": {
+        "travelAgency": "ट्रैवल एजेंसी",
+        "corporate": "कॉर्पोरेट"
+      },
+      "commissionTypeOptions": {
+        "percentage": "प्रतिशत",
+        "fixed": "निश्चित राशि"
+      }
+    },
+    "footer": {
+      "cancel": "रद्द करें",
+      "updating": "अपडेट किया जा रहा है...",
+      "updateAgency": "एजेंसी अपडेट करें"
+    }
+  },
+  "AgenticPropertyDetailsPage": {
+    "loader": {
+      "loadingDetails": "प्रॉपर्टी विवरण लोड हो रहे हैं..."
+    },
+    "notFound": {
+      "message": "प्रॉपर्टी नहीं मिली",
+      "backToAgency": "एजेंसी पर वापस जाएँ"
+    },
+    "header": {
+      "subtitle": "प्रॉपर्टी प्रबंधन",
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय"
+    },
+    "cards": {
+      "propertyCode": "प्रॉपर्टी कोड",
+      "commission": "कमीशन",
+      "allocatedRooms": "आवंटित कमरे",
+      "reservations": "आरक्षण"
+    },
+    "roomsSection": {
+      "title": "आवंटित कमरे ({{count}})",
+      "addRooms": "कमरे जोड़ें",
+      "tableHead": {
+        "roomType": "कमरे का प्रकार",
+        "roomName": "कमरे का नाम",
+        "status": "स्थिति",
+        "availability": "उपलब्धता"
+      },
+      "active": "सक्रिय",
+      "inactive": "निष्क्रिय",
+      "available": "उपलब्ध",
+      "unavailable": "अनुपलब्ध",
+      "noRooms": "अभी तक कोई कमरा आवंटित नहीं किया गया है। इस प्रॉपर्टी को कमरे असाइन करने के लिए \"कमरे जोड़ें\" पर क्लिक करें।"
+    },
+    "reservationsSection": {
+      "title": "हाल की बुकिंग्स",
+      "tableHead": {
+        "bookingId": "बुकिंग आईडी",
+        "guestName": "अतिथि का नाम",
+        "room": "कमरा",
+        "checkIn": "चेक-इन",
+        "checkOut": "चेक-आउट",
+        "status": "स्थिति",
+        "amount": "राशि"
+      },
+      "noReservations": "अभी तक कोई बुकिंग नहीं"
     }
   }
 }

@@ -1,6 +1,5 @@
 export {
     LoyalityProgramController,
-    AdvanceLoyaltyProgramController,
 } from './loyality-program.controller';
 export { LoyalityFieldController } from './loyality-field.controller';
 export {

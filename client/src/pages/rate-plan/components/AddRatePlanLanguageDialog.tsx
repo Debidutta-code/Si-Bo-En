@@ -33,7 +33,7 @@ export default function AddRatePlanLanguageDialog({
   onOpenChange,
   ratePlanId,
 }: AddRatePlanLanguageDialogProps) {
-  const { t } = useTranslation("AddRatePlanLanguageDialog");
+  const { t } = useTranslation();
 
   const [selectedLang, setSelectedLang] = useState("");
   const [ratePlanName, setRatePlanName] = useState("");
