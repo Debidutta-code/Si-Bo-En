@@ -3,9 +3,9 @@
     "home": "الرئيسية",
     "services": "الخدمات",
     "contactUs": "اتصل بنا",
-    "partnerLogin": "تسجيل دخول الشريك",
+    "partnerLogin": "تسجيل دخول الشركاء",
     "myBooking": "حجزي",
-    "loyaltyGuestLogin": "تسجيل دخول ضيف الولاء",
+    "loyaltyGuestLogin": "تسجيل دخول الضيوف المميزين",
     "becomApartner": "كن شريكاً",
     "customerLogin": "تسجيل الدخول",
     "myBookings": "حجوزاتي",
@@ -14,60 +14,60 @@
     "spa": "السبا"
   },
   "Hero": {
-    "title": "اعثر على مكانك القادم للزيارة",
-    "subtitle": "اكتشف أماكن رائعة بأسعار حصرية"
+    "title": "ابحث عن وجهتك القادمة",
+    "subtitle": "اكتشف أماكن رائعة بعروض حصرية"
   },
   "SearchWidget": {
-    "checkIn": "تسجيل الوصول",
-    "checkOut": "تسجيل المغادرة",
+    "checkIn": "تاريخ الوصول",
+    "checkOut": "تاريخ المغادرة",
     "checkOutSelect": "اختر",
-    "occupancy": "الإشغال",
-    "promoCode": "رمز الخصم",
+    "occupancy": "عدد السكان",
+    "promoCode": "رمز العرض الترويجي",
     "bookNow": "احجز الآن",
-    "loading": "جارٍ التحميل...",
-    "errorDates": "يرجى اختيار تواريخ وصول ومغادرة صحيحة.",
+    "loading": "جاري التحميل...",
+    "errorDates": "يرجى تحديد تاريخي الوصول والمغادرة بشكل صحيح.",
     "errorCheckOut": "يجب أن يكون تاريخ المغادرة بعد تاريخ الوصول."
   },
   "Services": {
     "hero": {
-      "title": "أطلق العنان لكامل\nإمكاناتك الإيرادية",
-      "description": "إذا كنت مستعداً لتقليل العمولات الباهظة وزيادة الحجوزات المباشرة وضمان النجاح طويل الأمد لفندقك، فتشارك معنا واتخذ الخطوة التالية نحو مستقبل مستدام في قطاع الضيافة.",
-      "contactUs": "تواصل معنا"
+      "title": "أطلق العنان لإمكاناتك\nالكاملة للإيرادات",
+      "description": "إذا كنت مستعداً لخفض العمولات الباهظة، وزيادة الحجوزات المباشرة، وضمان النجاح طويل الأمد لفندقك، فاشترك معنا واتخذ الخطوة التالية نحو أعمال ضيافة مستقبلية.",
+      "contactUs": "اتصل بنا"
     },
     "section": {
       "title": "خدماتنا",
-      "subtitle": "انغمس في عصر جديد من حلول الضيافة معنا",
-      "consultBtn": "استشر معنا"
+      "subtitle": "انطلق معنا في عصر جديد من حلول الضيافة",
+      "consultBtn": "استشرنا"
     },
     "items": {
       "digitalMarketing": {
         "title": "التسويق الرقمي",
-        "description": "نصمم استراتيجيات تسويقية مخصصة تبرز عروضك الفريدة وتدفع الضيوف للحجز مباشرةً عبر موقعك — مما يعزز الحجوزات ويقلل الاعتماد على المنصات الخارجية."
+        "description": "نصمم استراتيجيات تسويقية مخصصة تبرز عروضك الفريدة وتدفع الضيوف للحجز مباشرة عبر موقعك الإلكتروني، مما يعزز الحجوزات ويقلل الاعتماد على المنصات الخارجية."
       },
       "webDesign": {
         "title": "تصميم المواقع",
-        "description": "موقعك الإلكتروني هو هويتك على الإنترنت. الموقع المُحسَّن والمتوافق مع الجوال هو الخطوة الأولى نحو السيطرة على أعمالك الرقمية وتحويل الزوار إلى حجوزات."
+        "description": "موقعك الإلكتروني هو هويتك الرقمية. الموقع المحسّن والمتوافق مع الجوال هو الخطوة الأولى للسيطرة على أعمالك الرقمية وتحويل الزوار إلى حجوزات."
       },
       "loyaltyProgram": {
         "title": "برنامج الولاء",
-        "description": "اجعل الولاء ميزتك التنافسية. قدم مزايا مضافة للعملاء المسجلين وميّز علامتك التجارية عن المنافسين."
+        "description": "حوّل الولاء إلى ميزتك التنافسية. قدم مزايا ذات قيمة مضافة للعملاء المسجلين وميز علامتك التجارية عن المنافسين."
       },
       "bookingEngine": {
-        "title": "محرك الحجز",
-        "description": "عزز الحجوزات المباشرة بمحرك حجز متكامل مع نظام إدارة الممتلكات. آمن ومتوافق مع الجوال ومُحسَّن للتحويل."
+        "title": "محرك الحجوزات",
+        "description": "عزز الحجوزات المباشرة من خلال محرك الحجوزات المدمج لدينا والمتكامل مع نظام إدارة الممتلكات الخاص بك. آمن، متوافق مع الجوال، ومحسن لزيادة التحويلات."
       },
       "aiChatbot": {
-        "title": "روبوت المحادثة الذكي",
-        "description": "تفاعل مع الضيوف بذكاء. وجّه الطلبات وحوّل العملاء المحتملين وأثرِ بيانات CRM وزد الحجوزات المباشرة."
+        "title": "الدردشة الآلية بالذكاء الاصطناعي",
+        "description": "تفاعل مع الضيوف بذكاء باستخدام الذكاء الاصطناعي. قم بتوجيه الطلبات، وتحويل العملاء المحتملين، وإثراء بيانات إدارة علاقات العملاء، وزيادة الحجوزات المباشرة."
       },
       "distributionManagement": {
         "title": "إدارة التوزيع",
-        "description": "عظّم العائد على الاستثمار والكفاءة. أدر مهام الإيرادات اليومية وحافظ على قنوات توزيع صحية وعزز الحضور الإلكتروني لفندقك."
+        "description": "عزز العائد على الاستثمار والكفاءة. أدر مهام الإيرادات اليومية، وحافظ على قنوات توزيع سليمة، وعزز الوجود الرقمي لفندقك."
       }
     },
     "cta": {
-      "title": "شريكك الموثوق في نجاح الحجز المباشر",
-      "description": "قلّل تكاليف العمولات وزد أرباحك بالانضمام إلى RevChill اليوم.",
+      "title": "شريكك الموثوق في نجاح الحجوزات المباشرة",
+      "description": "اخفض تكاليف العمولات وزد أرباحك من خلال الانضمام إلى RevChill اليوم.",
       "btn": "احصل على استشارة مجانية"
     },
     "footer": {
@@ -76,121 +76,121 @@
       "email": "البريد الإلكتروني",
       "emailAddress": "info@revchill.com",
       "follow": "تابعنا",
-      "copyright": "©2020 بواسطة RevChill"
+      "copyright": "©2020 RevChill. جميع الحقوق محفوظة"
     }
   },
   "Rooms": {
     "urgencyBanner": {
       "title": "ستحصل على أفضل سعر متاح إذا حجزت الآن!",
-      "subtitle": "قد ترتفع الأسعار في أي لحظة. لا تنتظر أكثر!"
+      "subtitle": "الأسعار قد ترتفع في أي لحظة. لا تنتظر أكثر!"
     },
     "videoOverlay": "جولة في العقار",
-    "searchingRooms": "جارٍ البحث عن الغرف...",
+    "searchingRooms": "جاري البحث عن الغرف...",
     "noRoomsHotel": "لا توجد غرف متاحة لهذا الفندق.",
     "noRooms": "لا توجد غرف متاحة",
-    "failedToLoad": "فشل تحميل الغرف.",
-    "somethingWentWrong": "حدث خطأ أثناء جلب الغرف.",
+    "failedToLoad": "فشل في تحميل الغرف.",
+    "somethingWentWrong": "حدث خطأ ما أثناء جلب بيانات الغرف.",
     "modal": {
       "title": "الشروط",
-      "description": "ميزة حصرية للحجوزات المُجراة عبر الموقع الرسمي",
+      "description": "ميزة حصرية للحجوزات التي تتم عبر الموقع الرسمي",
       "guarantee": {
         "title": "ضمان أفضل سعر",
-        "description": "نضمن أنك لن تجد سعراً أقل لنفس الغرفة والتواريخ والشروط في أي مكان آخر على الإنترنت."
+        "description": "نحن نضمن أنك لن تجد سعراً أقل لنفس الغرفة، والتواريخ، والشروط في أي مكان آخر عبر الإنترنت."
       },
-      "keyConditions": "الشروط الرئيسية:",
+      "keyConditions": "الشروط الأساسية:",
       "conditions": {
-        "one": "الأسعار قابلة للتغيير وقد ترتفع في أي وقت",
+        "one": "الأسعار قابلة للتغيير وقد تزيد في أي وقت",
         "two": "خصومات الحجز المبكر متاحة فقط عبر موقعنا الرسمي",
-        "three": "التوفر محدود - قد تنفد الغرف بسرعة",
-        "four": "العروض الخاصة حصرية للحجوزات المباشرة",
+        "three": "توفر محدود - قد تنفد الغرف بسرعة",
+        "four": "العروض الترويجية الخاصة حصرية للحجوزات المباشرة",
         "five": "سياسات الإلغاء المرنة تنطبق فقط على حجوزات الموقع الرسمي"
       },
       "note": "ملاحظة:",
-      "noteText": "الحجز عبر مواقع أو وكلاء خارجيين قد يؤدي إلى أسعار أعلى ومزايا أقل."
+      "noteText": "الحجز عبر مواقع الطرف الثالث أو الوكلاء قد يؤدي إلى أسعار أعلى ومزايا أقل."
     }
   },
   "LoyaltyBanner": {
-    "verifying": "جارٍ التحقق...",
+    "verifying": "جاري التحقق...",
     "loyaltyProgram": "برنامج الولاء",
     "basic": "أساسي",
     "premium": "مميز",
     "programTerms": "شروط البرنامج",
-    "specialBenefits": "المزايا الخاصة",
+    "specialBenefits": "مزايا خاصة",
     "logoutSuccess": "تم تسجيل الخروج من برنامج الولاء بنجاح",
     "modal": {
-      "join": "انضم إلى",
-      "registerTo": "سجّل للحصول على",
+      "join": "انضم",
+      "registerTo": "سجل لتحصل على",
       "onAllBookings": "على جميع الحجوزات",
       "discount": "خصم",
-      "autoApplied": "يُطبَّق تلقائياً على كل حجز",
+      "autoApplied": "يُطبق تلقائياً على كل حجز",
       "emailLabel": "البريد الإلكتروني",
-      "emailPlaceholder": "example@email.com",
+      "emailPlaceholder": "بريدك@example.com",
       "passwordLabel": "كلمة المرور",
-      "passwordPlaceholder": "Password@123",
+      "passwordPlaceholder": "كلمة المرور@123",
       "cancel": "إلغاء",
-      "registering": "جارٍ التسجيل...",
-      "signUp": "إنشاء حساب",
+      "registering": "جاري التسجيل...",
+      "signUp": "اشتراك",
       "emailRequired": "البريد الإلكتروني مطلوب",
       "failedToRegister": "فشل التسجيل في برنامج الولاء",
-      "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو في برنامج الولاء.",
+      "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو ولاء.",
       "registerSuccess": "تم التسجيل في برنامج الولاء بنجاح!",
       "failedRetry": "فشل التسجيل. يرجى المحاولة مرة أخرى."
     }
   },
   "LoyaltyContainer": {
-    "verifying": "جارٍ التحقق...",
-    "membersDiscount": "خصم حصري للأعضاء",
+    "verifying": "جاري التحقق...",
+    "membersDiscount": "خصم للأعضاء فقط",
     "joinProgram": "انضم للبرنامج",
     "loyaltyDiscount": "خصم الولاء",
     "activeMember": "عضو نشط",
-    "logout": "تسجيل الخروج",
+    "logout": "تسجيل خروج",
     "areYouRegistered": "هل أنت مسجل؟",
-    "identifyYourself": "عرّف عن نفسك",
+    "identifyYourself": "عرّف بنفسك",
     "logoutSuccess": "تم تسجيل الخروج من برنامج الولاء بنجاح",
     "modal": {
-      "join": "انضم إلى",
-      "registerTo": "سجّل للحصول على",
-      "offOnAllBookings": "خصم على جميع الحجوزات",
+      "join": "انضم",
+      "registerTo": "سجل لتحصل على",
+      "offOnAllBookings": "خصماً على جميع الحجوزات",
       "discount": "خصم",
-      "autoApplied": "يُطبَّق تلقائياً على كل حجز",
+      "autoApplied": "يُطبق تلقائياً على كل حجز",
       "emailLabel": "البريد الإلكتروني",
-      "emailPlaceholder": "example@email.com",
+      "emailPlaceholder": "بريدك@example.com",
       "cancel": "إلغاء",
-      "registering": "جارٍ التسجيل...",
-      "signUp": "إنشاء حساب",
+      "registering": "جاري التسجيل...",
+      "signUp": "اشتراك",
       "emailRequired": "البريد الإلكتروني مطلوب",
       "failedToRegister": "فشل التسجيل في برنامج الولاء",
-      "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو في برنامج الولاء.",
+      "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو ولاء.",
       "registerSuccess": "تم التسجيل في برنامج الولاء بنجاح!",
       "failedRetry": "فشل التسجيل. يرجى المحاولة مرة أخرى."
     }
   },
   "RoomCard": {
-    "guests": "ضيوف",
+    "guests": "الضيوف",
     "bookingConditions": "شروط الحجز ←",
-    "offersApplied": "عرض(عروض) مطبّق",
+    "offersApplied": "العروض المطبقة",
     "available": "متاح",
     "promotionalRate": "سعر ترويجي",
     "specialOffersAvailable": "عروض خاصة متاحة",
     "specialOfferAvailable": "عرض خاص متاح",
-    "offersSelected": "عرض(عروض) محدد — سيُطبَّق عند الدفع",
-    "taxNotIncluded": "الضريبة غير مشمولة",
-    "unlock": "افتح",
+    "offersSelected": "عرض(عروض) مختارة — سيتم تطبيقها عند الدفع",
+    "taxNotIncluded": "الضرائب غير مشمولة",
+    "unlock": "فتح",
     "basePrice": "السعر الأساسي",
-    "perNight": "لكل ليلة",
-    "autoAppliedDiscounts": "خصومات مطبّقة تلقائياً",
+    "perNight": "لليلة",
+    "autoAppliedDiscounts": "الخصومات المطبقة تلقائياً",
     "includedAddons": "الإضافات المشمولة",
-    "add": "أضف",
-    "loading": "جارٍ التحميل...",
+    "add": "إضافة",
+    "loading": "جاري التحميل...",
     "roomOnly": "غرفة فقط",
-    "onlyRoomsLeft": "{{count}} غرفة متبقية فقط!",
-    "onlyRoomsLeftPlural": "{{count}} غرف متبقية فقط!",
+    "onlyRoomsLeft": "تبقت {{count}} غرفة فقط!",
+    "onlyRoomsLeftPlural": "تبقت {{count}} غرف فقط!",
     "touristTax": {
       "notIncluded": "غير مشمولة",
-      "paidAtHotel": "غير مشمولة في سعر الغرفة — تُدفع مباشرةً في الفندق."
+      "paidAtHotel": " في سعر الغرفة — سيتم دفعها مباشرة في الفندق."
     },
     "promotions": {
-      "minNightStay": "إقامة لا تقل عن {{count}} ليلة",
+      "minNightStay": "الحد الأدنى للإقامة {{count}} ليلة",
       "deviceExclusive": "عرض حصري للجهاز",
       "bookDaysInAdvance": "احجز قبل {{count}} يوماً",
       "specialOffer": "عرض خاص",
@@ -198,34 +198,34 @@
     },
     "errors": {
       "somethingWentWrong": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
-      "failedToFetchPrice": "فشل جلب السعر. يرجى المحاولة مرة أخرى."
+      "failedToFetchPrice": "فشل في جلب السعر. يرجى المحاولة مرة أخرى."
     }
   },
   "Footer": {
     "defaultAddress": "دبي، الإمارات العربية المتحدة",
     "recaptcha": {
-      "text": "هذا الموقع محمي بواسطة reCAPTCHA و",
+      "text": "هذا الموقع محمي بواسطة reCAPTCHA وتطبق",
       "privacyPolicy": "سياسة الخصوصية",
       "and": "و",
       "termsOfService": "شروط الخدمة",
-      "apply": "من Google."
+      "apply": "لـ Google."
     },
-    "poweredBy": "مشغَّل بواسطة"
+    "poweredBy": "مدعوم من"
   },
   "AddonModal": {
     "title": "حسّن إقامتك",
-    "subtitle": "اختر إضافات اختيارية لتجعل إقامتك أكثر تميزاً",
+    "subtitle": "اختر إضافات اختيارية لجعل إقامتك أكثر تميزاً",
     "noAddons": "لا توجد إضافات متاحة للتواريخ المحددة",
-    "each": "للواحدة",
+    "each": "لكل",
     "showLess": "عرض أقل",
-    "seeMoreAddons": "عرض {{count}} إضافات أخرى",
-    "noAddonsSelected": "لم يتم اختيار إضافات",
-    "addonsSelected": "إضافة محددة",
-    "addonsSelectedPlural": "إضافات محددة",
+    "seeMoreAddons": "عرض {{count}} إضافات إضافية",
+    "noAddonsSelected": "لم يتم اختيار أي إضافات",
+    "addonsSelected": "إضافة واحدة محددة",
+    "addonsSelectedPlural": "{{count}} إضافات محددة",
     "skip": "تخطي",
     "continue": "متابعة",
-    "continueWith": "المتابعة مع {{count}} إضافة",
-    "continueWithPlural": "المتابعة مع {{count}} إضافات"
+    "continueWith": "متابعة مع {{count}} إضافة",
+    "continueWithPlural": "متابعة مع {{count}} إضافات"
   },
   "GuestForm": {
     "title": "أكمل حجزك",
@@ -236,33 +236,33 @@
     "lastName": "اسم العائلة",
     "lastNamePlaceholder": "اسم العائلة",
     "dateOfBirth": "تاريخ الميلاد",
-    "contactInfo": "معلومات التواصل",
+    "contactInfo": "معلومات الاتصال",
     "loyaltyMember": "عضو الولاء",
     "emailLabel": "البريد الإلكتروني",
-    "emailPlaceholder": "your@email.com",
+    "emailPlaceholder": "بريدك@example.com",
     "primary": "أساسي",
     "optional": "اختياري",
-    "emailConfirmation": "سيتم إرسال تأكيد حجزك هنا",
-    "loyaltyDiscountPercent": "سيتم تطبيق خصم الولاء {{value}}%",
-    "loyaltyDiscountFlat": "سيتم تطبيق خصم الولاء {{currency}} {{value}}",
+    "emailConfirmation": "سيتم إرسال تأكيد حجزك إلى هذا البريد",
+    "loyaltyDiscountPercent": "سيتم تطبيق خصم ولاء بنسبة {{value}}%",
+    "loyaltyDiscountFlat": "سيتم تطبيق خصم ولاء بقيمة {{currency}} {{value}}",
     "phoneLabel": "رقم الهاتف",
     "phonePlaceholder": "أدخل رقم الهاتف",
-    "phoneNote": "يُستخدم للإشعارات المتعلقة بالحجز",
+    "phoneNote": "سيتم استخدامه لإشعارات متعلقة بالحجز",
     "priceDetails": "تفاصيل السعر",
-    "dailyBreakdown": "التفصيل اليومي",
+    "dailyBreakdown": "تفصيل يومي",
     "room": "غرفة",
     "baseRate": "السعر الأساسي:",
     "additional": "إضافي:",
     "taxFees": "الضرائب والرسوم:",
     "addons": "الإضافات:",
     "dayTotal": "إجمالي اليوم:",
-    "subtotalBeforeTax": "المجموع قبل الضريبة:",
-    "amountToBePaidAtHotel": "المبلغ المطلوب دفعه في الفندق:",
+    "subtotalBeforeTax": "المجموع الفرعي (قبل الضريبة):",
+    "amountToBePaidAtHotel": "المبلغ المستحق الدفع في الفندق:",
     "amountAfterTax": "المبلغ بعد الضريبة:",
     "totalTax": "إجمالي الضريبة:",
-    "grandTotal": "الإجمالي الكلي:",
+    "grandTotal": "المجموع الكلي:",
     "baseAmount": "المبلغ الأساسي (قبل الضريبة):",
-    "additionalGuestCharges": "رسوم إضافية للضيوف:",
+    "additionalGuestCharges": "رسوم الضيوف الإضافيين:",
     "addonsLabel": "الإضافات:",
     "totalAddons": "إجمالي الإضافات:",
     "included": "مشمول",
@@ -270,33 +270,33 @@
     "children": "أطفال",
     "childrenAddon": "{{name}} (أطفال)",
     "promotions": "العروض والتعديلات:",
-    "payAtHotel": "(تُدفع في الفندق)",
+    "payAtHotel": "(الدفع في الفندق)",
     "loyaltyDiscount": "خصم الولاء:",
-    "promoCodeDiscount": "خصم رمز الترويج:",
+    "promoCodeDiscount": "خصم الرمز الترويجي:",
     "taxesAndFees": "الضرائب والرسوم:",
-    "amountPaidLater": "المبلغ المدفوع لاحقاً:",
-    "amountPaidNow": "المبلغ المدفوع الآن:",
+    "amountPaidLater": "المبلغ الواجب دفعه لاحقاً:",
+    "amountPaidNow": "المبلغ الواجب دفعه الآن:",
     "includesAllTaxes": "يشمل جميع الضرائب والرسوم",
-    "proceedToPayment": "المتابعة للدفع",
-    "processing": "جارٍ المعالجة...",
+    "proceedToPayment": "المتابعة إلى الدفع",
+    "processing": "جاري المعالجة...",
     "cancel": "إلغاء",
-    "roomCharges": "إجمالي تكلفة الغرفة",
-    "discountsApplied": "إجمالي الخصومات",
-    "payLater": "الدفع في الفندق",
-    "validationError": "يرجى تقديم جميع المعلومات الضرورية قبل المتابعة",
+    "roomCharges": "إجمالي رسوم الغرفة",
+    "discountsApplied": "إجمالي الخصومات المطبقة",
+    "payLater": "ادفع في الفندق",
+    "validationError": "يرجى تقديم جميع المعلومات اللازمة قبل المتابعة",
     "somethingWentWrong": "حدث خطأ ما، يرجى المحاولة مرة أخرى.",
     "errors": {
       "firstNameRequired": "الاسم الأول مطلوب.",
-      "invalidName": "صيغة الاسم غير صحيحة.",
+      "invalidName": "صيغة الاسم غير صالحة.",
       "lastNameRequired": "اسم العائلة مطلوب.",
       "emailRequired": "البريد الإلكتروني مطلوب.",
-      "invalidEmail": "عنوان البريد الإلكتروني غير صحيح.",
+      "invalidEmail": "عنوان البريد الإلكتروني غير صالح.",
       "phoneRequired": "رقم الهاتف مطلوب.",
       "invalidPhone": "يجب أن يتكون رقم الهاتف من 5 إلى 15 رقماً."
     }
   },
   "Payment": {
-    "loadingPayment": "جارٍ تحميل تفاصيل الدفع...",
+    "loadingPayment": "جاري تحميل تفاصيل الدفع...",
     "bookingSummary": "ملخص الحجز",
     "stayDates": "تواريخ الإقامة:",
     "guests": "الضيوف:",
@@ -311,62 +311,62 @@
     "nights": "ليالٍ",
     "choosePayment": "اختر طريقة الدفع",
     "noPaymentAvailable": "لا توجد طرق دفع متاحة",
-    "noPaymentContact": "يرجى التواصل مع الفندق مباشرةً لترتيبات الدفع.",
+    "noPaymentContact": "يرجى الاتصال بالفندق مباشرة لترتيبات الدفع.",
     "recommended": "موصى به",
     "notAvailable": "غير متاح",
     "payAtHotel": {
       "label": "الدفع في الفندق",
-      "description": "ادفع مباشرةً في العقار عند تسجيل الوصول",
-      "title": "الدفع في الفندق",
-      "info": "سيتم تأكيد حجزك ويمكنك الدفع مباشرةً في الفندق عند تسجيل الوصول. نقبل النقد والبطاقات والمدفوعات الرقمية في العقار.",
-      "noAdvance": "✓ لا يلزم دفع مسبق",
+      "description": "ادفع مباشرة في المنشأة عند تسجيل الوصول",
+      "title": "الدفع عند الوصول",
+      "info": "سيتم تأكيد حجزك ويمكنك الدفع مباشرة في الفندق أثناء تسجيل الوصول. نقبل النقد والبطاقات والمدفوعات الرقمية في المنشأة.",
+      "noAdvance": "✓ لا حاجة لدفع مقدم",
       "flexible": "✓ خيارات دفع مرنة"
     },
     "gateway": {
-      "label": "الدفع الإلكتروني",
+      "label": "الدفع عبر الإنترنت",
       "descriptionFikafi": "دفع آمن عبر بوابة Fikafi",
       "descriptionNgenius": "دفع آمن عبر بوابة Network International",
-      "descriptionDefault": "دفع إلكتروني آمن",
-      "fikafiTitle": "دفع إلكتروني آمن",
-      "fikafiInfo": "سيتم توجيهك إلى شريك الدفع الآمن لإتمام دفعتك عبر بطاقة الائتمان/الخصم أو الخدمات المصرفية عبر الإنترنت أو طرق الدفع الأخرى.",
-      "fikafiConfirmHint": "انقر على \"تأكيد الحجز\" أدناه لإنشاء حجزك.",
+      "descriptionDefault": "دفع آمن عبر الإنترنت",
+      "fikafiTitle": "دفع آمن عبر الإنترنت",
+      "fikafiInfo": "سيتم إعادة توجيهك إلى شريك الدفع الآمن لدينا لإتمام الدفع باستخدام بطاقة الائتمان/الخصم، أو الخدمات المصرفية عبر الإنترنت، أو طرق الدفع الإلكترونية الأخرى.",
+      "fikafiConfirmHint": "انقر على 'تأكيد الحجز' أدناه لإنشاء حجزك.",
       "ngeniusTitle": "الدفع بالبطاقة",
       "secure": "آمن",
-      "ngeniusInfo": "أكمل دفعتك بأمان عبر بوابة الدفع الخاصة بـ Network International. سيتم توجيهك إلى صفحة الدفع المشفرة.",
+      "ngeniusInfo": "أكمل دفعتك بشكل آمن عبر بوابة Network International. سيتم توجيهك إلى صفحة الدفع المشفرة الخاصة بهم.",
       "ngeniusRedirect": "سيتم توجيهك بأمان إلى صفحة الدفع لإتمام معاملتك.",
-      "ngeniusFooter": "البطاقات المدعومة تُعالَج في ثوانٍ • لا رسوم خفية"
+      "ngeniusFooter": "يتم معالجة البطاقات المدعومة في ثوانٍ • بدون رسوم خفية"
     },
     "confirmBooking": "تأكيد الحجز",
     "bookingConfirmed": "تم تأكيد الحجز ✓",
     "selectPaymentMethod": "اختر طريقة الدفع",
-    "processing": "جارٍ المعالجة...",
+    "processing": "جاري المعالجة...",
     "payNow": "ادفع الآن"
   },
   "PriceDetails": {
     "title": "تفاصيل السعر",
     "totalAmount": "المبلغ الإجمالي",
     "securePayment": "دفع آمن:",
-    "securePaymentInfo": "معلومات دفعك مشفرة وآمنة.",
+    "securePaymentInfo": "معلومات الدفع الخاصة بك مشفرة وآمنة.",
     "acceptedMethods": "طرق الدفع المقبولة",
-    "promoPlaceholder": "يرجى إدخال رمز الخصم",
-    "promoInvalid": "رمز الخصم غير صحيح",
+    "promoPlaceholder": "الرجاء إدخال رمز ترويجي",
+    "promoInvalid": "رمز ترويجي غير صالح",
     "promoError": "حدث خطأ ما. حاول مرة أخرى!",
     "payNow": "ادفع الآن",
-    "payAtHotel": "الدفع في الفندق"
+    "payAtHotel": "ادفع في الفندق"
   },
   "Fikafi": {
-    "preparingPayment": "جارٍ تجهيز الدفع الآمن...",
-    "redirectToPayment": "الانتقال إلى الدفع",
-    "redirecting": "جارٍ التحويل إلى Fikafi...",
-    "confirmFirst": "أكّد الحجز أولاً",
-    "errorTitle": "تعذّر إنشاء رابط الدفع",
+    "preparingPayment": "جاري تحضير الدفع الآمن...",
+    "redirectToPayment": "إعادة التوجيه للدفع",
+    "redirecting": "جاري التوجيه إلى Fikafi...",
+    "confirmFirst": "قم بتأكيد الحجز أولاً",
+    "errorTitle": "تعذر إنشاء رابط الدفع",
     "errorSubtitle": "حدثت مشكلة في الاتصال ببوابة الدفع. يرجى المحاولة مرة أخرى.",
     "tryAgain": "حاول مرة أخرى",
     "cancel": "إلغاء",
     "errors": {
       "missingContact": "يرجى تقديم البريد الإلكتروني أو رقم الهاتف",
       "missingBookingCode": "يرجى تأكيد حجزك أولاً قبل الدفع",
-      "failedToGenerate": "فشل إنشاء رابط الدفع",
+      "failedToGenerate": "فشل في إنشاء رابط الدفع",
       "paymentFailed": "فشل الدفع. يرجى المحاولة مرة أخرى.",
       "paymentCancelled": "تم إلغاء الدفع"
     }
@@ -374,10 +374,10 @@
   "PaymentSuccess": {
     "confirmed": {
       "title": "تم تأكيد الحجز!",
-      "subtitle": "تم إتمام حجزك بنجاح.",
+      "subtitle": "تم إكمال حجزك بنجاح.",
       "bookingSummary": "ملخص الحجز",
-      "checkIn": "تسجيل الوصول:",
-      "checkOut": "تسجيل المغادرة:",
+      "checkIn": "تاريخ الوصول:",
+      "checkOut": "تاريخ المغادرة:",
       "duration": "المدة:",
       "night": "ليلة",
       "nights": "ليالٍ",
@@ -385,7 +385,7 @@
       "room": "غرفة",
       "rooms": "غرف",
       "adult": "بالغ",
-      "adults": "بالغون",
+      "adults": "بالغين",
       "child": "طفل",
       "children": "أطفال",
       "guestInfo": "معلومات الضيف",
@@ -397,46 +397,46 @@
       "whatsNext": "ما التالي؟",
       "confirmationEmail": "تم إرسال بريد إلكتروني للتأكيد.",
       "viewOrCancel": "يمكنك عرض حجوزاتك أو إلغاؤها في أي وقت.",
-      "needChanges": "هل تحتاج إلى تعديلات؟ تواصل معنا على مدار الساعة.",
+      "needChanges": "بحاجة إلى تعديل؟ اتصل بنا على مدار الساعة.",
       "viewMyBookings": "عرض حجوزاتي",
-      "returnHome": "العودة للرئيسية",
-      "redirecting": "جارٍ التحويل..."
+      "returnHome": "العودة إلى الرئيسية",
+      "redirecting": "جاري إعادة التوجيه..."
     },
     "pending": {
       "title": "الحجز قيد الانتظار",
-      "subtitle": "تلقّينا طلب حجزك وهو قيد المعالجة حالياً.",
-      "emailNote": "ستتلقى بريداً إلكترونياً للتأكيد قريباً. إذا لم تتلقَّ أي رد خلال 10 دقائق، يرجى التواصل مع فريق الدعم.",
+      "subtitle": "لقد تلقينا طلب الحجز الخاص بك وهو قيد المعالجة حالياً.",
+      "emailNote": "ستتلقى بريداً إلكترونياً للتأكيد قريباً. إذا لم تتلقَ رداً منا خلال 10 دقائق، يرجى الاتصال بفريق الدعم لدينا.",
       "nextSteps": "الخطوات التالية",
       "step1": "تأكد من إتمام الدفع إذا كان مطلوباً.",
-      "step2": "إذا دفعت عبر تحويل بنكي أو UPI، انتظر بضع دقائق للمعالجة.",
+      "step2": "إذا كنت قد دفعت عبر التحويل البنكي أو UPI، فانتظر بضع دقائق للمعالجة.",
       "step3": "سيتم تأكيد حجزك بمجرد التحقق من الدفع.",
       "viewMyBookings": "عرض حجوزاتي",
-      "returnHome": "العودة للرئيسية",
-      "redirecting": "جارٍ التحويل..."
+      "returnHome": "العودة إلى الرئيسية",
+      "redirecting": "جاري إعادة التوجيه..."
     }
   },
   "SuccessPage": {
     "error": "خطأ",
-    "invalidBooking": "مرجع الحجز غير صحيح. يرجى التواصل مع الدعم.",
-    "verifying": "جارٍ التحقق من الدفع...",
+    "invalidBooking": "مرجع حجز غير صالح. يرجى الاتصال بالدعم.",
+    "verifying": "جاري التحقق من الدفع...",
     "verifyingSubtitle": "يرجى الانتظار بينما نؤكد دفعتك مع بوابة الدفع.",
     "doNotClose": "لا تغلق هذه النافذة."
   },
   "MyTrip": {
     "title": "ابحث عن حجزك",
     "placeholder": "أدخل رمز الحجز (مثال: SR123456)",
-    "searching": "جارٍ البحث...",
+    "searching": "جاري البحث...",
     "search": "بحث",
-    "codeHint": "لا تعرف أين تجد رمزك؟ تحقق من بريدك الإلكتروني للتأكيد.",
-    "missingPropertyCode": "رمز العقار مفقود في الرابط",
+    "codeHint": "لست متأكداً من مكان رمزك؟ تحقق من بريد التأكيد الإلكتروني الخاص بك.",
+    "missingPropertyCode": "رمز المنشأة مفقود في الرابط",
     "missingBookingCode": "يرجى إدخال رمز الحجز",
     "bookingNotFound": "الحجز غير موجود",
     "errorFetching": "خطأ في جلب الحجز",
-    "checkIn": "تسجيل الوصول",
-    "checkOut": "تسجيل المغادرة",
+    "checkIn": "تاريخ الوصول",
+    "checkOut": "تاريخ المغادرة",
     "roomType": "نوع الغرفة",
     "paymentMethod": "طريقة الدفع",
-    "payAtHotel": "الدفع في الفندق",
+    "payAtHotel": "ادفع في الفندق",
     "primaryGuest": "الضيف الرئيسي",
     "rate": "السعر",
     "viewBooking": "عرض تفاصيل الحجز",
@@ -447,15 +447,15 @@
     "guestDetails": "تفاصيل الضيف",
     "paymentDetails": "تفاصيل الدفع",
     "additionalInfo": "معلومات إضافية",
-    "checkInLabel": "تسجيل الوصول",
-    "checkOutLabel": "تسجيل المغادرة",
+    "checkInLabel": "تاريخ الوصول",
+    "checkOutLabel": "تاريخ المغادرة",
     "rooms": "الغرف",
     "ratePlan": "خطة السعر",
     "nights": "الليالي",
     "name": "الاسم",
     "type": "النوع",
     "dateOfBirth": "تاريخ الميلاد",
-    "contactNumber": "رقم التواصل",
+    "contactNumber": "رقم الاتصال",
     "email": "البريد الإلكتروني",
     "primaryGuestLabel": "الضيف الرئيسي",
     "phone": "الهاتف:",
@@ -465,33 +465,77 @@
     "baseAmount": "المبلغ الأساسي",
     "totalAmount": "المبلغ الإجمالي",
     "amountPayAtHotel": "المبلغ المدفوع في الفندق",
-    "amountPaidLater": "المبلغ المدفوع لاحقاً في الفندق",
-    "paidOnline": "مدفوع إلكترونياً",
+    "amountPaidLater": "المبلغ الواجب دفعه لاحقاً في الفندق",
+    "paidOnline": "مدفوع عبر الإنترنت",
     "paidAmount": "المبلغ المدفوع",
     "refundableAmount": "المبلغ القابل للاسترداد",
-    "propertyCode": "رمز العقار",
-    "promoUsed": "استخدام عرض ترويجي",
-    "totalActivityCharges": "إجمالي رسوم الأنشطة",
+    "propertyCode": "رمز المنشأة",
+    "promoUsed": "الرمز الترويجي المستخدم",
     "yes": "نعم",
     "no": "لا",
-    "printItinerary": "طباعة خطة الرحلة",
+    "totalActivityCharges": "إجمالي رسوم الأنشطة",
+    "printItinerary": "طباعة المسار",
     "pdf": {
       "title": "تأكيد الحجز",
       "hotelInfo": "معلومات الفندق",
       "stayDetails": "تفاصيل الإقامة",
       "guestInfo": "معلومات الضيف",
       "paymentInfo": "معلومات الدفع",
-      "footer": "شكراً لحجزك مع SwiftRooms. نتطلع لاستضافتك!",
-      "noGuestInfo": "لا تتوفر معلومات عن الضيف",
-      "priceBreakdown": "--- تفصيل السعر ---",
+      "footer": "شكراً لحجزك مع SwiftRooms. نتطلع إلى استضافتك!",
+      "noGuestInfo": "لا توجد معلومات متاحة عن الضيف",
+      "priceBreakdown": "--- تفصيل الأسعار ---",
       "payLater": "(ادفع لاحقاً)",
       "discount": "(خصم)",
       "amountPayAtHotel": "المبلغ المدفوع في الفندق:",
-      "amountPaidLater": "المبلغ المدفوع لاحقاً:",
-      "paidOnline": "مدفوع إلكترونياً:",
-      "amountPaidLaterHotel": "المبلغ المدفوع لاحقاً في الفندق:",
+      "amountPaidLater": "المبلغ الواجب دفعه لاحقاً:",
+      "paidOnline": "مدفوع عبر الإنترنت:",
+      "amountPaidLaterHotel": "المبلغ الواجب دفعه لاحقاً في الفندق:",
       "paidAmount": "المبلغ المدفوع:",
       "refundable": "المبلغ القابل للاسترداد:"
+    },
+    "actions": {
+      "checkInNow": "تسجيل وصول الآن",
+      "checkOutNow": "تسجيل مغادرة الآن",
+      "viewBookSpa": "عرض وحجز خدمات السبا ({{count}} متاح)"
+    },
+    "checkinDialog": {
+      "title": "تسجيل الوصول عبر الإنترنت",
+      "idTypeLabel": "نوع الهوية",
+      "idNumberLabel": "رقم الهوية",
+      "idNumberPlaceholder": "أدخل رقم الهوية",
+      "addressLabel": "العنوان",
+      "addressPlaceholder": "اسم الشارع",
+      "cityLabel": "المدينة",
+      "stateLabel": "الولاية/المحافظة",
+      "countryLabel": "الدولة",
+      "zipLabel": "الرمز البريدي",
+      "identityImageLabel": "صورة الهوية",
+      "identityImageAlt": "الهوية",
+      "uploadButton": "رفع",
+      "cancel": "إلغاء",
+      "submit": "إكمال تسجيل الوصول",
+      "processing": "جاري المعالجة…",
+      "idTypes": {
+        "nationalId": "بطاقة الهوية الوطنية",
+        "passport": "جواز السفر",
+        "driversLicense": "رخصة القيادة",
+        "others": "أخرى"
+      }
+    },
+    "checkoutDialog": {
+      "title": "تأكيد تسجيل المغادرة",
+      "body": "هل أنت متأكد من رغبتك في تسجيل المغادرة من هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد تسجيل المغادرة",
+      "processing": "جاري المعالجة…"
+    },
+    "toast": {
+      "checkinSuccess": "تم تسجيل الوصول بنجاح!",
+      "checkinError": "حدث خطأ أثناء تسجيل الوصول",
+      "checkinFailed": "فشل تسجيل الوصول",
+      "checkoutSuccess": "تم تسجيل المغادرة بنجاح!",
+      "checkoutError": "حدث خطأ أثناء تسجيل المغادرة",
+      "checkoutFailed": "فشل تسجيل المغادرة"
     }
   },
   "ModifyBooking": {
@@ -507,63 +551,63 @@
     "ratePlan": "خطة السعر",
     "currentGuestDistribution": "توزيع الضيوف الحالي:",
     "adult": "بالغ",
-    "adults": "بالغون",
+    "adults": "بالغين",
     "child": "طفل",
     "children": "أطفال",
     "tabDates": "التواريخ",
     "tabGuests": "الضيوف",
-    "checkIn": "تسجيل الوصول",
-    "checkOut": "تسجيل المغادرة",
-    "checkUpdatedPrice": "التحقق من السعر المحدث",
-    "fetchingPrice": "جارٍ جلب السعر...",
+    "checkIn": "تاريخ الوصول",
+    "checkOut": "تاريخ المغادرة",
+    "checkUpdatedPrice": "تحقق من السعر المحدث",
+    "fetchingPrice": "جاري جلب السعر...",
     "addGuests": "إضافة ضيوف",
     "firstName": "الاسم الأول",
     "lastName": "اسم العائلة",
     "dateOfBirth": "تاريخ الميلاد",
     "priceBreakdown": "تفصيل السعر",
     "baseRate": "السعر الأساسي",
-    "additionalGuestCharges": "رسوم إضافية للضيوف",
+    "additionalGuestCharges": "رسوم الضيوف الإضافيين",
     "totalTax": "إجمالي الضريبة",
-    "total": "الإجمالي",
+    "total": "المجموع",
     "payLaterAtHotel": "⏳ ادفع لاحقاً في الفندق",
     "amountDueNow": "المبلغ المستحق الآن",
-    "chargedAtHotel": "سيتم تحصيل المبلغ في الفندق:",
+    "chargedAtHotel": "سيتم محاسبتك في الفندق:",
     "originalPrice": "السعر الأصلي",
     "updatedPrice": "السعر المحدث",
-    "alreadyPaid": "مدفوع مسبقاً:",
+    "alreadyPaid": "المبلغ المدفوع بالفعل:",
     "discountApplied": "الخصم المطبق:",
     "toPayAtHotel": "للدفع في الفندق:",
-    "toBeRefunded": "للاسترداد:",
-    "checkPriceHint": "انقر على \"التحقق من السعر المحدث\" لمعرفة التغييرات",
+    "toBeRefunded": "المبلغ المراد استرداده:",
+    "checkPriceHint": "انقر فوق 'تحقق من السعر المحدث' لرؤية تغييرات السعر",
     "priceError": "خطأ في السعر",
-    "priceErrorMsg": "تعذّر جلب السعر المحدث. يرجى المحاولة مرة أخرى.",
+    "priceErrorMsg": "تعذر جلب السعر المحدث. يرجى المحاولة مرة أخرى.",
     "policyNotes": {
-      "availability": "• تغييرات التواريخ رهنٌ بالتوفر",
-      "fees": "• التغييرات خلال 72 ساعة من تسجيل الوصول قد تستلزم رسوماً إضافية",
-      "upgrades": "• ترقيات الغرف رهنٌ بالتوفر وتستلزم رسوماً إضافية",
-      "cancellation": "• تقليل مدة الإقامة قد يخضع لسياسة الإلغاء الأصلية للحجز"
+      "availability": "• تغييرات التواريخ تخضع للتوفر",
+      "fees": "• قد تؤدي التغييرات في غضون 72 ساعة من الوصول إلى رسوم إضافية",
+      "upgrades": "• ترقية الغرفة تخضع للتوفر ورسوم إضافية",
+      "cancellation": "• قد يخفض مدة الإقامة لسياسة إلغاء الحجز الأصلي"
     },
     "cancel": "إلغاء",
-    "confirmUpdate": "تأكيد التعديل",
-    "updating": "جارٍ التحديث...",
-    "deleteTitle": "هل تريد حذف هذا الضيف؟",
+    "confirmUpdate": "تأكيد التحديث",
+    "updating": "جاري التحديث...",
+    "deleteTitle": "هل تريد بالتأكيد حذف هذا الضيف؟",
     "delete": "حذف",
     "errors": {
-      "selectDates": "يرجى اختيار تواريخ الوصول والمغادرة",
+      "selectDates": "يرجى تحديد تاريخي الوصول والمغادرة",
       "priceError": "لا يمكن تحديث الحجز بسبب خطأ في التسعير. يرجى جلب أحدث سعر أولاً.",
       "fetchPriceFirst": "يرجى جلب السعر المحدث قبل التأكيد.",
       "checkInRequired": "تاريخ الوصول مطلوب.",
       "checkInAfterToday": "يجب أن يكون تاريخ الوصول بعد اليوم.",
       "checkOutRequired": "تاريخ المغادرة مطلوب.",
       "checkOutAfterCheckIn": "يجب أن يكون تاريخ المغادرة بعد تاريخ الوصول.",
-      "guestDetails": "يرجى ملء جميع تفاصيل الضيوف",
-      "atLeastOneAdult": "يجب أن يكون هناك بالغ واحد على الأقل.",
+      "guestDetails": "يرجى ملء جميع تفاصيل الضيف",
+      "atLeastOneAdult": "مطلوب شخص بالغ واحد على الأقل.",
       "firstNameRequired": "الاسم الأول مطلوب.",
-      "invalidName": "صيغة الاسم غير صحيحة",
+      "invalidName": "صيغة الاسم غير صالحة",
       "lastNameRequired": "اسم العائلة مطلوب.",
       "priceUpdated": "تم تحديث السعر بنجاح!",
-      "priceFailed": "فشل جلب السعر المحدث. يرجى المحاولة مرة أخرى.",
-      "updateSuccess": "تم تحديث الحجز بنجاح! يرجى التحقق من بريدك الإلكتروني.",
+      "priceFailed": "فشل في جلب السعر المحدث. يرجى المحاولة مرة أخرى.",
+      "updateSuccess": "تم تحديث الحجز بنجاح! يرجى التحقق من بريدك الإلكتروني للحصول على التفاصيل.",
       "updateFailed": "حدث خطأ ما. يرجى المحاولة مرة أخرى."
     }
   },
@@ -571,10 +615,10 @@
     "title": "اختر الإشغال",
     "numberOfRooms": "عدد الغرف:",
     "room": "غرفة",
-    "adults": "بالغون",
-    "children": "أطفال",
-    "childrenAges": "الأعمار من 0 إلى 15",
-    "childAgesRequired": "أعمار الأطفال (مطلوب)",
+    "adults": "البالغين",
+    "children": "الأطفال",
+    "childrenAges": "الأعمار 0 – 15",
+    "childAgesRequired": "أعمار الأطفال (مطلوبة)",
     "child": "طفل",
     "lessThanOneYear": "أقل من سنة",
     "year": "سنة",
@@ -587,17 +631,17 @@
     "title": "اختر الإشغال",
     "numberOfRooms": "عدد الغرف",
     "room": "غرفة",
-    "adults": "بالغون",
-    "children": "أطفال",
-    "childrenAges": "الأعمار من 0 إلى 17",
+    "adults": "البالغين",
+    "children": "الأطفال",
+    "childrenAges": "الأعمار 0–17",
     "childAge": "عمر الطفل {{number}}",
     "lessThanOneYear": "أقل من سنة",
     "oneYear": "سنة واحدة",
-    "years": "{{age}} سنوات",
-    "totalSummary": "الإجمالي:",
-    "adultsCount": "بالغون",
+    "years": "{{age}} سنة",
+    "totalSummary": "المجموع:",
+    "adultsCount": "بالغين",
     "childrenCount": "أطفال",
-    "across": "في",
+    "across": "عبر",
     "rooms": "غرف",
     "apply": "تطبيق"
   },
@@ -607,30 +651,30 @@
     "bookingDetails": "تفاصيل الحجز",
     "hotel": "الفندق",
     "room": "الغرفة:",
-    "total": "الإجمالي:",
-    "financialBreakdown": "التفصيل المالي",
+    "total": "المجموع:",
+    "financialBreakdown": "تفصيل مالي",
     "originalPayment": "مبلغ الدفع الأصلي:",
     "reasonLabel": "سبب الإلغاء (اختياري)",
-    "reasonPlaceholder": "أخبرنا لماذا تلغي الحجز...",
+    "reasonPlaceholder": "أخبرنا لماذا تقوم بالإلغاء...",
     "warning": "ملاحظة:",
     "warningText": "لا يمكن التراجع عن هذا الإجراء. بمجرد الإلغاء، لا يمكن استعادة حجزك.",
     "keepReservation": "⬅ الاحتفاظ بحجزي",
     "confirmCancellation": "تأكيد الإلغاء",
-    "cancelling": "جارٍ الإلغاء...",
-    "successWithRefund": "تم إلغاء الحجز وبدء الاسترداد",
-    "successNoRefund": "تم إلغاء الحجز. تعذّر معالجة الاسترداد تلقائياً — سيتواصل معك الفندق.",
+    "cancelling": "جاري الإلغاء...",
+    "successWithRefund": "تم إلغاء الحجز وبدء استرداد المبلغ",
+    "successNoRefund": "تم إلغاء الحجز. تعذرت معالجة استرداد المبلغ تلقائياً – سيتصل بك الفندق.",
     "successCancelled": "تم إلغاء الحجز بنجاح!",
     "somethingWentWrong": "حدث خطأ ما"
   },
   "SpaPage": {
     "header": {
-      "title": "السبا والعافية",
-      "subtitle": "{{slotCount}} {{slotWord}} متاحة عبر {{serviceCount}} {{serviceWord}} القادمة",
+      "title": "السبا والأنشطة",
+      "subtitle": "يتوفر {{slotCount}} {{slotWord}} عبر {{serviceCount}} {{serviceWord}} قادمة",
       "slot": "موعد",
       "slots": "مواعيد",
       "service": "خدمة",
       "services": "خدمات",
-      "noPropertyCode": "مطلوب رمز العقار لتحميل خدمات السبا.",
+      "noPropertyCode": "رمز المنشأة مطلوب لتحميل خدمات السبا.",
       "homepage": "← الصفحة الرئيسية",
       "codeHint": "أضف {{codeSnippet}} إلى الرابط لتحميل خدمات السبا."
     },
@@ -639,25 +683,25 @@
       "myBookings": "حجوزاتي"
     },
     "allTab": {
-      "loading": "جارٍ تحميل خدمات السبا…",
-      "noServices": "لا توجد خدمات سبا مهيأة لهذه المنشأة.",
+      "loading": "جاري تحميل خدمات السبا…",
+      "noServices": "لم يتم تكوين خدمات سبا لهذه المنشأة.",
       "noUpcoming": "لا توجد خدمات سبا قادمة متاحة حالياً.",
       "noDescription": "لا يوجد وصف متاح.",
       "inclusive": "✓ شامل",
-      "timeTbd": "سيتم التحديد لاحقاً",
+      "timeTbd": "سيُحدد لاحقاً",
       "viewAndBook": "عرض وحجز"
     },
     "bookedTab": {
-      "loading": "جارٍ تحميل حجوزاتك…",
+      "loading": "جاري تحميل حجوزاتك…",
       "noBookings": "لا توجد حجوزات بعد.",
       "browseServices": "تصفح الخدمات",
       "bookedSlots": "المواعيد المحجوزة",
-      "spaServiceFallback": "خدمة سبا",
+      "spaServiceFallback": "خدمة السبا",
       "bookedOn": "تم الحجز {{date}}",
       "slot": "موعد",
       "slots": "مواعيد",
       "cancelSlot": "إلغاء الموعد",
-      "cancelled": "تم الإلغاء"
+      "cancelled": "ملغي"
     },
     "modal": {
       "title": "إلغاء هذا الموعد؟",
@@ -678,54 +722,54 @@
     },
     "states": {
       "noPropertyCode": "أضف ?code=PROPERTY_CODE إلى الرابط.",
-      "loading": "جارٍ التحميل…",
-      "spaNotFound": "لم يتم العثور على سبا لهذا الرمز الخاص بالعقار."
+      "loading": "جاري التحميل…",
+      "spaNotFound": "لم يتم العثور على السبا لرمز المنشأة هذا."
     },
     "hero": {
       "noDescription": "لا يوجد وصف متاح.",
-      "detailsLabel": "التفاصيل",
+      "detailsLabel": "تفاصيل",
       "inclusive": "شامل",
-      "timeTbd": "سيتم التحديد لاحقاً",
-      "minSession": "دقيقة للجلسة",
-      "openSlots": "مواعيد متاحة"
+      "timeTbd": "سيُحدد لاحقاً",
+      "minSession": "الحد الأدنى للجلسة",
+      "openSlots": "مواعيد مفتوحة"
     },
     "slots": {
       "sectionTitle": "التواريخ والمواعيد المتاحة",
       "clearSelection": "مسح ({{count}})",
-      "noDates": "لم يتم إعداد أي تواريخ لهذا السبا بعد.",
-      "openDot": "{{open}} متاح · {{total}} إجمالي",
+      "noDates": "لم يتم تكوين تواريخ لهذا السبا بعد.",
+      "openDot": "{{open}} مفتوح · {{total}} إجمالي",
       "selectedBadge": "{{count}} محدد",
-      "slotOpen": "متاح",
+      "slotOpen": "مفتوح",
       "slotSelected": "محدد",
-      "toTime": "حتى {{time}}"
+      "toTime": "إلى {{time}}"
     },
     "bookingButton": "مراجعة وحجز ({{count}})",
     "modal": {
-      "title": "أكمل الحجز الخاص بك",
+      "title": "أكمل حجزك",
       "selectedSlotsLabel": "المواعيد المحددة",
       "inclusive": "شامل",
       "price": {
         "slots": "المواعيد",
-        "total": "الإجمالي"
+        "total": "المجموع"
       },
-      "yourDetails": "بياناتك",
+      "yourDetails": "تفاصيلك",
       "placeholders": {
         "fullName": "الاسم الكامل *",
-        "email": "عنوان البريد الإلكتروني *",
+        "email": "البريد الإلكتروني *",
         "phone": "رقم الهاتف *"
       },
       "cancel": "إلغاء",
       "bookSlot": "حجز {{count}} موعد",
       "bookSlots": "حجز {{count}} مواعيد",
-      "booking": "جارٍ الحجز…",
+      "booking": "جاري الحجز…",
       "availableSlotsLabel": "المواعيد المتاحة"
     },
     "validation": {
       "nameRequired": "الاسم الكامل مطلوب.",
-      "emailRequired": "عنوان البريد الإلكتروني مطلوب.",
-      "emailInvalid": "أدخل عنوان بريد إلكتروني صالح.",
+      "emailRequired": "البريد الإلكتروني مطلوب.",
+      "emailInvalid": "أدخل عنوان بريد إلكتروني صالحاً.",
       "phoneRequired": "رقم الهاتف مطلوب.",
-      "phoneInvalid": "أدخل رقم هاتف صالح."
+      "phoneInvalid": "أدخل رقم هاتف صالحاً."
     },
     "toast": {
       "loadFailed": "تعذر تحميل خدمات السبا",
@@ -733,13 +777,13 @@
       "selectAtLeastOne": "يرجى تحديد موعد واحد على الأقل.",
       "fixFields": "يرجى تصحيح الحقول المميزة.",
       "loginRequired": "يرجى تسجيل الدخول لحجز مواعيد السبا",
-      "bookSuccess": "تم حجز {{count}} موعد بنجاح!",
-      "bookFailed": "فشل إنشاء الحجز.",
+      "bookSuccess": "تم حجز {{count}} موعد(مواعيد)!",
+      "bookFailed": "فشل في إنشاء الحجز.",
       "cancelMissingId": "تعذر الإلغاء: معرف الحجز مفقود."
     }
   },
   "ProfileHomePage": {
-    "loading": "جارٍ تحميل ملفك الشخصي…",
+    "loading": "جاري تحميل ملفك الشخصي…",
     "header": {
       "title": "ملفي الشخصي",
       "homepage": "← الصفحة الرئيسية"
@@ -748,7 +792,7 @@
       "guestAccount": "حساب الضيف",
       "memberFallback": "عضو",
       "programs": "البرامج",
-      "properties": "العقارات",
+      "properties": "المنشآت",
       "wishlist": "قائمة الرغبات"
     },
     "loyalty": {
@@ -771,12 +815,12 @@
         "bookingsNeededPlural": "يلزم {{count}} حجوزات للوصول إلى المستوى {{level}}"
       },
       "properties": {
-        "validAt": "صالح في {{count}} عقار",
-        "validAtPlural": "صالح في {{count}} عقارات"
+        "validAt": "صالح في {{count}} منشأة",
+        "validAtPlural": "صالح في {{count}} منشآت"
       },
       "empty": {
         "title": "لا توجد عضويات بعد",
-        "description": "لم يتم تسجيلك في أي برامج ولاء خاصة بالعقارات حتى الآن."
+        "description": "لم يتم تسجيلك بعد في أي برامج ولاء للمنشآت."
       }
     },
     "wishlist": {
@@ -788,7 +832,7 @@
   },
   "ProfileSidebar": {
     "nav": {
-      "myBodyHoliday": "ماي بودي هوليداي",
+      "myBodyHoliday": "عطلتي الجسدية",
       "reservations": "الحجوزات",
       "ariaLabel": "التنقل الرئيسي"
     },
@@ -811,25 +855,25 @@
   "MyBookingsPage": {
     "heading": "حجوزاتي",
     "subtitle": "جميع الحجوزات المرتبطة بحسابك.",
-    "loading": "جارٍ تحميل حجوزاتك…",
+    "loading": "جاري تحميل حجوزاتك…",
     "empty": {
       "title": "لم يتم العثور على حجوزات",
-      "description": "عندما تقوم بالحجز سيظهر هنا."
+      "description": "عند إجراء حجز، سيظهر هنا."
     },
     "card": {
-      "propertyFallback": "العقار"
+      "propertyFallback": "المنشأة"
     },
     "details": {
-      "checkIn": "تسجيل الوصول",
-      "checkOut": "تسجيل المغادرة",
+      "checkIn": "تاريخ الوصول",
+      "checkOut": "تاريخ المغادرة",
       "roomType": "نوع الغرفة",
-      "ratePlan": "خطة الأسعار",
-      "total": "الإجمالي",
+      "ratePlan": "خطة السعر",
+      "total": "المجموع",
       "primaryGuest": "الضيف الرئيسي"
     },
     "actions": {
-      "checkInNow": "تسجيل الوصول الآن",
-      "checkOutNow": "تسجيل المغادرة الآن"
+      "checkInNow": "تسجيل وصول الآن",
+      "checkOutNow": "تسجيل مغادرة الآن"
     },
     "checkinDialog": {
       "title": "تسجيل الوصول عبر الإنترنت",
@@ -837,9 +881,9 @@
       "idNumberLabel": "رقم الهوية",
       "idNumberPlaceholder": "أدخل رقم الهوية",
       "addressLabel": "العنوان",
-      "addressPlaceholder": "عنوان الشارع",
+      "addressPlaceholder": "اسم الشارع",
       "cityLabel": "المدينة",
-      "stateLabel": "الولاية/المقاطعة",
+      "stateLabel": "الولاية/المحافظة",
       "countryLabel": "الدولة",
       "zipLabel": "الرمز البريدي",
       "identityImageLabel": "صورة الهوية",
@@ -847,9 +891,9 @@
       "uploadButton": "رفع",
       "cancel": "إلغاء",
       "submit": "إكمال تسجيل الوصول",
-      "processing": "جارٍ المعالجة…",
+      "processing": "جاري المعالجة…",
       "idTypes": {
-        "nationalId": "الهوية الوطنية",
+        "nationalId": "بطاقة الهوية الوطنية",
         "passport": "جواز السفر",
         "driversLicense": "رخصة القيادة",
         "others": "أخرى"
@@ -857,14 +901,14 @@
     },
     "checkoutDialog": {
       "title": "تأكيد تسجيل المغادرة",
-      "body": "هل أنت متأكد أنك تريد تسجيل المغادرة من هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.",
+      "body": "هل أنت متأكد من رغبتك في تسجيل المغادرة من هذا الحجز؟ لا يمكن التراجع عن هذا الإجراء.",
       "cancel": "إلغاء",
       "confirm": "تأكيد تسجيل المغادرة",
-      "processing": "جارٍ المعالجة…"
+      "processing": "جاري المعالجة…"
     },
     "toast": {
       "noReservations": "ليس لديك أي حجوزات بعد",
-      "loadError": "حدث خطأ أثناء تحميل الحجوزات",
+      "loadError": "خطأ في تحميل الحجوزات",
       "loadFailed": "فشل تحميل الحجوزات",
       "profileLoadFailed": "تعذر تحميل الملف الشخصي",
       "identityImageRequired": "أضف صورة الهوية",
@@ -874,6 +918,198 @@
       "checkoutSuccess": "تم تسجيل المغادرة بنجاح!",
       "checkoutError": "حدث خطأ أثناء تسجيل المغادرة",
       "checkoutFailed": "فشل تسجيل المغادرة"
+    }
+  },
+  "CustomerLoginPage": {
+    "toast": {
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "welcomeBack": "مرحباً بعودتك!",
+      "loginFailed": "فشل تسجيل الدخول",
+      "somethingWentWrong": "حدث خطأ ما، يرجى المحاولة مرة أخرى"
+    },
+    "leftPanel": {
+      "guestAccount": "حساب الضيف",
+      "brand": "Revchill",
+      "headline": {
+        "part1": "إقامتك،",
+        "part2": "بطريقتك —",
+        "part3": "دائماً."
+      },
+      "description": "حساب واحد للحجز وإدارة وتجديد كل تجربة عبر جميع منشآت Revchill.",
+      "features": {
+        "bookInstantly": {
+          "title": "احجز فوراً",
+          "desc": "احجز الغرف والسبا وتناول الطعام في مكان واحد"
+        },
+        "manageTrips": {
+          "title": "إدارة رحلاتك",
+          "desc": "عرض أو تعديل أو إلغاء الحجوزات في أي وقت"
+        },
+        "wishlist": {
+          "title": "قائمة رغبات المنشآت",
+          "desc": "احفظ منشآتك المفضلة لوقت لاحق"
+        },
+        "support": {
+          "title": "دعم 24/7",
+          "desc": "ارفع تذكرة وتتبع الحل مباشرة"
+        }
+      }
+    },
+    "rightPanel": {
+      "guestAccount": "حساب الضيف",
+      "brand": "Revchill",
+      "heading": "مرحباً بعودتك",
+      "subheading": "قم بتسجيل الدخول لإدارة حجوزاتك وملفك الشخصي.",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "أنت@example.com",
+      "passwordLabel": "كلمة المرور",
+      "passwordPlaceholder": "••••••••••",
+      "forgotPassword": "نسيت كلمة المرور؟",
+      "signIn": "تسجيل الدخول",
+      "signingIn": "جاري تسجيل الدخول…",
+      "or": "أو",
+      "createAccount": "إنشاء حساب جديد"
+    }
+  },
+  "CustomerRegisterPage": {
+    "toast": {
+      "firstNameRequired": "الاسم الأول مطلوب",
+      "lastNameRequired": "اسم العائلة مطلوب",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "passwordRequired": "كلمة المرور مطلوبة",
+      "passwordLength": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل",
+      "passwordsDoNotMatch": "كلمات المرور غير متطابقة",
+      "accountCreated": "تم إنشاء الحساب! يرجى تسجيل الدخول.",
+      "registrationFailed": "فشل التسجيل",
+      "somethingWentWrong": "حدث خطأ ما، يرجى المحاولة مرة أخرى"
+    },
+    "cta": {
+      "creatingAccount": "جاري إنشاء الحساب…",
+      "continue": "متابعة",
+      "createAccount": "إنشاء حساب"
+    },
+    "leftPanel": {
+      "brand": "Revchill",
+      "guestAccount": "حساب الضيف",
+      "headline": {
+        "part1": "ابدأ",
+        "part2": "رحلتك",
+        "part3": "معنا."
+      },
+      "description": "أنشئ حسابك المجاني في أقل من دقيقة وافتح الحجز السلس عبر جميع المنشآت.",
+      "stepsInfo": {
+        "step1": {
+          "label": "التفاصيل الشخصية",
+          "desc": "الاسم والبريد الإلكتروني"
+        },
+        "step2": {
+          "label": "كلمة مرور آمنة",
+          "desc": "تعيين كلمة مرور لحسابك"
+        },
+        "step3": {
+          "label": "كل شيء جاهز",
+          "desc": "ابدأ الحجز فوراً"
+        }
+      }
+    },
+    "rightPanel": {
+      "brand": "Revchill",
+      "newAccount": "حساب جديد",
+      "headings": {
+        "step1": "إنشاء حساب",
+        "step2": "تعيين كلمة المرور"
+      },
+      "subheadings": {
+        "step1": "الخطوة 1 من 2 — تفاصيلك الشخصية.",
+        "step2": "الخطوة 2 من 2 — اختر كلمة مرور آمنة."
+      },
+      "form": {
+        "firstNameLabel": "الاسم الأول",
+        "firstNamePlaceholder": "جين",
+        "lastNameLabel": "اسم العائلة",
+        "lastNamePlaceholder": "سميث",
+        "emailLabel": "البريد الإلكتروني",
+        "emailPlaceholder": "أنت@example.com",
+        "passwordLabel": "كلمة المرور",
+        "passwordPlaceholder": "الحد الأدنى 8 أحرف",
+        "confirmPasswordLabel": "تأكيد كلمة المرور",
+        "confirmPasswordPlaceholder": "أعد كتابة كلمة المرور",
+        "passwordsDoNotMatch": "كلمات المرور غير متطابقة"
+      },
+      "backToDetails": "العودة إلى التفاصيل",
+      "or": "أو",
+      "signIn": "لديك حساب بالفعل؟ تسجيل الدخول"
+    }
+  },
+  "SpaBookingDialog": {
+    "title": "السبا والأنشطة",
+    "toast": {
+      "fetchSpasFailed": "فشل في جلب بيانات السبا",
+      "enterGuestName": "يرجى إدخال اسم الضيف",
+      "bookActivitiesFailedOneOrMore": "فشل في حجز نشاط أو أكثر",
+      "activitiesIncluded": "الأنشطة المضمنة في إقامتك",
+      "bookActivitiesFailed": "فشل في حجز الأنشطة",
+      "activityRemoved": "تمت إزالة النشاط من إقامتك.",
+      "removeActivityFailed": "فشل في إزالة النشاط"
+    },
+    "loading": {
+      "noSpas": "لا توجد سبا أو أنشطة متاحة لهذه التواريخ."
+    },
+    "detail": {
+      "duration": "المدة:",
+      "minutes": "دقائق",
+      "charges": "الرسوم:",
+      "description": "الوصف:"
+    },
+    "confirmPanel": {
+      "activitySelected": "{{count}} نشاط محدد",
+      "activitiesSelected": "{{count}} أنشطة محددة",
+      "guestNameLabel": "اسم الضيف",
+      "guestNamePlaceholder": "أدخل اسم الضيف…",
+      "booking": "جاري الحجز…",
+      "bookAll": "حجز الكل",
+      "cancel": "إلغاء"
+    },
+    "cancelPanel": {
+      "cancelPrefix": "إلغاء:",
+      "cancelling": "جاري الإلغاء…",
+      "yesCancel": "نعم، إلغاء",
+      "keep": "الاحتفاظ"
+    },
+    "list": {
+      "categoryAll": "الكل",
+      "searchPlaceholder": "بحث",
+      "included": "مشمول",
+      "paid": "مدفوع",
+      "slotsFree": "{{available}}/{{total}} موعد متاح",
+      "noResults": "لا توجد نتائج. حاول بحثاً أو فئة مختلفة."
+    }
+  },
+  "ImageUploadModal": {
+    "title": "رفع الصور",
+    "description": "اختر الصور لرفعها.",
+    "imagesSelected": "تم اختيار صورة(صور)",
+    "preview": "معاينة",
+    "dropzone": {
+      "hint": "اسحب وأفلت أو انقر للتصفح"
+    },
+    "progress": {
+      "uploading": "جاري رفع {{current}} من {{total}}..."
+    },
+    "form": {
+      "cancel": "إلغاء",
+      "upload": "رفع {{count}}",
+      "uploading": "جاري الرفع..."
+    },
+    "error": {
+      "invalidFiles": "يرجى تحديد ملفات صور صالحة.",
+      "alreadyAdded": "جميع الصور المحددة تمت إضافتها بالفعل.",
+      "noFiles": "يرجى تحديد صورة واحدة على الأقل.",
+      "uploadFailed": "فشل الرفع. يرجى المحاولة مرة أخرى."
+    },
+    "toast": {
+      "uploadFailed": "فشل في رفع الصور"
     }
   }
 }
