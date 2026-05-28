@@ -720,23 +720,10 @@ export default function PropertyPage() {
                                 </DialogContent>
                             </Dialog>
 
-                            {/* ── Add Language — only when property is live ── */}
-                            {isCreationCompleted && isDrafted && (
-                                <DropdownMenuItem
-                                    onSelect={(e) => {
-                                        e.preventDefault();
-                                        setIsLangPanelOpen(true);
-                                    }}
-                                    className="cursor-pointer"
-                                >
-                                    <Button variant={"secondary"}>
-                                        <Languages className='h-4 w-4 mr-2' /> {t("Property.addLanguage")}
-                                    </Button>
-                                </DropdownMenuItem>
-                            )}
+                   
 
                             <div className='ml-5'>
-                                <DeleteCreationDialog type={"property"} name={creationDetails.name} id={creationDetails.id} />
+                                <DeleteCreationDialog type={t(`CreateEntity.types.${"property"}`)as any} name={creationDetails.name} id={creationDetails.id} />
                             </div>
                         </DropdownMenuContent>
                     </DropdownMenu>

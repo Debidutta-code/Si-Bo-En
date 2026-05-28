@@ -92,8 +92,8 @@ export function AddTranslationDialog({ open, onOpenChange, entityId, title, fiel
           ))}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>{t("Common.cancel")}</Button>
+          <Button onClick={handleSave} disabled={loading}>{loading ? t("Common.saving") : t("Common.save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -129,7 +129,7 @@ export function EditTranslationDialog({
   const [loading, setLoading] = useState(false);
 
   const languageName = languages.find((l) => l.code === locale)?.name || locale;
-
+const {t}=useTranslation();
   // Re-populate whenever the dialog opens with new data
   useEffect(() => {
     if (open && initialData) {
@@ -165,7 +165,7 @@ export function EditTranslationDialog({
         <div className="space-y-4 py-2">
           {/* Locale badge — read-only */}
           <div className="space-y-1">
-            <Label>Language</Label>
+            <Label>{t("Common.language")}</Label>
             <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted text-sm font-medium">
               {languageName}
               <span className="ml-auto text-xs text-muted-foreground uppercase tracking-wide">{locale}</span>
@@ -183,8 +183,8 @@ export function EditTranslationDialog({
           ))}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button onClick={handleUpdate} disabled={loading}>{loading ? "Updating..." : "Update Translation"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>{t("Common.cancel")}</Button>
+          <Button onClick={handleUpdate} disabled={loading}>{loading ? t("EditBrandTranslation.updating") : t("EditBrandTranslation.update")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

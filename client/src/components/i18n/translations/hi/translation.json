@@ -1923,6 +1923,37 @@
       "pleaseEnterPropertyIntegrationName": "कृपया एक संपत्ति एकीकरण का नाम दर्ज करें",
       "propertyIntegrationCreatedSuccessfully": "संपत्ति एकीकरण सफलतापूर्वक बनाया गया",
       "propertyIntegrationDeletedSuccessfully": "संपत्ति एकीकरण सफलतापूर्वक हटा दिया गया"
+    },
+    "Category": {
+      "description": "विवरण",
+      "descriptionPlaceholder": "श्रेणी का विवरण दर्ज करें",
+      "name": "नाम",
+      "namePlaceholder": "श्रेणी का नाम दर्ज करें",
+      "addCategory": "श्रेणी जोड़ें",
+      "translations": "श्रेणी अनुवाद",
+      "editTranslation": "श्रेणी अनुवाद संपादित करें"
+    },
+    "PropertyType": {
+      "addTranslation": "प्रॉपर्टी प्रकार अनुवाद जोड़ें",
+      "name": "प्रॉपर्टी प्रकार का नाम",
+      "description": "विवरण",
+      "nameEx": "उदाहरण: होटल",
+      "placeholderEx": "इस प्रकार का विवरण दें",
+      "checkTrans": "प्रॉपर्टी प्रकार अनुवाद"
+    },
+    "PropertyAmenity": {
+      "placeholder": "उदाहरण: एयर कंडीशनर"
+    },
+    "RoomView": {
+      "placeholder": "उदाहरण: समुद्र दृश्य"
+    },
+    "LoyalityField": {
+      "createPlaceholder": "उदाहरण: फोन नंबर, जन्म तिथि",
+      "addLoyalityFieldTranlation": "लॉयल्टी फ़ील्ड अनुवाद जोड़ें",
+      "fieldName": "फ़ील्ड नाम",
+      "placeholder": "उदाहरण: Número de teléfono",
+      "checkTranslations": "लॉयल्टी फ़ील्ड अनुवाद",
+      "editTranslation": "लॉयल्टी फ़ील्ड अनुवाद संपादित करें"
     }
   },
   "Loyalty": {
@@ -4962,5 +4993,47 @@
       "close": "बंद करें"
     },
     "na": "लागू नहीं"
+  },
+  "ImageUploadModal": {
+    "title": "छवियाँ अपलोड करें",
+    "description": "अपलोड करने के लिए छवियाँ चुनें।",
+    "imagesSelected": "छवि(याँ) चयनित",
+    "preview": "पूर्वावलोकन",
+    "dropzone": {
+      "hint": "खींचें और छोड़ें या ब्राउज़ करने के लिए क्लिक करें"
+    },
+    "progress": {
+      "uploading": "{{total}} में से {{current}} अपलोड हो रहा है..."
+    },
+    "form": {
+      "cancel": "रद्द करें",
+      "upload": "{{count}} अपलोड करें",
+      "uploading": "अपलोड हो रहा है..."
+    },
+    "error": {
+      "invalidFiles": "कृपया मान्य छवि फ़ाइलें चुनें।",
+      "alreadyAdded": "सभी चयनित छवियाँ पहले से जोड़ी जा चुकी हैं।",
+      "noFiles": "कृपया कम से कम एक छवि चुनें।",
+      "uploadFailed": "अपलोड विफल। कृपया पुनः प्रयास करें।"
+    },
+    "toast": {
+      "uploadFailed": "छवियाँ अपलोड करने में विफल"
+    }
+  },
+  "EditBrandTranslation": {
+    "title": "ब्रांड अनुवाद संपादित करें",
+    "field": "ब्रांड नाम",
+    "placeholder": "उदाहरण: Marca Sol",
+    "cancel": "रद्द करें",
+    "update": "अनुवाद अपडेट करें",
+    "updating": "अपडेट किया जा रहा है..."
+  },
+  "EditGroupTranslation": {
+    "title": "समूह अनुवाद संपादित करें",
+    "field": "ब्रांड नाम",
+    "placeholder": "उदाहरण: Marca Sol",
+    "cancel": "रद्द करें",
+    "update": "अनुवाद अपडेट करें",
+    "updating": "अपडेट किया जा रहा है..."
   }
 }

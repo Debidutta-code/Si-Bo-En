@@ -129,7 +129,7 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                                 <Input
                                     value={createInput}
                                     onChange={(e) => setCreateInput(e.target.value)}
-                                    placeholder="e.g., Ocean View"
+                                    placeholder={t("Management.RoomView.placeholder")}
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") { e.preventDefault(); handleCreateRoomView(); }
                                     }}
@@ -203,7 +203,7 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         />
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => { setIsEditDialogOpen(false); setSelectedRoomView(null); setEditInput(""); }}>{t("Management.Common.cancel", { ns: "translation" })}</Button>
+                        <Button variant="outline" onClick={() => { setIsEditDialogOpen(false); setSelectedRoomView(null); setEditInput(""); }}>{t("Common.cancel", { ns: "translation" })}</Button>
                         <Button onClick={handleUpdateRoomView}>{t("Common.edit", { ns: "translation" })}</Button>
                     </DialogFooter>
                 </DialogContent>
@@ -215,7 +215,7 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         open={addTranslationOpen}
                         onOpenChange={setAddTranslationOpen}
                         entityId={translationEntityId}
-                        title={t("Management.Common.addTranslation", { ns: "translation", defaultValue: "Add Room View Translation" })}
+                        title={t("Common.addTranslation")}
                         fields={[
                             { key: "viewName", label: t("Management.roomViewsTitle"), placeholder: "e.g., Vista al mar" }
                         ]}
@@ -227,7 +227,7 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         open={checkTranslationsOpen}
                         onOpenChange={setCheckTranslationsOpen}
                         entityId={translationEntityId}
-                        title={t("Management.Common.checkTranslation", { ns: "translation", defaultValue: "Room View Translations" })}
+                        title={t("Common.checkTranslation", { ns: "translation", defaultValue: "Room View Translations" })}
                         displayFields={[
                             { key: "viewName", label: t("Management.roomViewsTitle") }
                         ]}
@@ -241,7 +241,7 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         entityId={translationEntityId!}
                         locale={editingLocale}
                         initialData={editingData}
-                        title={t("Management.Common.editTranslation", { ns: "translation", defaultValue: "Edit Room View Translation" })}
+                        title={t("Common.editTranslation", { ns: "translation", defaultValue: "Edit Room View Translation" })}
                         fields={[
                             { key: "viewName", label: t("Management.roomViewsTitle"), placeholder: "e.g., Vista al mar" }
                         ]}

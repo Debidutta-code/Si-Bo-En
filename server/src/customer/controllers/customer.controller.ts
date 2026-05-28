@@ -22,12 +22,14 @@ export class CustomerController {
         if (!/\d/.test(password)) {
             return "Password must contain at least one number";
         }
-        if (!/^[A-Za-z\d]+$/.test(password)) {
+        if (!/[!@#$&]/.test(password)) {
+            return "Password must contain at least one special character (!, @, #, $, &)";
+        }
+        if (!/^[A-Za-z\d@#$]+$/.test(password)) {
             return "Password contains invalid characters";
         }
         return null;
     };
-
     public async register(req: Request, res: Response): Promise<Response<IApiResponse>> {
         try {
             const { firstName, lastName, email, password } = req.body;
@@ -78,6 +80,10 @@ export class CustomerController {
             if (!emailRegex.test(email)) {
                 return res.status(400).json(errorResponse('Invalid email address'));
             }
+            const passwordError = this.validatePassword(password);
+            if (passwordError) {
+                return res.status(400).json(errorResponse(passwordError));
+            }
             const result = await this.customerService.login(email, password);
             if (!result.success) {
                 return res.status(401).json(result);
@@ -106,7 +112,7 @@ export class CustomerController {
         }
     }
 
-    public async getMe(req: CustomRequest, res: Response): Promise<Response<IApiResponse<ICustomer|null>>> {
+    public async getMe(req: CustomRequest, res: Response): Promise<Response<IApiResponse<ICustomer | null>>> {
         try {
             const customerId = req.customer?.id;
             if (!customerId) {
@@ -162,9 +168,9 @@ export class CustomerController {
 
     public async logout(req: Request, res: Response): Promise<Response<IApiResponse>> {
         res.clearCookie('customerToken');
-                res.clearCookie('loyalty_token');
+        res.clearCookie('loyalty_token');
 
-        
+
         return res.status(200).json(successResponse('Logged out successfully'));
     }
 }

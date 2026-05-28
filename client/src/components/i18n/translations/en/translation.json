@@ -1926,6 +1926,40 @@
       "pleaseEnterPropertyIntegrationName": "Please enter a property integration name",
       "propertyIntegrationCreatedSuccessfully": "Property integration created successfully",
       "propertyIntegrationDeletedSuccessfully": "Property integration deleted successfully"
+    },
+    "Category": {
+      "description": "Description",
+      "descriptionPlaceholder": "Describe the category",
+      "name": "Name",
+      "namePlaceholder": "Enter the category name",
+      "addCategory": "Add Category",
+      "translations": "Category Translations",
+      "editTranslation": "Edit Category Translation"
+    },
+    "PropertyType": {
+      "addTranslation": "Add Property Type Translation",
+      "name": "Property Type Name",
+      "description": "Description",
+      "nameEx": "e.g., Hotel",
+      "placeholderEx": "Describe this type",
+      "checkTrans": "Property Type Translations"
+    },
+    "PropertyAmenity": {
+      "placeholder": "e.g., Aire acondicionado"
+    },
+    "RoomAmenity": {
+      "placeholder": "e.g., Aire acondicionado"
+    },
+    "RoomView": {
+      "placeholder": "e.g., Sea View"
+    },
+    "LoyalityField": {
+      "createPlaceholder": "e.g., Phone Number, Date of Birth",
+      "addLoyalityFieldTranlation":"Add Loyalty Field Translation",
+      "fieldName":"Field Name",
+      "placeholder":"e.g., Número de teléfono",
+      "checkTranslations":"Loyalty Field Translations",
+      "editTranslation":"Edit Loyalty Field Translation"
     }
   },
   "Loyalty": {
@@ -3018,8 +3052,8 @@
     "saving": "Saving...",
     "create": "Create",
     "update": "Update",
-    "addRatePlan":"Add Rate Plan",
-    "removeRatePlan":"Remove Rate Plan",
+    "addRatePlan": "Add Rate Plan",
+    "removeRatePlan": "Remove Rate Plan",
     "noAvailableRatePlans": "No rate plans available",
     "noRatePlanAdded": "No rate plan added"
   },
@@ -3832,7 +3866,7 @@
     }
   },
   "CreateEntity": {
-    "button": "Create {{name}}",
+    "button": "Create",
     "title": "Create New Entity",
     "name": "Name",
     "namePlaceholder": "Enter {{type}} name",
@@ -4965,5 +4999,47 @@
       "close": "Close"
     },
     "na": "N/A"
+  },
+  "ImageUploadModal": {
+    "title": "Upload Images",
+    "description": "Select images to upload.",
+    "imagesSelected": "image(s) selected",
+    "preview": "Preview",
+    "dropzone": {
+      "hint": "Drag & drop or click to browse"
+    },
+    "progress": {
+      "uploading": "Uploading {{current}} of {{total}}..."
+    },
+    "form": {
+      "cancel": "Cancel",
+      "upload": "Upload {{count}}",
+      "uploading": "Uploading..."
+    },
+    "error": {
+      "invalidFiles": "Please select valid image files.",
+      "alreadyAdded": "All selected images are already added.",
+      "noFiles": "Please select at least one image.",
+      "uploadFailed": "Upload failed. Please try again."
+    },
+    "toast": {
+      "uploadFailed": "Failed to upload images"
+    }
+  },
+  "EditBrandTranslation": {
+    "title": "Edit Brand Translation",
+    "field": "Brand Name",
+    "placeholder": "e.g. Marca Sol",
+    "cancel": "Cancel",
+    "update": "Update Translation",
+    "updating": "Updating..."
+  },
+  "EditGroupTranslation": {
+    "title": "Edit Group Translation",
+    "field": "Brand Name",
+    "placeholder": "e.g. Marca Sol",
+    "cancel": "Cancel",
+    "update": "Update Translation",
+    "updating": "Updating..."
   }
 }

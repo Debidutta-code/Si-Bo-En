@@ -13,6 +13,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import toast from 'react-hot-toast'
 import createAxiosInstance from '../axiosInstance'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
   isOpen: boolean
@@ -68,6 +69,7 @@ export default function ImageUploadModal({
   onClose,
   onUploadSuccess,
 }: Props) {
+  const { t } = useTranslation()
   const [files, setFiles] = React.useState<File[]>([])
   const [previews, setPreviews] = React.useState<string[]>([])
   const [isDragging, setIsDragging] = React.useState(false)
@@ -95,7 +97,7 @@ export default function ImageUploadModal({
 
     const validImages = selected.filter(file => file.type.startsWith('image/'))
     if (validImages.length === 0) {
-      setError('Please select valid image files.')
+      setError(t('ImageUploadModal.error.invalidFiles'))
       return
     }
 
@@ -107,7 +109,7 @@ export default function ImageUploadModal({
     })
 
     if (newFiles.length === 0) {
-      setError('All selected images are already added.')
+      setError(t('ImageUploadModal.error.alreadyAdded'))
       return
     }
 
@@ -146,7 +148,7 @@ export default function ImageUploadModal({
 
   const handleUpload = async () => {
     if (files.length === 0) {
-      setError("Please select at least one image.")
+      setError(t('ImageUploadModal.error.noFiles'))
       return
     }
 
@@ -156,7 +158,7 @@ export default function ImageUploadModal({
     
     try {
       for (let i = 0; i < files.length; i++) {
-        setUploadProgress(`Uploading ${i + 1} of ${files.length}...`)
+        setUploadProgress(t('ImageUploadModal.progress.uploading', { current: i + 1, total: files.length }))
         let url ;
         if(import.meta.env.VITE_NODE_ENV==="production"){
           url=await uploadToS3(files[i])
@@ -171,8 +173,8 @@ export default function ImageUploadModal({
       onClose()
     } catch (err: any) {
       console.error('Upload error:', err)
-      setError(err?.message || 'Upload failed. Please try again.')
-      toast.error('Failed to upload images')
+      setError(err?.message || t('ImageUploadModal.error.uploadFailed'))
+      toast.error(t('ImageUploadModal.toast.uploadFailed'))
     } finally {
       setIsUploading(false)
       setUploadProgress('')
@@ -185,13 +187,13 @@ export default function ImageUploadModal({
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upload Images</DialogTitle>
-          <DialogDescription>Select images to Upload.</DialogDescription>
+          <DialogTitle>{t('ImageUploadModal.title')}</DialogTitle>
+          <DialogDescription>{t('ImageUploadModal.description')}</DialogDescription>
         </DialogHeader>
 
         {files.length > 0 && (
           <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-            <strong>{files.length}</strong> image(s) selected
+            <strong>{files.length}</strong> {t('ImageUploadModal.imagesSelected')}
           </div>
         )}
 
@@ -222,13 +224,13 @@ export default function ImageUploadModal({
             className="hidden"
           />
           <Upload className="mx-auto mb-2" />
-          <div>Drag & drop or click to browse</div>
+          <div>{t('ImageUploadModal.dropzone.hint')}</div>
         </div>
 
         {/* Previews */}
         {previews.length > 0 && (
           <div className="mt-4">
-            <h4 className="text-sm font-medium mb-2">Preview</h4>
+            <h4 className="text-sm font-medium mb-2">{t('ImageUploadModal.preview')}</h4>
             <div className="grid grid-cols-4 gap-2 max-h-32 overflow-y-auto">
               {previews.map((src, i) => (
                 <div key={i} className="relative">
@@ -248,7 +250,7 @@ export default function ImageUploadModal({
         {error && <Badge variant="destructive">{error}</Badge>}
 
         <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={onClose} disabled={isUploading}>Cancel</Button>
+          <Button variant="outline" onClick={onClose} disabled={isUploading}>{t('ImageUploadModal.form.cancel')}</Button>
           <Button
             onClick={handleUpload}
             disabled={isUploading || files.length === 0}
@@ -257,10 +259,10 @@ export default function ImageUploadModal({
             {isUploading ? (
               <>
                 <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                Uploading...
+                {t('ImageUploadModal.form.uploading')}
               </>
             ) : (
-              `Upload ${files.length}`
+              t('ImageUploadModal.form.upload', { count: files.length })
             )}
           </Button>
         </DialogFooter>

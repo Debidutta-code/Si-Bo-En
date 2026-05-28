@@ -493,62 +493,50 @@
       "paidAmount": "भुगतान की गई राशि:",
       "refundable": "वापसी योग्य राशि:"
     },
-  "actions": {
-    "checkInNow": "अभी चेक-इन करें",
-    "checkOutNow": "अभी चेक-आउट करें",
-    "viewBookSpa": "स्पा सेवाएँ देखें और बुक करें ({{count}} उपलब्ध)"
-  },
-
-  "checkinDialog": {
-    "title": "ऑनलाइन चेक-इन",
-
-    "idTypeLabel": "आईडी प्रकार",
-    "idNumberLabel": "आईडी नंबर",
-    "idNumberPlaceholder": "आईडी नंबर दर्ज करें",
-
-    "addressLabel": "पता",
-    "addressPlaceholder": "सड़क का पता",
-
-    "cityLabel": "शहर",
-    "stateLabel": "राज्य/प्रांत",
-    "countryLabel": "देश",
-    "zipLabel": "ज़िप/पोस्टल कोड",
-
-    "identityImageLabel": "पहचान छवि",
-    "identityImageAlt": "पहचान",
-
-    "uploadButton": "अपलोड करें",
-    "cancel": "रद्द करें",
-    "submit": "चेक-इन पूरा करें",
-    "processing": "प्रोसेस हो रहा है…",
-
-    "idTypes": {
-      "nationalId": "राष्ट्रीय पहचान पत्र",
-      "passport": "पासपोर्ट",
-      "driversLicense": "ड्राइविंग लाइसेंस",
-      "others": "अन्य"
+    "actions": {
+      "checkInNow": "अभी चेक-इन करें",
+      "checkOutNow": "अभी चेक-आउट करें",
+      "viewBookSpa": "स्पा सेवाएँ देखें और बुक करें ({{count}} उपलब्ध)"
+    },
+    "checkinDialog": {
+      "title": "ऑनलाइन चेक-इन",
+      "idTypeLabel": "आईडी प्रकार",
+      "idNumberLabel": "आईडी नंबर",
+      "idNumberPlaceholder": "आईडी नंबर दर्ज करें",
+      "addressLabel": "पता",
+      "addressPlaceholder": "सड़क का पता",
+      "cityLabel": "शहर",
+      "stateLabel": "राज्य/प्रांत",
+      "countryLabel": "देश",
+      "zipLabel": "ज़िप/पोस्टल कोड",
+      "identityImageLabel": "पहचान छवि",
+      "identityImageAlt": "पहचान",
+      "uploadButton": "अपलोड करें",
+      "cancel": "रद्द करें",
+      "submit": "चेक-इन पूरा करें",
+      "processing": "प्रोसेस हो रहा है…",
+      "idTypes": {
+        "nationalId": "राष्ट्रीय पहचान पत्र",
+        "passport": "पासपोर्ट",
+        "driversLicense": "ड्राइविंग लाइसेंस",
+        "others": "अन्य"
+      }
+    },
+    "checkoutDialog": {
+      "title": "चेक-आउट की पुष्टि करें",
+      "body": "क्या आप वाकई इस आरक्षण से चेक-आउट करना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+      "cancel": "रद्द करें",
+      "confirm": "चेक-आउट की पुष्टि करें",
+      "processing": "प्रोसेस हो रहा है…"
+    },
+    "toast": {
+      "checkinSuccess": "सफलतापूर्वक चेक-इन किया गया!",
+      "checkinError": "चेक-इन के दौरान एक त्रुटि हुई",
+      "checkinFailed": "चेक-इन करने में विफल",
+      "checkoutSuccess": "सफलतापूर्वक चेक-आउट किया गया!",
+      "checkoutError": "चेक-आउट के दौरान एक त्रुटि हुई",
+      "checkoutFailed": "चेक-आउट करने में विफल"
     }
-  },
-
-  "checkoutDialog": {
-    "title": "चेक-आउट की पुष्टि करें",
-    "body": "क्या आप वाकई इस आरक्षण से चेक-आउट करना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।",
-
-    "cancel": "रद्द करें",
-    "confirm": "चेक-आउट की पुष्टि करें",
-    "processing": "प्रोसेस हो रहा है…"
-  },
-
-  "toast": {
-    "checkinSuccess": "सफलतापूर्वक चेक-इन किया गया!",
-    "checkinError": "चेक-इन के दौरान एक त्रुटि हुई",
-    "checkinFailed": "चेक-इन करने में विफल",
-
-    "checkoutSuccess": "सफलतापूर्वक चेक-आउट किया गया!",
-    "checkoutError": "चेक-आउट के दौरान एक त्रुटि हुई",
-    "checkoutFailed": "चेक-आउट करने में विफल"
-  
-}
   },
   "ModifyBooking": {
     "title": "अपनी बुकिंग संशोधित करें",
@@ -940,60 +928,47 @@
       "loginFailed": "लॉगिन विफल",
       "somethingWentWrong": "कुछ गलत हो गया, कृपया पुनः प्रयास करें"
     },
-
     "leftPanel": {
       "guestAccount": "अतिथि खाता",
       "brand": "Revchill",
-
       "headline": {
         "part1": "आपका प्रवास,",
         "part2": "आपके तरीके से —",
         "part3": "हमेशा।"
       },
-
       "description": "सभी Revchill प्रॉपर्टीज़ में बुकिंग, प्रबंधन और हर अनुभव को दोबारा जीने के लिए एक ही खाता।",
-
       "features": {
         "bookInstantly": {
           "title": "तुरंत बुक करें",
           "desc": "एक ही स्थान पर कमरे, स्पा और डाइनिंग बुक करें"
         },
-
         "manageTrips": {
           "title": "अपनी यात्राएँ प्रबंधित करें",
           "desc": "कभी भी बुकिंग देखें, संशोधित करें या रद्द करें"
         },
-
         "wishlist": {
           "title": "विशलिस्ट प्रॉपर्टीज़",
           "desc": "अपनी पसंदीदा प्रॉपर्टीज़ बाद के लिए सहेजें"
         },
-
         "support": {
           "title": "24 / 7 सहायता",
           "desc": "टिकट बनाएं और समाधान को लाइव ट्रैक करें"
         }
       }
     },
-
     "rightPanel": {
       "guestAccount": "अतिथि खाता",
       "brand": "Revchill",
       "heading": "वापसी पर स्वागत है",
       "subheading": "अपनी बुकिंग्स और प्रोफ़ाइल प्रबंधित करने के लिए साइन इन करें।",
-
       "emailLabel": "ईमेल पता",
       "emailPlaceholder": "you@email.com",
-
       "passwordLabel": "पासवर्ड",
       "passwordPlaceholder": "••••••••••",
-
       "forgotPassword": "पासवर्ड भूल गए?",
       "signIn": "साइन इन करें",
       "signingIn": "साइन इन हो रहा है…",
-
       "or": "या",
-
       "createAccount": "नया खाता बनाएँ"
     }
   },
@@ -1009,76 +984,59 @@
       "registrationFailed": "पंजीकरण विफल",
       "somethingWentWrong": "कुछ गलत हो गया, कृपया पुनः प्रयास करें"
     },
-
     "cta": {
       "creatingAccount": "खाता बनाया जा रहा है…",
       "continue": "जारी रखें",
       "createAccount": "खाता बनाएँ"
     },
-
     "leftPanel": {
       "brand": "Revchill",
       "guestAccount": "अतिथि खाता",
-
       "headline": {
         "part1": "अपनी",
         "part2": "यात्रा",
         "part3": "हमारे साथ शुरू करें।"
       },
-
       "description": "एक मिनट से भी कम समय में अपना निःशुल्क खाता बनाएँ और सभी प्रॉपर्टीज़ में सहज बुकिंग का आनंद लें।",
-
       "stepsInfo": {
         "step1": {
           "label": "व्यक्तिगत विवरण",
           "desc": "नाम और ईमेल पता"
         },
-
         "step2": {
           "label": "सुरक्षित पासवर्ड",
           "desc": "अपने खाते के लिए एक पासवर्ड सेट करें"
         },
-
         "step3": {
           "label": "आप पूरी तरह तैयार हैं",
           "desc": "तुरंत बुकिंग शुरू करें"
         }
       }
     },
-
     "rightPanel": {
       "brand": "Revchill",
       "newAccount": "नया खाता",
-
       "headings": {
         "step1": "खाता बनाएँ",
         "step2": "अपना पासवर्ड सेट करें"
       },
-
       "subheadings": {
         "step1": "2 में से चरण 1 — आपके व्यक्तिगत विवरण।",
         "step2": "2 में से चरण 2 — एक सुरक्षित पासवर्ड चुनें।"
       },
-
       "form": {
         "firstNameLabel": "पहला नाम",
         "firstNamePlaceholder": "Jane",
-
         "lastNameLabel": "अंतिम नाम",
         "lastNamePlaceholder": "Smith",
-
         "emailLabel": "ईमेल पता",
         "emailPlaceholder": "you@email.com",
-
         "passwordLabel": "पासवर्ड",
         "passwordPlaceholder": "कम से कम 8 अक्षर",
-
         "confirmPasswordLabel": "पासवर्ड की पुष्टि करें",
         "confirmPasswordPlaceholder": "अपना पासवर्ड दोबारा दर्ज करें",
-
         "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते"
       },
-
       "backToDetails": "विवरण पर वापस जाएँ",
       "or": "या",
       "signIn": "पहले से खाता है? साइन इन करें"
@@ -1086,7 +1044,6 @@
   },
   "SpaBookingDialog": {
     "title": "स्पा और गतिविधियाँ",
-
     "toast": {
       "fetchSpasFailed": "स्पा प्राप्त करने में विफल",
       "enterGuestName": "कृपया अतिथि का नाम दर्ज करें",
@@ -1096,18 +1053,15 @@
       "activityRemoved": "गतिविधि आपके प्रवास से हटा दी गई।",
       "removeActivityFailed": "गतिविधि हटाने में विफल"
     },
-
     "loading": {
       "noSpas": "इन तिथियों के लिए कोई स्पा या गतिविधियाँ उपलब्ध नहीं हैं।"
     },
-
     "detail": {
       "duration": "अवधि:",
       "minutes": "मिनट",
       "charges": "शुल्क:",
       "description": "विवरण:"
     },
-
     "confirmPanel": {
       "activitySelected": "{{count}} गतिविधि चयनित",
       "activitiesSelected": "{{count}} गतिविधियाँ चयनित",
@@ -1117,14 +1071,12 @@
       "bookAll": "सभी बुक करें",
       "cancel": "रद्द करें"
     },
-
     "cancelPanel": {
       "cancelPrefix": "रद्द करें:",
       "cancelling": "रद्द किया जा रहा है…",
       "yesCancel": "हाँ, रद्द करें",
       "keep": "बनाए रखें"
     },
-
     "list": {
       "categoryAll": "सभी",
       "searchPlaceholder": "खोजें",
@@ -1132,6 +1084,32 @@
       "paid": "सशुल्क",
       "slotsFree": "{{available}}/{{total}} स्लॉट खाली",
       "noResults": "कोई परिणाम नहीं मिला। अलग खोज या श्रेणी आज़माएँ।"
+    }
+  },
+  "ImageUploadModal": {
+    "title": "छवियाँ अपलोड करें",
+    "description": "अपलोड करने के लिए छवियाँ चुनें।",
+    "imagesSelected": "छवि(याँ) चयनित",
+    "preview": "पूर्वावलोकन",
+    "dropzone": {
+      "hint": "खींचें और छोड़ें या ब्राउज़ करने के लिए क्लिक करें"
+    },
+    "progress": {
+      "uploading": "{{total}} में से {{current}} अपलोड हो रहा है..."
+    },
+    "form": {
+      "cancel": "रद्द करें",
+      "upload": "{{count}} अपलोड करें",
+      "uploading": "अपलोड हो रहा है..."
+    },
+    "error": {
+      "invalidFiles": "कृपया मान्य छवि फ़ाइलें चुनें।",
+      "alreadyAdded": "सभी चयनित छवियाँ पहले से जोड़ी जा चुकी हैं।",
+      "noFiles": "कृपया कम से कम एक छवि चुनें।",
+      "uploadFailed": "अपलोड विफल। कृपया पुनः प्रयास करें।"
+    },
+    "toast": {
+      "uploadFailed": "छवियाँ अपलोड करने में विफल"
     }
   }
 }

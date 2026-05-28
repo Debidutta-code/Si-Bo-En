@@ -133,7 +133,7 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
                         <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600" onClick={() => handleDeletePropertyType(type.propertyTypeName)}>
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        <Trash2 className="h-4 w-4 mr-2" /> {t("Common.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -155,10 +155,10 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
             open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
-            title="Add Property Type Translation"
+            title={t("Management.PropertyType.addTranslation")}
             fields={[
-              { key: "propertyTypeName", label: "Property Type Name", placeholder: "e.g., Hotel" },
-              { key: "propertyTypeDescription", label: "Description", placeholder: "Describe this type" },
+              { key: "propertyTypeName", label: t("Management.PropertyType.name"), placeholder: t("Management.PropertyType.nameEx") },
+              { key: "propertyTypeDescription", label: t("Management.PropertyType.description"), placeholder: t("Management.PropertyType.placeholderEx")},
             ]}
             onSave={async (id, locale, data) => {
               return await upsertMasterPropertyTypeTranslationService(id, { [locale]: data });
@@ -170,8 +170,8 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
             entityId={translationEntityId}
             title="Property Type Translations"
             displayFields={[
-              { key: "propertyTypeName", label: "Name" },
-              { key: "propertyTypeDescription", label: "Description" },
+              { key: "propertyTypeName", label: t("Management.PropertyType.name") },
+              { key: "propertyTypeDescription", label: t("Management.PropertyType.description") },
             ]}
             onFetch={getAllMasterPropertyTypeTranslationsService}
             onDelete={deleteMasterPropertyTypeTranslationLocaleService}
@@ -185,8 +185,8 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
             initialData={editingData}
             title="Edit Property Type Translation"
             fields={[
-              { key: "propertyTypeName", label: "Property Type Name", placeholder: "e.g., Hotel" },
-              { key: "propertyTypeDescription", label: "Description", placeholder: "Describe this type" },
+              { key: "propertyTypeName", label: t("Management.PropertyType.name"), placeholder:  t("Management.PropertyType.nameEx") },
+              { key: "propertyTypeDescription", label: t("Management.PropertyType.description"), placeholder: t("Management.PropertyType.placeholderEx") },
             ]}
             onSave={async (id, locale, data) => upsertMasterPropertyTypeTranslationService(id, { [locale]: data })}
           />

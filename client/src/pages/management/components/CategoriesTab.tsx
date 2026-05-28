@@ -133,7 +133,7 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
                         <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteCategory(category.categoryName)}>
-                        <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        <Trash2 className="h-4 w-4 mr-2" /> {t("Common.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -157,8 +157,8 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
             entityId={translationEntityId}
             title={t("Addon.ManagementTabs.translationDialogs.category.addTitle")}
             fields={[
-              { key: "categoryName", label: t("Addon.ManagementTabs.translationDialogs.category.fieldLabel"), placeholder: "e.g., Lujo" },
-              { key: "categoryDescription", label: "Description", placeholder: "Describe this category" },
+              { key: "categoryName", label: t("Management.Category.name"), placeholder: t("Management.Category.namePlaceholder") },
+              { key: "categoryDescription", label: t("Management.Category.description"), placeholder: t("Management.Category.descriptionPlaceholder") },
             ]}
             onSave={async (id, locale, data) => {
               return await upsertMasterPropertyCategoryTranslationService(id, { [locale]: data });
@@ -168,10 +168,10 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title="Category Translations"
+            title={t("Management.Category.translations")}
             displayFields={[
-              { key: "categoryName", label: "Name" },
-              { key: "categoryDescription", label: "Description" },
+              { key: "categoryName", label: t("Management.Category.name") },
+              { key: "categoryDescription", label: t("Management.Category.description") },
             ]}
             onFetch={getAllMasterPropertyCategoryTranslationsService}
             onDelete={deleteMasterPropertyCategoryTranslationLocaleService}
@@ -183,10 +183,10 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
             entityId={translationEntityId!}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Category Translation"
+            title={t("Management.Category.editTranslation")}
             fields={[
-              { key: "categoryName", label: "Category Name", placeholder: "e.g., Lujo" },
-              { key: "categoryDescription", label: "Description", placeholder: "Describe this category" },
+              { key: "categoryName", label: t("Management.Category.name") , placeholder: "e.g., Lujo" },
+              { key: "categoryDescription", label:t("Management.Category.description"), placeholder: "Describe this category" },
             ]}
             onSave={async (id, locale, data) => upsertMasterPropertyCategoryTranslationService(id, { [locale]: data })}
           />
