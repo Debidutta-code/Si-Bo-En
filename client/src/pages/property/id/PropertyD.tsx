@@ -20,9 +20,11 @@ import { Button } from "@/components/ui/button";
 import VideoUploadModal from "@/components/property/VedioUpload.modal";
 import PropertyMediaGallery from "@/components/property/PropertyMediaGallery";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useTranslation } from "react-i18next";
 
 
 export default function PropertyDetailsPage() {
+  const {t} = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [propertyImages, setPropertyImages] = useState<string[]>([]);
@@ -231,7 +233,7 @@ export default function PropertyDetailsPage() {
                   className="flex items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <Video className="h-4 w-4" />
-                  {propertyDetails.propertyVideos?.url ? 'Update Video' : 'Add Video'}
+                  {propertyDetails.propertyVideos?.url ? t("VideoUpload.updateVideo") : t("VideoUpload.addVideo")}
                 </Button>
                 {propertyDetails.propertyVideos?.url && (
                   <Button
@@ -242,7 +244,7 @@ export default function PropertyDetailsPage() {
                     className="text-red-600 hover:text-red-700 hover:bg-red-50 shadow-sm"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    {isDeletingVideo ? 'Deleting...' : 'Delete'}
+                    {isDeletingVideo ? t("VideoUpload.deleting") : t("VideoUpload.deleteVideo")}
                   </Button>
                 )}
               </div>
@@ -293,25 +295,25 @@ export default function PropertyDetailsPage() {
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
         onUploadSuccess={handleVideoUploadSuccess}
-        title="Upload Property Video"
+        title={t("PropertyPage.uploadPropertyVideo")}
       />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this video?</AlertDialogTitle>
+            <AlertDialogTitle>{t("PropertyPage.deleteVideoTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the property video from the system.
+              {t("PropertyPage.deleteVideoDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("VideoUpload.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteVideo}
               className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
             >
-              Delete Video
+              {t("VideoUpload.deleteVideo")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

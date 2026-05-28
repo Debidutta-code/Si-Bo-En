@@ -687,13 +687,14 @@ export class PropertyAmenityDao {
 
     public static async getActiveAmenities(
         propertyId: string
-    ): Promise<{ id: string; name: string }[]> {
+    ): Promise<{ id: string; amenityName: string; icon:string|null,masterId:string }[]> {
         try {
             const amenitySelections = await this.findByPropertyId(propertyId);
             // console.log(amenitySelections);
             return amenitySelections.map(selection => ({
                 id: selection.amenity.id,
-                name: selection.amenity.amenityName,
+                amenityName: selection.amenity.amenityName,
+                icon:selection.amenity.icon ,
                 masterId: selection.amenity.id,
             }));
         } catch (error: any) {

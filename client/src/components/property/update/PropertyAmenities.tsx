@@ -39,29 +39,23 @@ export default function UpdatePropertyAmenity({
   const [availableAmenities, setAvailableAmenities] = useState<IAmenity[]>([]); // all possible
   const [selectedAmenities, setSelectedAmenities] = useState<AmenityState>({});
 
-  // --- FETCH ALL AVAILABLE AMENITIES (list of strings) ---
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
       try {
         const amenitiesRes = await getAmenities();
-        // console.log("Amenities Response:", amenitiesRes);
-
         if (!amenitiesRes.success) throw new Error("Failed to fetch amenities");
-
-        // Extract and clean all possible amenities
-        const allAmenities = (amenitiesRes.data || []) as Array<{
-          id: string;
-          amenityName: string;
-          _translations?: any;
-        }>;
+        const allAmenities = amenitiesRes.data
         const cleanedAmenities: IAmenity[] = allAmenities
-          .map((a) => ({ id: a.id, name: a.amenityName, _translations: a._translations || {} }))
-          .filter((a) => a.id && a.name);
-
+          .map((a: IAmenity) => ({
+            id: a.id,
+            amenityName: a.amenityName,
+            icon: a.icon,
+            _translations: a._translations ?? undefined, // don't fall back to {}
+          }))
+          .filter((a: IAmenity) => a.id && a.amenityName);
         setAvailableAmenities(cleanedAmenities);
 
-        // Build initial state: all false (keys are amenity UUIDs)
         const initialState = cleanedAmenities.reduce(
           (acc: AmenityState, amenity: IAmenity) => {
             acc[amenity.id] = false;
@@ -117,7 +111,7 @@ export default function UpdatePropertyAmenity({
               key={amenity.id}
               type="button"
               onClick={() => handleToggle(amenity.id)}
-              className={cn( 
+              className={cn(
                 "relative flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-200 focus:outline-none",
                 isSelected
                   ? "bg-black text-white border-black shadow-md"
@@ -125,7 +119,7 @@ export default function UpdatePropertyAmenity({
               )}
             >
               <span className="text-xs  font-medium capitalize text-center">
-                {amenity._translations?amenity._translations.amenityName:amenity.name}
+                {amenity._translations ? amenity._translations.amenityName : amenity.amenityName}
               </span>
               <div
                 className={cn(

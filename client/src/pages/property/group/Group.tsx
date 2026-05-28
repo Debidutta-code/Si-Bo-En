@@ -520,7 +520,7 @@ export default function page() {
             </div>
             <div className="px-2">
               <DeleteCreationDialog
-                type={"group"}
+                type={t(`CreateEntity.types.${"group"}`)as any}
                 name={creations.groupData._translations?creations.groupData._translations.name:creations.groupData.name}
                 id={creations.groupData.id}
               />
@@ -768,9 +768,9 @@ export default function page() {
             entityId={creations.groupData.id}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Group Translation"
+            title={t("EditGroupTranslation.title")}
             fields={[
-              { key: "name", label: "Group Name", placeholder: "e.g. Grupo Sol" },
+              { key: "name", label: t("EditGroupTranslation.field"), placeholder: t("EditGroupTranslation.placeholder") },
             ]}
             onSave={async (id, locale, data) => upsertCreationTranslationService(id, { [locale]: data })}
           />

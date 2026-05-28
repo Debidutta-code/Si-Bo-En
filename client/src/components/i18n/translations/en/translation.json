@@ -3829,7 +3829,7 @@
     }
   },
   "CreateEntity": {
-    "button": "Create {{name}}",
+    "button": "Create",
     "title": "Create New Entity",
     "name": "Name",
     "namePlaceholder": "Enter {{type}} name",
@@ -4962,5 +4962,56 @@
       "close": "Close"
     },
     "na": "N/A"
+  },
+  "ImageUploadModal": {
+    "title": "Upload Images",
+    "description": "Select images to upload.",
+    "imagesSelected": "image(s) selected",
+    "preview": "Preview",
+
+    "dropzone": {
+      "hint": "Drag & drop or click to browse"
+    },
+
+    "progress": {
+      "uploading": "Uploading {{current}} of {{total}}..."
+    },
+
+    "form": {
+      "cancel": "Cancel",
+      "upload": "Upload {{count}}",
+      "uploading": "Uploading..."
+    },
+
+    "error": {
+      "invalidFiles": "Please select valid image files.",
+      "alreadyAdded": "All selected images are already added.",
+      "noFiles": "Please select at least one image.",
+      "uploadFailed": "Upload failed. Please try again."
+    },
+
+    "toast": {
+      "uploadFailed": "Failed to upload images"
+    }
+  },
+  "EditBrandTranslation":{
+    "title":"Edit Brand Translation",
+
+    "field":"Brand Name",
+    "placeholder":"e.g. Marca Sol",
+    "cancel":"Cancel",
+    "update":"Update Translation",
+    "updating":"Updating..."
+    
+  },
+    "EditGroupTranslation":{
+    "title":"Edit Group Translation",
+    
+    "field":"Brand Name",
+    "placeholder":"e.g. Marca Sol",
+    "cancel":"Cancel",
+    "update":"Update Translation",
+    "updating":"Updating..."
+    
   }
 }

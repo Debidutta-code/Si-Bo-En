@@ -28,7 +28,7 @@ interface PropertyId {
 
 
 export default function PropertyAmenities({ propertyId }: PropertyId) {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [propertyAmenities, setPropertyAmenities] = useState<IAmenity[]>([]);
@@ -74,14 +74,14 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
       const res = await updatePropertyAmenity(propertyId, selectedAmenities);
       if (res.success) {
         setUpdateDialogOpen(false);
-fetchPropertyAmenity(propertyId)
+        fetchPropertyAmenity(propertyId)
         toast.success(t('Toast.amenitiesUpdated'))
       } else {
         toast.error(res.message || t('Toast.failedToUpdateAmenities'))
       }
     } catch (error: any) {
       toast.error(error?.message || t('Toast.failedToUpdateAmenities'))
-    }finally{
+    } finally {
       setLoading(false)
     }
 
@@ -95,7 +95,7 @@ fetchPropertyAmenity(propertyId)
               {t('PropertyDetails.propertyAmenities')}
             </CardTitle>
             <p className="text-sm text-gray-500 mt-1">
-              {propertyAmenities.length === 1 
+              {propertyAmenities.length === 1
                 ? t('PropertyDetails.amenityAvailable', { count: propertyAmenities.length })
                 : t('PropertyDetails.amenitiesAvailable', { count: propertyAmenities.length })}
             </p>
@@ -121,7 +121,7 @@ fetchPropertyAmenity(propertyId)
               >
                 <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary-500 group-hover:bg-primary-600 transition-colors" />
                 <span className="text-sm font-medium text-gray-700 capitalize">
-                  {amenity._translations?amenity._translations.amenityName:amenity.name}
+                  {amenity._translations ? amenity._translations.amenityName : amenity.amenityName}
                 </span>
               </div>
             ))}

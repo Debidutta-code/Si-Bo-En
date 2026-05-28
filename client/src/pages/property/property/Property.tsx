@@ -736,7 +736,7 @@ export default function PropertyPage() {
                             )}
 
                             <div className='ml-5'>
-                                <DeleteCreationDialog type={"property"} name={creationDetails.name} id={creationDetails.id} />
+                                <DeleteCreationDialog type={t(`CreateEntity.types.${"property"}`)as any} name={creationDetails.name} id={creationDetails.id} />
                             </div>
                         </DropdownMenuContent>
                     </DropdownMenu>

@@ -1,7 +1,8 @@
 export interface IAmenity{
     id:string;
-    name:string;
-    _translations: {
+    amenityName:string;
+    icon:string|null;
+    _translations?: {
         amenityName: string;
         description: string;
     }

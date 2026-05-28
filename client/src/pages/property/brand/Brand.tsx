@@ -373,7 +373,7 @@ export default function page() {
                             <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={2} fetchProperties={fetchGroup} />
                         </div>
                         <div className="px-2">
-                            <DeleteCreationDialog type={"brand"} name={updateBrandDetails.name} id={creationId ? creationId : ""} />
+                            <DeleteCreationDialog type={t(`CreateEntity.types.${"brand"}`)as any} name={updateBrandDetails.name} id={creationId ? creationId : ""} />
                         </div>
                     </DropdownMenuContent>
 
@@ -555,9 +555,9 @@ export default function page() {
                         entityId={brandDetails.id}
                         locale={editingLocale}
                         initialData={editingData}
-                        title="Edit Brand Translation"
+                        title={t("EditBrandTranslation.title")}
                         fields={[
-                            { key: "name", label: "Brand Name", placeholder: "e.g. Marca Sol" },
+                            { key: "name", label: t("EditBrandTranslation.field"), placeholder: t("EditBrandTranslation.placeholder") },
                         ]}
                         onSave={async (id, locale, data) => upsertCreationTranslationService(id, { [locale]: data })}
                     />

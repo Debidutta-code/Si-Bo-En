@@ -128,7 +128,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
             <AlertDialogTrigger asChild>
                 <Button variant={"secondary"} onClick={() => setOpen(true)}>
                     <PlusCircle className="h-4 w-4 mr-2" />
-                    {t("CreateEntity.button", { name: capitalizeFirstLetter(currentTab) })}
+                    {t("CreateEntity.button",{name:t(`CreateEntity.types.${currentTab}`)} )} 
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
