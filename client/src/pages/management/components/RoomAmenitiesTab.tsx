@@ -163,10 +163,9 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
             open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
-            title={t("Management.addTranslation", { ns: "translation", defaultValue: "Add Room Amenity Translation" })}
+            title={t("Common.addTranslation", { ns: "translation", defaultValue: "Add Room Amenity Translation" })}
             fields={[
-              { key: "amenityName", label: t("Management.roomAmenitiesTitle"), placeholder: "e.g., Aire acondicionado" },
-              { key: "description", label: t("Management.description"), placeholder: "Describe this amenity" },
+              { key: "amenityName", label: t("Management.roomAmenitiesTitle"), placeholder: t("Management.PropertyAmenity.placeholder") },
             ]}
             onSave={async (id, locale, data) => {
               return await upsertMasterAmenityTranslationService(id, { [locale]: data });
@@ -176,7 +175,7 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title={t("Management.checkTranslation", { ns: "translation", defaultValue: "Room Amenity Translations" })}
+            title={t("Common.checkTranslation", )}
             displayFields={[
               { key: "amenityName", label: t("Management.roomAmenitiesTitle") },
               { key: "description", label: t("Management.description") },
@@ -191,10 +190,9 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
             entityId={translationEntityId!}
             locale={editingLocale}
             initialData={editingData}
-            title={t("Management.editTranslation", { ns: "translation", defaultValue: "Edit Room Amenity Translation" })}
+            title={t("Common.editTranslation", { ns: "translation", defaultValue: "Edit Room Amenity Translation" })}
             fields={[
-              { key: "amenityName", label: t("Management.roomAmenitiesTitle"), placeholder: "e.g., Aire acondicionado" },
-              { key: "description", label: t("Management.description"), placeholder: "Describe this amenity" },
+              { key: "amenityName", label: t("Management.roomAmenitiesTitle"), placeholder: t("Management.PropertyAmenity.placeholder") },
             ]}
             onSave={async (id, locale, data) => upsertMasterAmenityTranslationService(id, { [locale]: data })}
           />

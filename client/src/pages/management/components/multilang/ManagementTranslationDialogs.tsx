@@ -92,8 +92,8 @@ export function AddTranslationDialog({ open, onOpenChange, entityId, title, fiel
           ))}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>{t("Common.cancel")}</Button>
+          <Button onClick={handleSave} disabled={loading}>{loading ? t("Common.saving") : t("Common.save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

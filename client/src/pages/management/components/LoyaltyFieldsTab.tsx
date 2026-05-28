@@ -94,7 +94,7 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
                   <Input
                     value={loyaltyFieldInput}
                     onChange={(e) => setLoyaltyFieldInput(e.target.value)}
-                    placeholder="e.g., Phone Number, Date of Birth"
+                    placeholder={t("Management.LoyalityField.createPlaceholder")}
                     onKeyPress={(e) => {
                       if (e.key === "Enter") { e.preventDefault(); handleAddLoyaltyFieldToList(); }
                     }}
@@ -137,7 +137,7 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
                     <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteLoyaltyField(field.id)}>
-                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        <Trash2 className="h-4 w-4 mr-2" /> {t("Common.delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -157,9 +157,9 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
             open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
-            title="Add Loyalty Field Translation"
+            title={t("Management.LoyalityField.addLoyalityFieldTranlation")}
             fields={[
-              { key: "fieldName", label: "Field Name", placeholder: "e.g., Número de teléfono" },
+              { key: "fieldName", label: t("Management.LoyalityField.fieldName"), placeholder: t("Management.LoyalityField.placeholder") },
             ]}
             onSave={async (id, locale, data) => {
               return await upsertMasterLoyaltyRegistrationFieldTranslationService(id, { [locale]: data });
@@ -169,8 +169,8 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title="Loyalty Field Translations"
-            displayFields={[{ key: "fieldName", label: "Field Name" }]}
+            title={t("Management.LoyalityField.checkTranslations")}
+            displayFields={[{ key: "fieldName", label: t("Management.LoyalityField.fieldName") }]}
             onFetch={getAllMasterLoyaltyRegistrationFieldTranslationsService}
             onDelete={deleteMasterLoyaltyRegistrationFieldTranslationLocaleService}
             onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
@@ -181,8 +181,8 @@ export default function LoyaltyFieldsTab({ loyaltyGuestFields, setLoyaltyGuestFi
             entityId={translationEntityId!}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Loyalty Field Translation"
-            fields={[{ key: "fieldName", label: "Field Name", placeholder: "e.g., Número de teléfono" }]}
+            title={t("Management.LoyalityField.editTranslation")}
+            fields={[{ key: "fieldName", label: t("Management.LoyalityField.fieldName"), placeholder: t("Management.LoyalityField.placeholder")}]}
             onSave={async (id, locale, data) => upsertMasterLoyaltyRegistrationFieldTranslationService(id, { [locale]: data })}
           />
         </>

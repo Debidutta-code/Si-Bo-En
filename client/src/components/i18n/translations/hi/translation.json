@@ -1920,6 +1920,37 @@
       "pleaseEnterPropertyIntegrationName": "कृपया एक संपत्ति एकीकरण का नाम दर्ज करें",
       "propertyIntegrationCreatedSuccessfully": "संपत्ति एकीकरण सफलतापूर्वक बनाया गया",
       "propertyIntegrationDeletedSuccessfully": "संपत्ति एकीकरण सफलतापूर्वक हटा दिया गया"
+    },
+    "Category": {
+      "description": "विवरण",
+      "descriptionPlaceholder": "श्रेणी का विवरण दर्ज करें",
+      "name": "नाम",
+      "namePlaceholder": "श्रेणी का नाम दर्ज करें",
+      "addCategory": "श्रेणी जोड़ें",
+      "translations": "श्रेणी अनुवाद",
+      "editTranslation": "श्रेणी अनुवाद संपादित करें"
+    },
+    "PropertyType": {
+      "addTranslation": "प्रॉपर्टी प्रकार अनुवाद जोड़ें",
+      "name": "प्रॉपर्टी प्रकार का नाम",
+      "description": "विवरण",
+      "nameEx": "उदाहरण: होटल",
+      "placeholderEx": "इस प्रकार का विवरण दें",
+      "checkTrans": "प्रॉपर्टी प्रकार अनुवाद"
+    },
+    "PropertyAmenity": {
+      "placeholder": "उदाहरण: एयर कंडीशनर"
+    },
+    "RoomView": {
+      "placeholder": "उदाहरण: समुद्र दृश्य"
+    },
+    "LoyalityField": {
+      "createPlaceholder": "उदाहरण: फोन नंबर, जन्म तिथि",
+      "addLoyalityFieldTranlation": "लॉयल्टी फ़ील्ड अनुवाद जोड़ें",
+      "fieldName": "फ़ील्ड नाम",
+      "placeholder": "उदाहरण: Número de teléfono",
+      "checkTranslations": "लॉयल्टी फ़ील्ड अनुवाद",
+      "editTranslation": "लॉयल्टी फ़ील्ड अनुवाद संपादित करें"
     }
   },
   "Loyalty": {
