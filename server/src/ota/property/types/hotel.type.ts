@@ -54,10 +54,13 @@ export interface IRepoProperty {
         latitude: number;
         longitude: number;
     } | null;
-    propertyType: { masterPropertyType?: { propertyTypeName: string; } | undefined; }|null
-    propertyAmenities: {
+    propertyType: { masterPropertyType?: { propertyTypeName: string; } | undefined; } | null
+    propertyAmenities:
+    {
         amenity: {
-            id: string; amenityName: string; icon: string | null; 
+            id: string;
+            amenityName: string;
+            icon: string | null;
         }
     }[];
 }

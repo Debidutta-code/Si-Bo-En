@@ -25,9 +25,9 @@ export class HotelService {
             } : null,
             propertyType: prop.propertyType?.masterPropertyType?.propertyTypeName || null,
             amenities: prop.propertyAmenities.map((pa: any) => ({
-                id: pa.id,
-                name: pa.amenityName,
-                icon: pa.icon,
+                id: pa.amenity?.id,
+                name: pa.amenity?.amenityName,
+                icon: pa.amenity?.icon,
             })),
         }));
     }
@@ -35,6 +35,7 @@ export class HotelService {
     public async fetchPaginatedHotels(filters: HotelFilterQuery): Promise<IApiResponse<IProperties[]>> {
         try {
             const result = await this.hotelRepository.getPaginatedHotels(filters);
+            console.log("PROPERTIES",result.properties[0].propertyAmenities);
             const properties = this.formatProperties(result.properties);
             return paginatedSuccessResponse("Properties fetched successfully", properties, {
 

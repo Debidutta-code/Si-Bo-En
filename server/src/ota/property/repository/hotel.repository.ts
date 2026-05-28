@@ -174,8 +174,6 @@ export class HotelRepository {
             },
         };
     }
-
-
     public async getAutocompleteLocations(filters: HotelFilterQuery):Promise<IRepoRes> {
         const {
             page = '1',
