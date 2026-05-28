@@ -24,7 +24,7 @@ export class HotelController {
 
             const data = await this.hotelService.fetchPaginatedHotels(query);
 
-            return res.status(200).json(successResponse("Properties fetched successfully", data));
+            return res.status(data.success ? 200 : 400).json(data);
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to fetch properties", error.message))
@@ -49,7 +49,7 @@ export class HotelController {
 
             const data = await this.hotelService.fetchAutocompleteLocations(query);
 
-            res.status(200).json(successResponse("Properties in the location fetched successfully", data));
+            return res.status(data.success ? 200 : 400).json(data);
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to fetch properties", error.message))
