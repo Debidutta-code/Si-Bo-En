@@ -18,6 +18,8 @@ interface PaymentIntegrationsTabProps {
 
 export default function PaymentIntegrationsTab({ paymentIntegrations, setPaymentIntegrations }: PaymentIntegrationsTabProps) {
   const [isPaymentIntegrationDialogOpen, setIsPaymentIntegrationDialogOpen] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [integrationToDelete, setIntegrationToDelete] = useState<IPaymentIntegration | null>(null);
   const [paymentIntegrationInput, setPaymentIntegrationInput] = useState("");
   const { t } = useTranslation();
 
@@ -25,29 +27,37 @@ export default function PaymentIntegrationsTab({ paymentIntegrations, setPayment
     if (!paymentIntegrationInput.trim()) return;
 
     if (paymentIntegrations.some((integration) => integration.name === paymentIntegrationInput.trim())) {
-      toast.error(t("Management.Toast.amenityAlreadyInList", { ns: "translation", defaultValue: "Field already in list" }));
+      toast.error(t("Toast.amenityAlreadyInList", { ns: "translation", defaultValue: "Field already in list" }));
       return;
     }
 
     const response = await createPaymentIntegrationService(paymentIntegrationInput.trim());
     if (response.success) {
-      toast.success(t("Management.Toast.paymentIntegrationCreatedSuccessfully", { ns: "translation" }));
+      toast.success(t("Toast.paymentIntegrationCreatedSuccessfully", { ns: "translation" }));
       setPaymentIntegrations([...response.data]);
       setPaymentIntegrationInput("");
       setIsPaymentIntegrationDialogOpen(false);
     } else {
-      toast.error(response.error || t("Management.Toast.failedToCreatePaymentIntegration", { ns: "translation" }));
+      toast.error(response.error || t("Toast.failedToCreatePaymentIntegration", { ns: "translation" }));
     }
   };
 
-  const handleDeletePaymentIntegration = async (integrationName: string) => {
-    const response = await deletePaymentIntegrationService(integrationName);
+  const handleDeleteClick = (integration: IPaymentIntegration) => {
+    setIntegrationToDelete(integration);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!integrationToDelete) return;
+    const response = await deletePaymentIntegrationService(integrationToDelete.id);
     if (response.success) {
-      toast.success(t("Management.Toast.fieldDeletedSuccessfully", { ns: "translation", defaultValue: "Integration deleted successfully" }));
-      setPaymentIntegrations(paymentIntegrations.filter((integration) => integration.name !== integrationName));
+      toast.success(t("Toast.fieldDeletedSuccessfully", { ns: "translation", defaultValue: "Integration deleted successfully" }));
+      setPaymentIntegrations(paymentIntegrations.filter((integration) => integration.id !== integrationToDelete.id));
     } else {
-      toast.error(response.error || t("Management.Toast.failedToDeleteField", { ns: "translation", defaultValue: "Failed to delete logic" }));
+      toast.error(response.error || t("Toast.failedToDeleteField", { ns: "translation", defaultValue: "Failed to delete integration" }));
     }
+    setIsDeleteDialogOpen(false);
+    setIntegrationToDelete(null);
   };
 
   return (
@@ -97,13 +107,14 @@ export default function PaymentIntegrationsTab({ paymentIntegrations, setPayment
           </Dialog>
         </div>
       </CardHeader>
+
       <CardContent>
         <div className="flex flex-wrap gap-2">
           {paymentIntegrations.map((integration) => (
             <Badge key={integration.id} variant="outline" className="text-sm py-2 px-3 flex items-center gap-2">
               {integration.name}
               <button
-                onClick={() => handleDeletePaymentIntegration(integration.name)}
+                onClick={() => handleDeleteClick(integration)}
                 className="hover:text-red-500 ml-1 transition-colors"
                 title={t("Common.delete", { ns: "translation" })}
               >
@@ -118,6 +129,35 @@ export default function PaymentIntegrationsTab({ paymentIntegrations, setPayment
           )}
         </div>
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("Management.deletePaymentIntegrationTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("Management.deletePaymentIntegrationDescription", {
+                name: integrationToDelete?.name,
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setIntegrationToDelete(null);
+              }}
+            >
+              {t("Common.cancel")}
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              {t("Management.deletePaymentIntegrationBtn")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </Card>
   );
 }

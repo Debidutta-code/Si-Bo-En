@@ -1729,7 +1729,10 @@
     "policy": "السياسة",
     "promoCode": "رمز العرض",
     "addOn": "الإضافات",
-    "taxSystem": "نظام الضرائب"
+    "taxSystem": "نظام الضرائب",
+    "deletePaymentIntegrationTitle": "حذف تكامل الدفع",
+    "deletePaymentIntegrationDescription": "هل أنت متأكد من حذف \"{{name}}\"؟ لا يمكن التراجع عن هذا الإجراء.",
+    "deletePaymentIntegrationBtn": "حذف"
   },
   "Loyalty": {
     "title": "إعداد برنامج الولاء",

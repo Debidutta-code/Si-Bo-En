@@ -10,13 +10,12 @@ export default function ProfileLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const loyaltyUser = useSelector((state: RootState) => (state as any).loyaltyUser);
-  const profile = loyaltyUser?.profile ?? null;
-  const firstName = profile?.guest?.firstName ?? "";
-  const lastName = profile?.guest?.lastName ?? "";
+  const customerData = useSelector((state: RootState) => state.customer.customer);
+  const firstName = customerData?.firstName ?? "";
+  const lastName = customerData?.lastName ?? "";
   const name = firstName
     ? `${firstName} ${lastName}`.trim()
-    : profile?.guestEmail?.split("@")[0] ?? "Guest";
+    : customerData?.email?.split("@")[0] ?? "Guest";
   const [collapsed, setCollapsed] = useState(false);
   const STORAGE_KEY = "bodyholiday-sidebar-collapsed";
 

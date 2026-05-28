@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import { customerLoginApi } from "./api";
+import { customerLoginApi, customerMeApi } from "./api";
 import { setCustomer } from "@/src/store/customerSlice";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -60,27 +60,33 @@ export default function CustomerLoginPage() {
     { icon: "◇", title: t("CustomerLoginPage.leftPanel.features.support.title"), desc: t("CustomerLoginPage.leftPanel.features.support.desc") },
   ];
 
-  const handleSubmit = async () => {
-    if (!form.email.trim()) { toast.error(t("CustomerLoginPage.toast.emailRequired")); return; }
-    if (!form.password.trim()) { toast.error(t("CustomerLoginPage.toast.passwordRequired")); return; }
-    setLoading(true);
-    try {
-      const res = await customerLoginApi(form);
-      if (res.success && res.data) {
-        dispatch(setCustomer(res.data));
+const handleSubmit = async () => {
+  if (!form.email.trim()) { toast.error(t("CustomerLoginPage.toast.emailRequired")); return; }
+  if (!form.password.trim()) { toast.error(t("CustomerLoginPage.toast.passwordRequired")); return; }
+  setLoading(true);
+  try {
+    const res = await customerLoginApi(form);
+    if (res.success) {
+      // 👇 fetch full profile after login cookie is set
+      const meRes = await customerMeApi();
+      if (meRes.success && meRes.data) {
+        dispatch(setCustomer(meRes.data)); // stores firstName, lastName, email
         toast.success(t("CustomerLoginPage.toast.welcomeBack"));
         const redirectUrl = sessionStorage.getItem("customerRedirectUrl");
         sessionStorage.removeItem("customerRedirectUrl");
         router.push(redirectUrl || "/");
       } else {
-        toast.error(res.message ?? t("CustomerLoginPage.toast.loginFailed"));
+        toast.error(t("CustomerLoginPage.toast.loginFailed"));
       }
-    } catch {
-      toast.error(t("CustomerLoginPage.toast.somethingWentWrong"));
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(res.message ?? t("CustomerLoginPage.toast.loginFailed"));
     }
-  };
+  } catch {
+    toast.error(t("CustomerLoginPage.toast.somethingWentWrong"));
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ── Shared input styles (identical to loyalty login) ──────────────────────
   const inputCls = "w-full rounded-xl text-[13.5px] font-light outline-none transition-all duration-200 placeholder:text-[#9bbfc3]";

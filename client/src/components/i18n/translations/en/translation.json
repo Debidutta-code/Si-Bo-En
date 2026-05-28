@@ -1903,6 +1903,9 @@
     "propertyIntegrationNameLabel": "Property Integration Name",
     "propertyIntegrationNamePlaceholder": "e.g., Channel Manager, PMS Integration",
     "noPropertyIntegrationsFound": "No property integrations found. Create your first property integration to get started.",
+    "deletePaymentIntegrationTitle": "Delete Payment Integration",
+    "deletePaymentIntegrationDescription": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "deletePaymentIntegrationBtn": "Delete",
     "toast": {
       "failedToFetchMasterIntegrations": "Failed to fetch master integrations",
       "pleaseEnterBothNameAndURL": "Please enter both name and URL for the URL field",

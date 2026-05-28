@@ -1900,6 +1900,9 @@
     "propertyIntegrationNameLabel": "संपत्ति एकीकरण का नाम",
     "propertyIntegrationNamePlaceholder": "जैसे, चैनल प्रबंधक, पीएमएस एकीकरण",
     "noPropertyIntegrationsFound": "कोई संपत्ति एकीकरण नहीं मिला। आरंभ करने के लिए अपना पहला संपत्ति एकीकरण बनाएं।",
+    "deletePaymentIntegrationTitle": "पेमेंट इंटीग्रेशन हटाएं",
+    "deletePaymentIntegrationDescription": "क्या आप वाकई \"{{name}}\" को हटाना चाहते हैं? यह कार्रवाई वापस नहीं की जा सकती।",
+    "deletePaymentIntegrationBtn": "हटाएं",
     "toast": {
       "failedToFetchMasterIntegrations": "मास्टर एकीकरण लाने में विफल",
       "pleaseEnterBothNameAndURL": "कृपया यूआरएल फ़ील्ड के लिए नाम और यूआरएल दोनों दर्ज करें",

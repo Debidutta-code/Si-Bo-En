@@ -27,6 +27,15 @@ interface PropertyAddress {
   latitude: number;
   longitude: number;
   propertyId: string;
+  _translations?: {
+    addressLine1: string;
+    addressLine2?: string;
+    country: string;
+    state: string;
+    city: string;
+    location: string;
+    landmark: string;
+  }
 }
 
 interface Guests {

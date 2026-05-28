@@ -71,15 +71,15 @@ const Footer = () => {
                         >
                             {propertyAddress?.addressLine1 ? (
                                 <>
-                                    {propertyAddress.addressLine1}
+                                    {propertyAddress._translations?.addressLine1 || propertyAddress.addressLine1}
 
-                                    {propertyAddress.city &&
+                                    {propertyAddress._translations?.city || propertyAddress.city &&
                                         `, ${propertyAddress.city}`}
 
-                                    {propertyAddress.state &&
+                                    {propertyAddress._translations?.state || propertyAddress.state &&
                                         `, ${propertyAddress.state}`}
 
-                                    {propertyAddress.country &&
+                                    {propertyAddress._translations?.country || propertyAddress.country &&
                                         `, ${propertyAddress.country}`}
 
                                     {propertyAddress.zipCode &&

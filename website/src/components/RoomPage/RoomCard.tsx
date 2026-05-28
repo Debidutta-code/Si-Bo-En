@@ -353,13 +353,12 @@ const proceedWithBooking = async (
     // ✅ ADD SELECTED PROMOTIONS TO PAYLOAD
     const selectedPromotionsList =
       selectedPromotions[ratePlan.ratePlanCode] || [];
-
     if (selectedPromotionsList.length > 0) {
       payload.promotions = selectedPromotionsList.map(
         (promotion: any) => ({
           id: promotion.id,
           promotionType:
-            promotion.type === "mlos"
+            promotion.promotionType === "mlos"
               ? "mlos"
               : "normal",
         }),

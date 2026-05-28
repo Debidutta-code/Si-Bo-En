@@ -15,6 +15,7 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 export const LoyaltyContainer = ({
   loyaltyProgram,
@@ -52,7 +53,7 @@ export const LoyaltyContainer = ({
     value: number;
     currencyCode: string;
   } | null>(null);
-
+  const router = useRouter();
   const showSignUpModal =
     externalShowSignUpModal !== undefined
       ? externalShowSignUpModal
@@ -73,10 +74,10 @@ export const LoyaltyContainer = ({
     }
   };
   const verifyLoyaltyMembership = async () => {
-        if (!loyaltyProgram) return;
+    if (!loyaltyProgram) return;
 
     setIsVerifying(true);
-  
+
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
@@ -87,15 +88,15 @@ export const LoyaltyContainer = ({
           headers: {
             "Content-Type": "application/json",
           },
-          withCredentials: true, 
+          withCredentials: true,
         }
       );
-  
+
       const data = response.data;
-  
+
       if (data.success && data.data?.isLoyaltyMember) {
         setIsRegistered(true);
-  
+
         setDiscountInfo(
           data.data.discount || {
             type: data.data.discountType,
@@ -104,7 +105,7 @@ export const LoyaltyContainer = ({
               data.data.currencyCode || program.currencyCode,
           }
         );
-  
+
         setIsToggleOn(true);
         onToggleChange?.(true);
       } else {
@@ -115,12 +116,12 @@ export const LoyaltyContainer = ({
       }
     } catch (error) {
       console.error("Failed to verify loyalty membership:", error);
-  
+
       setIsRegistered(false);
       setDiscountInfo(null);
       setIsToggleOn(false);
       onToggleChange?.(false);
-  
+
       toast.error(t("LoyaltyContainer.modal.failedRetry"));
     } finally {
       setIsVerifying(false);
@@ -142,10 +143,10 @@ export const LoyaltyContainer = ({
   };
 
   const handleLogout = async () => {
-await axios.delete(
-  `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/signout`,
-  { withCredentials: true }
-);
+    await axios.delete(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/signout`,
+      { withCredentials: true }
+    );
     setIsRegistered(false);
     setRegisteredEmail("");
     setDiscountInfo(null);
@@ -186,9 +187,11 @@ await axios.delete(
       setShowSignUpModal(false);
       setFormData({});
       verifyLoyaltyMembership()
-    } catch (error:any) {
+    } catch (error: any) {
+      sessionStorage.setItem("customerRedirectUrl", window.location.href);
+      router.push("/login")
       console.log(error.response.data.message)
-      toast.error(t(error.response.data.message));
+      // toast.error(t(error.response.data.message));
     } finally {
       setIsSubmitting(false);
     }
@@ -312,7 +315,7 @@ await axios.delete(
                       </button>
                     </div>
 
-                   
+
                   </>
                 ) : (
                   <div className="flex flex-col items-end gap-2">

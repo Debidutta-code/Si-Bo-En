@@ -967,7 +967,41 @@ export default function MyTripPage() {
                         ))}
                     </div>
                   )}
+                  {bookingData.PricingBrakeDown.promoCodeDiscount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <p className="text-green-600 flex items-center gap-1">
+                        Promocode Discount
+                      </p>
+                      <p className="font-medium text-green-600">-{bookingData.currencyCode} {bookingData.PricingBrakeDown.promoCodeDiscount?.toFixed(2)}</p>
+                    </div>
+                  )}
 
+
+                  {bookingData.PricingBrakeDown.loyalityDiscount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <p className="text-green-600 flex items-center gap-1">
+                        Loyality Discount
+                      </p>
+                      <p className="font-medium text-green-600">-{bookingData.currencyCode} {bookingData.PricingBrakeDown.loyalityDiscount?.toFixed(2)}</p>
+                    </div>
+                  )}
+
+                  {bookingData.PricingBrakeDown.amountBeforeTax > 0 && (
+                    <div className="flex justify-between items-center">
+                      <p className="flex  text-black font-medium items-center gap-1">
+                        Amount Before Tax
+                      </p>
+                      <p className="font-medium text-black">{bookingData.currencyCode} {bookingData.PricingBrakeDown.amountBeforeTax?.toFixed(2)}</p>
+                    </div>
+                  )}
+                  {bookingData.PricingBrakeDown.taxedAmount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <p className="flex  text-black font-medium items-center gap-1">
+                        Total Tax amount
+                      </p>
+                      <p className="font-medium text-black">{bookingData.currencyCode} {bookingData.PricingBrakeDown.taxedAmount?.toFixed(2)}</p>
+                    </div>
+                  )}
                   {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (() => {
                     // Group by name and sum totalAmount
                     const grouped = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {

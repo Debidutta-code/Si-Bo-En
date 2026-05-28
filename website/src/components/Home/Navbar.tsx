@@ -32,6 +32,7 @@ const Navbar = () => {
   const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
   const agenturl = process.env.NEXT_PUBLIC_PARTNER_URL!;
   const customer = useSelector((state: RootState) => (state as any).customer);
+  console.log(customer, 'customer')
   const [isCustomerDropdownOpen, setIsCustomerDropdownOpen] = useState(false);
   const customerDropdownRef = useRef<HTMLDivElement>(null);
   const signout = async () => {
@@ -42,7 +43,7 @@ const Navbar = () => {
         { withCredentials: true }
       );
       dispatch(clearCustomer());
-      router.push("/");
+      router.push(window.location.href);
     } catch (error) {
       toast.error("Failed to sign out");
     }
@@ -310,9 +311,8 @@ const Navbar = () => {
                   <div className="border-t border-gray-100 py-1">
                     <button
                       onClick={() => {
+                        signout();
                         setIsCustomerDropdownOpen(false);
-                        dispatch(clearCustomer());
-                        router.push(window.location.href); // stay on current page
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
                     >
