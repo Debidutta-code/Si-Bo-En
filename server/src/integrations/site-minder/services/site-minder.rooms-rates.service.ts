@@ -44,7 +44,7 @@ export class SiteMinderRoomsRatesService {
                 log.pushMessage(`Property ${hotelCode} not found`, 'error');
                 return SiteMinderXmlParser.buildRoomsRatesResponse({
                     echoToken, version, roomStays: [],
-                    error: { type: 3, code: 392, text: `Property ${hotelCode} not found` },
+                    error: { type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` },
                 });
             }
 
@@ -81,7 +81,7 @@ export class SiteMinderRoomsRatesService {
                 log.pushMessage(`Mapping data not found for property ${property.propertyCode}`, 'error');
                 return SiteMinderXmlParser.buildRoomsRatesResponse({
                     echoToken, version, roomStays: [],
-                    error: { type: 3, code: 392, text: `Property ${hotelCode} not found` },
+                    error: { type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` },
                 });
             }
 
@@ -119,7 +119,7 @@ export class SiteMinderRoomsRatesService {
             log.setError(error);
             return SiteMinderXmlParser.buildRoomsRatesResponse({
                 echoToken, version, roomStays: [],
-                error: { type: 3, text: error?.message ?? 'Failed to retrieve rooms and rates' },
+                error: { type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` },
             });
         }
     }

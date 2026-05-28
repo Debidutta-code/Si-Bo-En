@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { customerLoginApi } from "./api";
 import { setCustomer } from "@/src/store/customerSlice";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconUser = () => (
@@ -31,14 +32,6 @@ const IconEye = () => (
   </svg>
 );
 
-// ─── Left panel feature list ──────────────────────────────────────────────────
-const features = [
-  { icon: "◈", title: "Book Instantly", desc: "Reserve rooms, spa & dining in one place" },
-  { icon: "✦", title: "Manage Your Trips", desc: "View, modify or cancel bookings anytime" },
-  { icon: "⬡", title: "Wishlist Properties", desc: "Save your favourite properties for later" },
-  { icon: "◇", title: "24 / 7 Support", desc: "Raise a ticket and track resolution live" },
-];
-
 // ─── RevChilli logo mark (shared SVG) ─────────────────────────────────────────
 const LogoMark = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 3508 3508" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -53,28 +46,37 @@ const LogoMark = ({ size = 24 }: { size?: number }) => (
 export default function CustomerLoginPage() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  // ─── Left panel feature list ──────────────────────────────────────────────────
+  const features = [
+    { icon: "◈", title: t("CustomerLoginPage.leftPanel.features.bookInstantly.title"), desc: t("CustomerLoginPage.leftPanel.features.bookInstantly.desc") },
+    { icon: "✦", title: t("CustomerLoginPage.leftPanel.features.manageTrips.title"), desc: t("CustomerLoginPage.leftPanel.features.manageTrips.desc") },
+    { icon: "⬡", title: t("CustomerLoginPage.leftPanel.features.wishlist.title"), desc: t("CustomerLoginPage.leftPanel.features.wishlist.desc") },
+    { icon: "◇", title: t("CustomerLoginPage.leftPanel.features.support.title"), desc: t("CustomerLoginPage.leftPanel.features.support.desc") },
+  ];
+
   const handleSubmit = async () => {
-    if (!form.email.trim()) { toast.error("Email is required"); return; }
-    if (!form.password.trim()) { toast.error("Password is required"); return; }
+    if (!form.email.trim()) { toast.error(t("CustomerLoginPage.toast.emailRequired")); return; }
+    if (!form.password.trim()) { toast.error(t("CustomerLoginPage.toast.passwordRequired")); return; }
     setLoading(true);
     try {
       const res = await customerLoginApi(form);
       if (res.success && res.data) {
         dispatch(setCustomer(res.data));
-        toast.success("Welcome back!");
+        toast.success(t("CustomerLoginPage.toast.welcomeBack"));
         const redirectUrl = sessionStorage.getItem("customerRedirectUrl");
         sessionStorage.removeItem("customerRedirectUrl");
         router.push(redirectUrl || "/");
       } else {
-        toast.error(res.message ?? "Login failed");
+        toast.error(res.message ?? t("CustomerLoginPage.toast.loginFailed"));
       }
     } catch {
-      toast.error("Something went wrong, please try again");
+      toast.error(t("CustomerLoginPage.toast.somethingWentWrong"));
     } finally {
       setLoading(false);
     }
@@ -181,9 +183,9 @@ export default function CustomerLoginPage() {
               </div>
               <div>
                 <p className="text-[19px] font-medium leading-none tracking-[0.06em] text-white"
-                  style={{ fontFamily: "'Cormorant', serif" }}>Revchill</p>
+                  style={{ fontFamily: "'Cormorant', serif" }}>{t("CustomerLoginPage.leftPanel.brand")}</p>
                 <p className="text-[9.5px] tracking-[0.22em] uppercase mt-0.5"
-                  style={{ color: "rgba(255,255,255,0.65)" }}>Guest Account</p>
+                  style={{ color: "rgba(255,255,255,0.65)" }}>{t("CustomerLoginPage.leftPanel.guestAccount")}</p>
               </div>
             </div>
 
@@ -197,13 +199,13 @@ export default function CustomerLoginPage() {
                   letterSpacing: "-0.01em",
                 }}
               >
-                Your stay,<br />
-                your way —<br />
-                <em className="not-italic font-normal" style={{ color: "rgba(255,255,255,0.9)", textShadow: "0 0 40px rgba(255,255,255,0.3)" }}>always.</em>
+                {t("CustomerLoginPage.leftPanel.headline.part1")}<br />
+                {t("CustomerLoginPage.leftPanel.headline.part2")}<br />
+                <em className="not-italic font-normal" style={{ color: "rgba(255,255,255,0.9)", textShadow: "0 0 40px rgba(255,255,255,0.3)" }}>{t("CustomerLoginPage.leftPanel.headline.part3")}</em>
               </h1>
               <p className="text-[13px] leading-[1.8] font-light"
                 style={{ color: "rgba(255,255,255,0.55)", maxWidth: "320px" }}>
-                One account to book, manage and revisit every experience across all Revchill properties.
+                {t("CustomerLoginPage.leftPanel.description")}
               </p>
             </div>
 
@@ -236,7 +238,7 @@ export default function CustomerLoginPage() {
                 <LogoMark size={18} />
               </div>
               <span className="text-[16px] tracking-[0.06em]"
-                style={{ color: "#0d4a52", fontFamily: "'Cormorant', serif" }}>Revchill</span>
+                style={{ color: "#0d4a52", fontFamily: "'Cormorant', serif" }}>{t("CustomerLoginPage.rightPanel.brand")}</span>
             </div>
 
             {/* Badge — "Guest Account" differentiates from "Member Portal" */}
@@ -244,7 +246,7 @@ export default function CustomerLoginPage() {
               style={{ background: "rgba(21,149,162,0.08)", border: "1px solid rgba(21,149,162,0.2)" }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#1595A2" }} />
               <span className="text-[10px] font-medium tracking-[0.1em] uppercase" style={{ color: "#1595A2" }}>
-                Guest Account
+                {t("CustomerLoginPage.rightPanel.guestAccount")}
               </span>
             </div>
 
@@ -252,10 +254,10 @@ export default function CustomerLoginPage() {
             <div className="mb-7">
               <h2 className="text-[32px] font-light leading-tight mb-2"
                 style={{ fontFamily: "'Cormorant', serif", letterSpacing: "-0.01em", color: "#0a3a42" }}>
-                Welcome back
+                {t("CustomerLoginPage.rightPanel.heading")}
               </h2>
               <p className="text-[13px] font-light" style={{ color: "#5a8a92" }}>
-                Sign in to manage your bookings & profile.
+                {t("CustomerLoginPage.rightPanel.subheading")}
               </p>
             </div>
 
@@ -263,12 +265,12 @@ export default function CustomerLoginPage() {
             <div className="mb-4">
               <label className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
                 style={{ color: "#5a8a92" }}>
-                Email Address
+                {t("CustomerLoginPage.rightPanel.emailLabel")}
               </label>
               <div className="relative">
                 <input
                   type="email"
-                  placeholder="you@email.com"
+                  placeholder={t("CustomerLoginPage.rightPanel.emailPlaceholder")}
                   className={inputCls}
                   style={inputStyle}
                   onFocus={onFocus}
@@ -285,12 +287,12 @@ export default function CustomerLoginPage() {
             <div className="mb-1">
               <label className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
                 style={{ color: "#5a8a92" }}>
-                Password
+                {t("CustomerLoginPage.rightPanel.passwordLabel")}
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••••"
+                  placeholder={t("CustomerLoginPage.rightPanel.passwordPlaceholder")}
                   className={inputCls}
                   style={{ ...inputStyle, padding: "13px 42px" }}
                   onFocus={onFocus}
@@ -312,7 +314,7 @@ export default function CustomerLoginPage() {
               <a href="/reset-password"
                 className="text-[12px] transition-opacity hover:opacity-60"
                 style={{ color: "#1595A2" }}>
-                Forgot password?
+                {t("CustomerLoginPage.rightPanel.forgotPassword")}
               </a>
             </div>
 
@@ -336,14 +338,14 @@ export default function CustomerLoginPage() {
                 ) : (
                   <span className="text-base leading-none">✦</span>
                 )}
-                {loading ? "Signing in…" : "Sign In"}
+                {loading ? t("CustomerLoginPage.rightPanel.signingIn") : t("CustomerLoginPage.rightPanel.signIn")}
               </span>
             </button>
 
             {/* Divider */}
             <div className="flex items-center gap-3 my-5">
               <div className="flex-1 h-px" style={{ background: "rgba(21,149,162,0.12)" }} />
-              <span className="text-[10px] uppercase tracking-[0.12em]" style={{ color: "rgba(21,149,162,0.4)" }}>or</span>
+              <span className="text-[10px] uppercase tracking-[0.12em]" style={{ color: "rgba(21,149,162,0.4)" }}>{t("CustomerLoginPage.rightPanel.or")}</span>
               <div className="flex-1 h-px" style={{ background: "rgba(21,149,162,0.12)" }} />
             </div>
 
@@ -373,7 +375,7 @@ export default function CustomerLoginPage() {
                 <line x1="19" y1="8" x2="19" y2="14" />
                 <line x1="22" y1="11" x2="16" y2="11" />
               </svg>
-              Create a new account
+              {t("CustomerLoginPage.rightPanel.createAccount")}
             </button>
 
           </div>

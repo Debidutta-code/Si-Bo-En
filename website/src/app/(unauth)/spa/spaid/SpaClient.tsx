@@ -246,7 +246,7 @@ export default function SpaClient() {
     () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.filter(sl => !sl.isBooked).length || 0) : 0), 0) || 0,
     [spa],
   );
-  const coverImage = (spa as any)?.images?.[0];
+  const coverImage = spa?.images?.[0];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 via-stone-100 to-amber-50/30">
@@ -289,7 +289,7 @@ export default function SpaClient() {
                     <div className="flex flex-wrap items-center gap-2">
                       {spa.Category?.name && (
                         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                          {spa.Category.name}
+                          {spa._translations?spa._translations.name:spa.Category.name}
                         </span>
                       )}
                       {spa.location && (
@@ -299,9 +299,9 @@ export default function SpaClient() {
                       )}
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-stone-900">{spa.name}</h2>
+                      <h2 className="text-2xl font-bold text-stone-900">{spa._translations?spa._translations.name:spa.name}</h2>
                       <p className="mt-1.5 max-w-2xl text-sm leading-6 text-stone-500">
-                        {spa.description || t("SpaClient.hero.noDescription")}
+                        {spa._translations?spa._translations.description:spa.description || t("SpaClient.hero.noDescription")}
                       </p>
                     </div>
                   </div>

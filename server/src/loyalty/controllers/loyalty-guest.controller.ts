@@ -1,7 +1,6 @@
-import { Response } from 'express';
-import { CustomRequest, errorResponse, PropertyRequest } from '../../utils';
+import {Request, Response } from 'express';
+import { CustomRequest, errorResponse, PropertyRequest, successResponse } from '../../utils';
 import { LoyaltyGuestService } from '../services';
-import { ICloyalityGuests } from '../types';
 
 export class LoyaltyGuestController {
     private loyaltyGuestService: LoyaltyGuestService;
@@ -10,47 +9,6 @@ export class LoyaltyGuestController {
         this.loyaltyGuestService = new LoyaltyGuestService();
     }
 
-    public async deleteLoyaltyGuest(
-        req: CustomRequest,
-        res: Response
-    ): Promise<Response> {
-        try {
-            const { id } = req.params;
-            if (!id) {
-                return res
-                    .status(400)
-                    .json(
-                        errorResponse(
-                            'Invalid Request',
-                            'Loyalty Guest ID is required'
-                        )
-                    );
-            }
-
-            const result =
-                await this.loyaltyGuestService.deleteLoyaltyGuest(id);
-            return res.status(result.success ? 200 : 400).json(result);
-        } catch (error) {
-            if (error instanceof Error) {
-                return res
-                    .status(500)
-                    .json(
-                        errorResponse(
-                            'Failed to delete loyalty guest',
-                            error.message
-                        )
-                    );
-            }
-            return res
-                .status(500)
-                .json(
-                    errorResponse(
-                        'Internal Server Error',
-                        'Failed to delete loyalty guest'
-                    )
-                );
-        }
-    }
 
     public async getLoyaltyGuestsForProperty(
         req: CustomRequest,
@@ -151,7 +109,7 @@ export class LoyaltyGuestController {
     }
 
     public async registerGuestFromBookingEngine(
-        req: PropertyRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response> {
         try {
@@ -165,38 +123,30 @@ export class LoyaltyGuestController {
                         )
                     );
             }
-            const { email, propertyId, metadata, password } = req.body;
-
-            // Validation
-            if (!email || !propertyId) {
+            if (!req.customer) {
                 return res
                     .status(400)
                     .json(
                         errorResponse(
-                            'Invalid Field Provided',
-                            'Email and propertyId are required'
+                            'Invalid Request',
+                            'Customer information is required'
                         )
                     );
             }
+            const { propertyId, metadata } = req.body;
 
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                return res
-                    .status(400)
-                    .json(
-                        errorResponse('Invalid Email', 'Invalid email format')
-                    );
-            }
 
             const result =
                 await this.loyaltyGuestService.registerGuestFromBookingEngine({
-                    email,
                     propertyId,
                     metaData: metadata || {},
-                    password,
+                    customerId: req.customer.id
                 });
 
-            return res.status(result.success ? 201 : 400).json(result);
+            return res.status(result.success ? 201 : 400).cookie("loyalty_token", `${req.customer.id}split${req.property.id}`, {
+                httpOnly: true,
+                secure: true,
+            }).json(result);
         } catch (error) {
             if (error instanceof Error) {
                 if (error.message.includes('already registered')) {
@@ -227,10 +177,20 @@ export class LoyaltyGuestController {
         res: Response
     ): Promise<Response> {
         try {
-            const { email, propertyId } = req.body;
-
+            if (!req.customer) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Invalid Request',
+                            'Customer information is required'
+                        )
+                    );
+            }
+            const { propertyId } = req.body;
+            const id = req.customer.id
             // Validation
-            if (!email || !propertyId) {
+            if (!propertyId) {
                 return res
                     .status(400)
                     .json(
@@ -242,7 +202,7 @@ export class LoyaltyGuestController {
             }
 
             const result = await this.loyaltyGuestService.checkLoyaltyDiscount(
-                email,
+                id,
                 propertyId
             );
             return res.status(200).json(result);
@@ -264,50 +224,19 @@ export class LoyaltyGuestController {
                 );
         }
     }
-
-    public async getLoyaltyGuestByEmail(
-        req: CustomRequest,
-        res: Response
-    ): Promise<Response> {
+    public async signoutLoyalityMember(req:Request ,res : Response ){
         try {
-            const { email, propertyId } = req.params;
-
-            if (!email || !propertyId) {
-                return res
-                    .status(400)
-                    .json(
-                        errorResponse(
-                            'Invalid Request',
-                            'Email and propertyId are required'
-                        )
-                    );
-            }
-
-            const result =
-                await this.loyaltyGuestService.getGuestByEmailAndProperty(
-                    email,
-                    propertyId
-                );
-            return res.status(result.success ? 200 : 404).json(result);
+            res.clearCookie("loyalty_token")
+            return res.status(200).json(successResponse("Signout success"))
         } catch (error) {
-            if (error instanceof Error) {
+            if(error instanceof Error){
                 return res
                     .status(500)
                     .json(
-                        errorResponse(
-                            'Failed to fetch guest details',
-                            error.message
-                        )
+                        errorResponse("Failed to signout",error.message)
                     );
             }
-            return res
-                .status(500)
-                .json(
-                    errorResponse(
-                        'Internal Server Error',
-                        'Failed to fetch guest details'
-                    )
-                );
+            return res.status(500).json(errorResponse("Internal Server Error","Failed to signout"))
         }
     }
 }

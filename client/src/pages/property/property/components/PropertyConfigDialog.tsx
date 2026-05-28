@@ -9,6 +9,7 @@ import { formatTimezoneLabel, getAllTimezones } from '../utils/timezone.utils';
 import { minutesToTime, timeToMinutes } from '../utils/time.utils';
 import PartnerIntegrationSection from './PartnerIntegrationSection';
 import { currencies } from '@/components/currency-code/cuurency';
+import { useTranslation } from 'react-i18next';
 
 interface PropertyConfigDialogProps {
     isOpen: boolean;
@@ -41,13 +42,15 @@ export default function PropertyConfigDialog({
     userLevel,
     isLoading
 }: PropertyConfigDialogProps) {
+    const { t } = useTranslation();
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className='max-w-[800px] max-h-[80vh] overflow-y-auto'>
                 <DialogHeader>
-                    <DialogTitle>Property Configuration</DialogTitle>
+                    <DialogTitle>{t('PropertyConfigDialog.title')}</DialogTitle>
                     <DialogDescription>
-                        Update property settings and integrations. Only Super Admin can modify these settings.
+                        {t('PropertyConfigDialog.description')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -55,8 +58,8 @@ export default function PropertyConfigDialog({
                     {/* Channel Manager Integration */}
                     <div className='flex items-center justify-between space-x-2'>
                         <div className='space-y-0.5'>
-                            <Label htmlFor='channelManager'>Channel Manager Integration</Label>
-                            <p className='text-xs text-muted-foreground'>Enable channel manager integration</p>
+                            <Label htmlFor='channelManager'>{t('PropertyConfigDialog.switches.channelManager.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>{t('PropertyConfigDialog.switches.channelManager.description')}</p>
                         </div>
                         <Switch
                             id='channelManager'
@@ -75,7 +78,7 @@ export default function PropertyConfigDialog({
                     {/* Channel Manager Partners */}
                     {propertyConfig.channelManagerIntegrationActive && (
                         <PartnerIntegrationSection
-                            title='Available Channel Manager Partners'
+                            title={t('PropertyConfigDialog.partnerSections.channelManager')}
                             partners={masterPartners}
                             type='channel_manager'
                             onIntegrate={onIntegrate}
@@ -89,8 +92,8 @@ export default function PropertyConfigDialog({
                     {/* PMS Integration */}
                     <div className='flex items-center justify-between space-x-2'>
                         <div className='space-y-0.5'>
-                            <Label htmlFor='pmsIntegration'>PMS Integration</Label>
-                            <p className='text-xs text-muted-foreground'>Enable PMS integration</p>
+                            <Label htmlFor='pmsIntegration'>{t('PropertyConfigDialog.switches.pmsIntegration.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>{t('PropertyConfigDialog.switches.pmsIntegration.description')}</p>
                         </div>
                         <Switch
                             id='pmsIntegration'
@@ -109,7 +112,7 @@ export default function PropertyConfigDialog({
                     {/* PMS Partners */}
                     {propertyConfig.pmsIntegrationActive && (
                         <PartnerIntegrationSection
-                            title='Available PMS Partners'
+                            title={t('PropertyConfigDialog.partnerSections.pms')}
                             partners={masterPartners}
                             type='pms'
                             onIntegrate={onIntegrate}
@@ -124,8 +127,8 @@ export default function PropertyConfigDialog({
                     {/* Self ARI */}
                     <div className='flex items-center justify-between space-x-2'>
                         <div className='space-y-0.5'>
-                            <Label htmlFor='selfAri'>Self ARI</Label>
-                            <p className='text-xs text-muted-foreground'>Enable self availability, rates, and inventory</p>
+                            <Label htmlFor='selfAri'>{t('PropertyConfigDialog.switches.selfAri.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>{t('PropertyConfigDialog.switches.selfAri.description')}</p>
                         </div>
                         <Switch
                             id='selfAri'
@@ -144,8 +147,8 @@ export default function PropertyConfigDialog({
                     {/* B2B Availability */}
                     <div className='flex items-center justify-between space-x-2'>
                         <div className='space-y-0.5'>
-                            <Label htmlFor='isB2bAvailable'>B2B Availability</Label>
-                            <p className='text-xs text-muted-foreground'>Enable B2B booking channel</p>
+                            <Label htmlFor='isB2bAvailable'>{t('PropertyConfigDialog.switches.b2bAvailability.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>{t('PropertyConfigDialog.switches.b2bAvailability.description')}</p>
                         </div>
                         <Switch
                             id='isB2bAvailable'
@@ -159,8 +162,8 @@ export default function PropertyConfigDialog({
                     {/* B2C Availability */}
                     <div className='flex items-center justify-between space-x-2'>
                         <div className='space-y-0.5'>
-                            <Label htmlFor='isB2cAvailable'>B2C Availability</Label>
-                            <p className='text-xs text-muted-foreground'>Enable B2C booking channel</p>
+                            <Label htmlFor='isB2cAvailable'>{t('PropertyConfigDialog.switches.b2cAvailability.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>{t('PropertyConfigDialog.switches.b2cAvailability.description')}</p>
                         </div>
                         <Switch
                             id='isB2cAvailable'
@@ -174,8 +177,8 @@ export default function PropertyConfigDialog({
                     {/* Commission */}
                     <div className='flex items-center justify-between space-x-2'>
                         <div className='space-y-0.5'>
-                            <Label htmlFor='commission'>Commission</Label>
-                            <p className='text-xs text-muted-foreground'>Enable commission on bookings</p>
+                            <Label htmlFor='commission'>{t('PropertyConfigDialog.switches.commission.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>{t('PropertyConfigDialog.switches.commission.description')}</p>
                         </div>
                         <Switch
                             id='commission'
@@ -190,9 +193,9 @@ export default function PropertyConfigDialog({
                     {userLevel === 4 && (
                         <div className='flex items-center justify-between space-x-2'>
                             <div className='space-y-0.5'>
-                                <Label htmlFor='showVideo'>Show Video In Booking Engine</Label>
+                                <Label htmlFor='showVideo'>{t('PropertyConfigDialog.switches.showVideo.label')}</Label>
                                 <p className='text-xs text-muted-foreground'>
-                                    Enable this to show property video in booking engine
+                                    {t('PropertyConfigDialog.switches.showVideo.description')}
                                 </p>
                             </div>
                             <Switch
@@ -207,7 +210,7 @@ export default function PropertyConfigDialog({
 
                     {/* Reservation Reset Time */}
                     <div className='space-y-2'>
-                        <Label htmlFor='reservationResetTime'>Reservation Reset Time</Label>
+                        <Label htmlFor='reservationResetTime'>{t('PropertyConfigDialog.form.reservationResetTime')}</Label>
                         <Input
                             id='reservationResetTime'
                             type='time'
@@ -218,13 +221,13 @@ export default function PropertyConfigDialog({
                             }}
                         />
                         <p className='text-xs text-muted-foreground'>
-                            Time when daily reservations reset
+                            {t('PropertyConfigDialog.form.reservationResetTimeHint')}
                         </p>
                     </div>
 
                     {/* Timezone */}
                     <div className='space-y-2'>
-                        <Label htmlFor='timezone'>Timezone</Label>
+                        <Label htmlFor='timezone'>{t('PropertyConfigDialog.form.timezone')}</Label>
                         <Select
                             value={propertyConfig.timezone}
                             onValueChange={(value) =>
@@ -232,7 +235,7 @@ export default function PropertyConfigDialog({
                             }
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder='Select timezone' />
+                                <SelectValue placeholder={t('PropertyConfigDialog.form.timezonePlaceholder')} />
                             </SelectTrigger>
                             <SelectContent>
                                 {getAllTimezones().map((tz) => (
@@ -246,7 +249,7 @@ export default function PropertyConfigDialog({
 
                     {/* Base Currency */}
                     <div className='space-y-2'>
-                        <Label htmlFor="currencyCode">Currency Code</Label>
+                        <Label htmlFor="currencyCode">{t('PropertyConfigDialog.form.currencyCode')}</Label>
                         <Select
                             value={propertyConfig.baseCurrency}
                             onValueChange={(value) =>
@@ -268,10 +271,10 @@ export default function PropertyConfigDialog({
 
                 <DialogFooter>
                     <Button variant='outline' onClick={onClose} disabled={isSaving}>
-                        Cancel
+                        {t('PropertyConfigDialog.footer.cancel')}
                     </Button>
                     <Button onClick={onSave} disabled={isSaving}>
-                        {isSaving ? 'Saving...' : 'Save Configuration'}
+                        {isSaving ? t('PropertyConfigDialog.footer.saving') : t('PropertyConfigDialog.footer.save')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

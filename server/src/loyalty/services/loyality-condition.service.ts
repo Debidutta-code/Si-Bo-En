@@ -7,8 +7,6 @@ import {
 import {
     ICLoyalityCondition,
     ICLoyalitySpecialCondition,
-    ILoyalityCondition,
-    ILoyalitySpecialCondition,
     IULoyalityCondition,
     IULoyalitySpecialCondition,
 } from '../types';

@@ -1,15 +1,14 @@
 import { prisma } from '../../../config';
-import { HotelFilterQuery } from '../types';
+import { HotelFilterQuery, IRepoProperty, IRepoRes } from '../types';
 
 export class HotelRepository {
-    public static async getPaginatedHotels(filters: HotelFilterQuery) {
+    public async getPaginatedHotels(filters: HotelFilterQuery): Promise<IRepoRes> {
         const {
             page = '1',
             limit = '10',
             search,
             city,
             country,
-            starRating,
             amenities,
             propertyType,
             propertyCategory,
@@ -33,12 +32,8 @@ export class HotelRepository {
             ];
         }
 
-        if (starRating) {
-            const ratings = starRating.split(',').map(r => parseFloat(r));
-            where.starRating = { in: ratings };
-        }
+       
 
-        // Filtering by related propertyAddress fields
         if (city || country) {
             where.propertyAddress = { is: {} };
             if (city) {
@@ -130,7 +125,6 @@ export class HotelRepository {
                     propertyName: true,
                     propertyEmail: true,
                     propertyContact: true,
-                    starRating: true,
                     description: true,
                     image: true,
                     propertyAddress: {
@@ -182,14 +176,13 @@ export class HotelRepository {
     }
 
 
-    public static async getAutocompleteLocations(filters: HotelFilterQuery) {
+    public async getAutocompleteLocations(filters: HotelFilterQuery):Promise<IRepoRes> {
         const {
             page = '1',
             limit = '10',
             search,
             city,
             country,
-            starRating,
             amenities,
             propertyType,
             propertyCategory,
@@ -201,9 +194,6 @@ export class HotelRepository {
         const pageSize = parseInt(limit, 10);
         const offset = (pageNumber - 1) * pageSize;
 
-        // -----------------------------------
-        // STEP 1: NORMAL PRISMA FILTERS
-        // -----------------------------------
 
         const where: any = {
             isDeleted: false,
@@ -212,7 +202,6 @@ export class HotelRepository {
             },
         };
 
-        // Country filter
         if (country) {
             where.propertyAddress = {
                 is: {
@@ -224,16 +213,7 @@ export class HotelRepository {
             };
         }
 
-        // Star rating
-        if (starRating) {
-            const ratings = starRating
-                .split(',')
-                .map(r => parseFloat(r));
-
-            where.starRating = {
-                in: ratings,
-            };
-        }
+       
 
         // Amenities
         if (amenities) {
@@ -309,9 +289,6 @@ export class HotelRepository {
             }
         }
 
-        // -----------------------------------
-        // STEP 2: RAW SEARCH FOR LOCATION
-        // -----------------------------------
 
         let propertyIds: string[] = [];
         let rawTotalCount = 0;
@@ -423,15 +400,14 @@ export class HotelRepository {
             };
         }
 
-        // -----------------------------------
-        // STEP 3: FETCH FINAL DATA
-        // -----------------------------------
 
         const [properties, prismaTotalCount] = await Promise.all([
             prisma.property.findMany({
                 where,
                 ...(query ? {} : { skip: offset, take: pageSize }),
                 ...(query ? {} : { orderBy: { createdAt: 'desc' } }),
+                
+
 
                 select: {
                     id: true,

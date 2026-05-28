@@ -492,6 +492,50 @@
       "amountPaidLaterHotel": "Amount to be Paid Later at Hotel:",
       "paidAmount": "Paid Amount:",
       "refundable": "Refundable Amount:"
+    },
+    "actions": {
+      "checkInNow": "Check In Now",
+      "checkOutNow": "Check Out Now",
+      "viewBookSpa": "View & Book Spa Services ({{count}} available)"
+    },
+    "checkinDialog": {
+      "title": "Online Check-In",
+      "idTypeLabel": "ID Type",
+      "idNumberLabel": "ID Number",
+      "idNumberPlaceholder": "Enter ID number",
+      "addressLabel": "Address",
+      "addressPlaceholder": "Street address",
+      "cityLabel": "City",
+      "stateLabel": "State/Province",
+      "countryLabel": "Country",
+      "zipLabel": "Zip/Postal Code",
+      "identityImageLabel": "Identity Image",
+      "identityImageAlt": "Identity",
+      "uploadButton": "Upload",
+      "cancel": "Cancel",
+      "submit": "Complete Check-In",
+      "processing": "Processing…",
+      "idTypes": {
+        "nationalId": "National ID",
+        "passport": "Passport",
+        "driversLicense": "Driver's License",
+        "others": "Other"
+      }
+    },
+    "checkoutDialog": {
+      "title": "Confirm Check-Out",
+      "body": "Are you sure you want to check out of this reservation? This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Confirm Check-Out",
+      "processing": "Processing…"
+    },
+    "toast": {
+      "checkinSuccess": "Successfully checked in!",
+      "checkinError": "An error occurred during check-in",
+      "checkinFailed": "Failed to check-in",
+      "checkoutSuccess": "Successfully checked out!",
+      "checkoutError": "An error occurred during check-out",
+      "checkoutFailed": "Failed to check-out"
     }
   },
   "ModifyBooking": {
@@ -874,6 +918,172 @@
       "checkoutSuccess": "Successfully checked out!",
       "checkoutError": "An error occurred during check-out",
       "checkoutFailed": "Failed to check-out"
+    }
+  },
+  "CustomerLoginPage": {
+    "toast": {
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "welcomeBack": "Welcome back!",
+      "loginFailed": "Login failed",
+      "somethingWentWrong": "Something went wrong, please try again"
+    },
+    "leftPanel": {
+      "guestAccount": "Guest Account",
+      "brand": "Revchill",
+      "headline": {
+        "part1": "Your stay,",
+        "part2": "your way —",
+        "part3": "always."
+      },
+      "description": "One account to book, manage and revisit every experience across all Revchill properties.",
+      "features": {
+        "bookInstantly": {
+          "title": "Book Instantly",
+          "desc": "Reserve rooms, spa & dining in one place"
+        },
+        "manageTrips": {
+          "title": "Manage Your Trips",
+          "desc": "View, modify or cancel bookings anytime"
+        },
+        "wishlist": {
+          "title": "Wishlist Properties",
+          "desc": "Save your favourite properties for later"
+        },
+        "support": {
+          "title": "24 / 7 Support",
+          "desc": "Raise a ticket and track resolution live"
+        }
+      }
+    },
+    "rightPanel": {
+      "guestAccount": "Guest Account",
+      "brand": "Revchill",
+      "heading": "Welcome back",
+      "subheading": "Sign in to manage your bookings & profile.",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "you@email.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••••",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign In",
+      "signingIn": "Signing in…",
+      "or": "or",
+      "createAccount": "Create a new account"
+    }
+  },
+  "CustomerRegisterPage": {
+    "toast": {
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "passwordLength": "Password must be at least 8 characters",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "accountCreated": "Account created! Please sign in.",
+      "registrationFailed": "Registration failed",
+      "somethingWentWrong": "Something went wrong, please try again"
+    },
+    "cta": {
+      "creatingAccount": "Creating account…",
+      "continue": "Continue",
+      "createAccount": "Create Account"
+    },
+    "leftPanel": {
+      "brand": "Revchill",
+      "guestAccount": "Guest Account",
+      "headline": {
+        "part1": "Start your",
+        "part2": "journey",
+        "part3": "with us."
+      },
+      "description": "Create your free account in under a minute and unlock seamless booking across all properties.",
+      "stepsInfo": {
+        "step1": {
+          "label": "Personal details",
+          "desc": "Name & email address"
+        },
+        "step2": {
+          "label": "Secure password",
+          "desc": "Set a password for your account"
+        },
+        "step3": {
+          "label": "You're all set",
+          "desc": "Start booking instantly"
+        }
+      }
+    },
+    "rightPanel": {
+      "brand": "Revchill",
+      "newAccount": "New Account",
+      "headings": {
+        "step1": "Create account",
+        "step2": "Set your password"
+      },
+      "subheadings": {
+        "step1": "Step 1 of 2 — Your personal details.",
+        "step2": "Step 2 of 2 — Choose a secure password."
+      },
+      "form": {
+        "firstNameLabel": "First Name",
+        "firstNamePlaceholder": "Jane",
+        "lastNameLabel": "Last Name",
+        "lastNamePlaceholder": "Smith",
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "you@email.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Min. 8 characters",
+        "confirmPasswordLabel": "Confirm Password",
+        "confirmPasswordPlaceholder": "Repeat your password",
+        "passwordsDoNotMatch": "Passwords do not match"
+      },
+      "backToDetails": "Back to details",
+      "or": "or",
+      "signIn": "Already have an account? Sign in"
+    }
+  },
+  "SpaBookingDialog": {
+    "title": "Spa & Activities",
+    "toast": {
+      "fetchSpasFailed": "Failed to fetch spas",
+      "enterGuestName": "Please enter a guest name",
+      "bookActivitiesFailedOneOrMore": "Failed to book one or more activities",
+      "activitiesIncluded": "Activities included in your stay",
+      "bookActivitiesFailed": "Failed to book activities",
+      "activityRemoved": "Activity removed from your stay.",
+      "removeActivityFailed": "Failed to remove activity"
+    },
+    "loading": {
+      "noSpas": "No spas or activities available for these dates."
+    },
+    "detail": {
+      "duration": "Duration:",
+      "minutes": "Minutes",
+      "charges": "Charges:",
+      "description": "Description:"
+    },
+    "confirmPanel": {
+      "activitySelected": "{{count}} activity selected",
+      "activitiesSelected": "{{count}} activities selected",
+      "guestNameLabel": "Guest name",
+      "guestNamePlaceholder": "Enter guest name…",
+      "booking": "Booking…",
+      "bookAll": "BOOK ALL",
+      "cancel": "CANCEL"
+    },
+    "cancelPanel": {
+      "cancelPrefix": "Cancel:",
+      "cancelling": "Cancelling…",
+      "yesCancel": "Yes, Cancel",
+      "keep": "Keep"
+    },
+    "list": {
+      "categoryAll": "All",
+      "searchPlaceholder": "Search",
+      "included": "Included",
+      "paid": "Paid",
+      "slotsFree": "{{available}}/{{total}} slots free",
+      "noResults": "No results found. Try a different search or category."
     }
   }
 }

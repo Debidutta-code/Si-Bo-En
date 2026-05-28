@@ -169,31 +169,31 @@ export class CreationLoyalityService {
         }
     }
 
-    public async getAllCreationLoyalityWithProperty(
-        creationId: string
-    ): Promise<IApiResponse> {
-        try {
-            const result =
-                await this.creationLoyalityRepository.getAllCreationLoyalityWithProperty(
-                    creationId
-                );
-            if (!result) {
-                return errorResponse('No loyalty found for this creation');
-            }
-            return successResponse(
-                'Successfully retrieved creation loyalty with properties',
-                result
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to retrieve creation loyalty with properties',
-                    error.message
-                );
-            }
-            return errorResponse(
-                'Failed to retrieve creation loyalty with properties'
-            );
-        }
-    }
+    // public async getAllCreationLoyalityWithProperty(
+    //     creationId: string
+    // ): Promise<IApiResponse> {
+    //     try {
+    //         const result =
+    //             await this.creationLoyalityRepository.getAllCreationLoyalityWithProperty(
+    //                 creationId
+    //             );
+    //         if (!result) {
+    //             return errorResponse('No loyalty found for this creation');
+    //         }
+    //         return successResponse(
+    //             'Successfully retrieved creation loyalty with properties',
+    //             result
+    //         );
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return errorResponse(
+    //                 'Failed to retrieve creation loyalty with properties',
+    //                 error.message
+    //             );
+    //         }
+    //         return errorResponse(
+    //             'Failed to retrieve creation loyalty with properties'
+    //         );
+    //     }
+    // }
 }

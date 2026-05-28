@@ -22,7 +22,6 @@ export class RoomBookingRepository {
                                 loyaltyConditions: true,
                                 loyaltySpecialConditions: true,
                                 LoyaltyProgramFieldConfig: true,
-                                AdvanceLoyaltyProgram: true,
                                 PropertyLoyaltyConfig: true,
                             },
                         },
@@ -35,6 +34,11 @@ export class RoomBookingRepository {
                     include: {
                         roomAmenities: { include: { amenity: true } },
                         roomVideos: true,
+                        RoomViews:{
+                            include:{
+                                MasterRoomView:true
+                            }
+                        }
                     },
                 },
                 ratePlans: {

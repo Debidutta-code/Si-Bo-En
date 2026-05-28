@@ -14,6 +14,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import axios from "axios";
 
 export const LoyaltyContainer = ({
   loyaltyProgram,
@@ -62,9 +63,6 @@ export const LoyaltyContainer = ({
   };
 
   const handleToggle = () => {
-    if (isRegistered) {
-      return;
-    }
 
     const next = !isToggleOn;
     if (next) {
@@ -74,54 +72,62 @@ export const LoyaltyContainer = ({
       onToggleChange?.(false);
     }
   };
+  const verifyLoyaltyMembership = async () => {
+        if (!loyaltyProgram) return;
 
-  useEffect(() => {
-    if (!loyaltyProgram) return;
-
-    const verifyLoyaltyMembership = async () => {
-      setIsVerifying(true);
-      const loyaltyMemberEmail = localStorage.getItem(
-        `loyalty_member_${loyaltyProgram.propertyId}`,
-      );
-
-      if (loyaltyMemberEmail) {
-        try {
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: loyaltyMemberEmail,
-                propertyId: loyaltyProgram.propertyId,
-              }),
-            },
-          );
-          const data = await response.json();
-
-          if (response.ok && data.success && data.data?.isLoyaltyMember) {
-            setIsRegistered(true);
-            // console.log("Loyalty member", data);
-            setRegisteredEmail(loyaltyMemberEmail);
-            setDiscountInfo(data.data.discount);
-            setIsToggleOn(true);
-            onToggleChange?.(true);
-          } else {
-            localStorage.removeItem(
-              `loyalty_member_${loyaltyProgram.propertyId}`,
-            );
-          }
-        } catch {
-          localStorage.removeItem(
-            `loyalty_member_${loyaltyProgram.propertyId}`,
-          );
+    setIsVerifying(true);
+  
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
+        {
+          propertyId: loyaltyProgram.propertyId,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, 
         }
+      );
+  
+      const data = response.data;
+  
+      if (data.success && data.data?.isLoyaltyMember) {
+        setIsRegistered(true);
+  
+        setDiscountInfo(
+          data.data.discount || {
+            type: data.data.discountType,
+            value: data.data.discountValue,
+            currencyCode:
+              data.data.currencyCode || program.currencyCode,
+          }
+        );
+  
+        setIsToggleOn(true);
+        onToggleChange?.(true);
+      } else {
+        setIsRegistered(false);
+        setDiscountInfo(null);
+        setIsToggleOn(false);
+        onToggleChange?.(false);
       }
+    } catch (error) {
+      console.error("Failed to verify loyalty membership:", error);
+  
+      setIsRegistered(false);
+      setDiscountInfo(null);
+      setIsToggleOn(false);
+      onToggleChange?.(false);
+  
+      toast.error(t("LoyaltyContainer.modal.failedRetry"));
+    } finally {
       setIsVerifying(false);
-    };
+    }
+  };
 
-    verifyLoyaltyMembership();
-  }, [loyaltyProgram, onToggleChange]);
+
 
   if (!loyaltyProgram || !loyaltyProgram.CreationLoyaltyConfig) return null;
 
@@ -135,8 +141,11 @@ export const LoyaltyContainer = ({
     setFormData((prev) => ({ ...prev, [fieldName]: value }));
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+  const handleLogout = async () => {
+await axios.delete(
+  `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/signout`,
+  { withCredentials: true }
+);
     setIsRegistered(false);
     setRegisteredEmail("");
     setDiscountInfo(null);
@@ -149,89 +158,56 @@ export const LoyaltyContainer = ({
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { email,password, ...otherFields } = formData;
-      if (!email) {
-        toast.error(t("LoyaltyContainer.modal.emailRequired"));
-        setIsSubmitting(false);
-        return;
-      }
 
-      const response = await fetch(
+      const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/register`,
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            password,
-            propertyId: loyaltyProgram.propertyId,
-            metadata: otherFields,
-          }),
+          propertyId: loyaltyProgram.propertyId,
+          metadata: { ...formData },
         },
-      );
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        const errorMsg =
-          data.message || "Failed to register for loyalty program";
-        if (errorMsg.includes("already registered")) {
-          localStorage.setItem(
-            `loyalty_member_${loyaltyProgram.propertyId}`,
-            email,
-          );
-          setIsRegistered(true);
-          setRegisteredEmail(email);
-          if (data.data?.discount) setDiscountInfo(data.data.discount);
-          setIsToggleOn(true);
-          onToggleChange?.(true);
-          toast.success(t("LoyaltyContainer.modal.alreadyRegistered"));
-          setShowSignUpModal(false);
-          setFormData({});
-          return;
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
         }
-        toast.error(errorMsg);
+      );
+      const data = await response.data;
+
+      if (!data.success) {
+        console.log(data)
         return;
       }
 
-      localStorage.setItem(
-        `loyalty_member_${loyaltyProgram.propertyId}`,
-        email,
-      );
       setIsRegistered(true);
-      setRegisteredEmail(email);
       setIsToggleOn(true);
       onToggleChange?.(true);
-      if (data.data?.discountType && data.data?.discountValue) {
-        setDiscountInfo({
-          type: data.data.discountType,
-          value: data.data.discountValue,
-          currencyCode: data.data.currencyCode || program.currencyCode,
-        });
-      }
       toast.success(t("LoyaltyContainer.modal.registerSuccess"));
       setShowSignUpModal(false);
       setFormData({});
-    } catch {
-      toast.error(t("LoyaltyContainer.modal.failedRetry"));
+      verifyLoyaltyMembership()
+    } catch (error:any) {
+      console.log(error.response.data.message)
+      toast.error(t(error.response.data.message));
     } finally {
       setIsSubmitting(false);
     }
   };
 
- const getDiscountDisplay = (isPreLogin = false) => {
-  if (!isPreLogin && isRegistered && discountInfo) {
-    if (discountInfo.type === "percentage") return `${discountInfo.value}% OFF`;
-    return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
-  }
-  // Pre-login or not registered — show "Upto X% OFF"
-  if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
-    return `Upto ${loyaltyProgram.discountPercentage}% OFF`;
-  }
-  if (program.loyaltyDiscountType === "percentage") {
-    return `Upto ${program.discountValue}% OFF`;
-  }
-  return `Upto ${program.currencyCode} ${program.discountValue} OFF`;
-};
+  const getDiscountDisplay = (isPreLogin = false) => {
+    if (!isPreLogin && isRegistered && discountInfo) {
+      if (discountInfo.type === "percentage") return `${discountInfo.value}% OFF`;
+      return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
+    }
+    // Pre-login or not registered — show "Upto X% OFF"
+    if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
+      return `Upto ${loyaltyProgram.discountPercentage}% OFF`;
+    }
+    if (program.loyaltyDiscountType === "percentage") {
+      return `Upto ${program.discountValue}% OFF`;
+    }
+    return `Upto ${program.currencyCode} ${program.discountValue} OFF`;
+  };
 
   // Only show where isDeleted is false AND isActive is true
   const activeConditions = (program.loyaltyConditions || []).filter(
@@ -336,15 +312,7 @@ export const LoyaltyContainer = ({
                       </button>
                     </div>
 
-                    <p className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap text-right">
-                      {t("LoyaltyContainer.areYouRegistered")}{" "}
-                      <button
-                        onClick={() => setShowSignUpModal(true)}
-                        className="underline text-gray-700 font-medium hover:text-gray-900 transition-colors"
-                      >
-                        {t("LoyaltyContainer.identifyYourself")}
-                      </button>
-                    </p>
+                   
                   </>
                 ) : (
                   <div className="flex flex-col items-end gap-2">
@@ -449,79 +417,41 @@ export const LoyaltyContainer = ({
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="email"
-                    className="text-xs sm:text-sm font-medium"
-                  >
-                    {t("LoyaltyContainer.modal.emailLabel")} <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder={t("LoyaltyContainer.modal.emailPlaceholder")}
-                    required
-                    value={formData.email || ""}
-                    onChange={(e) => handleFieldChange("email", e.target.value)}
-                    className="w-full text-sm"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="password"
-                    className="text-xs sm:text-sm font-medium"
-                  >
-                    {t("LoyaltyBanner.modal.passwordLabel")} <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder={t("LoyaltyBanner.modal.passwordPlaceholder")}
-                    required
-                    value={formData.password || ""}
-                    onChange={(e) => handleFieldChange("password", e.target.value)}
-                    className="w-full text-sm"
-                  />
-                </div>
-                {program.LoyaltyProgramFieldConfig &&
-                  program.LoyaltyProgramFieldConfig.filter(
-                    (f) =>
-                      f.visibleInRegistration &&
-                      f.fieldName.toLowerCase() !== "email"&&
-                      f.fieldName.toLowerCase() !== "password",
-                  ).length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {program.LoyaltyProgramFieldConfig.filter(
-                        (f) =>
-                          f.visibleInRegistration &&
-                          f.fieldName.toLowerCase() !== "email",
-                      ).map((field) => (
-                        <div key={field.id} className="space-y-1.5">
-                          <Label
-                            htmlFor={field.fieldName}
-                            className="text-xs sm:text-sm font-medium"
-                          >
-                            {field._translations?.fieldName || (field.fieldName.charAt(0).toUpperCase() +
-                              field.fieldName.slice(1).replaceAll("_", " "))}
-                            {field.required && (
-                              <span className="text-red-500">*</span>
-                            )}
-                          </Label>
-                          <Input
-                            id={field.fieldName}
-                            type="text"
-                            placeholder={field._translations?.fieldName ? `Enter ${field._translations.fieldName}` : `Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
-                            required={field.required}
-                            value={formData[field.fieldName] || ""}
-                            onChange={(e) =>
-                              handleFieldChange(field.fieldName, e.target.value)
-                            }
-                            className="w-full text-sm"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
+
+
+                {program.LoyaltyProgramFieldConfig && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {program.LoyaltyProgramFieldConfig.filter(
+                      (f) =>
+                        f.visibleInRegistration &&
+                        f.fieldName.toLowerCase() !== "email",
+                    ).map((field) => (
+                      <div key={field.id} className="space-y-1.5">
+                        <Label
+                          htmlFor={field.fieldName}
+                          className="text-xs sm:text-sm font-medium"
+                        >
+                          {field._translations?.fieldName || (field.fieldName.charAt(0).toUpperCase() +
+                            field.fieldName.slice(1).replaceAll("_", " "))}
+                          {field.required && (
+                            <span className="text-red-500">*</span>
+                          )}
+                        </Label>
+                        <Input
+                          id={field.fieldName}
+                          type="text"
+                          placeholder={field._translations?.fieldName ? `Enter ${field._translations.fieldName}` : `Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
+                          required={field.required}
+                          value={formData[field.fieldName] || ""}
+                          onChange={(e) =>
+                            handleFieldChange(field.fieldName, e.target.value)
+                          }
+                          className="w-full text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col-reverse sm:flex-row gap-2 mt-6">

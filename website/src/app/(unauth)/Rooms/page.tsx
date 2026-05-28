@@ -36,38 +36,8 @@ interface Guest {
   dateOfBirth: string;
 }
 
-interface Addon {
-  addonId: string;
-  availabilityId: string;
-  date: string;
-  price: number;
-  quantity: number;
-  type: "PER_STAY" | "PER_NIGHT" | "ONCE";
-  name: string;
-  code: string;
-}
 
-interface DailyBreakdown {
-  date: string;
-  dayOfWeek: string;
-  ratePlanCode: string;
-  baseRate: number;
-  additionalCharges: number;
-  totalPerRoom: number;
-  totalForAllRooms: number;
-  currencyCode: string;
-  childrenChargesBreakdown: any[];
-  totalWithAddons: number;
-}
 
-interface Breakdown {
-  totalBaseAmount: number;
-  totalAdditionalCharges: number;
-  totalAmount: number;
-  numberOfNights: number;
-  averagePerNight: number;
-  totalAddonAmount?: number;
-}
 
 interface FinalPrice {
   // Core PriceBrakeDown fields (from new booking-engine API)
@@ -690,15 +660,6 @@ const Rooms = () => {
 
   const { primaryColor } = useBookingColors();
 
-  const availableBoardTypes = Array.from(
-    new Set(
-      roomsData
-        .filter((room: Room) => room.hasValidRate)
-        .flatMap((room: Room) =>
-          room.roomPrice.map((rp: any) => rp.ratePlanName),
-        ),
-    ),
-  );
 
   if (initialLoading) {
     return (

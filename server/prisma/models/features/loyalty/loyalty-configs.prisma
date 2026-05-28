@@ -9,19 +9,6 @@ model BasicLoyaltyProgram {
   @@map("basic_loyalty_programs")
 }
 
-model AdvanceLoyaltyProgram {
-  id                      String                @id @default(uuid())
-  loyaltyProgramId        String                @unique @map("loyalty_program_id")
-  activeInCorporateWeb    Boolean               @default(true) @map("active_in_corporate_web")
-  defaultLoginMode        Boolean               @default(false) @map("default_login_mode")
-  externalRegistrationUrl String?               @map("external_registration_url")
-  roomLimitByBooking      Int                   @default(1) @map("room_limit_by_booking")
-  blockUserFieldFromForm  Boolean               @default(false) @map("block_user_field_from_form")
-  createdAt               DateTime              @default(now())
-  LoyaltyProgram          CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
-
-  @@map("advance_loyalty_programs")
-}
 
 model LoyaltyConditions {
   id               String                @id @default(uuid())

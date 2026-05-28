@@ -1,8 +1,8 @@
 import {
+    CustomRequest,
     errorResponse,
     getDeviceInfo,
     getGeoLocationDetails,
-    PropertyRequest,
     toUTC,
 } from '../../utils';
 import { PricingService } from '../service';
@@ -14,7 +14,7 @@ export class PricingController {
         this.pricingService = new PricingService();
     }
     public async getRoomRentController(
-        req: PropertyRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response> {
         try {
@@ -34,7 +34,8 @@ export class PricingController {
                 childAges,
                 guestDistribution,
             } = req.body;
-
+            const customerId=req?.cookies?.loyalty_token?.split("split")[0];
+            const LpropertyId=req?.cookies?.loyalty_token?.split("split")[1];
             const propertyId = req.property?.id;
 
             if (!propertyId) {
@@ -104,13 +105,14 @@ export class PricingController {
                 guestDistribution,
                 children ? children : 0,
                 childAges,
-                guestEmail ? guestEmail : '',
+                LpropertyId === propertyId ? customerId : "",
                 userCountryCode ? userCountryCode : '',
                 detectedDeviceType ? detectedDeviceType : '',
                 promotions ? promotions : [],
                 parsedAddons ? parsedAddons : [],
                 promoCode,
-                includedAddons ? includedAddons : []
+                includedAddons ? includedAddons : [],
+
             );
 
             const locale = req.headers['accept-language']?.slice(0, 2) || 'en';

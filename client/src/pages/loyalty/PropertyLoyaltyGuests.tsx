@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { ChevronLeft, Users, Trash2, User, Mail, Phone, Eye } from "lucide-react";
+import { ChevronLeft, Users, User, Mail, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -14,7 +15,6 @@ import {
 } from "@/components/ui/table";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -23,9 +23,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import Loader from "@/components/Loader/Loader";
-import { getLoyaltyGuestsForCreationService, deleteLoyaltyGuestService } from "./services/loyalty.guest.service";
-import type { ILoyalityGuestsWDP } from "./interfaces";
+import { getLoyaltyGuestsForCreationService } from "./services/loyalty.guest.service";
 import { Pagination } from "@/components/ui/pagination";
+import type { IGetLoyaltyGuestsForCreation } from "./interfaces";
 
 interface ILoader {
   isLoading: boolean;
@@ -45,16 +45,15 @@ interface IPaginationData {
 export default function PropertyLoyaltyGuests() {
   const { propertyId, loyalityId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loader, setLoader] = useState<ILoader>({
     isLoading: true,
-    message: "Loading loyalty guests..."
+    message: t("PropertyLoyaltyGuests.loading")
   });
   const [metadataDialogOpen, setMetadataDialogOpen] = useState<boolean>(false);
   const [selectedMetadata, setSelectedMetadata] = useState<any>(null);
-  // const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-  // const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
 
-  const [guests, setGuests] = useState<ILoyalityGuestsWDP[]>([]);
+  const [guests, setGuests] = useState<IGetLoyaltyGuestsForCreation[]>([]);
   const [pagination, setPagination] = useState<IPaginationData>({
     currentPage: 1,
     limit: 10,
@@ -63,7 +62,6 @@ export default function PropertyLoyaltyGuests() {
     hasNextPage: false,
     hasPrevPage: false,
   });
-  const [deleteGuestId, setDeleteGuestId] = useState<string | null>(null);
 
   useEffect(() => {
     if (loyalityId) {
@@ -74,7 +72,7 @@ export default function PropertyLoyaltyGuests() {
   const fetchGuests = async (page: number, limit: number = 10) => {
     if (!loyalityId) return;
 
-    setLoader({ isLoading: true, message: "Loading loyalty guests..." });
+    setLoader({ isLoading: true, message: t("PropertyLoyaltyGuests.loading") });
     try {
       const skip = (page - 1) * limit;
       const response = await getLoyaltyGuestsForCreationService(loyalityId, skip, limit);
@@ -93,48 +91,20 @@ export default function PropertyLoyaltyGuests() {
           });
         }
       } else {
-        toast.error(response.message || "Failed to fetch loyalty guests");
+        toast.error(response.message || t("PropertyLoyaltyGuests.errorFetching"));
         setGuests([]);
       }
     } catch (error) {
       console.error("Error fetching loyalty guests:", error);
-      toast.error("Failed to fetch loyalty guests");
+      toast.error(t("PropertyLoyaltyGuests.errorFetching"));
       setGuests([]);
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
   };
 
-  const handleDeleteGuest = async (guestId:string): Promise<void> => {
-    try {
-      
-      if (!guestId) return;
-  
-      setLoader({ isLoading: true, message: "Deleting loyalty guest..." });
-      const response = await deleteLoyaltyGuestService(guestId);
-  
-      if (response.success) {
-        toast.success("Loyalty guest deleted successfully");
-        const currentPageGuests = guests.length;
-        if (currentPageGuests === 1 && pagination.currentPage > 1) {
-          fetchGuests(pagination.currentPage - 1, pagination.limit);
-        } else {
-          fetchGuests(pagination.currentPage, pagination.limit);
-        }
-      } else {
-      }
-    } catch (error) {
-      
-      toast.error( "Failed to delete loyalty guest");
-    }finally{
-      setLoader({ isLoading: false, message: "" });
 
-    }
-  };
-  const openDeleteDialog = (guestId: string): void => {
-    setDeleteGuestId(guestId);
-    // setDeleteDialogOpen(true);
-  };
+
   const openMetadataDialog = (metadata: any): void => {
     setSelectedMetadata(metadata);
     setMetadataDialogOpen(true);
@@ -144,13 +114,7 @@ export default function PropertyLoyaltyGuests() {
       fetchGuests(newPage);
     }
   };
-  const formatDate = (date: Date | string): string => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+
   if (loader.isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -169,14 +133,14 @@ export default function PropertyLoyaltyGuests() {
           className="mb-4"
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
-          Back to Loyalty Programs
+          {t("PropertyLoyaltyGuests.backToPrograms")}
         </Button>
         <div className="flex items-center gap-3">
           <Users className="w-8 h-8" />
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Loyalty Guests</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">{t("PropertyLoyaltyGuests.title")}</h1>
             <p className="text-muted-foreground mt-1">
-              {pagination.totalCount} guest{pagination.totalCount !== 1 ? 's' : ''} enrolled in this program
+              {pagination.totalCount !== 1 ? t("PropertyLoyaltyGuests.subtitlePlural", { count: pagination.totalCount }) : t("PropertyLoyaltyGuests.subtitle", { count: pagination.totalCount })}
             </p>
           </div>
         </div>
@@ -188,7 +152,7 @@ export default function PropertyLoyaltyGuests() {
           {guests.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No guests enrolled in this loyalty program yet</p>
+              <p>{t("PropertyLoyaltyGuests.noGuests")}</p>
             </div>
           ) : (
             <>
@@ -196,25 +160,20 @@ export default function PropertyLoyaltyGuests() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Guest Name</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Property</TableHead>
-                      <TableHead>Loyality Fields</TableHead>
+                      <TableHead>{t("PropertyLoyaltyGuests.table.guestName")}</TableHead>
+                      <TableHead>{t("PropertyLoyaltyGuests.table.email")}</TableHead>
+                      <TableHead>{t("PropertyLoyaltyGuests.table.loyaltyFields")}</TableHead>
 
-                      <TableHead>Enrolled On</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {guests.map((loyaltyGuest) => (
-                      <TableRow key={loyaltyGuest.id}>
+                      <TableRow key={loyaltyGuest.Customer.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
                             <span>
-                              {loyaltyGuest.guest && loyaltyGuest.guest.firstName}{" "}
-                              {loyaltyGuest.guest && loyaltyGuest.guest.lastName}
+                              {loyaltyGuest.Customer.firstName} {loyaltyGuest.Customer.lastName}
                             </span>
                           </div>
                         </TableCell>
@@ -222,24 +181,10 @@ export default function PropertyLoyaltyGuests() {
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {loyaltyGuest.guest && loyaltyGuest.guest.email || "N/A"}
+                              {loyaltyGuest.Customer.email}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">
-                              {loyaltyGuest.guest && loyaltyGuest.guest.phoneNumber || "N/A"}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <p className="font-medium text-sm">{propertyId || "N/A"}</p>
-                          </div>
-                        </TableCell>
-
 
                         <TableCell className="flex justify-center items-center">
                           {loyaltyGuest?.metaData ? (
@@ -250,22 +195,10 @@ export default function PropertyLoyaltyGuests() {
                               <Eye className="h-4 w-4" />
                             </span>
                           ) : (
-                            <span className="text-sm text-muted-foreground">N/A</span>
+                            <span className="text-sm text-muted-foreground">{t("PropertyLoyaltyGuests.na")}</span>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm">
-                          {formatDate(loyaltyGuest.createdAt)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => openDeleteDialog(loyaltyGuest.id)}
-                            className="hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                        
                       </TableRow>
                     ))}
                   </TableBody>
@@ -287,31 +220,15 @@ export default function PropertyLoyaltyGuests() {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteGuestId} onOpenChange={() => setDeleteGuestId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Guest?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this guest from the loyalty program? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteGuestId && handleDeleteGuest(deleteGuestId)}>
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
 
 
       <AlertDialog open={metadataDialogOpen} onOpenChange={setMetadataDialogOpen}>
         <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <AlertDialogHeader>
-            <AlertDialogTitle>Loyalty Program Fields</AlertDialogTitle>
+            <AlertDialogTitle>{t("PropertyLoyaltyGuests.modal.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Guest-specific loyalty program information
+              {t("PropertyLoyaltyGuests.modal.desc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
@@ -329,11 +246,11 @@ export default function PropertyLoyaltyGuests() {
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No metadata available</p>
+              <p className="text-sm text-muted-foreground">{t("PropertyLoyaltyGuests.modal.noMetadata")}</p>
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Close</AlertDialogCancel>
+            <AlertDialogCancel>{t("PropertyLoyaltyGuests.modal.close")}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

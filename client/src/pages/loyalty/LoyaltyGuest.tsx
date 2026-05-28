@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, User, Mail, Phone, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { User, Mail,Eye } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -21,7 +20,6 @@ import {
 import { Pagination } from "@/components/ui/pagination";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -32,7 +30,6 @@ import {
 import Loader from "@/components/Loader/Loader";
 import {
   getLoyaltyGuestsForCreationService,
-  deleteLoyaltyGuestService,
 } from "./services/loyalty.guest.service";
 import { getLoyalityByCreationService } from "./services";
 import type { IGetLoyaltyGuestsForCreation } from "./interfaces";
@@ -74,8 +71,6 @@ export default function LoyaltyGuest() {
     hasNextPage: false,
     hasPrevPage: false,
   });
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
-  const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
   const [metadataDialogOpen, setMetadataDialogOpen] = useState<boolean>(false);
   const [selectedMetadata, setSelectedMetadata] = useState<any>(null);
 
@@ -140,46 +135,13 @@ export default function LoyaltyGuest() {
     fetchLoyaltyGuests(page, pagination.limit);
   };
 
-  const openDeleteDialog = (guestId: string): void => {
-    setSelectedGuestId(guestId);
-    setDeleteDialogOpen(true);
-  };
 
   const openMetadataDialog = (metadata: any): void => {
     setSelectedMetadata(metadata);
     setMetadataDialogOpen(true);
   };
 
-  const handleDeleteGuest = async (): Promise<void> => {
-    if (!selectedGuestId) return;
 
-    setLoader({ isLoading: true, message: t('Loyalty.deletingGuest') });
-    const response = await deleteLoyaltyGuestService(selectedGuestId);
-
-    if (response.success) {
-      toast.success(t('Loyalty.guestDeleted'));
-      setDeleteDialogOpen(false);
-      setSelectedGuestId(null);
-      // Refresh the current page or go to previous page if current page becomes empty
-      const currentPageGuests = guests.length;
-      if (currentPageGuests === 1 && pagination.currentPage > 1) {
-        fetchLoyaltyGuests(pagination.currentPage - 1, pagination.limit);
-      } else {
-        fetchLoyaltyGuests(pagination.currentPage, pagination.limit);
-      }
-    } else {
-      toast.error(response.message || t('Loyalty.failedToDeleteGuest'));
-    }
-    setLoader({ isLoading: false, message: "" });
-  };
-
-  const formatDate = (date: Date | string): string => {
-    return new Date(date).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
 
   if (loader.isLoading) {
     return (
@@ -229,22 +191,19 @@ export default function LoyaltyGuest() {
                     <TableRow>
                       <TableHead>{t('Loyalty.guestName')}</TableHead>
                       <TableHead>{t('Loyalty.email')}</TableHead>
-                      <TableHead>{t('Loyalty.phone')}</TableHead>
                       <TableHead>{t('Loyalty.guestLevel')}</TableHead>
                       <TableHead>{t('Loyalty.loyaltyFields')}</TableHead>
-                      <TableHead>{t('Loyalty.enrolledOn')}</TableHead>
-                      <TableHead className="text-right">{t('Loyalty.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {guests.map((row) => (
-                      <TableRow key={row.LoyalityGuest?.id ?? Math.random()}>
+                      <TableRow key={row.Customer?.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
                             <span>
-                              {row.LoyalityGuest?.guest
-                                ? `${row.LoyalityGuest.guest.firstName} ${row.LoyalityGuest.guest.lastName}`
+                              {row.Customer
+                                ? `${row.Customer.firstName} ${row.Customer.lastName}`
                                 : "N/A"}
                             </span>
                           </div>
@@ -253,20 +212,11 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {row.LoyalityGuest?.guestEmail || "N/A"}
+                              {row.Customer?.email || "N/A"}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">
-                              {(row.LoyalityGuest?.guest &&
-                                row.LoyalityGuest.guest.phoneNumber) ||
-                                "N/A"}
-                            </span>
-                          </div>
-                        </TableCell>
+                        
                         <TableCell className="text-sm text-center">
 
                           <Badge level={row?.guestLevel} />
@@ -281,7 +231,6 @@ export default function LoyaltyGuest() {
                               className="gap-2"
                             >
                               <Eye className="h-4 w-4" />
-                              {t('Loyalty.view')}
                             </span>
                           ) : (
                             <span className="text-sm text-muted-foreground">
@@ -289,24 +238,8 @@ export default function LoyaltyGuest() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className="text-sm">
-                          {formatDate(row.LoyalityGuest?.createdAt ?? new Date())}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              row.LoyalityGuest?.id
-                                ? openDeleteDialog(row.LoyalityGuest.id)
-                                : undefined
-                            }
-                            disabled={!row.LoyalityGuest?.id}
-                            className="hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                        
+                        
                       </TableRow>
                     ))}
                   </TableBody>
@@ -327,35 +260,17 @@ export default function LoyaltyGuest() {
         </CardContent>
       </Card>
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('Loyalty.deleteGuestConfirmTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t('Loyalty.deleteGuestConfirmDesc')}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('Loyalty.cancel')}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteGuest}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {t('Common.delete')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
+{/* meta data virw doalog */}
       <AlertDialog
         open={metadataDialogOpen}
         onOpenChange={setMetadataDialogOpen}
       >
         <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('Loyalty.loyaltyProgramFields')}</AlertDialogTitle>
+            <AlertDialogTitle>{t('PropertyLoyalties.loyaltyProgramFields')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('Loyalty.guestInfo')}
+              {t('PropertyLoyalties.guestInfo')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
@@ -377,12 +292,12 @@ export default function LoyaltyGuest() {
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
-                {t('Loyalty.noMetadata')}
+                {t('PropertyLoyalties.noMetadata')}
               </p>
             )}
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('Loyalty.close')}</AlertDialogCancel>
+            <AlertDialogCancel>{t('PropertyLoyalties.close')}</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

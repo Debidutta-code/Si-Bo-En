@@ -3,16 +3,13 @@ import { protect } from '../../middlewares/auth.middleware';
 import { checkRoleBased } from '../../middlewares/checkRole.middleware';
 import {
     LoyalityProgramController,
-    AdvanceLoyaltyProgramController,
 } from '../controllers';
 
 const router = Router();
 
 // Initialize controllers
 const loyalityProgramController = new LoyalityProgramController();
-const advanceLoyaltyProgramController = new AdvanceLoyaltyProgramController();
 
-// ===== Basic Loyalty Program Routes =====
 router
     .route('/')
     .post(
@@ -61,40 +58,5 @@ router
         )
     );
 
-router
-    .route('/advance')
-    .post(
-        protect,
-        advanceLoyaltyProgramController.createAdvanceLoyaltyProgram.bind(
-            advanceLoyaltyProgramController
-        )
-    );
-
-router
-    .route('/advance/:loyaltyProgramId')
-    .get(
-        protect,
-        advanceLoyaltyProgramController.getAdvanceLoyaltyProgram.bind(
-            advanceLoyaltyProgramController
-        )
-    );
-
-router
-    .route('/advance/update/:id')
-    .patch(
-        protect,
-        advanceLoyaltyProgramController.updateAdvanceLoyaltyProgram.bind(
-            advanceLoyaltyProgramController
-        )
-    );
-
-router
-    .route('/advance/delete/:id')
-    .delete(
-        protect,
-        advanceLoyaltyProgramController.deleteAdvanceLoyaltyProgram.bind(
-            advanceLoyaltyProgramController
-        )
-    );
 
 export default router;

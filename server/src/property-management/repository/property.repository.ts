@@ -72,7 +72,6 @@ export class PropertyDao {
                         commission: false,
                         isB2cAvailable: true,
                         isB2bAvailable: false,
-                        reservationResetMinutes: 570,
                         selfAriActive: true,
                         showVideo: true,
                         isAvailableForBooking: true,

@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { updateAgent } from '../api/agent.api';
 import type { IAgents } from '../interfaces';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface EditAgentDialogProps {
   open: boolean;
@@ -27,6 +28,8 @@ const EditAgentDialog: React.FC<EditAgentDialogProps> = ({
   agent,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
+
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -58,9 +61,9 @@ const EditAgentDialog: React.FC<EditAgentDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Agent</DialogTitle>
+          <DialogTitle>{t('EditAgentDialog.title')}</DialogTitle>
           <DialogDescription>
-            Update agent information. Leave password empty to keep current password.
+            {t('EditAgentDialog.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -68,7 +71,7 @@ const EditAgentDialog: React.FC<EditAgentDialogProps> = ({
           <div className="grid gap-4 py-4">
             {/* Agent Name */}
             <div className="grid gap-2">
-              <Label htmlFor="agentName">Agent Name *</Label>
+              <Label htmlFor="agentName">{t('EditAgentDialog.form.agentName')} *</Label>
               <Input
                 id="agentName"
                 value={formData.agentName}
@@ -79,7 +82,7 @@ const EditAgentDialog: React.FC<EditAgentDialogProps> = ({
 
             {/* Email */}
             <div className="grid gap-2">
-              <Label htmlFor="agentEmail">Email *</Label>
+              <Label htmlFor="agentEmail">{t('EditAgentDialog.form.email')} *</Label>
               <Input
                 id="agentEmail"
                 type="email"
@@ -91,7 +94,7 @@ const EditAgentDialog: React.FC<EditAgentDialogProps> = ({
 
             {/* Phone */}
             <div className="grid gap-2">
-              <Label htmlFor="agentPhone">Phone Number *</Label>
+              <Label htmlFor="agentPhone">{t('EditAgentDialog.form.phoneNumber')} *</Label>
               <Input
                 id="agentPhone"
                 value={formData.agentPhone}
@@ -102,14 +105,14 @@ const EditAgentDialog: React.FC<EditAgentDialogProps> = ({
 
             {/* Password */}
             <div className="grid gap-2">
-              <Label htmlFor="agentPassword">New Password (optional)</Label>
+              <Label htmlFor="agentPassword">{t('EditAgentDialog.form.newPassword')}</Label>
               <div className="relative">
                 <Input
                   id="agentPassword"
                   type={showPassword ? 'text' : 'password'}
                   value={formData.agentPassword}
                   onChange={(e) => setFormData({ ...formData, agentPassword: e.target.value })}
-                  placeholder="Leave empty to keep current password"
+                  placeholder={t('EditAgentDialog.form.passwordPlaceholder')}
                 />
                 <Button
                   type="button"
@@ -126,11 +129,11 @@ const EditAgentDialog: React.FC<EditAgentDialogProps> = ({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t('EditAgentDialog.footer.cancel')}
             </Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Update Agent
+              {loading ? t('EditAgentDialog.footer.updating') : t('EditAgentDialog.footer.updateAgent')}
             </Button>
           </DialogFooter>
         </form>

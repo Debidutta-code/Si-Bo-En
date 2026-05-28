@@ -187,7 +187,6 @@ export class RoomBookingService {
                 )
             )
         );
-
         const roomPrice: IRoomPrice[] = ratePlanResults
             .filter((r): r is IRoomPrice[] => r !== null)
             .flat();
@@ -199,7 +198,8 @@ export class RoomBookingService {
             roomSize: Number(room.roomSize),
             roomUnit: room.roomUnit,
             priority: room.priority,
-            roomView: room.roomView,
+            roomView: room.RoomViews,
+            numberOfBedrooms: room.numberOfBedrooms,
             maxOccupancy: room.maxOccupancy,
             description: room.description || '',
             images: room.image || [],
@@ -339,13 +339,15 @@ export class RoomBookingService {
         );
         const { totalAutoDiscount, appliedDiscounts, availablePromotions } =
             discountCalc.calculate();
+        const numberOfRooms = roomsArray.length > 0 ? roomsArray.length : guests.rooms;
 
         const touristTax = RoomTouristTaxCalculator.calculate(
             touristTaxData,
             baseAmount,
             numberOfNights,
-            roomsArray.length,
-            room.numberOfBedrooms
+            numberOfRooms,
+            room.numberOfBedrooms,
+            charges[0].currencyCode
         );
 
         const sharedFields = {
@@ -1086,25 +1088,32 @@ class RoomTouristTaxCalculator {
         baseAmount: number,
         numberOfNights: number,
         numberOfRooms: number,
-        numberOfBedrooms: number
+        numberOfBedrooms: number,
+        currencyCode:string
     ): ITouristTax | null {
         if (!touristTaxData) return null;
+        const isPercentage = touristTaxData.discountType === 'percentage';
 
         const calculatedTaxAmount =
             touristTaxData.discountType === 'percentage'
-                ? baseAmount * (Number(touristTaxData.discountValue) / 100)
+                ? baseAmount * (Number(touristTaxData.discountValue) / 100)*
+                numberOfNights *
+                numberOfRooms *
+                numberOfBedrooms
                 : Number(touristTaxData.discountValue) *
                 numberOfNights *
                 numberOfRooms *
                 numberOfBedrooms;
 
-        return {
+       return {
             id: touristTaxData.id,
             name: touristTaxData.name || '',
             discountType: touristTaxData.discountType as DiscountType,
             discountValue: touristTaxData.discountValue,
-            currencyCode: (touristTaxData.currencyCode ||
-                'USD') as CurrencyCode,
+            currencyCode: (isPercentage
+                ? currencyCode
+                : touristTaxData.currencyCode || 'USD'
+            ) as CurrencyCode,
             calculatedTaxAmount,
         };
     }

@@ -5,6 +5,7 @@ import { FaCalendarAlt, FaUser, FaInfoCircle } from "react-icons/fa";
 import { isBefore } from "date-fns";
 import { Loader2, Plus, Trash2, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
+import axios from "axios";
 export interface Guest {
   type: "adult" | "child";
   firstName: string;
@@ -198,117 +199,154 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   }, [guestForms]);
 
   // ── Fetch updated price ────────────────────────────────────────────────────
-  const fetchUpdatedPrice = async () => {
-    if (!checkInDate || !checkOutDate) {
-      toast.error(t("ModifyBooking.errors.selectDates"));
+const fetchUpdatedPrice = async () => {
+  if (!checkInDate || !checkOutDate) {
+    toast.error(t("ModifyBooking.errors.selectDates"));
+    return;
+  }
+
+  try {
+    setPriceLoading(true);
+    setPriceFetchError(false);
+
+    let noOfAdults = 0;
+    let noOfChildrens = 0;
+
+    guestForms.forEach((g) => {
+      if (g.type === "adult") noOfAdults++;
+      else noOfChildrens++;
+    });
+
+    const includedAddonIds = Array.from(
+      new Set(
+        (bookingData.addOns || [])
+          .filter((a: any) => a.type === "included")
+          .map((a: any) => a.addonId)
+      )
+    ) as string[];
+
+    const addonMap = new Map<
+      string,
+      { date: string; quantity: number }[]
+    >();
+
+    (bookingData.addOns || [])
+      .filter(
+        (a: any) =>
+          a.type === "selected" &&
+          !a.name.includes("Child age")
+      )
+      .forEach((a: any) => {
+        // addon.date is UTC-shifted (18:30Z) — add 1 day to get correct local date
+        const d = new Date(a.date);
+
+        d.setUTCDate(d.getUTCDate() + 1);
+        d.setUTCHours(0, 0, 0, 0);
+
+        const normalizedDate = d.toISOString();
+
+        if (!addonMap.has(a.addonId)) {
+          addonMap.set(a.addonId, []);
+        }
+
+        const existing = addonMap
+          .get(a.addonId)!
+          .find((e) => e.date === normalizedDate);
+
+        if (existing) {
+          existing.quantity += a.quantity;
+        } else {
+          addonMap.get(a.addonId)!.push({
+            date: normalizedDate,
+            quantity: a.quantity,
+          });
+        }
+      });
+
+    const parsedAddons = Array.from(addonMap.entries()).map(
+      ([addOnId, availability]) => ({
+        addOnId,
+        availability,
+      })
+    );
+
+    // Build promotions — only user-applied ones from finalPrice
+    const promotions = buildPromotions(bookingData);
+
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
+      {
+        propertyCode: bookingData.propertyCode,
+        invTypeCode: bookingData.roomTypeCode,
+        startDate: checkInDate,
+        endDate: checkOutDate,
+        noOfAdults,
+        noOfChildren: noOfChildrens,
+        noOfRooms: requestedRooms,
+        bookingCode: bookingData.bookingCode,
+        guestDistribution,
+        ratePlanCode: bookingData.ratePlanCode,
+        childAges,
+        parsedAddons,
+        includedAddons: includedAddonIds,
+        promotions,
+        promoCode: "",
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      }
+    );
+
+    const data = response.data;
+
+    if (!data.success) {
+      setPriceFetchError(true);
+
+      toast.error(
+        data.message || "Failed to fetch updated price"
+      );
+
       return;
     }
-    try {
-      setPriceLoading(true);
-      setPriceFetchError(false);
 
-      let noOfAdults = 0;
-      let noOfChildrens = 0;
-      guestForms.forEach((g) => {
-        if (g.type === "adult") noOfAdults++;
-        else noOfChildrens++;
-      });
+    const updatedAmount = Number(data?.data?.totalAmount);
+    const paidAmount = bookingData?.paidAmount || 0;
 
-      const includedAddonIds = Array.from(
-        new Set(
-          (bookingData.addOns || [])
-            .filter((a: any) => a.type === "included")
-            .map((a: any) => a.addonId),
-        ),
-      ) as string[];
+    const priceDifference = updatedAmount - paidAmount;
 
-      const addonMap = new Map<string, { date: string; quantity: number }[]>();
-      (bookingData.addOns || [])
-        .filter(
-          (a: any) => a.type === "selected" && !a.name.includes("Child age"),
-        )
-        .forEach((a: any) => {
-          // addon.date is UTC-shifted (18:30Z) — add 1 day to get correct local date
-          const d = new Date(a.date);
-          d.setUTCDate(d.getUTCDate() + 1);
-          d.setUTCHours(0, 0, 0, 0);
-          const normalizedDate = d.toISOString();
+    setFinalPrice({
+      ...data.data,
+      booking: {
+        finalPayable:
+          priceDifference > 0 ? priceDifference : 0,
+        refundAmount:
+          priceDifference < 0
+            ? Math.abs(priceDifference)
+            : 0,
+        discount: data.data.discount || 0,
+      },
+    });
 
-          if (!addonMap.has(a.addonId)) addonMap.set(a.addonId, []);
-          const existing = addonMap
-            .get(a.addonId)!
-            .find((e) => e.date === normalizedDate);
-          if (existing) existing.quantity += a.quantity;
-          else
-            addonMap
-              .get(a.addonId)!
-              .push({ date: normalizedDate, quantity: a.quantity });
-        });
+    setAmount(updatedAmount);
+    setPriceFetched(true);
 
-      const parsedAddons = Array.from(addonMap.entries()).map(
-        ([addOnId, availability]) => ({
-          addOnId,
-          availability,
-        }),
-      );
+    toast.success("Price updated successfully!");
+  } catch (error: any) {
+    setPriceFetchError(true);
 
-      // Build promotions — only user-applied ones from finalPrice
-      const promotions = buildPromotions(bookingData);
+    toast.error(
+      error?.response?.data?.message ||
+        "Failed to fetch updated price. Please try again."
+    );
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            propertyCode: bookingData.propertyCode,
-            invTypeCode: bookingData.roomTypeCode,
-            startDate: checkInDate,
-            endDate: checkOutDate,
-            noOfAdults,
-            noOfChildren: noOfChildrens,
-            noOfRooms: requestedRooms,
-            bookingCode: bookingData.bookingCode,
-            guestDistribution,
-            ratePlanCode: bookingData.ratePlanCode,
-            childAges,
-            parsedAddons,
-            includedAddons: includedAddonIds,
-            promotions,
-            promoCode: "",
-          }),
-        },
-      );
-
-      const data = await response.json();
-      if (!response.ok || data.success === false) {
-        setPriceFetchError(true);
-        toast.error(data.message || "Failed to fetch updated price");
-        return;
-      }
-
-      const updatedAmount = Number(data?.data?.totalAmount);
-      const paidAmount = bookingData?.paidAmount || 0;
-      const priceDifference = updatedAmount - paidAmount;
-
-      setFinalPrice({
-        ...data.data,
-        booking: {
-          finalPayable: priceDifference > 0 ? priceDifference : 0,
-          refundAmount: priceDifference < 0 ? Math.abs(priceDifference) : 0,
-          discount: data.data.discount || 0,
-        },
-      });
-      setAmount(updatedAmount);
-      setPriceFetched(true);
-      toast.success("Price updated successfully!");
-    } catch {
-      setPriceFetchError(true);
-      toast.error("Failed to fetch updated price. Please try again.");
-    } finally {
-      setPriceLoading(false);
-    }
-  };
+    console.error("Fetch price error:", error);
+  } finally {
+    setPriceLoading(false);
+  }
+};
 
   // ── Validation ─────────────────────────────────────────────────────────────
   const validateGuests = (): boolean => {

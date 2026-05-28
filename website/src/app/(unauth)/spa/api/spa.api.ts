@@ -11,7 +11,10 @@ export const getSpaByPropertyCodeApi = async (
   propertyCode: string,
 ): Promise<ISpaApiResponse<ISpa[]>> => {
     try {
-        const response = await axios.get(`${SPA_BASE}/property/code/${encodeURIComponent(propertyCode)}`);
+        const language = typeof window !== 'undefined' ? localStorage.getItem('i18nextLng') || 'en' : 'en';
+        const response = await axios.get(`${SPA_BASE}/property/code/${encodeURIComponent(propertyCode)}`, {headers: {
+            "Accept-Language": language
+        }});  
         return response.data;
     } catch (error: any) {
         return error?.response?.data ?? { success: false, message: error?.message };

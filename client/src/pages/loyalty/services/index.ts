@@ -59,7 +59,7 @@ export {
 } from "./creation-loyality.service";
 
 export {
-    createLoyaltyGuestService,
+    // createLoyaltyGuestService,
     deleteLoyaltyGuestService,
     getLoyaltyGuestsForPropertyService,
     getLoyaltyGuestsForCreationService

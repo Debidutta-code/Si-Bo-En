@@ -3,48 +3,32 @@ import { successResponse, errorResponse } from '../../utils';
 import {
     LoyalityLevelRepository,
     LoyaltyGuestRepository,
+    PropertyLoyalityGuest,
     propertyLoyalityRepository,
 } from '../repository';
-import { ICloyalityGuests, ILoyalityLevels } from '../types';
+import { ILoyalityLevels } from '../types';
 import { paginatedSuccessResponse } from '../../utils';
 import { CreationGuestRepository } from '../repository/creation-guest.repository';
 import { createHash } from '../../auth/utills/bcryptHelper';
 import { CurrencyCode } from '../../tax-system/interfaces';
+import { CustomerRepository } from '../../customer/repository';
 export class LoyaltyGuestService {
     private loyaltyGuestRepository: LoyaltyGuestRepository;
     private creationGuestRepository: CreationGuestRepository;
     private propertyLoyaltyRepository: propertyLoyalityRepository;
     private loyaltyLevelRepository: LoyalityLevelRepository;
+    private customerRepository: CustomerRepository;
+    private propertyGuestRepository: PropertyLoyalityGuest;
 
     constructor() {
         this.loyaltyGuestRepository = new LoyaltyGuestRepository();
         this.creationGuestRepository = new CreationGuestRepository();
         this.propertyLoyaltyRepository = new propertyLoyalityRepository();
         this.loyaltyLevelRepository = new LoyalityLevelRepository();
+        this.customerRepository = new CustomerRepository();
+        this.propertyGuestRepository = new PropertyLoyalityGuest();
     }
 
-    public async deleteLoyaltyGuest(
-        customerId: string
-    ): Promise<IApiResponse> {
-        try {
-            const deletedLoyaltyGuest =
-                await this.loyaltyGuestRepository.deleteLoyaltyGuestById(
-                    customerId
-                );
-            return successResponse(
-                'Loyalty guest deleted successfully',
-                deletedLoyaltyGuest
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to delete loyalty guest',
-                    error.message
-                );
-            }
-            return errorResponse('Failed to delete loyalty guest');
-        }
-    }
     public async getLoyalityGuestForcreationLoyality(
         creationLoyalityId: string,
         skip: number = 0,
@@ -123,19 +107,17 @@ export class LoyaltyGuestService {
     }
 
     public async registerGuestFromBookingEngine(data: {
-        email: string;
         propertyId: string;
         metaData: any;
-        password: string;
+        customerId: string;
     }): Promise<IApiResponse> {
         try {
-            const { email, propertyId, metaData, password } = data;
+            const { propertyId, metaData, } = data;
 
             const propertyLoyaltyConfig =
                 await this.propertyLoyaltyRepository.getLoyalityForPropertyWhereTrue(
                     propertyId
                 );
-            // console.log(propertyLoyaltyConfig);
             if (!propertyLoyaltyConfig) {
                 return errorResponse(
                     'No active loyalty program found for this property'
@@ -151,12 +133,12 @@ export class LoyaltyGuestService {
             }
 
             const existingGuest =
-                await this.loyaltyGuestRepository.checkIfGuestExists(email);
+                await this.customerRepository.findById(data.customerId);
 
             if (existingGuest) {
                 const [guestExistForProperty, existingCreationGuest] =
                     await Promise.all([
-                        this.creationGuestRepository.guestExistForProperty(
+                        this.propertyGuestRepository.guestExistForProperty(
                             propertyLoyaltyConfig.id,
                             existingGuest.id
                         ),
@@ -165,10 +147,8 @@ export class LoyaltyGuestService {
                             existingGuest.id
                         ),
                     ]);
-
-                // ✅ Only BOTH existing means truly already registered
                 if (guestExistForProperty && existingCreationGuest) {
-                    return errorResponse(
+                    return successResponse(
                         "You are already registered for this property's loyalty program"
                     );
                 }
@@ -177,7 +157,7 @@ export class LoyaltyGuestService {
                 const tasks = [];
                 if (!guestExistForProperty) {
                     tasks.push(
-                        this.creationGuestRepository.createPropertyLoyaltyGuest(
+                        this.propertyGuestRepository.createPropertyLoyaltyGuest(
                             {
                                 propertyLoyalityId: propertyLoyaltyConfig.id,
                                 customerId: existingGuest.id,
@@ -202,32 +182,8 @@ export class LoyaltyGuestService {
                 );
             }
 
-            // Brand new guest — create LoyalityGuest + PropertyLoyalityGuest + CreationGuest
-            const hashedPassword = await createHash(password);
-            const newGuest =
-                await this.loyaltyGuestRepository.createGuestsLoyaltyConfig({
-                    customerEmail: email,
-                    customerId: '',
-                    password: hashedPassword,
-                });
 
-            if (!newGuest) {
-                return errorResponse('Failed to create new guest');
-            }
 
-            await Promise.all([
-                this.creationGuestRepository.createPropertyLoyaltyGuest({
-                    propertyLoyalityId: propertyLoyaltyConfig.id,
-                    customerId: newGuest.id,
-                }),
-                this.creationGuestRepository.createCreationGuest({
-                    customerId: newGuest.id,
-                    creationLoyaltyConfigId,
-                    metaData,
-                    guestLevel: 1,
-                    noOfBookings: 0,
-                }),
-            ]);
 
             return successResponse(
                 'Successfully registered for loyalty program'
@@ -240,7 +196,7 @@ export class LoyaltyGuestService {
         }
     }
     public async checkLoyaltyDiscount(
-        email: string,
+        customerId: string,
         propertyId: string
     ): Promise<IApiResponse> {
         try {
@@ -260,27 +216,22 @@ export class LoyaltyGuestService {
                 );
             }
 
-            const loyaltyGuest =
-                await this.loyaltyGuestRepository.getLoyaltyGuestByEmail(email);
-            if (!loyaltyGuest) {
-                return successResponse('Guest is not a loyalty member', {
-                    isLoyaltyMember: false,
-                    discount: null,
-                });
-            }
+
 
             const [guestExistForProperty, existingCreationGuest] =
                 await Promise.all([
-                    this.creationGuestRepository.guestExistForProperty(
+                    this.propertyGuestRepository.guestExistForProperty(
                         propertyConfig.id,
-                        loyaltyGuest.id
+                        customerId,
+
                     ),
                     this.creationGuestRepository.checkIfGuestExist(
                         propertyConfig.CreationLoyaltyConfig.id,
-                        loyaltyGuest.id
+                        customerId,
+
                     ),
                 ]);
-
+            console.log(guestExistForProperty, existingCreationGuest);
             if (!guestExistForProperty || !existingCreationGuest) {
                 return successResponse('Guest is not a loyalty member', {
                     isLoyaltyMember: false,
@@ -297,11 +248,8 @@ export class LoyaltyGuestService {
                 (l: ILoyalityLevels) => l.level === currentGuestLevel
             );
 
-            // Fallback chain: matched level → base config discountValue → 0
             const discountValue =
-                matchedLevel?.discountPercentage ??
-                propertyConfig.CreationLoyaltyConfig?.discountValue ??
-                0;
+                matchedLevel?.discountPercentage;
 
             const discountType =
                 propertyConfig.CreationLoyaltyConfig?.loyaltyDiscountType ??
@@ -325,35 +273,6 @@ export class LoyaltyGuestService {
                 );
             }
             return errorResponse('Failed to check loyalty discount');
-        }
-    }
-    public async getGuestByEmailAndProperty(
-        email: string,
-        propertyId: string
-    ): Promise<IApiResponse> {
-        try {
-            const loyaltyGuest =
-                await this.loyaltyGuestRepository.getLoyaltyGuestByPropertyAndGuest(
-                    propertyId,
-                    email
-                );
-
-            if (!loyaltyGuest) {
-                return errorResponse('Loyalty guest not found');
-            }
-
-            return successResponse(
-                'Loyalty guest fetched successfully',
-                loyaltyGuest
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to fetch loyalty guest',
-                    error.message
-                );
-            }
-            return errorResponse('Failed to fetch loyalty guest');
         }
     }
 }

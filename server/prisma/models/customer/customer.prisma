@@ -7,10 +7,12 @@ model Customers {
 
   PrimaryGuests          Guests[]
   Reservations           Reservation[]
-  CreationGuest          CreationGuest[]
+
   ProblemTickets         ProblemTickets[]
-  PropertyLoyalityGuests PropertyLoyalityGuests[]
   WishList               WishList[]
+  
+  CreationGuest          CreationGuest[]
+  PropertyLoyalityGuests PropertyLoyalityGuests[]
   SpaBookings            SpaBooking[]
 
   @@map("customers")

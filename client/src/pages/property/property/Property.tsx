@@ -359,13 +359,13 @@ export default function PropertyPage() {
                 language: languageCode,
             });
             if (response.success) {
-                toast.success("Language added");
+                toast.success(t('Property.languageAdded'));
                 refreshLanguages();
             } else {
-                toast.error(response.message || "Failed to add language");
+                toast.error(response.message || t('Property.failedToAddLanguage'));
             }
         } catch {
-            toast.error("Failed to add language");
+            toast.error(t('Property.failedToAddLanguage'));
         } finally {
             setIsAddingLang(null);
         }
@@ -376,13 +376,13 @@ export default function PropertyPage() {
         try {
             const response = await deletePropertyLanguageService(propertyLanguageId);
             if (response.success) {
-                toast.success("Language removed");
+                toast.success(t('Property.languageRemoved'));
                 refreshLanguages();
             } else {
-                toast.error(response.message || "Failed to remove language");
+                toast.error(response.message || t('Property.failedToRemoveLanguage'));
             }
         } catch {
-            toast.error("Failed to remove language");
+            toast.error(t('Property.failedToRemoveLanguage'));
         } finally {
             setIsDeletingLang(null);
         }
@@ -747,12 +747,12 @@ export default function PropertyPage() {
             <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Update Property</DialogTitle>
-                        <DialogDescription>Update basic property details.</DialogDescription>
+                        <DialogTitle>{t('Property.updatePropertyTitle')}</DialogTitle>
+                        <DialogDescription>{t('Property.updatePropertyDescription')}</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div>
-                            <Label className="text-sm font-medium">Name</Label>
+                            <Label className="text-sm font-medium">{t('Common.name')}</Label>
                             <Input
                                 value={updatePropertyDetails.name}
                                 onChange={(e) => setUpdatePropertyDetails({ ...updatePropertyDetails, name: e.target.value })}
@@ -760,7 +760,7 @@ export default function PropertyPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-sm font-medium">Images</Label>
+                            <Label className="text-sm font-medium">{t('Property.images')}</Label>
                             <Button
                                 type="button"
                                 variant="outline"
@@ -768,7 +768,7 @@ export default function PropertyPage() {
                                 className="w-full"
                             >
                                 <Upload className="mr-2 h-4 w-4" />
-                                Upload Images
+                                {t('Common.uploadImages')}
                             </Button>
                             {updatePropertyDetails.images.length > 0 && (
                                 <div className="grid grid-cols-3 gap-2 mt-2">
@@ -798,7 +798,7 @@ export default function PropertyPage() {
                                 checked={updatePropertyDetails.isActive}
                                 onChange={(e) => setUpdatePropertyDetails({ ...updatePropertyDetails, isActive: e.target.checked })}
                             />
-                            <Label htmlFor="active" className="text-sm cursor-pointer">Active</Label>
+                            <Label htmlFor="active" className="text-sm cursor-pointer">{t('Common.active')}</Label>
                         </div>
                     </div>
                     <ImageUploadModal
@@ -807,8 +807,8 @@ export default function PropertyPage() {
                         onUploadSuccess={handleUploadSuccess}
                     />
                     <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleUpdateProperty}>Save</Button>
+                        <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>{t('Common.cancel')}</Button>
+                        <Button onClick={handleUpdateProperty}>{t('Common.save')}</Button>
                     </div>
                 </DialogContent>
             </Dialog>
@@ -888,7 +888,7 @@ export default function PropertyPage() {
                     </div>
                 ) : (
                     <div className="text-center py-8 text-gray-500 border rounded-lg bg-gray-50 border-dashed">
-                        No users assigned to this property yet.
+                        {t('Property.noUsersAssigned')}
                     </div>
                 )}
             </div>
@@ -963,7 +963,7 @@ export default function PropertyPage() {
                         {/* EN chip — always present, locked */}
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border bg-blue-50 border-blue-200 text-blue-800 select-none">
                             <Lock className="h-3 w-3" />
-                            English
+                            {t('Property.englishLanguage')}
                             <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-mono leading-none">
                                 EN
                             </span>
@@ -1000,7 +1000,7 @@ export default function PropertyPage() {
 
                         {propertyLanguages.filter(l => l.language !== 'en').length === 0 && (
                             <span className="text-sm text-gray-400 italic py-1.5">
-                                No additional languages added yet.
+                                {t('Property.noAdditionalLanguages')}
                             </span>
                         )}
                     </div>
@@ -1130,9 +1130,9 @@ export default function PropertyPage() {
                         entityId={creationDetails.id}
                         locale={editingLocale}
                         initialData={editingData}
-                        title="Edit Property Translation"
+                        title={t('Property.editTranslationTitle')}
                         fields={[
-                            { key: "name", label: "Property Name", placeholder: "e.g., Hotel Sol" },
+                            { key: "name", label: t('Property.translationFieldName'), placeholder: t('Property.translationFieldNamePlaceholder') },
                         ]}
                         onSave={async (id, locale, data) => upsertCreationTranslationService(id, { [locale]: data })}
                     />

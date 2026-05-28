@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Users, ChevronLeft, Award, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,9 +29,10 @@ interface IPropertyLoyalty {
 export default function ActivePropertyLoyalty() {
   const { propertyId, loyaltyConfigId } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loader, setLoader] = useState<ILoader>({
     isLoading: true,
-    message: "Loading loyalty details..."
+    message: t("ActivePropertyLoyalty.loading")
   });
   const [loyalty, setLoyalty] = useState<IPropertyLoyalty | null>(null);
 
@@ -43,18 +45,18 @@ export default function ActivePropertyLoyalty() {
   const fetchLoyaltyDetails = async () => {
     if (!propertyId) return;
 
-    setLoader({ isLoading: true, message: "Loading loyalty details..." });
+    setLoader({ isLoading: true, message: t("ActivePropertyLoyalty.loading") });
     try {
       const response = await getLoyalityForProperty(propertyId);
       
       if (response.success && response.data) {
         setLoyalty(response.data);
       } else {
-        toast.error(response.message || "Failed to fetch loyalty details");
+        toast.error(response.message || t("ActivePropertyLoyalty.errorFetching"));
       }
     } catch (error) {
       console.error("Error fetching loyalty details:", error);
-      toast.error("Failed to fetch loyalty details");
+      toast.error(t("ActivePropertyLoyalty.errorFetching"));
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
@@ -80,13 +82,13 @@ export default function ActivePropertyLoyalty() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Award className="w-16 h-16 text-muted-foreground mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">No Loyalty Configuration Found</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("ActivePropertyLoyalty.noConfigFound")}</h3>
             <p className="text-muted-foreground text-center max-w-md mb-4">
-              This property doesn't have an active loyalty configuration.
+              {t("ActivePropertyLoyalty.noConfigDesc")}
             </p>
             <Button onClick={() => navigate(`/property/loyalty/${propertyId}`)}>
               <ChevronLeft className="w-4 h-4 mr-2" />
-              Back to Loyalty Programs
+              {t("ActivePropertyLoyalty.backToPrograms")}
             </Button>
           </CardContent>
         </Card>
@@ -102,13 +104,13 @@ export default function ActivePropertyLoyalty() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Award className="w-16 h-16 text-muted-foreground mb-4 opacity-50" />
-            <h3 className="text-lg font-semibold mb-2">Incomplete Loyalty Configuration</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("ActivePropertyLoyalty.incompleteConfig")}</h3>
             <p className="text-muted-foreground text-center max-w-md mb-4">
-              This loyalty configuration is missing required data.
+              {t("ActivePropertyLoyalty.incompleteDesc")}
             </p>
             <Button onClick={() => navigate(`/property/loyalty/${propertyId}`)}>
               <ChevronLeft className="w-4 h-4 mr-2" />
-              Back to Loyalty Programs
+              {t("ActivePropertyLoyalty.backToPrograms")}
             </Button>
           </CardContent>
         </Card>
@@ -126,20 +128,20 @@ export default function ActivePropertyLoyalty() {
           className="mb-4"
         >
           <ChevronLeft className="w-4 h-4 mr-2" />
-          Back to Loyalty Programs
+          {t("ActivePropertyLoyalty.backToPrograms")}
         </Button>
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
               <Award className="w-8 h-8" />
-              {loyalty.propertyName} Loyalty Program
+              {t("ActivePropertyLoyalty.programTitle", { name: loyalty.propertyName })}
             </h1>
             <p className="text-muted-foreground mt-2">
-              Property Code: {loyalty.propertyCode}
+              {t("ActivePropertyLoyalty.propertyCode", { code: loyalty.propertyCode })}
             </p>
           </div>
           <Badge variant={loyalty.isActive ? "default" : "secondary"} className="text-sm">
-            {loyalty.isActive ? "Active" : "Inactive"}
+            {loyalty.isActive ? t("ActivePropertyLoyalty.active") : t("ActivePropertyLoyalty.inactive")}
           </Badge>
         </div>
       </div>
@@ -150,12 +152,12 @@ export default function ActivePropertyLoyalty() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Users className="w-4 h-4" />
-              Loyalty Guests
+              {t("ActivePropertyLoyalty.loyaltyGuests")}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">View</p>
-            <p className="text-sm text-muted-foreground">Manage guests enrolled in this program</p>
+            <p className="text-2xl font-bold">{t("ActivePropertyLoyalty.viewGuests")}</p>
+            <p className="text-sm text-muted-foreground">{t("ActivePropertyLoyalty.manageGuests")}</p>
           </CardContent>
         </Card>
       </div>
@@ -163,26 +165,26 @@ export default function ActivePropertyLoyalty() {
       {/* Loyalty Details Tabs */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="basic">Basic Config</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced Config</TabsTrigger>
+          <TabsTrigger value="overview">{t("ActivePropertyLoyalty.tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="basic">{t("ActivePropertyLoyalty.tabs.basicConfig")}</TabsTrigger>
+          <TabsTrigger value="advanced">{t("ActivePropertyLoyalty.tabs.advancedConfig")}</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Discount Information</CardTitle>
-              <CardDescription>Current loyalty discount configuration</CardDescription>
+              <CardTitle>{t("ActivePropertyLoyalty.overview.title")}</CardTitle>
+              <CardDescription>{t("ActivePropertyLoyalty.overview.desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">Discount Type</p>
+                  <p className="text-sm text-muted-foreground">{t("ActivePropertyLoyalty.overview.discountType")}</p>
                   <p className="text-lg font-semibold capitalize">{CreationLoyaltyConfig.loyaltyDiscountType}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Discount Value</p>
+                  <p className="text-sm text-muted-foreground">{t("ActivePropertyLoyalty.overview.discountValue")}</p>
                   <p className="text-lg font-semibold">
                     {CreationLoyaltyConfig.loyaltyDiscountType === "percentage"
                       ? `${CreationLoyaltyConfig.discountValue}%`
@@ -190,7 +192,7 @@ export default function ActivePropertyLoyalty() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Currency</p>
+                  <p className="text-sm text-muted-foreground">{t("ActivePropertyLoyalty.overview.currency")}</p>
                   <p className="text-lg font-semibold">{CreationLoyaltyConfig.currencyCode}</p>
                 </div>
               </div>
@@ -202,21 +204,21 @@ export default function ActivePropertyLoyalty() {
         <TabsContent value="basic" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Basic Configuration</CardTitle>
-              <CardDescription>Loyalty program branding and basic settings</CardDescription>
+              <CardTitle>{t("ActivePropertyLoyalty.basic.title")}</CardTitle>
+              <CardDescription>{t("ActivePropertyLoyalty.basic.desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               {CreationLoyaltyConfig.BasicLoyaltyProgram ? (
                 <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-muted-foreground mb-2">Status</p>
+                    <p className="text-sm text-muted-foreground mb-2">{t("ActivePropertyLoyalty.basic.status")}</p>
                     <Badge variant={CreationLoyaltyConfig.BasicLoyaltyProgram.isActive ? "default" : "secondary"}>
-                      {CreationLoyaltyConfig.BasicLoyaltyProgram.isActive ? "Active" : "Inactive"}
+                      {CreationLoyaltyConfig.BasicLoyaltyProgram.isActive ? t("ActivePropertyLoyalty.active") : t("ActivePropertyLoyalty.inactive")}
                     </Badge>
                   </div>
                   {CreationLoyaltyConfig.BasicLoyaltyProgram.logo && CreationLoyaltyConfig.BasicLoyaltyProgram.logo.length > 0 && (
                     <div>
-                      <p className="text-sm text-muted-foreground mb-2">Logos</p>
+                      <p className="text-sm text-muted-foreground mb-2">{t("ActivePropertyLoyalty.basic.logos")}</p>
                       <div className="flex gap-4 flex-wrap">
                         {CreationLoyaltyConfig.BasicLoyaltyProgram.logo.map((logoUrl, index) => (
                           <img
@@ -233,7 +235,7 @@ export default function ActivePropertyLoyalty() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Info className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No basic configuration set up yet</p>
+                  <p>{t("ActivePropertyLoyalty.basic.noConfig")}</p>
                 </div>
               )}
             </CardContent>
@@ -244,37 +246,37 @@ export default function ActivePropertyLoyalty() {
         <TabsContent value="advanced" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Advanced Configuration</CardTitle>
-              <CardDescription>Advanced loyalty program settings and features</CardDescription>
+              <CardTitle>{t("ActivePropertyLoyalty.advanced.title")}</CardTitle>
+              <CardDescription>{t("ActivePropertyLoyalty.advanced.desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               {CreationLoyaltyConfig.AdvanceLoyaltyProgram ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center justify-between p-3 border rounded">
-                    <span className="text-sm">Active in Corporate Web</span>
+                    <span className="text-sm">{t("ActivePropertyLoyalty.advanced.activeCorporate")}</span>
                     <Badge variant={CreationLoyaltyConfig.AdvanceLoyaltyProgram.activeInCorporateWeb ? "default" : "secondary"}>
-                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.activeInCorporateWeb ? "Yes" : "No"}
+                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.activeInCorporateWeb ? t("ActivePropertyLoyalty.advanced.yes") : t("ActivePropertyLoyalty.advanced.no")}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 border rounded">
-                    <span className="text-sm">Default Login Mode</span>
+                    <span className="text-sm">{t("ActivePropertyLoyalty.advanced.defaultLoginMode")}</span>
                     <Badge variant={CreationLoyaltyConfig.AdvanceLoyaltyProgram.defaultLoginMode ? "default" : "secondary"}>
-                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.defaultLoginMode ? "Yes" : "No"}
+                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.defaultLoginMode ? t("ActivePropertyLoyalty.advanced.yes") : t("ActivePropertyLoyalty.advanced.no")}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 border rounded">
-                    <span className="text-sm">Block User Field</span>
+                    <span className="text-sm">{t("ActivePropertyLoyalty.advanced.blockUserField")}</span>
                     <Badge variant={CreationLoyaltyConfig.AdvanceLoyaltyProgram.blockUserFieldFromForm ? "default" : "secondary"}>
-                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.blockUserFieldFromForm ? "Yes" : "No"}
+                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.blockUserFieldFromForm ? t("ActivePropertyLoyalty.advanced.yes") : t("ActivePropertyLoyalty.advanced.no")}
                     </Badge>
                   </div>
                   <div className="col-span-full p-3 border rounded">
-                    <p className="text-sm text-muted-foreground mb-1">Room Limit Per Booking</p>
+                    <p className="text-sm text-muted-foreground mb-1">{t("ActivePropertyLoyalty.advanced.roomLimit")}</p>
                     <p className="text-lg font-semibold">{CreationLoyaltyConfig.AdvanceLoyaltyProgram.roomLimitByBooking}</p>
                   </div>
                   {CreationLoyaltyConfig.AdvanceLoyaltyProgram.externalRegistrationUrl && (
                     <div className="col-span-full p-3 border rounded">
-                      <p className="text-sm text-muted-foreground mb-1">External Registration URL</p>
+                      <p className="text-sm text-muted-foreground mb-1">{t("ActivePropertyLoyalty.advanced.externalUrl")}</p>
                       <a
                         href={CreationLoyaltyConfig.AdvanceLoyaltyProgram.externalRegistrationUrl}
                         target="_blank"
@@ -289,7 +291,7 @@ export default function ActivePropertyLoyalty() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Info className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No advanced configuration set up yet</p>
+                  <p>{t("ActivePropertyLoyalty.advanced.noConfig")}</p>
                 </div>
               )}
             </CardContent>

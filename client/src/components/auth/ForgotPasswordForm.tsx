@@ -172,7 +172,7 @@ export default function ForgotPasswordForm() {
         <div className="w-full max-w-md relative z-10 animate-fade-in-up">
           <div className="flex items-center justify-center mb-2">
             <img 
-              src="/swiftrooms.jpeg" 
+              src="/revchill.png" 
               alt="SwiftRooms Logo" 
               className="h-16 w-auto object-contain"
             />

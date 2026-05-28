@@ -1,0 +1,32 @@
+model SpaBooking {
+  id                String  @id @default(uuid())
+  userId            String? @map("user_id")
+  userEmail         String  @map("user_email")
+  userContactNumber String  @map("user_contact_number")
+
+  totalAmount  Float   @map("total_amount")
+  currencyCode String? @default("AED") @map("currency_code")
+  status       String  @default("confirmed") @map("status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  SlotBookings SlotBooking[]
+  Customer     Customers?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("spa_bookings")
+}
+model SlotBooking {
+  id           String @id @default(uuid())
+  spaBookingId String @map("spa_booking_id")
+  spaId        String @map("spa_id")
+  amount Float @map("amount")
+  spaSlotsId String
+
+  spaSlots   SpaSlots?  @relation(fields: [spaSlotsId], references: [id])
+  spa        Spa        @relation(fields: [spaId], references: [id])
+  spaBooking SpaBooking @relation(fields: [spaBookingId], references: [id])
+
+  createdAt  DateTime   @default(now()) @map("created_at")
+  @@map("slot_bookings")
+}

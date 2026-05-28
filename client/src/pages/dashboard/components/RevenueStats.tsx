@@ -114,7 +114,7 @@ export default function RevenueStats({ data, currencyCode }: RevenueStatsProps) 
               return (
                 <div key={payment.status} className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="capitalize font-medium">{payment.status}</span>
+                    <span className="capitalize font-medium">{t(`BookingStatus.${payment.status}`)}</span>
                     <span className="font-semibold">{formatCurrency(payment.amount)}</span>
                   </div>
                   <div className="text-xs text-muted-foreground">

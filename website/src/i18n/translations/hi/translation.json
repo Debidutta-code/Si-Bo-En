@@ -1,0 +1,1137 @@
+{
+  "Navbar": {
+    "home": "होम",
+    "services": "सेवाएँ",
+    "contactUs": "संपर्क करें",
+    "partnerLogin": "पार्टनर लॉगिन",
+    "myBooking": "मेरी बुकिंग",
+    "loyaltyGuestLogin": "लॉयल्टी अतिथि लॉगिन",
+    "becomApartner": "पार्टनर बनें",
+    "customerLogin": "साइन इन करें",
+    "myBookings": "मेरी बुकिंग्स",
+    "profile": "प्रोफाइल",
+    "signOut": "साइन आउट करें",
+    "spa": "स्पा"
+  },
+  "Hero": {
+    "title": "अपनी अगली यात्रा का स्थान खोजें",
+    "subtitle": "विशेष ऑफ़र पर अद्भुत स्थानों की खोज करें"
+  },
+  "SearchWidget": {
+    "checkIn": "चेक-इन",
+    "checkOut": "चेक-आउट",
+    "checkOutSelect": "चुनें",
+    "occupancy": "अधिभोग",
+    "promoCode": "प्रोमो कोड",
+    "bookNow": "अभी बुक करें",
+    "loading": "लोड हो रहा है...",
+    "errorDates": "कृपया मान्य चेक-इन और चेक-आउट तिथियाँ चुनें।",
+    "errorCheckOut": "चेक-आउट तिथि चेक-इन तिथि के बाद होनी चाहिए।"
+  },
+  "Services": {
+    "hero": {
+      "title": "अपनी पूरी राजस्व क्षमता को अनलॉक करें",
+      "description": "यदि आप भारी कमीशन कम करने, प्रत्यक्ष बुकिंग बढ़ाने और अपने होटल के दीर्घकालिक सफलता को सुरक्षित करने के लिए तैयार हैं, तो हमारे साथ साझेदारी करें और भविष्य-प्रूफ आतिथ्य व्यवसाय की ओर अगला कदम बढ़ाएँ।",
+      "contactUs": "संपर्क करें"
+    },
+    "section": {
+      "title": "हमारी सेवाएँ",
+      "subtitle": "हमारे साथ आतिथ्य समाधान के नए युग में गोता लगाएँ",
+      "consultBtn": "हमसे परामर्श करें"
+    },
+    "items": {
+      "digitalMarketing": {
+        "title": "डिजिटल मार्केटिंग",
+        "description": "हम अनुकूलित मार्केटिंग रणनीतियाँ बनाते हैं जो आपके अद्वितीय प्रसाद को उजागर करती हैं और मेहमानों को सीधे आपकी वेबसाइट के माध्यम से बुक करने के लिए प्रेरित करती हैं — आरक्षण बढ़ाना और तृतीय-पक्ष प्लेटफार्मों पर निर्भरता कम करना।"
+      },
+      "webDesign": {
+        "title": "वेब डिज़ाइन",
+        "description": "आपकी वेबसाइट आपकी ऑनलाइन पहचान है। एक अनुकूलित, मोबाइल-अनुकूल वेबसाइट आपके ऑनलाइन व्यवसाय का नियंत्रण जीतने और आगंतुकों को बुकिंग में बदलने की दिशा में पहला कदम है।"
+      },
+      "loyaltyProgram": {
+        "title": "लॉयल्टी प्रोग्राम",
+        "description": "लॉयल्टी को अपनी प्रतिस्पर्धी बढ़त बनाएँ। पंजीकृत ग्राहकों को मूल्य वर्धित लाभ प्रदान करें और अपने ब्रांड को प्रतिस्पर्धियों से अलग करें।"
+      },
+      "bookingEngine": {
+        "title": "बुकिंग इंजन",
+        "description": "अपने संपत्ति प्रबंधन प्रणाली के साथ एकीकृत हमारे प्लग-इन बुकिंग इंजन के साथ प्रत्यक्ष आरक्षण बढ़ाएँ। सुरक्षित, मोबाइल-अनुकूल और रूपांतरण के लिए अनुकूलित।"
+      },
+      "aiChatbot": {
+        "title": "एआई चैटबॉट",
+        "description": "एआई के साथ मेहमानों को स्मार्ट तरीके से संलग्न करें। अनुरोधों को रूट करें, लीड्स को परिवर्तित करें, सीआरएम डेटा को समृद्ध करें और अधिक प्रत्यक्ष बुकिंग चलाएँ।"
+      },
+      "distributionManagement": {
+        "title": "वितरण प्रबंधन",
+        "description": "आरओआई और दक्षता को अधिकतम करें। दैनिक राजस्व कार्यों का प्रबंधन करें, स्वस्थ वितरण चैनल बनाए रखें और अपने होटल की ऑनलाइन उपस्थिति को मजबूत करें।"
+      }
+    },
+    "cta": {
+      "title": "प्रत्यक्ष बुकिंग सफलता में आपके विश्वसनीय भागीदार",
+      "description": "आज ही RevChill से जुड़कर कमीशन लागत कम करें और अपनी कमाई बढ़ाएँ।",
+      "btn": "निःशुल्क परामर्श प्राप्त करें"
+    },
+    "footer": {
+      "phone": "फ़ोन",
+      "phoneNumber": "+971 (04) 5878 776",
+      "email": "ईमेल",
+      "emailAddress": "info@revchill.com",
+      "follow": "फॉलो करें",
+      "copyright": "©2020 RevChill"
+    }
+  },
+  "Rooms": {
+    "urgencyBanner": {
+      "title": "यदि आप अभी बुक करते हैं तो आपको सर्वोत्तम उपलब्ध मूल्य मिलेगा!",
+      "subtitle": "कीमतें किसी भी समय बढ़ सकती हैं। अब और प्रतीक्षा न करें!"
+    },
+    "videoOverlay": "संपत्ति का दौरा",
+    "searchingRooms": "कमरे खोजे जा रहे हैं...",
+    "noRoomsHotel": "इस होटल के लिए कोई कमरा उपलब्ध नहीं है।",
+    "noRooms": "कोई कमरा उपलब्ध नहीं",
+    "failedToLoad": "कमरे लोड करने में विफल।",
+    "somethingWentWrong": "कमरे लाने में कुछ गलत हो गया।",
+    "modal": {
+      "title": "शर्तें",
+      "description": "आधिकारिक वेबसाइट पर की गई बुकिंग के लिए विशेष लाभ",
+      "guarantee": {
+        "title": "सर्वोत्तम मूल्य गारंटी",
+        "description": "हम गारंटी देते हैं कि आपको उसी कमरे, तिथियों और शर्तों के लिए ऑनलाइन कहीं और कम कीमत नहीं मिलेगी।"
+      },
+      "keyConditions": "मुख्य शर्तें:",
+      "conditions": {
+        "one": "कीमतें बदल सकती हैं और किसी भी समय बढ़ सकती हैं",
+        "two": "प्रारंभिक बुकिंग छूट केवल हमारी आधिकारिक वेबसाइट के माध्यम से उपलब्ध हैं",
+        "three": "सीमित उपलब्धता - कमरे जल्दी बिक सकते हैं",
+        "four": "विशेष प्रचार केवल प्रत्यक्ष बुकिंग के लिए विशेष हैं",
+        "five": "लचीली रद्दीकरण नीतियाँ केवल आधिकारिक वेबसाइट बुकिंग पर लागू होती हैं"
+      },
+      "note": "नोट:",
+      "noteText": "तृतीय-पक्ष वेबसाइटों या एजेंटों के माध्यम से बुकिंग करने पर उच्च कीमतें और कम लाभ हो सकते हैं।"
+    }
+  },
+  "LoyaltyBanner": {
+    "verifying": "सत्यापित किया जा रहा है...",
+    "loyaltyProgram": "लॉयल्टी प्रोग्राम",
+    "basic": "बेसिक",
+    "premium": "प्रीमियम",
+    "programTerms": "प्रोग्राम की शर्तें",
+    "specialBenefits": "विशेष लाभ",
+    "logoutSuccess": "लॉयल्टी प्रोग्राम से सफलतापूर्वक लॉगआउट किया गया",
+    "modal": {
+      "join": "ज्वाइन करें",
+      "registerTo": "पाने के लिए पंजीकरण करें",
+      "onAllBookings": "सभी बुकिंग पर",
+      "discount": "छूट",
+      "autoApplied": "हर बुकिंग पर स्वतः लागू",
+      "emailLabel": "ईमेल पता",
+      "emailPlaceholder": "your.email@example.com",
+      "passwordLabel": "पासवर्ड",
+      "passwordPlaceholder": "Password@123",
+      "cancel": "रद्द करें",
+      "registering": "पंजीकरण हो रहा है...",
+      "signUp": "साइन अप करें",
+      "emailRequired": "ईमेल आवश्यक है",
+      "failedToRegister": "लॉयल्टी प्रोग्राम के लिए पंजीकरण विफल",
+      "alreadyRegistered": "वापसी पर स्वागत है! आप पहले से ही एक लॉयल्टी सदस्य हैं।",
+      "registerSuccess": "लॉयल्टी प्रोग्राम के लिए सफलतापूर्वक पंजीकृत!",
+      "failedRetry": "पंजीकरण विफल। कृपया पुनः प्रयास करें।"
+    }
+  },
+  "LoyaltyContainer": {
+    "verifying": "सत्यापित किया जा रहा है...",
+    "membersDiscount": "केवल सदस्यों के लिए छूट",
+    "joinProgram": "प्रोग्राम ज्वाइन करें",
+    "loyaltyDiscount": "लॉयल्टी छूट",
+    "activeMember": "सक्रिय सदस्य",
+    "logout": "लॉगआउट करें",
+    "areYouRegistered": "क्या आप पंजीकृत हैं?",
+    "identifyYourself": "अपनी पहचान बताएँ",
+    "logoutSuccess": "लॉयल्टी प्रोग्राम से सफलतापूर्वक लॉगआउट किया गया",
+    "modal": {
+      "join": "ज्वाइन करें",
+      "registerTo": "पाने के लिए पंजीकरण करें",
+      "offOnAllBookings": "सभी बुकिंग पर छूट",
+      "discount": "छूट",
+      "autoApplied": "हर बुकिंग पर स्वतः लागू",
+      "emailLabel": "ईमेल पता",
+      "emailPlaceholder": "your.email@example.com",
+      "cancel": "रद्द करें",
+      "registering": "पंजीकरण हो रहा है...",
+      "signUp": "साइन अप करें",
+      "emailRequired": "ईमेल आवश्यक है",
+      "failedToRegister": "लॉयल्टी प्रोग्राम के लिए पंजीकरण विफल",
+      "alreadyRegistered": "वापसी पर स्वागत है! आप पहले से ही एक लॉयल्टी सदस्य हैं।",
+      "registerSuccess": "लॉयल्टी प्रोग्राम के लिए सफलतापूर्वक पंजीकृत!",
+      "failedRetry": "पंजीकरण विफल। कृपया पुनः प्रयास करें।"
+    }
+  },
+  "RoomCard": {
+    "guests": "मेहमान",
+    "bookingConditions": "बुकिंग की शर्तें →",
+    "offersApplied": "लागू ऑफर",
+    "available": "उपलब्ध",
+    "promotionalRate": "प्रचार दर",
+    "specialOffersAvailable": "विशेष ऑफर उपलब्ध",
+    "specialOfferAvailable": "विशेष ऑफर उपलब्ध",
+    "offersSelected": "ऑफर चयनित — चेकआउट पर लागू होंगे",
+    "taxNotIncluded": "कर शामिल नहीं",
+    "unlock": "अनलॉक करें",
+    "basePrice": "आधार मूल्य",
+    "perNight": "प्रति रात",
+    "autoAppliedDiscounts": "स्वतः लागू छूट",
+    "includedAddons": "शामिल ऐड-ऑन",
+    "add": "जोड़ें",
+    "loading": "लोड हो रहा है...",
+    "roomOnly": "केवल कमरा",
+    "onlyRoomsLeft": "केवल {{count}} कमरा शेष!",
+    "onlyRoomsLeftPlural": "केवल {{count}} कमरे शेष!",
+    "touristTax": {
+      "notIncluded": "शामिल नहीं",
+      "paidAtHotel": " कमरे की दर में — सीधे होटल में भुगतान किया जाना है।"
+    },
+    "promotions": {
+      "minNightStay": "न्यूनतम {{count}} रात का प्रवास",
+      "deviceExclusive": "डिवाइस विशेष ऑफर",
+      "bookDaysInAdvance": "{{count}} दिन पहले बुक करें",
+      "specialOffer": "विशेष ऑफर",
+      "validUntil": "वैध"
+    },
+    "errors": {
+      "somethingWentWrong": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
+      "failedToFetchPrice": "मूल्य लाने में विफल। कृपया पुनः प्रयास करें।"
+    }
+  },
+  "Footer": {
+    "defaultAddress": "दुबई, संयुक्त अरब अमीरात",
+    "recaptcha": {
+      "text": "यह साइट reCAPTCHA और Google द्वारा सुरक्षित है",
+      "privacyPolicy": "गोपनीयता नीति",
+      "and": "और",
+      "termsOfService": "सेवा की शर्तें",
+      "apply": "लागू होती हैं।"
+    },
+    "poweredBy": "द्वारा संचालित"
+  },
+  "AddonModal": {
+    "title": "अपने प्रवास को बेहतर बनाएँ",
+    "subtitle": "अपने प्रवास को और भी यादगार बनाने के लिए वैकल्पिक ऐड-ऑन चुनें",
+    "noAddons": "आपकी चयनित तिथियों के लिए कोई ऐड-ऑन उपलब्ध नहीं",
+    "each": "प्रत्येक",
+    "showLess": "कम दिखाएँ",
+    "seeMoreAddons": "{{count}} और ऐड-ऑन देखें",
+    "noAddonsSelected": "कोई ऐड-ऑन चयनित नहीं",
+    "addonsSelected": "ऐड-ऑन चयनित",
+    "addonsSelectedPlural": "ऐड-ऑन चयनित",
+    "skip": "छोड़ें",
+    "continue": "जारी रखें",
+    "continueWith": "{{count}} ऐड-ऑन के साथ जारी रखें",
+    "continueWithPlural": "{{count}} ऐड-ऑन के साथ जारी रखें"
+  },
+  "GuestForm": {
+    "title": "अपनी बुकिंग पूरी करें",
+    "adult": "वयस्क",
+    "child": "बच्चा",
+    "firstName": "पहला नाम",
+    "firstNamePlaceholder": "पहला नाम",
+    "lastName": "अंतिम नाम",
+    "lastNamePlaceholder": "अंतिम नाम",
+    "dateOfBirth": "जन्म तिथि",
+    "contactInfo": "संपर्क जानकारी",
+    "loyaltyMember": "लॉयल्टी सदस्य",
+    "emailLabel": "ईमेल पता",
+    "emailPlaceholder": "your@email.com",
+    "primary": "प्राथमिक",
+    "optional": "वैकल्पिक",
+    "emailConfirmation": "आपकी बुकिंग पुष्टिकरण यहाँ भेजी जाएगी",
+    "loyaltyDiscountPercent": "{{value}}% लॉयल्टी छूट लागू की जाएगी",
+    "loyaltyDiscountFlat": "{{currency}} {{value}} लॉयल्टी छूट लागू की जाएगी",
+    "phoneLabel": "फ़ोन नंबर",
+    "phonePlaceholder": "फ़ोन नंबर दर्ज करें",
+    "phoneNote": "बुकिंग संबंधी सूचनाओं के लिए उपयोग किया जाता है",
+    "priceDetails": "मूल्य विवरण",
+    "dailyBreakdown": "दैनिक विवरण",
+    "room": "कमरा",
+    "baseRate": "आधार दर:",
+    "additional": "अतिरिक्त:",
+    "taxFees": "कर और शुल्क:",
+    "addons": "ऐड-ऑन:",
+    "dayTotal": "दिन की कुल राशि:",
+    "subtotalBeforeTax": "उप-योग (कर से पहले):",
+    "amountToBePaidAtHotel": "होटल में भुगतान की जाने वाली राशि:",
+    "amountAfterTax": "कर के बाद राशि:",
+    "totalTax": "कुल कर:",
+    "grandTotal": "कुल योग:",
+    "baseAmount": "आधार राशि (कर से पहले):",
+    "additionalGuestCharges": "अतिरिक्त अतिथि शुल्क:",
+    "addonsLabel": "ऐड-ऑन:",
+    "totalAddons": "कुल ऐड-ऑन:",
+    "included": "शामिल",
+    "free": "मुफ्त",
+    "children": "बच्चे",
+    "childrenAddon": "{{name}} (बच्चे)",
+    "promotions": "प्रचार और समायोजन:",
+    "payAtHotel": "(होटल में भुगतान करें)",
+    "loyaltyDiscount": "लॉयल्टी छूट:",
+    "promoCodeDiscount": "प्रोमो कोड छूट:",
+    "taxesAndFees": "कर और शुल्क:",
+    "amountPaidLater": "बाद में भुगतान की जाने वाली राशि:",
+    "amountPaidNow": "अभी भुगतान की जाने वाली राशि:",
+    "includesAllTaxes": "सभी कर और शुल्क शामिल हैं",
+    "proceedToPayment": "भुगतान के लिए आगे बढ़ें",
+    "processing": "प्रक्रिया जारी है...",
+    "cancel": "रद्द करें",
+    "roomCharges": "कुल कमरे के शुल्क",
+    "discountsApplied": "कुल लागू छूट",
+    "payLater": "होटल में भुगतान करें",
+    "validationError": "आगे बढ़ने से पहले कृपया सभी आवश्यक जानकारी प्रदान करें",
+    "somethingWentWrong": "कुछ गलत हो गया, कृपया पुनः प्रयास करें।",
+    "errors": {
+      "firstNameRequired": "पहला नाम आवश्यक है।",
+      "invalidName": "अमान्य नाम प्रारूप।",
+      "lastNameRequired": "अंतिम नाम आवश्यक है।",
+      "emailRequired": "ईमेल आवश्यक है।",
+      "invalidEmail": "अमान्य ईमेल पता।",
+      "phoneRequired": "फ़ोन नंबर आवश्यक है।",
+      "invalidPhone": "फ़ोन नंबर 5 से 15 अंकों के बीच होना चाहिए।"
+    }
+  },
+  "Payment": {
+    "loadingPayment": "भुगतान विवरण लोड हो रहा है...",
+    "bookingSummary": "बुकिंग सारांश",
+    "stayDates": "प्रवास तिथियाँ:",
+    "guests": "मेहमान:",
+    "room": "कमरा",
+    "adult": "वयस्क",
+    "adults": "वयस्क",
+    "child": "बच्चा",
+    "children": "बच्चे",
+    "guestName": "अतिथि का नाम:",
+    "email": "ईमेल:",
+    "night": "रात",
+    "nights": "रातें",
+    "choosePayment": "भुगतान विधि चुनें",
+    "noPaymentAvailable": "कोई भुगतान विधि उपलब्ध नहीं",
+    "noPaymentContact": "कृपया भुगतान व्यवस्था के लिए सीधे होटल से संपर्क करें।",
+    "recommended": "अनुशंसित",
+    "notAvailable": "उपलब्ध नहीं",
+    "payAtHotel": {
+      "label": "होटल में भुगतान करें",
+      "description": "चेक-इन के दौरान सीधे संपत्ति पर भुगतान करें",
+      "title": "होटल में भुगतान करें",
+      "info": "आपकी बुकिंग पुष्टि कर दी जाएगी और आप चेक-इन के दौरान सीधे होटल में भुगतान कर सकते हैं। हम संपत्ति पर नकद, कार्ड और डिजिटल भुगतान स्वीकार करते हैं।",
+      "noAdvance": "✓ किसी अग्रिम भुगतान की आवश्यकता नहीं",
+      "flexible": "✓ लचीले भुगतान विकल्प"
+    },
+    "gateway": {
+      "label": "ऑनलाइन भुगतान करें",
+      "descriptionFikafi": "Fikafi भुगतान गेटवे के माध्यम से सुरक्षित भुगतान",
+      "descriptionNgenius": "Network International गेटवे के माध्यम से सुरक्षित भुगतान",
+      "descriptionDefault": "सुरक्षित ऑनलाइन भुगतान",
+      "fikafiTitle": "सुरक्षित ऑनलाइन भुगतान",
+      "fikafiInfo": "क्रेडिट/डेबिट कार्ड, नेट बैंकिंग या अन्य ऑनलाइन भुगतान विधियों का उपयोग करके अपना भुगतान पूरा करने के लिए आपको हमारे सुरक्षित भुगतान भागीदार के पास पुनर्निर्देशित किया जाएगा।",
+      "fikafiConfirmHint": "अपना आरक्षण बनाने के लिए नीचे \"बुकिंग की पुष्टि करें\" पर क्लिक करें।",
+      "ngeniusTitle": "कार्ड से भुगतान करें",
+      "secure": "सुरक्षित",
+      "ngeniusInfo": "Network International भुगतान गेटवे के माध्यम से सुरक्षित रूप से अपना भुगतान पूरा करें। आपको उनके एन्क्रिप्टेड भुगतान पृष्ठ पर पुनर्निर्देशित किया जाएगा।",
+      "ngeniusRedirect": "अपना लेनदेन पूरा करने के लिए आपको सुरक्षित रूप से भुगतान पृष्ठ पर पुनर्निर्देशित किया जाएगा।",
+      "ngeniusFooter": "समर्थित कार्ड सेकंडों में संसाधित होते हैं • कोई छिपा हुआ शुल्क नहीं"
+    },
+    "confirmBooking": "बुकिंग की पुष्टि करें",
+    "bookingConfirmed": "बुकिंग पुष्टि की गई ✓",
+    "selectPaymentMethod": "भुगतान विधि चुनें",
+    "processing": "प्रक्रिया जारी है...",
+    "payNow": "अभी भुगतान करें"
+  },
+  "PriceDetails": {
+    "title": "मूल्य विवरण",
+    "totalAmount": "कुल राशि",
+    "securePayment": "सुरक्षित भुगतान:",
+    "securePaymentInfo": "आपकी भुगतान जानकारी एन्क्रिप्टेड और सुरक्षित है।",
+    "acceptedMethods": "स्वीकृत भुगतान विधियाँ",
+    "promoPlaceholder": "कृपया एक प्रोमो कोड दर्ज करें",
+    "promoInvalid": "अमान्य प्रोमो कोड",
+    "promoError": "कुछ गलत हो गया। पुनः प्रयास करें!",
+    "payNow": "अभी भुगतान करें",
+    "payAtHotel": "होटल में भुगतान करें"
+  },
+  "Fikafi": {
+    "preparingPayment": "सुरक्षित भुगतान तैयार किया जा रहा है...",
+    "redirectToPayment": "भुगतान के लिए पुनर्निर्देशित करें",
+    "redirecting": "Fikafi पर पुनर्निर्देशित किया जा रहा है...",
+    "confirmFirst": "पहले बुकिंग की पुष्टि करें",
+    "errorTitle": "भुगतान लिंक नहीं बनाया जा सका",
+    "errorSubtitle": "भुगतान गेटवे से कनेक्ट करने में समस्या थी। कृपया पुनः प्रयास करें।",
+    "tryAgain": "पुनः प्रयास करें",
+    "cancel": "रद्द करें",
+    "errors": {
+      "missingContact": "कृपया ईमेल या फ़ोन नंबर प्रदान करें",
+      "missingBookingCode": "कृपया भुगतान से पहले अपनी बुकिंग की पुष्टि करें",
+      "failedToGenerate": "भुगतान लिंक उत्पन्न करने में विफल",
+      "paymentFailed": "भुगतान विफल। कृपया पुनः प्रयास करें।",
+      "paymentCancelled": "भुगतान रद्द कर दिया गया"
+    }
+  },
+  "PaymentSuccess": {
+    "confirmed": {
+      "title": "बुकिंग पुष्टि की गई!",
+      "subtitle": "आपका आरक्षण सफलतापूर्वक पूरा हो गया है।",
+      "bookingSummary": "बुकिंग सारांश",
+      "checkIn": "चेक-इन:",
+      "checkOut": "चेक-आउट:",
+      "duration": "अवधि:",
+      "night": "रात",
+      "nights": "रातें",
+      "guests": "मेहमान:",
+      "room": "कमरा",
+      "rooms": "कमरे",
+      "adult": "वयस्क",
+      "adults": "वयस्क",
+      "child": "बच्चा",
+      "children": "बच्चे",
+      "guestInfo": "अतिथि जानकारी",
+      "noGuestDetails": "कोई अतिथि विवरण प्रदान नहीं किया गया।",
+      "email": "ईमेल:",
+      "paymentMethod": "भुगतान विधि:",
+      "paymentDetails": "भुगतान विवरण",
+      "payAtHotelNote": "भुगतान होटल में लिया जाएगा।",
+      "whatsNext": "आगे क्या?",
+      "confirmationEmail": "एक पुष्टिकरण ईमेल भेज दिया गया है।",
+      "viewOrCancel": "आप कभी भी बुकिंग देख या रद्द कर सकते हैं।",
+      "needChanges": "बदलाव चाहिए? 24/7 हमसे संपर्क करें।",
+      "viewMyBookings": "मेरी बुकिंग देखें",
+      "returnHome": "होम पेज पर लौटें",
+      "redirecting": "पुनर्निर्देशित किया जा रहा है..."
+    },
+    "pending": {
+      "title": "बुकिंग लंबित",
+      "subtitle": "हमने आपका बुकिंग अनुरोध प्राप्त कर लिया है और इसे संसाधित किया जा रहा है।",
+      "emailNote": "आपको जल्द ही एक पुष्टिकरण ईमेल प्राप्त होगा। यदि आपको 10 मिनट के भीतर हमसे कोई संदेश नहीं मिलता है, तो कृपया हमारी सहायता टीम से संपर्क करें।",
+      "nextSteps": "अगले कदम",
+      "step1": "सुनिश्चित करें कि आपने आवश्यक होने पर भुगतान पूरा कर लिया है।",
+      "step2": "यदि आपने बैंक ट्रांसफर या UPI के माध्यम से भुगतान किया है, तो प्रसंस्करण के लिए कुछ मिनट दें।",
+      "step3": "एक बार भुगतान सत्यापित हो जाने के बाद आपकी बुकिंग की पुष्टि कर दी जाएगी।",
+      "viewMyBookings": "मेरी बुकिंग देखें",
+      "returnHome": "होम पेज पर लौटें",
+      "redirecting": "पुनर्निर्देशित किया जा रहा है..."
+    }
+  },
+  "SuccessPage": {
+    "error": "त्रुटि",
+    "invalidBooking": "अमान्य बुकिंग संदर्भ। कृपया सहायता से संपर्क करें।",
+    "verifying": "भुगतान सत्यापित किया जा रहा है...",
+    "verifyingSubtitle": "कृपया प्रतीक्षा करें जब हम गेटवे के साथ आपके भुगतान की पुष्टि कर रहे हैं।",
+    "doNotClose": "कृपया इस विंडो को बंद न करें।"
+  },
+  "MyTrip": {
+    "title": "अपनी बुकिंग खोजें",
+    "placeholder": "अपना बुकिंग कोड दर्ज करें (जैसे, SR123456)",
+    "searching": "खोजा जा रहा है...",
+    "search": "खोजें",
+    "codeHint": "पता नहीं आपका कोड कहाँ है? अपनी पुष्टिकरण ईमेल जांचें।",
+    "missingPropertyCode": "URL में संपत्ति कोड गुम है",
+    "missingBookingCode": "कृपया एक बुकिंग कोड दर्ज करें",
+    "bookingNotFound": "बुकिंग नहीं मिली",
+    "errorFetching": "बुकिंग लाने में त्रुटि",
+    "checkIn": "चेक-इन",
+    "checkOut": "चेक-आउट",
+    "roomType": "कमरे का प्रकार",
+    "paymentMethod": "भुगतान विधि",
+    "payAtHotel": "होटल में भुगतान करें",
+    "primaryGuest": "मुख्य अतिथि",
+    "rate": "दर",
+    "viewBooking": "बुकिंग विवरण देखें",
+    "modify": "संशोधित करें",
+    "cancel": "रद्द करें",
+    "bookingCode": "बुकिंग कोड:",
+    "stayDetails": "प्रवास विवरण",
+    "guestDetails": "अतिथि विवरण",
+    "paymentDetails": "भुगतान विवरण",
+    "additionalInfo": "अतिरिक्त जानकारी",
+    "checkInLabel": "चेक-इन",
+    "checkOutLabel": "चेक-आउट",
+    "rooms": "कमरे",
+    "ratePlan": "दर योजना",
+    "nights": "रातें",
+    "name": "नाम",
+    "type": "प्रकार",
+    "dateOfBirth": "जन्म तिथि",
+    "contactNumber": "संपर्क नंबर",
+    "email": "ईमेल",
+    "primaryGuestLabel": "मुख्य अतिथि",
+    "phone": "फ़ोन:",
+    "bookingDate": "बुकिंग तिथि",
+    "currency": "मुद्रा",
+    "bookingSource": "बुकिंग स्रोत",
+    "baseAmount": "आधार राशि",
+    "totalAmount": "कुल राशि",
+    "amountPayAtHotel": "होटल में भुगतान करने योग्य राशि",
+    "amountPaidLater": "बाद में होटल में भुगतान की जाने वाली राशि",
+    "paidOnline": "ऑनलाइन भुगतान किया गया",
+    "paidAmount": "भुगतान की गई राशि",
+    "refundableAmount": "वापसी योग्य राशि",
+    "propertyCode": "संपत्ति कोड",
+    "promoUsed": "प्रयुक्त प्रोमो",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "totalActivityCharges": "कुल गतिविधि शुल्क",
+    "printItinerary": "यात्रा कार्यक्रम प्रिंट करें",
+    "pdf": {
+      "title": "बुकिंग पुष्टिकरण",
+      "hotelInfo": "होटल की जानकारी",
+      "stayDetails": "प्रवास विवरण",
+      "guestInfo": "अतिथि जानकारी",
+      "paymentInfo": "भुगतान जानकारी",
+      "footer": "SwiftRooms के साथ बुकिंग करने के लिए धन्यवाद। हम आपकी मेजबानी करने के लिए तत्पर हैं!",
+      "noGuestInfo": "कोई अतिथि जानकारी उपलब्ध नहीं",
+      "priceBreakdown": "--- मूल्य विवरण ---",
+      "payLater": "(बाद में भुगतान करें)",
+      "discount": "(छूट)",
+      "amountPayAtHotel": "होटल में भुगतान करने योग्य राशि:",
+      "amountPaidLater": "बाद में भुगतान की जाने वाली राशि:",
+      "paidOnline": "ऑनलाइन भुगतान किया गया:",
+      "amountPaidLaterHotel": "बाद में होटल में भुगतान की जाने वाली राशि:",
+      "paidAmount": "भुगतान की गई राशि:",
+      "refundable": "वापसी योग्य राशि:"
+    },
+  "actions": {
+    "checkInNow": "अभी चेक-इन करें",
+    "checkOutNow": "अभी चेक-आउट करें",
+    "viewBookSpa": "स्पा सेवाएँ देखें और बुक करें ({{count}} उपलब्ध)"
+  },
+
+  "checkinDialog": {
+    "title": "ऑनलाइन चेक-इन",
+
+    "idTypeLabel": "आईडी प्रकार",
+    "idNumberLabel": "आईडी नंबर",
+    "idNumberPlaceholder": "आईडी नंबर दर्ज करें",
+
+    "addressLabel": "पता",
+    "addressPlaceholder": "सड़क का पता",
+
+    "cityLabel": "शहर",
+    "stateLabel": "राज्य/प्रांत",
+    "countryLabel": "देश",
+    "zipLabel": "ज़िप/पोस्टल कोड",
+
+    "identityImageLabel": "पहचान छवि",
+    "identityImageAlt": "पहचान",
+
+    "uploadButton": "अपलोड करें",
+    "cancel": "रद्द करें",
+    "submit": "चेक-इन पूरा करें",
+    "processing": "प्रोसेस हो रहा है…",
+
+    "idTypes": {
+      "nationalId": "राष्ट्रीय पहचान पत्र",
+      "passport": "पासपोर्ट",
+      "driversLicense": "ड्राइविंग लाइसेंस",
+      "others": "अन्य"
+    }
+  },
+
+  "checkoutDialog": {
+    "title": "चेक-आउट की पुष्टि करें",
+    "body": "क्या आप वाकई इस आरक्षण से चेक-आउट करना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+
+    "cancel": "रद्द करें",
+    "confirm": "चेक-आउट की पुष्टि करें",
+    "processing": "प्रोसेस हो रहा है…"
+  },
+
+  "toast": {
+    "checkinSuccess": "सफलतापूर्वक चेक-इन किया गया!",
+    "checkinError": "चेक-इन के दौरान एक त्रुटि हुई",
+    "checkinFailed": "चेक-इन करने में विफल",
+
+    "checkoutSuccess": "सफलतापूर्वक चेक-आउट किया गया!",
+    "checkoutError": "चेक-आउट के दौरान एक त्रुटि हुई",
+    "checkoutFailed": "चेक-आउट करने में विफल"
+  
+}
+  },
+  "ModifyBooking": {
+    "title": "अपनी बुकिंग संशोधित करें",
+    "stayDates": "प्रवास तिथियाँ",
+    "nights": "रातें",
+    "night": "रात",
+    "roomDetails": "कमरे का विवरण",
+    "primary": "प्राथमिक",
+    "optional": "वैकल्पिक",
+    "room": "कमरा",
+    "rooms": "कमरे",
+    "ratePlan": "दर योजना",
+    "currentGuestDistribution": "वर्तमान अतिथि वितरण:",
+    "adult": "वयस्क",
+    "adults": "वयस्क",
+    "child": "बच्चा",
+    "children": "बच्चे",
+    "tabDates": "तिथियाँ",
+    "tabGuests": "अतिथि",
+    "checkIn": "चेक-इन",
+    "checkOut": "चेक-आउट",
+    "checkUpdatedPrice": "अपडेटेड मूल्य जांचें",
+    "fetchingPrice": "मूल्य लाया जा रहा है...",
+    "addGuests": "अतिथि जोड़ें",
+    "firstName": "पहला नाम",
+    "lastName": "अंतिम नाम",
+    "dateOfBirth": "जन्म तिथि",
+    "priceBreakdown": "मूल्य विवरण",
+    "baseRate": "आधार दर",
+    "additionalGuestCharges": "अतिरिक्त अतिथि शुल्क",
+    "totalTax": "कुल कर",
+    "total": "कुल",
+    "payLaterAtHotel": "⏳ बाद में होटल में भुगतान करें",
+    "amountDueNow": "अब देय राशि",
+    "chargedAtHotel": "आपसे होटल में शुल्क लिया जाएगा:",
+    "originalPrice": "मूल मूल्य",
+    "updatedPrice": "अपडेटेड मूल्य",
+    "alreadyPaid": "पहले ही भुगतान किया जा चुका है:",
+    "discountApplied": "लागू छूट:",
+    "toPayAtHotel": "होटल में भुगतान करने योग्य:",
+    "toBeRefunded": "वापस की जाने वाली राशि:",
+    "checkPriceHint": "मूल्य परिवर्तन देखने के लिए \"अपडेटेड मूल्य जांचें\" पर क्लिक करें",
+    "priceError": "मूल्य त्रुटि",
+    "priceErrorMsg": "अपडेटेड मूल्य लाने में असमर्थ। कृपया पुनः प्रयास करें।",
+    "policyNotes": {
+      "availability": "• तिथि परिवर्तन उपलब्धता के अधीन हैं",
+      "fees": "• चेक-इन के 72 घंटों के भीतर परिवर्तन पर अतिरिक्त शुल्क लग सकता है",
+      "upgrades": "• कमरे का अपग्रेड उपलब्धता और अतिरिक्त शुल्क के अधीन है",
+      "cancellation": "• प्रवास की अवधि कम करना मूल बुकिंग की रद्दीकरण नीति के अधीन हो सकता है"
+    },
+    "cancel": "रद्द करें",
+    "confirmUpdate": "अपडेट की पुष्टि करें",
+    "updating": "अपडेट किया जा रहा है...",
+    "deleteTitle": "क्या आप वाकई इस अतिथि को हटाना चाहते हैं?",
+    "delete": "हटाएँ",
+    "errors": {
+      "selectDates": "कृपया चेक-इन और चेक-आउट दोनों तिथियाँ चुनें",
+      "priceError": "मूल्य त्रुटि के कारण बुकिंग अपडेट नहीं कर सकते। कृपया पहले नवीनतम मूल्य प्राप्त करें।",
+      "fetchPriceFirst": "कृपया पुष्टि करने से पहले अपडेटेड मूल्य प्राप्त करें।",
+      "checkInRequired": "चेक-इन तिथि आवश्यक है।",
+      "checkInAfterToday": "चेक-इन आज के बाद होना चाहिए।",
+      "checkOutRequired": "चेक-आउट तिथि आवश्यक है।",
+      "checkOutAfterCheckIn": "चेक-आउट चेक-इन के बाद होना चाहिए।",
+      "guestDetails": "कृपया सभी अतिथि विवरण भरें",
+      "atLeastOneAdult": "कम से कम एक वयस्क अतिथि आवश्यक है।",
+      "firstNameRequired": "पहला नाम आवश्यक है।",
+      "invalidName": "अमान्य नाम प्रारूप",
+      "lastNameRequired": "अंतिम नाम आवश्यक है।",
+      "priceUpdated": "मूल्य सफलतापूर्वक अपडेट किया गया!",
+      "priceFailed": "अपडेटेड मूल्य लाने में विफल। कृपया पुनः प्रयास करें।",
+      "updateSuccess": "बुकिंग सफलतापूर्वक अपडेट की गई! विवरण के लिए कृपया अपना ईमेल जांचें।",
+      "updateFailed": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।"
+    }
+  },
+  "GuestSelector": {
+    "title": "अधिभोग चुनें",
+    "numberOfRooms": "कमरों की संख्या:",
+    "room": "कमरा",
+    "adults": "वयस्क",
+    "children": "बच्चे",
+    "childrenAges": "आयु 0 – 15",
+    "childAgesRequired": "बच्चों की आयु (आवश्यक)",
+    "child": "बच्चा",
+    "lessThanOneYear": "< 1 वर्ष",
+    "year": "वर्ष",
+    "years": "वर्ष",
+    "guestsOf": "का",
+    "guests": "अतिथि",
+    "apply": "लागू करें"
+  },
+  "ModifyGuestSelector": {
+    "title": "अधिभोग चुनें",
+    "numberOfRooms": "कमरों की संख्या",
+    "room": "कमरा",
+    "adults": "वयस्क",
+    "children": "बच्चे",
+    "childrenAges": "आयु 0–17",
+    "childAge": "बच्चे {{number}} की आयु",
+    "lessThanOneYear": "< 1 वर्ष",
+    "oneYear": "1 वर्ष",
+    "years": "{{age}} वर्ष",
+    "totalSummary": "कुल:",
+    "adultsCount": "वयस्क",
+    "childrenCount": "बच्चे",
+    "across": "में",
+    "rooms": "कमरे",
+    "apply": "लागू करें"
+  },
+  "CancelModal": {
+    "title": "⚠ रद्दीकरण की पुष्टि करें",
+    "subtitle": "कृपया अपना रद्दीकरण करने से पहले नीचे दिए गए विवरणों की समीक्षा करें।",
+    "bookingDetails": "बुकिंग विवरण",
+    "hotel": "होटल",
+    "room": "कमरा:",
+    "total": "कुल:",
+    "financialBreakdown": "वित्तीय विवरण",
+    "originalPayment": "मूल भुगतान राशि:",
+    "reasonLabel": "रद्द करने का कारण (वैकल्पिक)",
+    "reasonPlaceholder": "कृपया बताएं कि आप क्यों रद्द कर रहे हैं...",
+    "warning": "नोट:",
+    "warningText": "इस क्रिया को पूर्ववत नहीं किया जा सकता। एक बार रद्द होने के बाद, आपका आरक्षण बहाल नहीं किया जा सकता।",
+    "keepReservation": "⬅ मेरा आरक्षण रखें",
+    "confirmCancellation": "रद्दीकरण की पुष्टि करें",
+    "cancelling": "रद्द किया जा रहा है...",
+    "successWithRefund": "बुकिंग रद्द कर दी गई और धनवापसी शुरू कर दी गई",
+    "successNoRefund": "बुकिंग रद्द कर दी गई। धनवापसी स्वचालित रूप से संसाधित नहीं की जा सकी — होटल आपसे संपर्क करेगा।",
+    "successCancelled": "बुकिंग सफलतापूर्वक रद्द कर दी गई!",
+    "somethingWentWrong": "कुछ गलत हो गया"
+  },
+  "SpaPage": {
+    "header": {
+      "title": "स्पा और गतिविधि",
+      "subtitle": "{{slotCount}} {{slotWord}} {{serviceCount}} आगामी {{serviceWord}} में उपलब्ध",
+      "slot": "स्लॉट",
+      "slots": "स्लॉट",
+      "service": "सेवा",
+      "services": "सेवाएँ",
+      "noPropertyCode": "स्पा सेवाओं को लोड करने के लिए एक संपत्ति कोड आवश्यक है।",
+      "homepage": "← होमपेज",
+      "codeHint": "स्पा सेवाओं को लोड करने के लिए URL में {{codeSnippet}} जोड़ें।"
+    },
+    "tabs": {
+      "allServices": "सभी सेवाएँ",
+      "myBookings": "मेरी बुकिंग्स"
+    },
+    "allTab": {
+      "loading": "स्पा सेवाएँ लोड हो रही हैं...",
+      "noServices": "इस संपत्ति के लिए कोई स्पा सेवा कॉन्फ़िगर नहीं की गई है।",
+      "noUpcoming": "इस समय कोई आगामी स्पा सेवा उपलब्ध नहीं है।",
+      "noDescription": "कोई विवरण उपलब्ध नहीं।",
+      "inclusive": "✓ समावेशी",
+      "timeTbd": "बाद में निर्धारित होगा",
+      "viewAndBook": "देखें और बुक करें"
+    },
+    "bookedTab": {
+      "loading": "आपकी बुकिंग्स लोड हो रही हैं...",
+      "noBookings": "अभी तक कोई बुकिंग नहीं।",
+      "browseServices": "सेवाएँ ब्राउज़ करें",
+      "bookedSlots": "बुक किए गए स्लॉट",
+      "spaServiceFallback": "स्पा सेवा",
+      "bookedOn": "{{date}} को बुक किया गया",
+      "slot": "स्लॉट",
+      "slots": "स्लॉट",
+      "cancelSlot": "स्लॉट रद्द करें",
+      "cancelled": "रद्द किया गया"
+    },
+    "modal": {
+      "title": "इस स्लॉट को रद्द करें?",
+      "description": "आप स्लॉट रद्द करने वाले हैं: \"{{label}}\"। इस बुकिंग का शेष भाग सक्रिय रहेगा।",
+      "keepIt": "इसे रखें",
+      "yesCancel": "हाँ, रद्द करें"
+    },
+    "toast": {
+      "loadFailed": "स्पा सेवाएँ लोड करने में असमर्थ",
+      "loginRequired": "अपनी स्पा बुकिंग देखने के लिए कृपया लॉगिन करें",
+      "cancelSuccess": "स्लॉट सफलतापूर्वक रद्द कर दिया गया",
+      "cancelFailed": "रद्द करने में विफल"
+    }
+  },
+  "SpaClient": {
+    "nav": {
+      "backToServices": "सेवाओं पर वापस जाएँ"
+    },
+    "states": {
+      "noPropertyCode": "URL में ?code=PROPERTY_CODE जोड़ें।",
+      "loading": "लोड हो रहा है...",
+      "spaNotFound": "इस संपत्ति कोड के लिए स्पा नहीं मिला।"
+    },
+    "hero": {
+      "noDescription": "कोई विवरण उपलब्ध नहीं।",
+      "detailsLabel": "विवरण",
+      "inclusive": "समावेशी",
+      "timeTbd": "बाद में निर्धारित होगा",
+      "minSession": "न्यूनतम सत्र",
+      "openSlots": "खुले स्लॉट"
+    },
+    "slots": {
+      "sectionTitle": "उपलब्ध तिथियाँ और स्लॉट",
+      "clearSelection": "साफ़ करें ({{count}})",
+      "noDates": "अभी तक इस स्पा के लिए कोई तिथि कॉन्फ़िगर नहीं की गई है।",
+      "openDot": "{{open}} खुले · {{total}} कुल",
+      "selectedBadge": "{{count}} चयनित",
+      "slotOpen": "खुला",
+      "slotSelected": "चयनित",
+      "toTime": "से {{time}}"
+    },
+    "bookingButton": "समीक्षा करें और बुक करें ({{count}})",
+    "modal": {
+      "title": "अपनी बुकिंग पूरी करें",
+      "selectedSlotsLabel": "चयनित स्लॉट",
+      "inclusive": "समावेशी",
+      "price": {
+        "slots": "स्लॉट",
+        "total": "कुल"
+      },
+      "yourDetails": "आपका विवरण",
+      "placeholders": {
+        "fullName": "पूरा नाम *",
+        "email": "ईमेल पता *",
+        "phone": "फ़ोन नंबर *"
+      },
+      "cancel": "रद्द करें",
+      "bookSlot": "{{count}} स्लॉट बुक करें",
+      "bookSlots": "{{count}} स्लॉट बुक करें",
+      "booking": "बुकिंग हो रही है...",
+      "availableSlotsLabel": "उपलब्ध स्लॉट"
+    },
+    "validation": {
+      "nameRequired": "पूरा नाम आवश्यक है।",
+      "emailRequired": "ईमेल पता आवश्यक है।",
+      "emailInvalid": "एक मान्य ईमेल पता दर्ज करें।",
+      "phoneRequired": "फ़ोन नंबर आवश्यक है।",
+      "phoneInvalid": "एक मान्य फ़ोन नंबर दर्ज करें।"
+    },
+    "toast": {
+      "loadFailed": "स्पा सेवाएँ लोड करने में असमर्थ",
+      "slotAlreadyBooked": "यह स्लॉट पहले ही बुक हो चुका है।",
+      "selectAtLeastOne": "कृपया कम से कम एक स्लॉट चुनें।",
+      "fixFields": "कृपया हाइलाइट किए गए फ़ील्ड को सही करें।",
+      "loginRequired": "स्पा स्लॉट बुक करने के लिए कृपया लॉगिन करें",
+      "bookSuccess": "{{count}} स्लॉट बुक हो गया!",
+      "bookFailed": "बुकिंग बनाने में विफल।",
+      "cancelMissingId": "रद्द करने में असमर्थ: बुकिंग आईडी गुम है।"
+    }
+  },
+  "ProfileHomePage": {
+    "loading": "आपकी प्रोफाइल लोड हो रही है...",
+    "header": {
+      "title": "मेरी प्रोफाइल",
+      "homepage": "← होमपेज"
+    },
+    "memberCard": {
+      "guestAccount": "अतिथि खाता",
+      "memberFallback": "सदस्य",
+      "programs": "प्रोग्राम",
+      "properties": "संपत्तियाँ",
+      "wishlist": "विशलिस्ट"
+    },
+    "loyalty": {
+      "sectionTitle": "लॉयल्टी प्रोग्राम",
+      "programCount": "{{count}} प्रोग्राम",
+      "programCountPlural": "{{count}} प्रोग्राम",
+      "fallbackName": "लॉयल्टी प्रोग्राम",
+      "headerPercentage": "{{value}}% तक की छूट",
+      "headerCurrency": "{{currency}} {{value}} की छूट",
+      "stats": {
+        "yourDiscount": "आपकी छूट",
+        "discountValue": "{{value}} की छूट",
+        "level": "स्तर",
+        "bookings": "बुकिंग्स"
+      },
+      "progress": {
+        "currentLevel": "स्तर {{level}} — {{pct}}% छूट",
+        "nextLevel": "स्तर {{level}} — {{pct}}% छूट →",
+        "bookingsNeeded": "स्तर {{level}} तक पहुँचने के लिए {{count}} बुकिंग आवश्यक",
+        "bookingsNeededPlural": "स्तर {{level}} तक पहुँचने के लिए {{count}} बुकिंग्स आवश्यक"
+      },
+      "properties": {
+        "validAt": "{{count}} संपत्ति पर मान्य",
+        "validAtPlural": "{{count}} संपत्तियों पर मान्य"
+      },
+      "empty": {
+        "title": "अभी तक कोई सदस्यता नहीं",
+        "description": "आप अभी तक किसी संपत्ति लॉयल्टी प्रोग्राम में नामांकित नहीं हुए हैं।"
+      }
+    },
+    "wishlist": {
+      "sectionTitle": "विशलिस्ट"
+    },
+    "toast": {
+      "loadFailed": "प्रोफाइल लोड नहीं कर सका"
+    }
+  },
+  "ProfileSidebar": {
+    "nav": {
+      "myBodyHoliday": "मेरा बॉडीहॉलिडे",
+      "reservations": "आरक्षण",
+      "ariaLabel": "मुख्य नेविगेशन"
+    },
+    "brand": {
+      "hotelLogoAlt": "होटल लोगो",
+      "logoAlt": "लोगो"
+    },
+    "actions": {
+      "openMenu": "मेनू खोलें",
+      "closeMenu": "मेनू बंद करें",
+      "expandSidebar": "साइडबार विस्तृत करें",
+      "collapseSidebar": "साइडबार संक्षिप्त करें",
+      "signOut": "साइन आउट करें"
+    },
+    "footer": {
+      "copyright": "© 2024 Revchill। सर्वाधिकार सुरक्षित।",
+      "terms": "नियम और शर्तें"
+    }
+  },
+  "MyBookingsPage": {
+    "heading": "मेरे आरक्षण",
+    "subtitle": "आपके खाते से जुड़े सभी आरक्षण।",
+    "loading": "आपके आरक्षण लोड हो रहे हैं...",
+    "empty": {
+      "title": "कोई आरक्षण नहीं मिला",
+      "description": "जब आप कोई आरक्षण करेंगे तो वह यहाँ दिखाई देगा।"
+    },
+    "card": {
+      "propertyFallback": "संपत्ति"
+    },
+    "details": {
+      "checkIn": "चेक-इन",
+      "checkOut": "चेक-आउट",
+      "roomType": "कमरे का प्रकार",
+      "ratePlan": "दर योजना",
+      "total": "कुल",
+      "primaryGuest": "मुख्य अतिथि"
+    },
+    "actions": {
+      "checkInNow": "अभी चेक-इन करें",
+      "checkOutNow": "अभी चेक-आउट करें"
+    },
+    "checkinDialog": {
+      "title": "ऑनलाइन चेक-इन",
+      "idTypeLabel": "पहचान पत्र का प्रकार",
+      "idNumberLabel": "पहचान पत्र संख्या",
+      "idNumberPlaceholder": "पहचान पत्र संख्या दर्ज करें",
+      "addressLabel": "पता",
+      "addressPlaceholder": "सड़क का पता",
+      "cityLabel": "शहर",
+      "stateLabel": "राज्य/प्रांत",
+      "countryLabel": "देश",
+      "zipLabel": "पिन/पोस्टल कोड",
+      "identityImageLabel": "पहचान छवि",
+      "identityImageAlt": "पहचान",
+      "uploadButton": "अपलोड करें",
+      "cancel": "रद्द करें",
+      "submit": "चेक-इन पूरा करें",
+      "processing": "प्रक्रिया जारी है...",
+      "idTypes": {
+        "nationalId": "राष्ट्रीय पहचान पत्र",
+        "passport": "पासपोर्ट",
+        "driversLicense": "ड्राइविंग लाइसेंस",
+        "others": "अन्य"
+      }
+    },
+    "checkoutDialog": {
+      "title": "चेक-आउट की पुष्टि करें",
+      "body": "क्या आप वाकई इस आरक्षण से चेक-आउट करना चाहते हैं? इस क्रिया को पूर्ववत नहीं किया जा सकता।",
+      "cancel": "रद्द करें",
+      "confirm": "चेक-आउट की पुष्टि करें",
+      "processing": "प्रक्रिया जारी है..."
+    },
+    "toast": {
+      "noReservations": "आपके पास अभी तक कोई आरक्षण नहीं है",
+      "loadError": "आरक्षण लोड करने में त्रुटि",
+      "loadFailed": "आरक्षण लोड करने में विफल",
+      "profileLoadFailed": "प्रोफाइल लोड नहीं कर सका",
+      "identityImageRequired": "पहचान छवि जोड़ें",
+      "checkinSuccess": "सफलतापूर्वक चेक-इन किया!",
+      "checkinError": "चेक-इन के दौरान एक त्रुटि हुई",
+      "checkinFailed": "चेक-इन करने में विफल",
+      "checkoutSuccess": "सफलतापूर्वक चेक-आउट किया!",
+      "checkoutError": "चेक-आउट के दौरान एक त्रुटि हुई",
+      "checkoutFailed": "चेक-आउट करने में विफल"
+    }
+  },
+  "CustomerLoginPage": {
+    "toast": {
+      "emailRequired": "ईमेल आवश्यक है",
+      "passwordRequired": "पासवर्ड आवश्यक है",
+      "welcomeBack": "वापसी पर स्वागत है!",
+      "loginFailed": "लॉगिन विफल",
+      "somethingWentWrong": "कुछ गलत हो गया, कृपया पुनः प्रयास करें"
+    },
+
+    "leftPanel": {
+      "guestAccount": "अतिथि खाता",
+      "brand": "Revchill",
+
+      "headline": {
+        "part1": "आपका प्रवास,",
+        "part2": "आपके तरीके से —",
+        "part3": "हमेशा।"
+      },
+
+      "description": "सभी Revchill प्रॉपर्टीज़ में बुकिंग, प्रबंधन और हर अनुभव को दोबारा जीने के लिए एक ही खाता।",
+
+      "features": {
+        "bookInstantly": {
+          "title": "तुरंत बुक करें",
+          "desc": "एक ही स्थान पर कमरे, स्पा और डाइनिंग बुक करें"
+        },
+
+        "manageTrips": {
+          "title": "अपनी यात्राएँ प्रबंधित करें",
+          "desc": "कभी भी बुकिंग देखें, संशोधित करें या रद्द करें"
+        },
+
+        "wishlist": {
+          "title": "विशलिस्ट प्रॉपर्टीज़",
+          "desc": "अपनी पसंदीदा प्रॉपर्टीज़ बाद के लिए सहेजें"
+        },
+
+        "support": {
+          "title": "24 / 7 सहायता",
+          "desc": "टिकट बनाएं और समाधान को लाइव ट्रैक करें"
+        }
+      }
+    },
+
+    "rightPanel": {
+      "guestAccount": "अतिथि खाता",
+      "brand": "Revchill",
+      "heading": "वापसी पर स्वागत है",
+      "subheading": "अपनी बुकिंग्स और प्रोफ़ाइल प्रबंधित करने के लिए साइन इन करें।",
+
+      "emailLabel": "ईमेल पता",
+      "emailPlaceholder": "you@email.com",
+
+      "passwordLabel": "पासवर्ड",
+      "passwordPlaceholder": "••••••••••",
+
+      "forgotPassword": "पासवर्ड भूल गए?",
+      "signIn": "साइन इन करें",
+      "signingIn": "साइन इन हो रहा है…",
+
+      "or": "या",
+
+      "createAccount": "नया खाता बनाएँ"
+    }
+  },
+  "CustomerRegisterPage": {
+    "toast": {
+      "firstNameRequired": "पहला नाम आवश्यक है",
+      "lastNameRequired": "अंतिम नाम आवश्यक है",
+      "emailRequired": "ईमेल आवश्यक है",
+      "passwordRequired": "पासवर्ड आवश्यक है",
+      "passwordLength": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए",
+      "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते",
+      "accountCreated": "खाता बन गया! कृपया साइन इन करें।",
+      "registrationFailed": "पंजीकरण विफल",
+      "somethingWentWrong": "कुछ गलत हो गया, कृपया पुनः प्रयास करें"
+    },
+
+    "cta": {
+      "creatingAccount": "खाता बनाया जा रहा है…",
+      "continue": "जारी रखें",
+      "createAccount": "खाता बनाएँ"
+    },
+
+    "leftPanel": {
+      "brand": "Revchill",
+      "guestAccount": "अतिथि खाता",
+
+      "headline": {
+        "part1": "अपनी",
+        "part2": "यात्रा",
+        "part3": "हमारे साथ शुरू करें।"
+      },
+
+      "description": "एक मिनट से भी कम समय में अपना निःशुल्क खाता बनाएँ और सभी प्रॉपर्टीज़ में सहज बुकिंग का आनंद लें।",
+
+      "stepsInfo": {
+        "step1": {
+          "label": "व्यक्तिगत विवरण",
+          "desc": "नाम और ईमेल पता"
+        },
+
+        "step2": {
+          "label": "सुरक्षित पासवर्ड",
+          "desc": "अपने खाते के लिए एक पासवर्ड सेट करें"
+        },
+
+        "step3": {
+          "label": "आप पूरी तरह तैयार हैं",
+          "desc": "तुरंत बुकिंग शुरू करें"
+        }
+      }
+    },
+
+    "rightPanel": {
+      "brand": "Revchill",
+      "newAccount": "नया खाता",
+
+      "headings": {
+        "step1": "खाता बनाएँ",
+        "step2": "अपना पासवर्ड सेट करें"
+      },
+
+      "subheadings": {
+        "step1": "2 में से चरण 1 — आपके व्यक्तिगत विवरण।",
+        "step2": "2 में से चरण 2 — एक सुरक्षित पासवर्ड चुनें।"
+      },
+
+      "form": {
+        "firstNameLabel": "पहला नाम",
+        "firstNamePlaceholder": "Jane",
+
+        "lastNameLabel": "अंतिम नाम",
+        "lastNamePlaceholder": "Smith",
+
+        "emailLabel": "ईमेल पता",
+        "emailPlaceholder": "you@email.com",
+
+        "passwordLabel": "पासवर्ड",
+        "passwordPlaceholder": "कम से कम 8 अक्षर",
+
+        "confirmPasswordLabel": "पासवर्ड की पुष्टि करें",
+        "confirmPasswordPlaceholder": "अपना पासवर्ड दोबारा दर्ज करें",
+
+        "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते"
+      },
+
+      "backToDetails": "विवरण पर वापस जाएँ",
+      "or": "या",
+      "signIn": "पहले से खाता है? साइन इन करें"
+    }
+  },
+  "SpaBookingDialog": {
+    "title": "स्पा और गतिविधियाँ",
+
+    "toast": {
+      "fetchSpasFailed": "स्पा प्राप्त करने में विफल",
+      "enterGuestName": "कृपया अतिथि का नाम दर्ज करें",
+      "bookActivitiesFailedOneOrMore": "एक या अधिक गतिविधियों की बुकिंग विफल रही",
+      "activitiesIncluded": "आपके प्रवास में शामिल गतिविधियाँ",
+      "bookActivitiesFailed": "गतिविधियों की बुकिंग में विफल",
+      "activityRemoved": "गतिविधि आपके प्रवास से हटा दी गई।",
+      "removeActivityFailed": "गतिविधि हटाने में विफल"
+    },
+
+    "loading": {
+      "noSpas": "इन तिथियों के लिए कोई स्पा या गतिविधियाँ उपलब्ध नहीं हैं।"
+    },
+
+    "detail": {
+      "duration": "अवधि:",
+      "minutes": "मिनट",
+      "charges": "शुल्क:",
+      "description": "विवरण:"
+    },
+
+    "confirmPanel": {
+      "activitySelected": "{{count}} गतिविधि चयनित",
+      "activitiesSelected": "{{count}} गतिविधियाँ चयनित",
+      "guestNameLabel": "अतिथि का नाम",
+      "guestNamePlaceholder": "अतिथि का नाम दर्ज करें…",
+      "booking": "बुकिंग हो रही है…",
+      "bookAll": "सभी बुक करें",
+      "cancel": "रद्द करें"
+    },
+
+    "cancelPanel": {
+      "cancelPrefix": "रद्द करें:",
+      "cancelling": "रद्द किया जा रहा है…",
+      "yesCancel": "हाँ, रद्द करें",
+      "keep": "बनाए रखें"
+    },
+
+    "list": {
+      "categoryAll": "सभी",
+      "searchPlaceholder": "खोजें",
+      "included": "शामिल",
+      "paid": "सशुल्क",
+      "slotsFree": "{{available}}/{{total}} स्लॉट खाली",
+      "noResults": "कोई परिणाम नहीं मिला। अलग खोज या श्रेणी आज़माएँ।"
+    }
+  }
+}
