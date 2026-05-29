@@ -8,6 +8,7 @@ export const generateLoyaltyOTPEmailTemplate = (
             email_verification: 'Email Verification',
             password_reset: 'Password Reset',
             login: 'Login Verification',
+            customer_reset: 'Password Reset',
         }[purpose] || 'Verification';
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
