@@ -25,4 +25,10 @@ customerRouter
     .route('/update-password')
     .patch(customerProtect, customerController.updatePassword.bind(customerController));
 
+customerRouter
+    .route('/forget-password')
+    .post(customerController.forgetPassword.bind(customerController));
+customerRouter
+    .route('/verify-otp')
+    .post(customerController.verifyOtp.bind(customerController));
 export { customerRouter };

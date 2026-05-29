@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer';
 import { EmailOTPRepository } from '../reposititory';
 import {
-    generateOTPEmailTemplate,
     generatePasswordResetLinkTemplate,
 } from '../templatesss';
 import { config } from '../../config';
@@ -9,23 +8,23 @@ import { emailQueue } from '../../index';
 import { generateLoyaltyOTPEmailTemplate } from '../templatesss/loyality-otp.tempate';
 
 export class EmailService {
-    private transporter: nodemailer.Transporter;
+    // private transporter: nodemailer.Transporter;
     private otpRepository: EmailOTPRepository;
-    private senderEmail: string;
-    private senderName: string;
+    // private senderEmail: string;
+    // private senderName: string;
 
     constructor() {
         this.otpRepository = new EmailOTPRepository();
-        this.senderEmail = config.senderEmail!;
-        this.senderName = config.senderName!;
+        // this.senderEmail = config.senderEmail!;
+        // this.senderName = config.senderName!;
 
-        this.transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: config.senderEmail,
-                pass: config.senderEmailPassword,
-            },
-        });
+        // this.transporter = nodemailer.createTransport({
+        //     service: 'gmail',
+        //     auth: {
+        //         user: config.senderEmail,
+        //         pass: config.senderEmailPassword,
+        //     },
+        // });
     }
 
     private generateOTP(): string {
@@ -35,7 +34,7 @@ export class EmailService {
     // Send OTP email
     async sendOTPEmail(
         email: string,
-        purpose: 'email_verification' | 'password_reset' | 'login'
+        purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset'
     ): Promise<{ success: boolean; message: string }> {
         try {
             const existingOTP = await this.otpRepository.getOTPStatus(
@@ -64,6 +63,7 @@ export class EmailService {
                 email_verification: 'Verify Your Email - RevChill',
                 password_reset: 'Reset Your Password - RevChill',
                 login: 'Your Login Code - RevChill',
+                customer_reset: 'Reset Your Password - RevChill',
             }[purpose];
 
             await emailQueue.enqueueEmail({
@@ -96,7 +96,7 @@ export class EmailService {
     async verifyOTP(
         email: string,
         otp: string,
-        purpose: 'email_verification' | 'password_reset' | 'login'
+        purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset'
     ): Promise<{ success: boolean; message: string }> {
         try {
             const otpDoc = await this.otpRepository.verifyOTP(
