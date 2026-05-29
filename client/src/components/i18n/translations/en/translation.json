@@ -58,7 +58,23 @@
     "addPromotion": "Add Promotion Translation",
     "promotionName": "Promotion Name",
     "editTranslation": "Edit Promotion Translation",
-    "createAll": "Create All"
+    "createAll": "Create All",
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "jan": "January",
+    "feb": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
   },
   "BookingStatus": {
     "confirmed": "Confirmed",
@@ -1955,11 +1971,11 @@
     },
     "LoyalityField": {
       "createPlaceholder": "e.g., Phone Number, Date of Birth",
-      "addLoyalityFieldTranlation":"Add Loyalty Field Translation",
-      "fieldName":"Field Name",
-      "placeholder":"e.g., Número de teléfono",
-      "checkTranslations":"Loyalty Field Translations",
-      "editTranslation":"Edit Loyalty Field Translation"
+      "addLoyalityFieldTranlation": "Add Loyalty Field Translation",
+      "fieldName": "Field Name",
+      "placeholder": "e.g., Número de teléfono",
+      "checkTranslations": "Loyalty Field Translations",
+      "editTranslation": "Edit Loyalty Field Translation"
     }
   },
   "Loyalty": {
