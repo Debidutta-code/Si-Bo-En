@@ -42,12 +42,12 @@ export class IntegrationDispatcher {
             }
 
             if (activeIntegration.name === 'Site Minder') {
-                console.log("activeIntegration2 siteminder",activeIntegration)
+                console.log("activeIntegration2 siteminder", activeIntegration)
                 const smConfig = await SMIntegrationDao.getSiteMinderConfig(
                     propertyId,
                     activeIntegration.type
                 );
-                console.log("smConfig",smConfig)
+                console.log("smConfig", smConfig)
                 if (!smConfig) {
                     return { success: false, message: 'Site Minder config not found' };
                 }
@@ -212,9 +212,85 @@ export class IntegrationDispatcher {
             numberOfRooms: requestedRooms,
         } as any;
     }
+    private static normalizeFinalPriceFromDB(existing: ExistingReservation): any {
+        const pb = (existing as any).PricingBrakeDown;
+
+        if (!pb) {
+            return {
+                totalAmount: existing.amount ?? 0,
+                amountBeforeTax: 0,
+                taxedAmount: 0,
+                totalAddonAmount: 0,
+                totalPromotionAmount: 0,
+                currentChargeableAmount: existing.amount ?? 0,
+                latterpayableAmount: 0,
+                promoCodeDiscount: 0,
+                loyalityDiscount: 0,
+                dailyPriceBrakeDown: [],
+                addonBrakeDowns: [],
+                promotionBrakeDown: [],
+                taxBrakeDown: [],
+            };
+        }
+
+        return {
+            totalAmount: pb.totalAmount,
+            amountBeforeTax: pb.amountBeforeTax,
+            taxedAmount: pb.taxedAmount,
+            totalAddonAmount: pb.totalAddonAmount,
+            totalPromotionAmount: pb.totalPromotionAmount,
+            currentChargeableAmount: pb.currentChargeableAmount,
+            latterpayableAmount: pb.latterpayableAmount,
+            promoCodeDiscount: pb.promoCodeDiscount,
+            loyalityDiscount: pb.loyalityDiscount,
+            currencyCode: pb.currencyCode,
+
+            // DB uses Pascal-case relation names — map to camelCase for service
+            dailyPriceBrakeDown: (pb.DailyPriceBrakeDown ?? []).map((d: any) => ({
+                roomNumber: d.roomNumber,
+                date: d.date,
+                baseChargesAmount: d.baseChargesAmount,
+                additionalChargesAmount: d.additionalChargesAmount,
+                totalAmount: d.totalAmount,
+                currencyCode: d.currencyCode,
+                guestDistribution: d.guestDistribution,
+            })),
+
+            addonBrakeDowns: (pb.AddonBrakeDowns ?? []).map((a: any) => ({
+                addonId: a.addonId,
+                name: a.name,
+                amount: a.amount,
+                quantity: a.quantity,
+                totalAmount: a.totalAmount,
+                currencyCode: a.currencyCode,
+                date: a.date,
+                type: a.type,
+            })),
+
+            promotionBrakeDown: (pb.promotionBrakeDown ?? []).map((p: any) => ({
+                id: p.id,
+                name: p.name,
+                promotionType: p.promotionType,
+                discountType: p.discountType,
+                discountValue: p.discountValue,
+                discountAmount: p.discountAmount,
+                currencyCode: p.currencyCode,
+                restrictionType: p.restrictionType,
+                type: p.type,
+            })),
+
+            taxBrakeDown: (pb.taxBrakeDown ?? []).map((t: any) => ({
+                name: t.name,
+                taxedAmount: t.taxedAmount,
+                currencyCode: t.currencyCode,
+            })),
+        };
+    }
+
     private static buildSMPayloadFromExisting(
         existing: ExistingReservation
     ): ICReservationS {
+        const finalPrice = IntegrationDispatcher.normalizeFinalPriceFromDB(existing);
         return {
             propertyCode: existing.propertyCode ?? '',
             roomTypeCode: existing.roomTypeCode ?? '',
@@ -226,11 +302,11 @@ export class IntegrationDispatcher {
             bookingUserEmail: existing.bookingUserEmail ?? '',
             bookingUserPhone: existing.bookingUserPhone ?? '',
             currencyCode: existing.currencyCode as any,
-            finalPrice: existing.finalPrice,
             paymentMethod: existing.paymentMethod,
             guestDetails: Array.isArray(existing.guests) ? existing.guests : [],
-            guests: existing.finalPrice?.guests ?? { adults: 1, children: 0, rooms: 1, roomsArray: [] },
-            numberOfRooms: existing.finalPrice?.requestedRooms ?? 1,
+            guests: { adults: 1, children: 0, rooms: 1, roomsArray: [] },
+            numberOfRooms: 1,
+            finalPrice,
         } as any;
     }
 }
