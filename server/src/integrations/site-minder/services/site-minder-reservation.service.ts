@@ -57,36 +57,38 @@ export class SiteMinderReservationService {
 
     // ── HTTP push ─────────────────────────────────────────────────────────────
 
-    private static async pushToSiteMinder(
-        xml: string,
-        bookingCode: string,
-        smEndpoint: string
-    ): Promise<SMReservationResult> {
-        try {
-            const response = await axios.post(smEndpoint, xml, {
-                headers: {
-                    'Content-Type': 'text/xml; charset=utf-8',
-                    SOAPAction: '',
-                },
-                timeout: 60000,
-            });
-            return SiteMinderReservationXmlBuilder.parseReservationResponse(
-                response.data,
+   private static async pushToSiteMinder(
+    xml: string,
+    bookingCode: string,
+    smEndpoint: string
+): Promise<SMReservationResult> {
+    try {
+        const response = await axios.post(smEndpoint, xml, {
+            headers: {
+                'Content-Type': 'text/xml; charset=utf-8',
+                SOAPAction: '',
+            },
+            timeout: 60000,
+        });
+        const result = SiteMinderReservationXmlBuilder.parseReservationResponse(
+            response.data,
+            bookingCode
+        );
+        return { ...result, rawResponse: response.data };  // ← attach raw
+    } catch (error: any) {
+        if (error?.response?.data) {
+            const result = SiteMinderReservationXmlBuilder.parseReservationResponse(
+                error.response.data,
                 bookingCode
             );
-        } catch (error: any) {
-            if (error?.response?.data) {
-                return SiteMinderReservationXmlBuilder.parseReservationResponse(
-                    error.response.data,
-                    bookingCode
-                );
-            }
-            return {
-                success: false,
-                message: `SiteMinder push failed: ${error?.message ?? 'Unknown error'}`,
-            };
+            return { ...result, rawResponse: error.response.data };  // ← attach raw
         }
+        return {
+            success: false,
+            message: `SiteMinder push failed: ${error?.message ?? 'Unknown error'}`,
+        };
     }
+}
 
     // ── Build RoomStays ───────────────────────────────────────────────────────
     //
@@ -552,7 +554,7 @@ export class SiteMinderReservationService {
                     result.success ? 'SM commit succeeded' : 'SM commit failed',
                     result.success ? 'info' : 'error'
                 )
-                .setMeta({ smResponse: result })
+                .setMeta({ smResponse: result, rawXmlResponse: result.rawResponse })
                 .save();
 
             return result;

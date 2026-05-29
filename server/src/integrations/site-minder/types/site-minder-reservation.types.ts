@@ -116,4 +116,5 @@ export interface SMReservationResult {
     success: boolean;
     siteMinderResId?: string;
     message: string;
+     rawResponse?: string;
 }
