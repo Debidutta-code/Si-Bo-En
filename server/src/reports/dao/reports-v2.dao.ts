@@ -625,4 +625,19 @@ export class ReportsV2Repository {
         );
         return map;
     }
+
+    /** Returns structured { id, code, name } records — used by top-properties report */
+    public async getPropertyCodesAndNames(
+        propertyIds: string[]
+    ): Promise<{ id: string; code: string; name: string }[]> {
+        const props = await prisma.property.findMany({
+            where: { id: { in: propertyIds } },
+            select: { id: true, propertyName: true, propertyCode: true },
+        });
+        return props.map(p => ({
+            id: p.id,
+            code: p.propertyCode,
+            name: p.propertyName,
+        }));
+    }
 }

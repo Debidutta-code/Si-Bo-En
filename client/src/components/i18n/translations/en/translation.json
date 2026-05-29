@@ -4193,7 +4193,12 @@
       "reportType": "Report Type",
       "startDate": "Start Date",
       "endDate": "End Date",
-      "selectReportType": "Select report type"
+      "selectReportType": "Select report type",
+      "convertCurrency": "Convert to Currency",
+      "noCurrencyConversion": "No conversion (native currency)",
+      "indicativePriceNote": "Prices will be converted to {{currency}}. These are indicative amounts only.",
+      "comparisonType": "Comparison Type",
+      "selectPeriod": "Select Period"
     },
     "portfolioFilters": {
       "title": "Portfolio Filters",

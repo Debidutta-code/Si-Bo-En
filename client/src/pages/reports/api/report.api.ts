@@ -12,6 +12,9 @@ export const downloadReportApi = async (params: {
     groupBy?: string;
     sortBy?: string;
     mode?: string;
+    targetCurrency?: string;
+    comparisonType?: string;
+    selectedDate?: string;
 }) => {
     try {
         

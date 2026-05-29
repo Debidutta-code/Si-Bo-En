@@ -183,11 +183,9 @@ export class ReportsController {
                 case 'comparison':
                     result = await this.v2Service.generateComparison({
                         creationId,
-                        startDate,
-                        endDate,
-                        groupBy:
-                            (queryParams.groupBy as 'day' | 'month' | 'year') ||
-                            'month',
+                        comparisonType: (queryParams.comparisonType as 'date' | 'month' | 'year') || 'month',
+                        selectedDate: queryParams.selectedDate || new Date().toISOString(),
+                        targetCurrency: queryParams.targetCurrency || undefined,
                         propertyId,
                         brandId,
                         groupId,
@@ -226,13 +224,7 @@ export class ReportsController {
                 case 'top-properties':
                     result = await this.v2Service.generateTopProperties({
                         creationId,
-                        startDate,
-                        endDate,
-                        sortBy:
-                            (queryParams.sortBy as
-                                | 'revenue'
-                                | 'bookings'
-                                | 'nights') || 'revenue',
+                        targetCurrency: queryParams.targetCurrency || undefined,
                         propertyId,
                         brandId,
                         groupId,
@@ -246,6 +238,7 @@ export class ReportsController {
                         propertyId,
                         brandId,
                         groupId,
+                        targetCurrency: queryParams.targetCurrency || undefined,
                     });
                     break;
                 case 'checkin-checkout':

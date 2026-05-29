@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { downloadReportService, getFilterOptionsService } from './services';
-import { Download, Loader2, FileBarChart, CalendarRange, Building2, Filter } from 'lucide-react';
+import { Download, Loader2, FileBarChart, CalendarRange, Building2, Filter, DollarSign } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import type { ReportType, IFilterOptionsResponse } from './interfaces';
+import { currencies } from '@/components/currency-code/cuurency';
 
 const isSelected = (val: string) => val && val !== 'all';
 
@@ -16,22 +17,27 @@ const Report = () => {
     const { t } = useTranslation();
 
     const REPORT_TYPES: { value: ReportType; label: string }[] = [
-        // { value: 'comparison', label: t('Report.reportTypes.comparison') },
+        { value: 'comparison', label: t('Report.reportTypes.comparison') },
         { value: 'reservation-overview', label: t('Report.reportTypes.reservationOverview') },
         { value: 'revenue-analytics', label: t('Report.reportTypes.revenueAnalytics') },
         { value: 'insights', label: t('Report.reportTypes.insights') },
-        // { value: 'top-properties', label: t('Report.reportTypes.topProperties') },
+        { value: 'top-properties', label: t('Report.reportTypes.topProperties') },
         { value: 'all-reservations', label: t('Report.reportTypes.allReservations') },
         { value: 'checkin-checkout', label: t('Report.reportTypes.checkinCheckout') },
-        // { value: 'status-breakdown', label: t('Report.reportTypes.statusBreakdown') },
-        // { value: 'loyalty-guests', label: t('Report.reportTypes.loyaltyGuests') },
-        { value: 'payment-status', label: t('Report.reportTypes.paymentStatus') },
+        { value: 'loyalty-guests', label: t('Report.reportTypes.loyaltyGuests') },
     ];
 
     const [reportType, setReportType] = useState<ReportType>("comparison");
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
     const [isDownloading, setIsDownloading] = useState(false);
+    const [selectedCurrency, setSelectedCurrency] = useState<string>('none');
+
+    // Comparison-specific state
+    const [comparisonType, setComparisonType] = useState<'date' | 'month' | 'year'>('month');
+    const [comparisonDate, setComparisonDate] = useState<string>(
+        new Date().toISOString().split('T')[0]
+    );
 
     // Filter state
     const [filterOptions, setFilterOptions] = useState<IFilterOptionsResponse | null>(null);
@@ -39,6 +45,17 @@ const Report = () => {
     const [selectedGroupId, setSelectedGroupId] = useState<string>('all');
     const [selectedBrandId, setSelectedBrandId] = useState<string>('all');
     const [selectedPropertyId, setSelectedPropertyId] = useState<string>('all');
+
+    const showCurrencyFilter = reportType === 'all-reservations' || reportType === 'comparison' || reportType === 'top-properties';
+    const showComparisonControls = reportType === 'comparison';
+    const showDateRange = !showComparisonControls;
+
+    const handleReportTypeChange = (val: string) => {
+        setReportType(val as ReportType);
+        if (val !== 'all-reservations' && val !== 'comparison' && val !== 'top-properties') {
+            setSelectedCurrency('none');
+        }
+    };
 
     // Fetch filter options on mount
     useEffect(() => {
@@ -118,6 +135,10 @@ const Report = () => {
                 groupId: isSelected(selectedGroupId) ? selectedGroupId : undefined,
                 brandId: isSelected(selectedBrandId) ? selectedBrandId : undefined,
                 propertyId: isSelected(selectedPropertyId) ? selectedPropertyId : undefined,
+                targetCurrency: selectedCurrency && selectedCurrency !== 'none' ? selectedCurrency : undefined,
+                // Comparison-specific
+                comparisonType: reportType === 'comparison' ? comparisonType : undefined,
+                selectedDate: reportType === 'comparison' ? new Date(comparisonDate).toISOString() : undefined,
             });
 
             if (result.success) {
@@ -159,7 +180,7 @@ const Report = () => {
                             <Label className="text-sm font-semibold text-gray-700">
                                 {t('Report.reportSettings.reportType')} <span className="text-red-500">*</span>
                             </Label>
-                            <Select value={reportType} onValueChange={(val) => setReportType(val as ReportType)}>
+                            <Select value={reportType} onValueChange={handleReportTypeChange}>
                                 <SelectTrigger className="w-full h-12 text-base">
                                     <SelectValue placeholder={t('Report.reportSettings.selectReportType')} />
                                 </SelectTrigger>
@@ -173,26 +194,108 @@ const Report = () => {
                             </Select>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-3">
-                                <Label className="text-sm font-semibold text-gray-700">{t('Report.reportSettings.startDate')}</Label>
-                                <Input 
-                                    type="date" 
-                                    value={startDate} 
-                                    onChange={(e) => setStartDate(e.target.value)} 
-                                    className="h-12"
-                                />
+                        {showComparisonControls ? (
+                            /* Comparison controls: type selector + date/month/year picker */
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <Label className="text-sm font-semibold text-gray-700">
+                                        {t('Report.reportSettings.comparisonType')}
+                                    </Label>
+                                    <Select value={comparisonType} onValueChange={(v) => setComparisonType(v as 'date' | 'month' | 'year')}>
+                                        <SelectTrigger className="w-full h-12 text-base">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="date">{t('Dashboard.byDate')}</SelectItem>
+                                            <SelectItem value="month">{t('Dashboard.byMonth')}</SelectItem>
+                                            <SelectItem value="year">{t('Dashboard.byYear')}</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-3">
+                                    <Label className="text-sm font-semibold text-gray-700">
+                                        {t('Report.reportSettings.selectPeriod')}
+                                    </Label>
+                                    {comparisonType === 'year' ? (
+                                        <Select
+                                            value={new Date(comparisonDate).getFullYear().toString()}
+                                            onValueChange={(yr) => setComparisonDate(`${yr}-01-01`)}
+                                        >
+                                            <SelectTrigger className="w-full h-12 text-base">
+                                                <SelectValue placeholder={t('Dashboard.selectYear')} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from({ length: 10 }, (_, i) => {
+                                                    const yr = new Date().getFullYear() - i;
+                                                    return <SelectItem key={yr} value={yr.toString()}>{yr}</SelectItem>;
+                                                })}
+                                            </SelectContent>
+                                        </Select>
+                                    ) : (
+                                        <Input
+                                            type={comparisonType === 'date' ? 'date' : 'month'}
+                                            value={
+                                                comparisonType === 'date'
+                                                    ? comparisonDate
+                                                    : `${new Date(comparisonDate).getFullYear()}-${String(new Date(comparisonDate).getMonth() + 1).padStart(2, '0')}`
+                                            }
+                                            onChange={(e) => setComparisonDate(e.target.value)}
+                                            className="h-12"
+                                        />
+                                    )}
+                                </div>
                             </div>
-                            <div className="space-y-3">
-                                <Label className="text-sm font-semibold text-gray-700">{t('Report.reportSettings.endDate')}</Label>
-                                <Input 
-                                    type="date" 
-                                    value={endDate} 
-                                    onChange={(e) => setEndDate(e.target.value)} 
-                                    className="h-12"
-                                />
+                        ) : (
+                            /* Normal date range for all other reports */
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <Label className="text-sm font-semibold text-gray-700">{t('Report.reportSettings.startDate')}</Label>
+                                    <Input
+                                        type="date"
+                                        value={startDate}
+                                        onChange={(e) => setStartDate(e.target.value)}
+                                        className="h-12"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <Label className="text-sm font-semibold text-gray-700">{t('Report.reportSettings.endDate')}</Label>
+                                    <Input
+                                        type="date"
+                                        value={endDate}
+                                        onChange={(e) => setEndDate(e.target.value)}
+                                        className="h-12"
+                                    />
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {showCurrencyFilter && (
+                            <div className="space-y-3">
+                                <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                    <DollarSign className="w-4 h-4" />
+                                    {t('Report.reportSettings.convertCurrency')}
+                                    <span className="text-xs font-normal text-muted-foreground ml-1">(optional)</span>
+                                </Label>
+                                <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                                    <SelectTrigger className="w-full h-12 text-base">
+                                        <SelectValue placeholder={t('Report.reportSettings.noCurrencyConversion')} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">{t('Report.reportSettings.noCurrencyConversion')}</SelectItem>
+                                        {currencies.map((c) => (
+                                            <SelectItem key={c.code} value={c.code}>
+                                                {c.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {selectedCurrency && selectedCurrency !== 'none' && (
+                                    <p className="text-xs text-amber-600 flex items-center gap-1">
+                                        ⚠ {t('Report.reportSettings.indicativePriceNote', { currency: selectedCurrency })}
+                                    </p>
+                                )}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

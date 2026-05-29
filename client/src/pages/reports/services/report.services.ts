@@ -11,6 +11,9 @@ export const downloadReportService = async (params: {
     groupBy?: string;
     sortBy?: string;
     mode?: string;
+    targetCurrency?: string;
+    comparisonType?: string;
+    selectedDate?: string;
 }) => {
     try {
         const response = await downloadReportApi(params);
