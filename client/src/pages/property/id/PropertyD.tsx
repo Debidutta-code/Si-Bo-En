@@ -201,7 +201,7 @@ export default function PropertyDetailsPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Loader text="Loading Your Properties" />
+<Loader text={t('Property.loadingYourPropertys')} />
       </div>
     );
   }

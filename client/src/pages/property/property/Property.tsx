@@ -512,7 +512,7 @@ export default function PropertyPage() {
                 <Loader text={t('Property.loadingYourPropertys')} />
             </div>
         );
-    }
+    }``
 
     if (!creationDetails) {
         return (

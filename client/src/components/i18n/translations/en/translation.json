@@ -1986,6 +1986,7 @@
     "allFieldsAdded": "All available fields have been added to the registration form",
     "saveChanges": "Save Changes",
     "field": "Field",
+    "guestsNAInfo":"Guests Not Available",
     "visibleInRegistration": "Visible in Registration Form",
     "required": "Required",
     "noFieldsConfigured": "No fields available. Please configure master registration fields first.",
