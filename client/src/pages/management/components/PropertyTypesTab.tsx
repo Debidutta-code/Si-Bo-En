@@ -23,7 +23,7 @@ interface PropertyTypesTabProps {
 }
 
 export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: PropertyTypesTabProps) {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const [isPropertyTypeDialogOpen, setIsPropertyTypeDialogOpen] = useState<boolean>(false);
   const [propertyTypeForm, setPropertyTypeForm] = useState({ name: "", description: "" });
@@ -87,7 +87,8 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
                     id="propertyTypeName"
                     value={propertyTypeForm.name}
                     onChange={(e) => setPropertyTypeForm({ ...propertyTypeForm, name: e.target.value })}
-                    placeholder="e.g., Hotel"
+                    placeholder={t('Management.PropertyType.nameEx')}
+
                   />
                 </div>
                 <div>
@@ -96,13 +97,13 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
                     id="propertyTypeDescription"
                     value={propertyTypeForm.description}
                     onChange={(e) => setPropertyTypeForm({ ...propertyTypeForm, description: e.target.value })}
-                    placeholder="Describe this property type"
+                    placeholder={t('Management.PropertyType.placeholderEx')}
+
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsPropertyTypeDialogOpen(false)}>                  {t('Common.cancel')}
-</Button>
+                <Button variant="outline" onClick={() => setIsPropertyTypeDialogOpen(false)}>{t('Common.cancel')}</Button>
                 <Button onClick={handleCreatePropertyType}>{t('Common.create')}</Button>
               </DialogFooter>
             </DialogContent>
@@ -116,8 +117,8 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{type._translations?type._translations.propertyTypeName:type.propertyTypeName}</CardTitle>
-                    <CardDescription className="mt-1">{type._translations?type._translations.propertyTypeDescription:type.propertyTypeDescription}</CardDescription>
+                    <CardTitle className="text-lg">{type._translations ? type._translations.propertyTypeName : type.propertyTypeName}</CardTitle>
+                    <CardDescription className="mt-1">{type._translations ? type._translations.propertyTypeDescription : type.propertyTypeDescription}</CardDescription>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -158,7 +159,7 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
             title={t("Management.PropertyType.addTranslation")}
             fields={[
               { key: "propertyTypeName", label: t("Management.PropertyType.name"), placeholder: t("Management.PropertyType.nameEx") },
-              { key: "propertyTypeDescription", label: t("Management.PropertyType.description"), placeholder: t("Management.PropertyType.placeholderEx")},
+              { key: "propertyTypeDescription", label: t("Management.PropertyType.description"), placeholder: t("Management.PropertyType.placeholderEx") },
             ]}
             onSave={async (id, locale, data) => {
               return await upsertMasterPropertyTypeTranslationService(id, { [locale]: data });
@@ -168,7 +169,7 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title="Property Type Translations"
+            title={t("Management.PropertyType.checkTrans")}
             displayFields={[
               { key: "propertyTypeName", label: t("Management.PropertyType.name") },
               { key: "propertyTypeDescription", label: t("Management.PropertyType.description") },
@@ -183,9 +184,9 @@ export default function PropertyTypesTab({ propertyTypes, setPropertyTypes }: Pr
             entityId={translationEntityId!}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Property Type Translation"
+            title={t("Management.PropertyType.editTranslation")}
             fields={[
-              { key: "propertyTypeName", label: t("Management.PropertyType.name"), placeholder:  t("Management.PropertyType.nameEx") },
+              { key: "propertyTypeName", label: t("Management.PropertyType.name"), placeholder: t("Management.PropertyType.nameEx") },
               { key: "propertyTypeDescription", label: t("Management.PropertyType.description"), placeholder: t("Management.PropertyType.placeholderEx") },
             ]}
             onSave={async (id, locale, data) => upsertMasterPropertyTypeTranslationService(id, { [locale]: data })}

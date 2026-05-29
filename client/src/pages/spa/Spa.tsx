@@ -92,7 +92,7 @@ const [editIsActive,setEditIsActive]=useState(false)
 
   const fetchData = async () => {
     if (!propertyId) return;
-    setLoader({ isLoading: true, message: t('Spa.Spa.loader.fetchingSpas') });
+    setLoader({ isLoading: true, message: t('Spa.loader.fetchingSpas') });
     try {
       const [spaRes, catRes, subCatRes, spaUserRes] = await Promise.all([
         getSpaService(propertyId),

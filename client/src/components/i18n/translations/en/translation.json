@@ -74,7 +74,10 @@
     "september": "September",
     "october": "October",
     "november": "November",
-    "december": "December"
+    "december": "December",
+    "create": "Create",         
+    "creating": "Creating...",
+    "saving": "Saving..."
   },
   "BookingStatus": {
     "confirmed": "Confirmed",
@@ -570,6 +573,7 @@
     "translationFieldName": "Property Name",
     "translationFieldNamePlaceholder": "e.g., Hotel Sol"
   },
+  
   "PropertySuper": {
     "title": "Hotels & Properties",
     "subtitle": "Manage all your hotel properties and their performance",
@@ -639,7 +643,13 @@
       "sqft": "sqft",
       "previous": "Previous",
       "saveRoom": "Save Room",
-      "saveAndContinue": "Save & Continue"
+      "saveAndContinue": "Save & Continue",
+  "cancel": "Cancel",
+  "saving": "Saving...",
+  "previewLink": "Preview Link",
+  "provide360Link": "Please provide a 360° view link or upload an image.",
+  "viewUpdated": "360° view updated successfully!",
+  "failedUpdate360": "Failed to update 360° view"
     },
     "toast": {
       "loadOptions": "Failed to load property options",
@@ -918,6 +928,7 @@
       "title": "Available Translations",
       "loader": {
         "fetching": "Fetching translations..."
+         
       },
       "empty": "No translations found.",
       "fields": {
@@ -1948,6 +1959,7 @@
       "descriptionPlaceholder": "Describe the category",
       "name": "Name",
       "namePlaceholder": "Enter the category name",
+      "nameExample": "e.g., Luxury",
       "addCategory": "Add Category",
       "translations": "Category Translations",
       "editTranslation": "Edit Category Translation"
@@ -1958,7 +1970,8 @@
       "description": "Description",
       "nameEx": "e.g., Hotel",
       "placeholderEx": "Describe this type",
-      "checkTrans": "Property Type Translations"
+      "checkTrans": "Property Type Translations",
+       "editTranslation": "Edit Property Type Translation" 
     },
     "PropertyAmenity": {
       "placeholder": "e.g., Aire acondicionado"
@@ -2393,7 +2406,10 @@
     "updateAmenities": "Update Amenities",
     "email": "Email",
     "contact": "Contact",
-    "propertyCode": "Property Code"
+    "propertyCode": "Property Code",
+     "addTranslation": "Add Property Details Translation",
+     "selectLanguage": "Select Language",
+    "propertyName": "Property Name"
   },
   "Rooms": {
     "title": "Rooms",

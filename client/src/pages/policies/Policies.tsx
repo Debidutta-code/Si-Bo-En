@@ -63,7 +63,7 @@ interface GroupedPolicy {
     type: PolicyTypes;
     description?: string;
     propertyId: string;
-    ratePlans: { code: string; name: string,_translations?:{ratePlanName:string} }[];
+    ratePlans: { code: string; name: string, _translations?: { ratePlanName: string } }[];
     _translations?: {
         policyName: string;
         description: string;
@@ -362,8 +362,9 @@ export default function PoliciesPage() {
         }
     };
 
+     
     const getTypeLabel = (type: PolicyTypes) => {
-        return type.charAt(0).toUpperCase() + type.slice(1);
+        return t(`Policies.${type}`).toUpperCase();
     };
 
     if (loading.isLoading) {
@@ -500,8 +501,8 @@ export default function PoliciesPage() {
                                     {groupedPolicies
                                         .filter((p) => tabValue === "all" || p.type === tabValue)
                                         .map((policy) => {
-                                            const displayName = policy._translations?policy._translations?.policyName:policy.policyName;
-                                            
+                                            const displayName = policy._translations ? policy._translations?.policyName : policy.policyName;
+
                                             return (
                                                 <div
                                                     key={policy.id}
@@ -596,7 +597,7 @@ export default function PoliciesPage() {
                                                                             className="inline-flex items-center gap-1.5 rounded-md bg-white px-2 py-1 text-xs font-medium text-[#475569] border border-[#e2e8f0]"
                                                                         >
                                                                             <span className="h-1.5 w-1.5 rounded-full bg-[#3b82f6]" />
-                                                                            {rp._translations?rp._translations.ratePlanName:rp.name}
+                                                                            {rp._translations ? rp._translations.ratePlanName : rp.name}
                                                                         </span>
                                                                     ))}
                                                                 </div>
@@ -635,7 +636,7 @@ export default function PoliciesPage() {
                                                 <p className="mt-1.5 text-sm text-[#94a3b8] max-w-xs">
                                                     {tabValue === "all"
                                                         ? t("Policies.getStartedCreating", "Get started by creating your first policy.")
-                                                        : t("Policies.noPoliciesYet", { type: tabValue, defaultValue: `No ${tabValue} policies yet.` })}
+                                                        : t("Policies.noPoliciesYet", { type: t(`Policies.${tabValue}`) })}
                                                 </p>
                                                 {tabValue === "all" && (
                                                     <Button

@@ -116,9 +116,10 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-lg">{category._translations?category._translations.categoryName:category.categoryName}</CardTitle>
-                    <CardDescription className="mt-1">{category._translations?category._translations.categoryName:category.categoryName}</CardDescription>
-                  </div>
+                    <CardTitle className="text-lg">{category._translations?.categoryName || category.categoryName}</CardTitle>
+<CardDescription className="mt-1">
+  {category._translations?.categoryDescription || category.categoryDescription}
+</CardDescription>                  </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -127,7 +128,7 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => openAddTranslation(category.id)}>
-                        <Plus className="h-4 w-4 mr-2" /> {t("Common.add")}
+                        <Plus className="h-4 w-4 mr-2" /> {t("Common.addTranslation")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openCheckTranslations(category.id)}>
                         <Languages className="h-4 w-4 mr-2" /> {t("Common.checkTranslation")}

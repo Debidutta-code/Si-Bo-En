@@ -24,7 +24,7 @@ import { useTranslation } from "react-i18next";
 
 
 export default function PropertyDetailsPage() {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const [propertyImages, setPropertyImages] = useState<string[]>([]);
@@ -201,7 +201,7 @@ export default function PropertyDetailsPage() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-<Loader text={t('Property.loadingYourPropertys')} />
+        <Loader text={t('Property.loadingYourPropertys')} />
       </div>
     );
   }

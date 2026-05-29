@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   open: boolean;
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export default function AddPropertyDetailsLangDialog({ open, onOpenChange, propertyId }: Props) {
+  const { t } = useTranslation();
   const [selectedLang, setSelectedLang] = useState("");
   const [propertyName, setPropertyName] = useState("");
   const [description, setDescription] = useState("");
@@ -53,13 +55,13 @@ export default function AddPropertyDetailsLangDialog({ open, onOpenChange, prope
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Property Details Translation</DialogTitle>
+          <DialogTitle>{t("PropertyDetails.addTranslation")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Language</Label>
+            <Label>{t("Common.language")}</Label>
             <Select value={selectedLang} onValueChange={setSelectedLang}>
-              <SelectTrigger><SelectValue placeholder="Select Language" /></SelectTrigger>
+              <SelectValue placeholder={t("PropertyDetails.selectLanguage")} />
               <SelectContent>
                 {availableLanguages.map((lang) => (
                   <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>
@@ -68,17 +70,19 @@ export default function AddPropertyDetailsLangDialog({ open, onOpenChange, prope
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Property Name</Label>
+            <Label>{t("PropertyDetails.propertyName")}</Label>
             <Input value={propertyName} onChange={(e) => setPropertyName(e.target.value)} />
           </div>
           <div className="space-y-2">
-            <Label>Description</Label>
+           <Label>{t("Common.description")}</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+  {t("Common.cancel")}
+</Button>
+          <Button onClick={handleSave} disabled={loading}>{loading ? t("Common.saving") : t("Common.save")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -72,7 +72,7 @@ export function AddTranslationDialog({ open, onOpenChange, entityId, title, fiel
           <div className="space-y-2">
             <Label>{t("AddCreationLanguageDialog.form.languageLabel")}</Label>
             <Select value={selectedLang} onValueChange={setSelectedLang}>
-              <SelectTrigger><SelectValue placeholder="Select Language" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("RatePlan.AddRatePlanLanguageDialog.form.languagePlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {availableLanguages.map((lang) => (
                   <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>

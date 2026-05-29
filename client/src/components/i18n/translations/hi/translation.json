@@ -74,7 +74,10 @@
     "september": "सितंबर",
     "october": "अक्टूबर",
     "november": "नवंबर",
-    "december": "दिसंबर"
+    "december": "दिसंबर",
+    "create": "बनाएँ",
+    "creating": "बनाया जा रहा है...",
+    "saving": "सहेजा जा रहा है..."
   },
   "BookingStatus": {
     "confirmed": "पुष्टि की गई",
@@ -565,6 +568,7 @@
     "properties": "संपत्तियाँ",
     "regionals": "क्षेत्रीय"
   },
+  
   "PropertyCreate": {
     "generalPropertyInfo": "सामान्य संपत्ति जानकारी",
     "locationOfProperty": "संपत्ति का स्थान",
@@ -1939,7 +1943,8 @@
       "description": "विवरण",
       "nameEx": "उदाहरण: होटल",
       "placeholderEx": "इस प्रकार का विवरण दें",
-      "checkTrans": "प्रॉपर्टी प्रकार अनुवाद"
+      "checkTrans": "प्रॉपर्टी प्रकार अनुवाद",
+       "editTranslation": "प्रॉपर्टी प्रकार अनुवाद संपादित करें" 
     },
     "PropertyAmenity": {
       "placeholder": "उदाहरण: एयर कंडीशनर"
@@ -2375,7 +2380,10 @@
     "updateAmenities": "सुविधाएँ अपडेट करें",
     "email": "ईमेल",
     "contact": "संपर्क",
-    "propertyCode": "संपत्ति कोड"
+    "propertyCode": "संपत्ति कोड",
+    "addTranslation": "संपत्ति विवरण अनुवाद जोड़ें",
+  "selectLanguage": "भाषा चुनें",
+  "propertyName": "संपत्ति का नाम"
   },
   "Rooms": {
     "title": "कमरे",
@@ -2458,7 +2466,22 @@
     "videoSavedSuccessfully": "वीडियो सफलतापूर्वक अपलोड और सहेजा गया!",
     "failedToSaveVideo": "वीडियो सहेजने में विफल",
     "videoDeletedSuccessfully": "वीडियो सफलतापूर्वक हटा दिया गया!",
-    "failedToDeleteVideo": "वीडियो हटाने में विफल"
+    "failedToDeleteVideo": "वीडियो हटाने में विफल",
+  "upload360Text": "360° पैनोरमिक छवि अपलोड करें या बाहरी 360° व्यूअर का लिंक दें।",
+  "viewLink": "360° दृश्य लिंक",
+  "orUploadImage": "या छवि अपलोड करें",
+  "upload360Image": "360° छवि अपलोड करें",
+  "add360ViewFor": "{{name}} के लिए 360° दृश्य जोड़ें",
+"upload360Description": "360° पैनोरमिक छवि अपलोड करें या बाहरी 360° व्यूअर का लिंक प्रदान करें।",
+"view360Link": "360° दृश्य लिंक",
+"view360Placeholder": "https://example.com/360-view.jpg",
+"enter360ViewerUrl": "360° छवि या पैनोरमिक व्यूअर का URL दर्ज करें",
+"previewLink": "पूर्वावलोकन लिंक",
+"pleaseProvide360Link": "कृपया 360° दृश्य लिंक प्रदान करें या छवि अपलोड करें।",
+"view360Updated": "360° दृश्य सफलतापूर्वक अपडेट हो गया!",
+"failedToUpdate360View": "360° दृश्य अपडेट करने में विफल",
+"saving": "सहेजा जा रहा है..."
+  
   },
   "BankDetails": {
     "title": "बैंक और भुगतान विवरण",

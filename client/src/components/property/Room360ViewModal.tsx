@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label'
 import ImageUploadModal from './ImageUploadModal'
 import { add360ToRoom } from './api/create/room'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 interface Props {
     propertyId: string
@@ -37,6 +38,7 @@ export default function Room360ViewModal({
     currentView360Link = '',
     onSuccess,
 }: Props) {
+    const { t } = useTranslation()
     const [view360Link, setView360Link] = React.useState(currentView360Link)
     const [isUploading, setIsUploading] = React.useState(false)
     const [isImageUploadOpen, setIsImageUploadOpen] = React.useState(false)
@@ -59,7 +61,7 @@ export default function Room360ViewModal({
 
     const handleSave = async () => {
         if (!view360Link.trim()) {
-            setError('Please provide a 360° view link or upload an image.')
+            setError(t('Rooms.pleaseProvide360Link'))
             return
         }
 
@@ -70,15 +72,15 @@ export default function Room360ViewModal({
             const response = await add360ToRoom(propertyId, roomId, view360Link)
 
             if (response.success) {
-                toast.success('360° view updated successfully!')
+                toast.success(t('Rooms.view360Updated'))
                 onSuccess()
                 onClose()
             } else {
-                setError(response.message || 'Failed to update 360° view')
-                toast.error(response.message || 'Failed to update 360° view')
+                setError(response.message || t('Rooms.failedToUpdate360View'))
+                toast.error(response.message || t('Rooms.failedToUpdate360View'))
             }
         } catch (err: any) {
-            const errorMsg = err?.message || 'Failed to update 360° view'
+            const errorMsg = err?.message || t('Rooms.failedToUpdate360View')
             setError(errorMsg)
             toast.error(errorMsg)
         } finally {
@@ -97,18 +99,22 @@ export default function Room360ViewModal({
             <Dialog open={isOpen} onOpenChange={open => !open && handleClose()}>
                 <DialogContent className="max-w-lg">
                     <DialogHeader>
-                        <DialogTitle>Add 360° View for {roomName}</DialogTitle>
+                        <DialogTitle>
+                            {t('Rooms.add360ViewFor', { name: roomName })}
+                        </DialogTitle>
                         <DialogDescription>
-                            Upload a 360° panoramic image or provide a link to an external 360° viewer.
+                            {t('Rooms.upload360Description')}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="view360Link">360° View Link</Label>
+                            <Label htmlFor="view360Link">
+                                {t('Rooms.view360Link')}
+                            </Label>
                             <Input
                                 id="view360Link"
-                                placeholder="https://example.com/360-view.jpg"
+                                placeholder={t('Rooms.view360Placeholder')}
                                 value={view360Link}
                                 onChange={(e) => {
                                     setView360Link(e.target.value)
@@ -117,7 +123,7 @@ export default function Room360ViewModal({
                                 disabled={isUploading}
                             />
                             <p className="text-xs text-gray-500">
-                                Enter a URL to a 360° image or panoramic viewer
+                                {t('Rooms.enter360Url')}
                             </p>
                         </div>
 
@@ -127,7 +133,7 @@ export default function Room360ViewModal({
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
                                 <span className="bg-background px-2 text-muted-foreground">
-                                    Or upload an image
+                                    {t('Rooms.orUploadImage')}
                                 </span>
                             </div>
                         </div>
@@ -139,12 +145,12 @@ export default function Room360ViewModal({
                             disabled={isUploading}
                             className="w-full"
                         >
-                            Upload 360° Image
+                            {t('Rooms.upload360Image')}
                         </Button>
 
                         {view360Link && (
                             <div className="rounded-lg border p-3 bg-gray-50">
-                                <Label className="text-xs text-gray-600">Preview Link</Label>
+                                <Label className="text-xs text-gray-600">{t('Rooms.previewLink')}</Label>
                                 <p className="text-sm break-all mt-1">{view360Link}</p>
                             </div>
                         )}
@@ -154,7 +160,7 @@ export default function Room360ViewModal({
 
                     <DialogFooter>
                         <Button variant="outline" onClick={handleClose} disabled={isUploading}>
-                            Cancel
+                            {t('Rooms.cancel')}
                         </Button>
                         <Button
                             onClick={handleSave}
@@ -164,10 +170,10 @@ export default function Room360ViewModal({
                             {isUploading ? (
                                 <>
                                     <Loader2 className="animate-spin mr-2 h-4 w-4" />
-                                    Saving...
+                                    {t('Rooms.saving')}
                                 </>
                             ) : (
-                                'Save 360° View'
+                                t('Rooms.save360View')
                             )}
                         </Button>
                     </DialogFooter>
