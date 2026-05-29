@@ -1,25 +1,61 @@
+// services/site-minder-reservation.service.ts
+
 import axios from 'axios';
 import { config } from '../../../config';
 import { ICReservationS } from '../../../reservation/types';
 import {
+    SMDiscount,
+    SMGuestCount,
+    SMPaymentMethod,
+    SMRateDay,
     SMReservationPushParams,
     SMReservationResult,
     SMRoomStay,
-    SMGuestCount,
-    SMRateDay,
-    SMPaymentMethod,
+    SMService,
 } from '../types/site-minder-reservation.types';
 import { SiteMinderReservationXmlBuilder } from '../utils/xml-reservation';
 import { SiteMinderReservationValidation } from '../validation/reservation-validation';
 import { ServiceLogger } from '../../../logs/services/service-log.service';
+import { getRatePlanName } from '../../../utils/ratePlan.util';
 
 const logger = new ServiceLogger('SiteMinderReservationService');
 
+// ─── Small helpers ────────────────────────────────────────────────────────────
+
+const isoTimestamp = (): string =>
+    new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
+
+const fmt = (n: number): string => (Math.round(n * 100) / 100).toFixed(2);
+
+function toDateString(date: string | Date): string {
+    if (date instanceof Date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    if (/^\d{4}-\d{2}-\d{2}/.test(String(date))) return String(date).split('T')[0];
+    const parsed = new Date(date);
+    if (!isNaN(parsed.getTime())) {
+        const y = parsed.getFullYear();
+        const m = String(parsed.getMonth() + 1).padStart(2, '0');
+        const d = String(parsed.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+    return String(date);
+}
+
+function nextDateString(dateStr: string): string {
+    const d = new Date(dateStr + 'T00:00:00Z');
+    d.setUTCDate(d.getUTCDate() + 1);
+    return toDateString(d);
+}
+
+// ─── SiteMinderReservationService ─────────────────────────────────────────────
+
 export class SiteMinderReservationService {
 
-    private static isoTimestamp = () =>
-        new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
-
+    // ── HTTP push ─────────────────────────────────────────────────────────────
 
     private static async pushToSiteMinder(
         xml: string,
@@ -34,203 +70,438 @@ export class SiteMinderReservationService {
                 },
                 timeout: 60000,
             });
-            return SiteMinderReservationXmlBuilder.parseReservationResponse(response.data, bookingCode);
+            return SiteMinderReservationXmlBuilder.parseReservationResponse(
+                response.data,
+                bookingCode
+            );
         } catch (error: any) {
             if (error?.response?.data) {
-                return SiteMinderReservationXmlBuilder.parseReservationResponse(error.response.data, bookingCode);
+                return SiteMinderReservationXmlBuilder.parseReservationResponse(
+                    error.response.data,
+                    bookingCode
+                );
             }
-            return { success: false, message: `SiteMinder push failed: ${error?.message ?? 'Unknown error'}` };
+            return {
+                success: false,
+                message: `SiteMinder push failed: ${error?.message ?? 'Unknown error'}`,
+            };
         }
     }
 
-    private static toDateString(date: string | Date): string {
-        if (date instanceof Date) {
-            const y = date.getFullYear();
-            const m = String(date.getMonth() + 1).padStart(2, '0');
-            const d = String(date.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-        if (/^\d{4}-\d{2}-\d{2}/.test(date)) return date.split('T')[0];
-        const parsed = new Date(date);
-        if (!isNaN(parsed.getTime())) {
-            const y = parsed.getFullYear();
-            const m = String(parsed.getMonth() + 1).padStart(2, '0');
-            const d = String(parsed.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-        }
-        return date;
-    }
+    // ── Build RoomStays ───────────────────────────────────────────────────────
+    //
+    // Each RoomStay covers one room.
+    // Totals include room rate + proportional tax only.
+    // Addons are reservation-level services — NOT included in RoomStay totals.
+    //
+    // Per-night Rate amounts:
+    //   AmountBeforeTax = discounted nightly rate
+    //                   = rawNightRate - (rawNightRate / allRoomsRawTotal) × decreaseDiscounts
+    //   AmountAfterTax  = AmountBeforeTax + proportional tax for that night
+    //
+    // RoomStay Total:
+    //   BeforeTax = sum of discounted nightly rates for this room
+    //   AfterTax  = BeforeTax + proportional tax for this room
 
-    // Then:
-    private static buildRoomStays(
-        payload: ICReservationS,
-        siteMinderHotelCode: string
-    ): SMRoomStay[] {
-        const { finalPrice } = payload;
+    private static async buildRoomStays(payload: ICReservationS): Promise<SMRoomStay[]> {
+        const { finalPrice, currencyCode } = payload;
         const roomsArray = payload?.guests?.roomsArray ?? [];
 
-        const checkIn = SiteMinderReservationService.toDateString(payload.reservationStartDate);
-        const checkOut = SiteMinderReservationService.toDateString(payload.reservationEndDate);
+        const checkIn = toDateString(payload.reservationStartDate);
+        const checkOut = toDateString(payload.reservationEndDate);
 
-        const buildRatesForRoom = (roomNumber: number): SMRateDay[] => {
-            const roomBreakdown = finalPrice.dailyPriceBrakeDown.filter(
-                (day: any) => String(day.roomNumber) === String(roomNumber)
+        // ── Discount-only total (decrease + loyalty + promoCode) ──────────────
+        // These are already deducted in amountBeforeTax.
+        // We redistribute them proportionally per night / per room for Rate amounts.
+        const totalDecreaseDiscount =
+            (finalPrice.totalPromotionAmount ?? 0) +
+            (finalPrice.loyalityDiscount ?? 0) +
+            (finalPrice.promoCodeDiscount ?? 0);
+
+        // Raw room total across all rooms (from dailyPriceBrakeDown)
+        const allRoomsRawTotal = finalPrice.dailyPriceBrakeDown.reduce(
+            (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0),
+            0
+        );
+
+        // Total tax
+        const totalTax = finalPrice.taxedAmount ?? 0;
+
+        // ── Helper: get daily breakdown for a specific room number ────────────
+        const getDaysForRoom = (roomNumber: number) => {
+            const days = finalPrice.dailyPriceBrakeDown.filter(
+                (d: any) => String(d.roomNumber) === String(roomNumber)
             );
-            const breakdown = roomBreakdown.length > 0
-                ? roomBreakdown
-                : finalPrice.dailyPriceBrakeDown;
+            // If no room-specific breakdown, spread evenly across all days
+            return days.length > 0 ? days : finalPrice.dailyPriceBrakeDown;
+        };
 
-            const allRoomsTotal = finalPrice.dailyPriceBrakeDown.reduce(
-                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0), 0
-            );
-            const thisRoomTotal = breakdown.reduce(
-                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0), 0
-            );
+        // ── Helper: build SMRateDay[] for a room ──────────────────────────────
+        const buildRates = (roomNumber: number): SMRateDay[] => {
+            const days = getDaysForRoom(roomNumber);
+            return days.map((day: any) => {
+                const rawRate: number = day.totalAmount ?? day.baseChargesAmount ?? 0;
 
-            const roomShare = allRoomsTotal > 0 ? thisRoomTotal / allRoomsTotal : 1;
-            const roomTaxShare = roomShare * (finalPrice.taxedAmount ?? 0);
+                // Proportional discount for this night
+                const discountShare =
+                    allRoomsRawTotal > 0
+                        ? (rawRate / allRoomsRawTotal) * totalDecreaseDiscount
+                        : 0;
+                const discountedBase = rawRate - discountShare;
 
-            const numberOfNights = breakdown.length;
-            const taxPerNight = numberOfNights > 0
-                ? Math.round((roomTaxShare / numberOfNights) * 100) / 100
-                : 0;
+                // Proportional tax for this night
+                const taxShare =
+                    allRoomsRawTotal > 0
+                        ? (rawRate / allRoomsRawTotal) * totalTax
+                        : 0;
 
-            // ✅ NO addon, NO tourist fee — those go to Services only
+                const afterTax = discountedBase + taxShare;
 
-            return breakdown.map((day: any) => {
-                const base = day.totalAmount ?? day.baseChargesAmount ?? 0;
-                const afterTax = Math.round((base + taxPerNight) * 100) / 100;
+                const effectiveDate = toDateString(day.date);
+                const expireDate = nextDateString(effectiveDate);
 
-                const effectiveDate = SiteMinderReservationService.toDateString(day.date);
-                const nextDay = new Date(day.date);
-                nextDay.setDate(nextDay.getDate() + 1);
-                const expireDate = SiteMinderReservationService.toDateString(nextDay);
+                const hasTax = Math.abs(afterTax - discountedBase) > 0.001;
 
                 return {
                     effectiveDate,
                     expireDate,
-                    ...(taxPerNight > 0 && { amountBeforeTax: base.toFixed(2) }),
-                    amountAfterTax: afterTax.toFixed(2),
-                    currencyCode: day.currencyCode ?? payload.currencyCode,
+                    ...(hasTax && { amountBeforeTax: fmt(discountedBase) }),
+                    amountAfterTax: fmt(afterTax),
+                    currencyCode: day.currencyCode ?? currencyCode,
                 };
             });
         };
 
-        const buildGuestCounts = (room: { adults: number; children: number }): SMGuestCount[] => {
-            const counts: SMGuestCount[] = [];
-            if (room.adults > 0) counts.push({ ageQualifyingCode: '10', count: room.adults });
-            if (room.children > 0) counts.push({ ageQualifyingCode: '8', count: room.children });
-            return counts;
-        };
-
-        const getRoomTotal = (roomNumber: number) => {
-            const breakdown = finalPrice.dailyPriceBrakeDown.filter(
-                (day: any) => String(day.roomNumber) === String(roomNumber)
+        // ── Helper: build RoomStay totals for a room ──────────────────────────
+        const buildRoomTotals = (roomNumber: number) => {
+            const days = getDaysForRoom(roomNumber);
+            const roomRawTotal = days.reduce(
+                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0),
+                0
             );
-            const src = breakdown.length > 0 ? breakdown : finalPrice.dailyPriceBrakeDown;
+            const roomShare = allRoomsRawTotal > 0 ? roomRawTotal / allRoomsRawTotal : 1;
 
-            const allRoomsTotal = finalPrice.dailyPriceBrakeDown.reduce(
-                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0), 0
-            );
-            const beforeTax = src.reduce(
-                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0), 0
-            );
+            const roomDiscountShare = totalDecreaseDiscount * roomShare;
+            const roomTaxShare = totalTax * roomShare;
 
-            const roomShare = allRoomsTotal > 0 ? beforeTax / allRoomsTotal : 1;
-            const roomTax = roomShare * (finalPrice.taxedAmount ?? 0);
-
-            // ✅ room + tax only, NO addon, NO tourist fee
-            const afterTax = Math.round((beforeTax + roomTax) * 100) / 100;
+            const beforeTax = roomRawTotal - roomDiscountShare;
+            const afterTax = beforeTax + roomTaxShare;
 
             return {
-                beforeTax: Math.round(beforeTax * 100) / 100,
-                afterTax,
+                beforeTax: fmt(beforeTax),
+                afterTax: fmt(afterTax),
             };
         };
 
+        // ── Helper: build GuestCounts from room guest distribution ────────────
+        const buildGuestCounts = (room: {
+            adults: number;
+            children: number;
+            childAges?: number[];
+        }): SMGuestCount[] => {
+            const counts: SMGuestCount[] = [];
+
+            if (room.adults > 0) {
+                counts.push({ ageQualifyingCode: '10', count: room.adults });
+            }
+
+            // Per SM docs: each child needs its own GuestCount entry with @Age
+            if (room.children > 0) {
+                const ages = room.childAges ?? [];
+                if (ages.length === room.children) {
+                    // We have individual ages — send one entry per child
+                    ages.forEach((age: number) => {
+                        counts.push({ ageQualifyingCode: '8', count: 1, age });
+                    });
+                } else {
+                    // No individual ages — send a single combined entry
+                    counts.push({ ageQualifyingCode: '8', count: room.children });
+                }
+            }
+
+            return counts;
+        };
+
+        const ratePlanName = await getRatePlanName(payload.ratePlanCode)
         if (roomsArray.length > 0) {
             return roomsArray.map((room: any, index: number) => {
                 const roomNumber = index + 1;
-                const totals = getRoomTotal(roomNumber);
+                const totals = buildRoomTotals(roomNumber);
                 return {
                     roomTypeCode: payload.roomTypeCode,
-                    roomTypeName: payload.roomTypeCode,
+                    roomTypeName: payload.roomName,       // actual name e.g. "Double Room"
                     ratePlanCode: payload.ratePlanCode,
-                    ratePlanName: payload.ratePlanCode,
+                    ratePlanName: ratePlanName,   // TODO: pass ratePlanName if available
                     roomRates: {
                         roomTypeCode: payload.roomTypeCode,
                         ratePlanCode: payload.ratePlanCode,
-                        rates: buildRatesForRoom(roomNumber),
+                        rates: buildRates(roomNumber),
                     },
-                    guestCounts: buildGuestCounts({ adults: room.adults, children: room.children }),
+                    guestCounts: buildGuestCounts({
+                        adults: room.adults,
+                        children: room.children ?? 0,
+                        childAges: room.childAges ?? [],
+                    }),
                     checkIn,
                     checkOut,
-                    totalAmountBeforeTax: totals.beforeTax.toFixed(2),
-                    totalAmountAfterTax: totals.afterTax.toFixed(2),
-                    currencyCode: payload.currencyCode,
+                    totalAmountBeforeTax: totals.beforeTax,
+                    totalAmountAfterTax: totals.afterTax,
+                    currencyCode,
                 };
             });
         }
 
-        // Single room fallback
-        const totalBefore = finalPrice.dailyPriceBrakeDown.reduce(
-            (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? d.baseRate ?? 0), 0
-        );
-        const totalAfter = Math.round((totalBefore + (finalPrice.taxedAmount ?? 0)) * 100) / 100;
-
-        return [{
-            roomTypeCode: payload.roomTypeCode,
-            roomTypeName: payload.roomTypeCode,
-            ratePlanCode: payload.ratePlanCode,
-            ratePlanName: payload.ratePlanCode,
-            roomRates: {
+        // ── Single room fallback ──────────────────────────────────────────────
+        const totals = buildRoomTotals(1);
+        return [
+            {
                 roomTypeCode: payload.roomTypeCode,
+                roomTypeName: payload.roomName,
                 ratePlanCode: payload.ratePlanCode,
-                rates: buildRatesForRoom(1),
+                ratePlanName: ratePlanName,
+                roomRates: {
+                    roomTypeCode: payload.roomTypeCode,
+                    ratePlanCode: payload.ratePlanCode,
+                    rates: buildRates(1),
+                },
+                guestCounts: buildGuestCounts({
+                    adults: payload?.guests?.adults ?? 1,
+                    children: payload?.guests?.children ?? 0,
+                    childAges: [],
+                }),
+                checkIn,
+                checkOut,
+                totalAmountBeforeTax: totals.beforeTax,
+                totalAmountAfterTax: totals.afterTax,
+                currencyCode,
             },
-            guestCounts: buildGuestCounts({
-                adults: payload?.guests?.adults ?? 1,
-                children: payload?.guests?.children ?? 0,
-            }),
-            checkIn,
-            checkOut,
-            totalAmountBeforeTax: (Math.round(totalBefore * 100) / 100).toFixed(2),
-            totalAmountAfterTax: totalAfter.toFixed(2),
-            currencyCode: payload.currencyCode,
-        }];
+        ];
     }
 
-    // ─── Helper to build totals for params ───────────────────────────────────
-    private static buildTotals(payload: ICReservationS): {
+    // ── Build Services ────────────────────────────────────────────────────────
+    //
+    // All services are sent at reservation level (no ServiceRPH room link).
+    //
+    // Addon grouping rules:
+    //   • Same addonId + consecutive dates → merge into one Service (date range)
+    //   • Same addonId + non-consecutive dates → separate Service nodes
+    //   • Different addonId → separate Service nodes
+    //
+    // payLater promotions (restrictionType = 'payLater'):
+    //   • Sent as Service with no TimeSpan
+    //   • NOT included in ResGlobalInfo Total (already in latterpayableAmount)
+    //
+    // ServiceInventoryCode mapping:
+    //   We use 'OTHER' for generic addons since SM accepts custom codes.
+    //   Known codes: EXTRA_BED, MEAL, PARKING — map by name if recognisable.
+
+    private static buildServices(payload: ICReservationS): SMService[] {
+        const services: SMService[] = [];
+        const currencyCode = payload.currencyCode;
+
+        // ── Map addon name → SM inventory code ───────────────────────────────
+        const inventoryCodeFor = (name: string): string => {
+            const n = name.toLowerCase();
+            if (n.includes('extra bed') || n.includes('extrabed')) return 'EXTRA_BED';
+            if (n.includes('meal') || n.includes('breakfast') || n.includes('lunch') || n.includes('dinner')) return 'MEAL';
+            if (n.includes('parking')) return 'PARKING';
+            return 'OTHER';
+        };
+
+        // ── Group addon breakdown entries ─────────────────────────────────────
+        // Group by addonId, then check if dates are consecutive to merge.
+        const addonBrakeDowns: any[] = payload.finalPrice?.addonBrakeDowns ?? [];
+
+        // Group by addonId + name combined.
+        // Using addonId alone is NOT enough — the same addonId can have multiple
+        // named variants e.g. "Test Addon 2", "Test Addon 2 (Child age 10)",
+        // "Test Addon 2 (Child age 7)" all share the same addonId but must be
+        // separate Service nodes. Combining addonId + name gives the correct key.
+        const addonGroups = new Map<string, any[]>();
+        addonBrakeDowns.forEach((addon: any) => {
+            const key = `${addon.addonId ?? ''}_${addon.name}`;
+            if (!addonGroups.has(key)) addonGroups.set(key, []);
+            addonGroups.get(key)!.push(addon);
+        });
+
+        addonGroups.forEach((entries) => {
+            // Sort by date ascending
+            entries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+            // Merge consecutive date runs
+            const runs: { entries: any[]; start: string; end: string }[] = [];
+            for (const entry of entries) {
+                const dateStr = toDateString(entry.date);
+                if (runs.length === 0) {
+                    runs.push({ entries: [entry], start: dateStr, end: dateStr });
+                    continue;
+                }
+                const lastRun = runs[runs.length - 1];
+                const expected = nextDateString(lastRun.end);
+                if (expected === dateStr) {
+                    // Consecutive — extend the run
+                    lastRun.entries.push(entry);
+                    lastRun.end = dateStr;
+                } else {
+                    // Non-consecutive — start a new run
+                    runs.push({ entries: [entry], start: dateStr, end: dateStr });
+                }
+            }
+
+            // One SMService per run
+            runs.forEach((run) => {
+                const first = run.entries[0];
+                const totalAmt = run.entries.reduce(
+                    (s: number, e: any) => s + (e.totalAmount ?? e.amount ?? 0),
+                    0
+                );
+                services.push({
+                    inventoryCode: inventoryCodeFor(first.name),
+                    name: first.name,
+                    baseAmount: first.amount ?? first.unitPrice ?? 0,
+                    totalAmount: totalAmt,
+                    currencyCode: first.currencyCode ?? currencyCode,
+                    isPayLater: false,
+                    startDate: run.start,
+                    endDate: run.end,
+                });
+            });
+        });
+
+        // ── payLater promotions ───────────────────────────────────────────────
+        const promotions: any[] = payload.finalPrice?.promotionBrakeDown ?? [];
+        promotions
+            .filter((p: any) => p.restrictionType === 'payLater')
+            .forEach((p: any) => {
+                services.push({
+                    inventoryCode: 'OTHER',
+                    name: `${p.name} (pay at property)`,
+                    baseAmount: p.discountAmount ?? 0,
+                    totalAmount: p.discountAmount ?? 0,
+                    currencyCode: currencyCode, // always use reservation currency, not promotion currency
+                    isPayLater: true,
+                    // no startDate / endDate for payLater
+                });
+            });
+
+        return services;
+    }
+
+    // ── Build Discounts ───────────────────────────────────────────────────────
+    //
+    // Discounts are NOT sent as Services or separate XML fields.
+    // They are already baked into amountBeforeTax.
+    // We render them as Comments in ResGlobalInfo so the hotel sees the breakdown.
+
+    private static buildDiscounts(payload: ICReservationS): SMDiscount[] {
+        const discounts: SMDiscount[] = [];
+        const currency = payload.currencyCode;
+
+        // Decrease-type promotions (anything that is NOT payLater)
+        // These are already baked into amountBeforeTax — we just comment them.
+        const promotions: any[] = payload.finalPrice?.promotionBrakeDown ?? [];
+        promotions
+            .filter((p: any) => p.restrictionType !== 'payLater')
+            .filter((p: any) => (p.discountAmount ?? 0) > 0)
+            .forEach((p: any) => {
+                discounts.push({
+                    name: `${p.name} discount`,
+                    amount: p.discountAmount ?? 0,
+                    currencyCode: p.currencyCode ?? currency,
+                });
+            });
+
+        // Loyalty discount
+        if ((payload.finalPrice?.loyalityDiscount ?? 0) > 0) {
+            discounts.push({
+                name: 'Loyalty discount',
+                amount: payload.finalPrice.loyalityDiscount,
+                currencyCode: currency,
+            });
+        }
+
+        // Promo code discount
+        if ((payload.finalPrice?.promoCodeDiscount ?? 0) > 0) {
+            discounts.push({
+                name: 'Promo code discount',
+                amount: payload.finalPrice.promoCodeDiscount,
+                currencyCode: currency,
+            });
+        }
+
+        return discounts;
+    }
+
+    // ── Build ResGlobalInfo totals ────────────────────────────────────────────
+    //
+    // AmountBeforeTax = finalPrice.amountBeforeTax
+    //                 = rooms + addons - all decrease discounts (loyalty, promo, mlos etc.)
+    //
+    // AmountAfterTax  = finalPrice.currentChargeableAmount
+    //                 = amountBeforeTax + tax
+    //                 (does NOT include payLater / latterpayableAmount)
+
+    private static buildGlobalTotals(payload: ICReservationS): {
         totalBeforeTax: string;
         totalAfterTax: string;
     } {
-        const totalBeforeTax = payload.finalPrice.dailyPriceBrakeDown.reduce(
-            (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? d.baseRate ?? 0), 0
-        );
-
-        // ✅ Use totalAmount = room + tax + addon + tourist fee (full grand total)
-        const totalAfterTax = payload.finalPrice.totalAmount
-            ?? (totalBeforeTax + (payload.finalPrice.taxedAmount ?? 0));
-
         return {
-            totalBeforeTax: (Math.round(totalBeforeTax * 100) / 100).toFixed(2),
-            totalAfterTax: (Math.round(totalAfterTax * 100) / 100).toFixed(2),
+            totalBeforeTax: fmt(payload.finalPrice.amountBeforeTax ?? 0),
+            totalAfterTax: fmt(
+                payload.finalPrice.currentChargeableAmount ??
+                (payload.finalPrice.amountBeforeTax ?? 0) +
+                (payload.finalPrice.taxedAmount ?? 0)
+            ),
         };
     }
 
-    // ─── Helper to extract payLater promotions (tourist fee etc.) ────────────
-    private static getPayLaterServices(payload: ICReservationS): any[] {
-        const promotions = payload.finalPrice?.promotionBrakeDown ?? [];
-        return promotions
-            .filter((p: any) => p.restrictionType === 'payLater')
-            .map((p: any) => ({
-                name: p.name,
-                amount: p.discountAmount,
-                totalAmount: p.discountAmount,
-                currencyCode: p.currencyCode ?? payload.currencyCode,
-            }));
+    // ── Shared params builder (used by Commit, Modify, Cancel) ───────────────
+
+    private static async buildParams(
+        payload: ICReservationS,
+        bookingCode: string,
+        resStatus: 'Commit' | 'Modify' | 'Cancel',
+        siteMinderHotelCode: string,
+        channelCode: string,
+        channelName: string,
+        createDateTime: string,
+        lastModifyDateTime?: string
+    ): Promise<SMReservationPushParams> {
+        const guestDetails = payload.guestDetails ?? [];
+        const primaryGuest = guestDetails[0];
+
+        const paymentMethod: SMPaymentMethod =
+            payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
+
+        const { totalBeforeTax, totalAfterTax } =
+            SiteMinderReservationService.buildGlobalTotals(payload);
+
+        return {
+            hotelCode: siteMinderHotelCode,
+            bookingCode,
+            resStatus,
+            createDateTime,
+            ...(lastModifyDateTime && { lastModifyDateTime }),
+            channelCode,
+            channelName,
+            roomStays: await SiteMinderReservationService.buildRoomStays(payload),
+            primaryGuest: {
+                firstName: primaryGuest?.firstName ?? '',
+                lastName: primaryGuest?.lastName ?? '',
+                phone: payload.bookingUserPhone,
+                email: payload.bookingUserEmail,
+            },
+            guestDetails,
+            currencyCode: payload.currencyCode,
+            paymentMethod,
+            totalAmountBeforeTax: totalBeforeTax,
+            totalAmountAfterTax: totalAfterTax,
+            services: SiteMinderReservationService.buildServices(payload),
+            discounts: SiteMinderReservationService.buildDiscounts(payload),
+        };
     }
+
+    // ── PUBLIC: Commit (new reservation) ─────────────────────────────────────
 
     public static async pushCommit(
         payload: ICReservationS,
@@ -241,41 +512,16 @@ export class SiteMinderReservationService {
         smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
-            console.log("payload pushCommit", JSON.stringify(payload))
-            console.log("bookingCode pushCommit", bookingCode)
-            console.log("siteMinderHotelCode", siteMinderHotelCode)
-            console.log("channelCode", channelCode)
-            console.log("channelName", channelName)
-            console.log("smEndpoint", smEndpoint)
-            const guestDetails = payload.guestDetails?.[0];
-            const paymentMethod: SMPaymentMethod =
-                payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
-
-            const { totalBeforeTax, totalAfterTax } = SiteMinderReservationService.buildTotals(payload);
-
-            const params: SMReservationPushParams = {
-                hotelCode: siteMinderHotelCode,
+            const params = await SiteMinderReservationService.buildParams(
+                payload,
                 bookingCode,
-                resStatus: 'Commit',
-                createDateTime: SiteMinderReservationService.isoTimestamp(),
+                'Commit',
+                siteMinderHotelCode,
                 channelCode,
                 channelName,
-                roomStays: SiteMinderReservationService.buildRoomStays(payload, siteMinderHotelCode),
-                primaryGuest: {
-                    firstName: guestDetails?.firstName ?? '',
-                    lastName: guestDetails?.lastName ?? '',
-                    phone: payload.bookingUserPhone,
-                    email: payload.bookingUserEmail,
-                },
-                currencyCode: payload.currencyCode,
-                paymentMethod,
-                totalAmountBeforeTax: totalBeforeTax,
-                totalAmountAfterTax: totalAfterTax,
-                // ✅ addons + tourist fee (payLater) both go to Services
-                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
-                payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
-                guestDetails: payload.guestDetails,
-            };
+                isoTimestamp()
+                // no lastModifyDateTime for Commit
+            );
 
             const validationError = SiteMinderReservationValidation.validate(params);
             if (validationError) return { success: false, message: validationError };
@@ -291,24 +537,35 @@ export class SiteMinderReservationService {
 
             let result: SMReservationResult;
             try {
-                result = await SiteMinderReservationService.pushToSiteMinder(xml, bookingCode, smEndpoint);
+                result = await SiteMinderReservationService.pushToSiteMinder(
+                    xml,
+                    bookingCode,
+                    smEndpoint
+                );
             } catch (err) {
                 log.setError(err).save();
                 throw err;
             }
 
             log
-                .pushMessage(result.success ? 'SM commit succeeded' : 'SM commit failed', result.success ? 'info' : 'error')
+                .pushMessage(
+                    result.success ? 'SM commit succeeded' : 'SM commit failed',
+                    result.success ? 'info' : 'error'
+                )
                 .setMeta({ smResponse: result })
                 .save();
 
             return result;
         } catch (error: any) {
-            return { success: false, message: error?.message ?? 'Unknown error in pushCommit' };
+            return {
+                success: false,
+                message: error?.message ?? 'Unknown error in pushCommit',
+            };
         }
     }
 
-    // ─── PUBLIC: Modify ───────────────────────────────────────────────────────
+    // ── PUBLIC: Modify ────────────────────────────────────────────────────────
+
     public static async pushModify(
         payload: ICReservationS,
         bookingCode: string,
@@ -319,33 +576,16 @@ export class SiteMinderReservationService {
         smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
-            const guestDetails = payload.guestDetails?.[0];
-            const paymentMethod: SMPaymentMethod =
-                payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
-
-            const { totalBeforeTax, totalAfterTax } = SiteMinderReservationService.buildTotals(payload);
-
-            const params: SMReservationPushParams = {
-                hotelCode: siteMinderHotelCode,
+            const params = await SiteMinderReservationService.buildParams(
+                payload,
                 bookingCode,
-                resStatus: 'Modify',
-                createDateTime: originalCreateDateTime,
-                lastModifyDateTime: SiteMinderReservationService.isoTimestamp(), channelCode,
+                'Modify',
+                siteMinderHotelCode,
+                channelCode,
                 channelName,
-                roomStays: SiteMinderReservationService.buildRoomStays(payload, siteMinderHotelCode),
-                primaryGuest: {
-                    firstName: guestDetails?.firstName ?? '',
-                    lastName: guestDetails?.lastName ?? '',
-                    phone: payload.bookingUserPhone,
-                    email: payload.bookingUserEmail,
-                },
-                currencyCode: payload.currencyCode,
-                paymentMethod,
-                totalAmountBeforeTax: totalBeforeTax,
-                totalAmountAfterTax: totalAfterTax,
-                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
-                payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
-            };
+                originalCreateDateTime,
+                isoTimestamp()  // lastModifyDateTime = now
+            );
 
             const validationError = SiteMinderReservationValidation.validate(params);
             if (validationError) return { success: false, message: validationError };
@@ -361,24 +601,35 @@ export class SiteMinderReservationService {
 
             let result: SMReservationResult;
             try {
-                result = await SiteMinderReservationService.pushToSiteMinder(xml, bookingCode, smEndpoint);
+                result = await SiteMinderReservationService.pushToSiteMinder(
+                    xml,
+                    bookingCode,
+                    smEndpoint
+                );
             } catch (err) {
                 log.setError(err).save();
                 throw err;
             }
 
             log
-                .pushMessage(result.success ? 'SM modify succeeded' : 'SM modify failed', result.success ? 'info' : 'error')
+                .pushMessage(
+                    result.success ? 'SM modify succeeded' : 'SM modify failed',
+                    result.success ? 'info' : 'error'
+                )
                 .setMeta({ smResponse: result })
                 .save();
 
             return result;
         } catch (error: any) {
-            return { success: false, message: error?.message ?? 'Unknown error in pushModify' };
+            return {
+                success: false,
+                message: error?.message ?? 'Unknown error in pushModify',
+            };
         }
     }
 
-    // ─── PUBLIC: Cancel ───────────────────────────────────────────────────────
+    // ── PUBLIC: Cancel ────────────────────────────────────────────────────────
+
     public static async pushCancel(
         payload: ICReservationS,
         bookingCode: string,
@@ -389,34 +640,16 @@ export class SiteMinderReservationService {
         smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
-            const guestDetails = payload.guestDetails?.[0];
-            const paymentMethod: SMPaymentMethod =
-                payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
-
-            const { totalBeforeTax, totalAfterTax } = SiteMinderReservationService.buildTotals(payload);
-
-            const params: SMReservationPushParams = {
-                hotelCode: siteMinderHotelCode,
+            const params = await SiteMinderReservationService.buildParams(
+                payload,
                 bookingCode,
-                resStatus: 'Cancel',
-                createDateTime: originalCreateDateTime,
-                lastModifyDateTime: SiteMinderReservationService.isoTimestamp(), 
+                'Cancel',
+                siteMinderHotelCode,
                 channelCode,
                 channelName,
-                roomStays: SiteMinderReservationService.buildRoomStays(payload, siteMinderHotelCode),
-                primaryGuest: {
-                    firstName: guestDetails?.firstName ?? '',
-                    lastName: guestDetails?.lastName ?? '',
-                    phone: payload.bookingUserPhone,
-                    email: payload.bookingUserEmail,
-                },
-                currencyCode: payload.currencyCode,
-                paymentMethod,
-                totalAmountBeforeTax: totalBeforeTax,
-                totalAmountAfterTax: totalAfterTax,
-                addonBrakeDown: payload.finalPrice?.addonBrakeDowns ?? [],
-                payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
-            };
+                originalCreateDateTime,
+                isoTimestamp()  // lastModifyDateTime = now
+            );
 
             const validationError = SiteMinderReservationValidation.validate(params);
             if (validationError) return { success: false, message: validationError };
@@ -432,20 +665,30 @@ export class SiteMinderReservationService {
 
             let result: SMReservationResult;
             try {
-                result = await SiteMinderReservationService.pushToSiteMinder(xml, bookingCode, smEndpoint);
+                result = await SiteMinderReservationService.pushToSiteMinder(
+                    xml,
+                    bookingCode,
+                    smEndpoint
+                );
             } catch (err) {
                 log.setError(err).save();
                 throw err;
             }
 
             log
-                .pushMessage(result.success ? 'SM cancel succeeded' : 'SM cancel failed', result.success ? 'info' : 'error')
+                .pushMessage(
+                    result.success ? 'SM cancel succeeded' : 'SM cancel failed',
+                    result.success ? 'info' : 'error'
+                )
                 .setMeta({ smResponse: result })
                 .save();
 
             return result;
         } catch (error: any) {
-            return { success: false, message: error?.message ?? 'Unknown error in pushCancel' };
+            return {
+                success: false,
+                message: error?.message ?? 'Unknown error in pushCancel',
+            };
         }
     }
 }
