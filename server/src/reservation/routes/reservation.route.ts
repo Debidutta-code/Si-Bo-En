@@ -31,7 +31,6 @@ reservationRoute.route("/departures")
 
 reservationRoute.route("/cancel/:reservationId")
     .put(reservationController.cancelReservation.bind(reservationController));
-reservationRoute.route("/available-rooms/:bookingCode")
 reservationRoute.route("/:reservationCode")
     .get(reservationController.getReservationByCode.bind(reservationController));
 reservationRoute.route("/update/:reservationCode")

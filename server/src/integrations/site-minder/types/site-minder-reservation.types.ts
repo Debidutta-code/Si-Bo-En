@@ -1,21 +1,20 @@
-import { GuestDetail } from "../../rate-tiger/types";
+import { GuestDetail } from '../../rate-tiger/types';
 
 export type SMResStatus = 'Commit' | 'Modify' | 'Cancel';
 
 export interface SMGuestCount {
     ageQualifyingCode: '10' | '8' | '7';
     count: number;
-    age?: number;
+    age?: number; // required for children (AgeQualifyingCode=8) and infants (7)
 }
 
 export interface SMRateDay {
-    effectiveDate: string;
-    expireDate: string;
-    amountBeforeTax?: string;
-    amountAfterTax: string;
+    effectiveDate: string;   // YYYY-MM-DD (inclusive)
+    expireDate: string;      // YYYY-MM-DD (exclusive = next day)
+    amountBeforeTax?: string; // discounted nightly base (omit if equal to afterTax)
+    amountAfterTax: string;  // discounted nightly base + tax share
     currencyCode: string;
 }
-
 
 export interface SMRoomRate {
     roomTypeCode: string;
@@ -25,13 +24,14 @@ export interface SMRoomRate {
 
 export interface SMRoomStay {
     roomTypeCode: string;
-    roomTypeName: string;
+    roomTypeName: string;    // actual human-readable name e.g. "Double Room"
     ratePlanCode: string;
-    ratePlanName: string;
+    ratePlanName: string;    // actual human-readable name e.g. "Best Available Rate"
     roomRates: SMRoomRate;
     guestCounts: SMGuestCount[];
-    checkIn: string;
-    checkOut: string;
+    checkIn: string;         // YYYY-MM-DD
+    checkOut: string;        // YYYY-MM-DD
+    // Room-only totals (no addon amounts — addons are reservation-level)
     totalAmountBeforeTax: string;
     totalAmountAfterTax: string;
     currencyCode: string;
@@ -54,42 +54,67 @@ export interface SMGuestProfile {
     };
 }
 
+// Payment method — only used internally to decide
+// whether to include <DepositPayments> in the XML.
+// SiteMinder has no explicit payment type field.
 export type SMPaymentMethod = 'PAY_AT_HOTEL' | 'PREPAY';
+
+// A single service / addon to be sent at reservation level
+export interface SMService {
+    inventoryCode: string;   // e.g. 'EXTRA_BED', 'MEAL', 'OTHER', 'PARKING'
+    name: string;            // human-readable label for RateDescription
+    baseAmount: number;      // per-unit / per-night amount
+    totalAmount: number;     // full total for all nights / units
+    currencyCode: string;
+    isPayLater: boolean;     // payLater = no TimeSpan, not in chargeable total
+    startDate?: string;      // YYYY-MM-DD (inclusive) — omit for payLater
+    endDate?: string;        // YYYY-MM-DD (inclusive last day, same as start for single night)
+}
+
+// A discount entry — rendered as a Comment only (already baked into amounts)
+export interface SMDiscount {
+    name: string;     // e.g. 'MLOS discount', 'Loyalty discount', 'Promo code'
+    amount: number;
+    currencyCode: string;
+}
 
 export interface SMReservationPushParams {
     hotelCode: string;
     bookingCode: string;
     resStatus: SMResStatus;
-    createDateTime: string;
-    lastModifyDateTime?: string;
+    createDateTime: string;       // ISO 8601
+    lastModifyDateTime?: string;  // ISO 8601 — required for Modify and Cancel
+
     channelCode: string;
     channelName: string;
+
     roomStays: SMRoomStay[];
     primaryGuest: SMGuestProfile;
-    currencyCode: string;
-    paymentMethod: SMPaymentMethod;
-    totalAmountBeforeTax?: string;
-    totalAmountAfterTax: string;
-    addonBrakeDown?: Array<{
-        name: string;
-        amount: number;
-        totalAmount: number;
-        quantity: number;
-        currencyCode: string;
-        date: string | Date;
-    }>;
+    guestDetails?: GuestDetail[]; // all guests, one per room if available
 
-    payLaterBrakeDown?: Array<{
-        name: string;
-        amount: number;
-        totalAmount: number;
-        currencyCode: string;
-    }>;
-    guestDetails?: GuestDetail[];
+    currencyCode: string;         // reservation currency (AED, USD, etc.)
+
+    // ResGlobalInfo Total
+    // BeforeTax = amountBeforeTax (rooms + addons - all discounts)
+    // AfterTax  = currentChargeableAmount (amountBeforeTax + tax, NO payLater)
+    totalAmountBeforeTax: string;
+    totalAmountAfterTax: string;
+
+    // Payment
+    // PAY_AT_HOTEL  → no Guarantee or DepositPayments element
+    // PREPAY        → <DepositPayments> with currentChargeableAmount
+    paymentMethod: SMPaymentMethod;
+
+    // Services rendered at reservation level (no room link)
+    services: SMService[];
+
+    // Discounts — rendered as Comments only (already deducted from totals)
+    discounts: SMDiscount[];
 }
 
 export interface SMReservationResult {
     success: boolean;
-    siteMinderResId?: string; // ResID_Value from SiteMinder response
+    siteMinderResId?: string;
     message: string;
+     rawResponse?: string;
 }

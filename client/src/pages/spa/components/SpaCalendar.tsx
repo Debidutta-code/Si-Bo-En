@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, addMonths, subMonths, isSameDay } from 'date-fns';
-import { ChevronLeft, ChevronRight, Loader2, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Loader2} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'react-hot-toast';
 import {
@@ -25,10 +24,10 @@ import {
     deleteSpaSlotService,
 } from '../services';
 import type { ISpaDates, ICSpaSlotS, ISpa } from '../interfaces';
+import BackButton from '@/components/shared/BackButton';
 
-export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: string, propertyId: string, spaDetails: ISpa }) {
+export default function SpaCalendar({ spaId,  spaDetails }: { spaId: string, propertyId: string, spaDetails: ISpa }) {
    const { t } = useTranslation();
-   const navigate = useNavigate();
    const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
    const [spaDates, setSpaDates] = useState<ISpaDates[]>([]);
    const [isLoading, setIsLoading] = useState(false);
@@ -149,9 +148,7 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
          {/* Header */}
          <div className="flex justify-between items-center mb-6">
              <div className="flex items-center space-x-4">
-                 <Button variant="outline" size="sm" onClick={() => navigate(`/property/spa/${propertyId}`)}>
-                    <ArrowLeft className="w-4 h-4 mr-2" /> {t('SpaCalendar.backToSpas')}
-                 </Button>
+                 <BackButton/>
                  <h2 className="text-2xl font-bold flex items-center gap-2">
                     {format(currentMonth, 'MMMM yyyy')}
                     {isLoading && <Loader2 className="w-5 h-5 animate-spin text-gray-500" />}

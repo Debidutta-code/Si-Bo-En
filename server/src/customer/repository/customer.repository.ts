@@ -104,4 +104,5 @@ export class CustomerRepository {
             throw new Error('Error occurred while updating password');
         }
     }
+    
 }

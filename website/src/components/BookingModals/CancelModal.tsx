@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
 import { currencies } from "../currencyCode/cuurency";
 import { useTranslation } from "react-i18next";
+import axios from "axios";
 
 interface Props {
   bookingData: any;
@@ -33,44 +34,41 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
   // Add the hook usage at the component level
   const { colors } = useBookingStorage({}); // You may need to pass actual bookingContext if available
 
-  const handleCancellation = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/cancel`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            "reservation-id": bookingData.id,
-          },
-          body: JSON.stringify({
-            cancellationReason: reason,
-            bookingCode,
-          }),
-        }
-      );
+ const handleCancellation = async () => {
+  setLoading(true);
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Cancellation failed");
+  try {
+    const { data } = await axios.put(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/cancel/${bookingData.id}`,
+      {
+        cancellationReason: reason,
+        bookingCode,
+      },
+    );
 
-      if (data.refund) {
-        if (data.refund.success) {
-          toast.success(t("CancelModal.successWithRefund"), { duration: 4000 });
-        } else {
-          toast.error(t("CancelModal.successNoRefund"), { duration: 6000 });
-        }
+    if (data.refund) {
+      if (data.refund.success) {
+        toast.success(t("CancelModal.successWithRefund"), {
+          duration: 4000,
+        });
       } else {
-        toast.success(t("CancelModal.successCancelled"));
+        toast.error(t("CancelModal.successNoRefund"));
       }
-
-      onCancel();
-    } catch (err: any) {
-      toast.error(err.message || t("CancelModal.somethingWentWrong"));
-    } finally {
-      setLoading(false);
+    } else {
+      toast.success(t("CancelModal.successCancelled"));
     }
-  };
+
+    onCancel();
+  } catch (err: any) {
+    toast.error(
+      err?.response?.data?.message ||
+        err.message ||
+        t("CancelModal.somethingWentWrong")
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const refundInfo = useMemo(() => {
     const today = new Date();
