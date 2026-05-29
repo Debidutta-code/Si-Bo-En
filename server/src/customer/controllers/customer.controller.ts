@@ -165,6 +165,61 @@ export class CustomerController {
                 .json(errorResponse('Error occurred while updating password'));
         }
     }
+        public async forgetPassword(req: Request, res: Response): Promise<Response<IApiResponse>> {
+        try {
+            const email = req.body?.email;
+            if (!email) {
+                return res.status(401).json(errorResponse('Not authenticated'));
+            }
+            const result = await this.customerService.forgetPassword(email);
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Error occurred while updating password',
+                            error.message
+                        )
+                    );
+            }
+            return res
+                .status(500)
+                .json(errorResponse('Error occurred while updating password'));
+        }
+    }
+    public async verifyOtp(req: Request, res: Response): Promise<Response<IApiResponse>> {
+        try {
+            const {email,otp,password} = req.body;
+            if (!email) {
+                return res.status(401).json(errorResponse('Not authenticated'));
+            }
+            if(!otp) {
+                return res.status(400).json(errorResponse('OTP is required'));
+            }
+            const isValidPassword = this.validatePassword(password);
+            if (isValidPassword) {
+                return res.status(400).json(errorResponse(isValidPassword));
+            }
+            const result = await this.customerService.verifyOtp(email, otp,password);
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Error occurred while verifying OTP',
+                            error.message
+                        )
+                    );
+            }
+            return res
+                .status(500)
+                .json(errorResponse('Error occurred while verifying OTP'));
+        }
+    }
 
     public async logout(req: Request, res: Response): Promise<Response<IApiResponse>> {
         res.clearCookie('customerToken');
