@@ -384,7 +384,6 @@ export interface ICReservationS {
     agencyId: string | null;
     agentId?: string;
     ngeniusOrderRef?: string;
-    isLoyalityGuest?: boolean;
     customerId: string | null;
 }
 

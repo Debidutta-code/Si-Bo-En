@@ -98,7 +98,7 @@ function CancelConfirmationModal({
               <div className="bg-muted rounded-md p-3 mb-4">
                 <div className="text-sm space-y-1">
                   <p className="font-medium text-card-foreground">
-                    {t('Bookings.cancelConfirm.bookingCode')}: {reservation.bookingCode}
+                    {t('Bookings.cancelConfirm.bookingCode')}: {reservation.bookingCode.split('-')[1]}
                   </p>
                   <p className="text-muted-foreground">
                      {t('Bookings.cancelConfirm.guest')}: {reservation.primaryGuest?.firstName}{" "}
@@ -170,6 +170,7 @@ export default function ReservationsTable({
     if (!selectedReservation) return;
     setIsCancelling(true);
     try {
+      console.log("cancel reservation",selectedReservation);
       await onCancel(selectedReservation.id);
       closeDialog();
     } catch (error) {

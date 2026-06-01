@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { IAmendFinalPrice } from "../types/amend.types";
 import type { PriceStatus } from "../types/amend.types";
+import { useTranslation } from "react-i18next";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,9 @@ const PriceSection: FC<IPriceSectionProps> = ({
   onBack,
   onConfirm,
 }) => {
+  const { t } = useTranslation();
+  const p = "AmendReservation.pricing";
+
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   const isPayAtHotel = paymentMethod === "pay_at_hotel" || paymentMethod === "payAtHotel";
@@ -89,14 +93,14 @@ const PriceSection: FC<IPriceSectionProps> = ({
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          <span className="text-sm text-muted-foreground">Checking availability & price...</span>
+          <span className="text-sm text-muted-foreground">{t(`${p}.checkingPrice`)}</span>
         </div>
       )}
 
       {isSuccess && (
         <div className="flex items-center justify-center gap-1.5">
           <CheckCircle2 className="h-4 w-4 text-green-500" />
-          <span className="text-sm text-green-600 dark:text-green-400 font-medium">Availability confirmed</span>
+          <span className="text-sm text-green-600 dark:text-green-400 font-medium">{t(`${p}.availabilityConfirmed`)}</span>
         </div>
       )}
 
@@ -104,14 +108,14 @@ const PriceSection: FC<IPriceSectionProps> = ({
         <div className="flex items-center justify-between bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
-            <p className="text-sm text-destructive">Could not fetch price. Please try again.</p>
+            <p className="text-sm text-destructive">{t(`${p}.couldNotFetchPrice`)}</p>
           </div>
           <button
             onClick={onRetry}
             className="flex items-center gap-1.5 text-xs font-semibold text-destructive hover:text-destructive/80 transition-colors"
           >
             <RefreshCw className="h-3.5 w-3.5" />
-            Retry
+            {t(`${p}.retry`)}
           </button>
         </div>
       )}
@@ -126,7 +130,7 @@ const PriceSection: FC<IPriceSectionProps> = ({
           {isPayAtHotel ? (
             <div className="px-5 py-4 flex items-start justify-between border-b border-border">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Pay at Hotel</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">{t(`${p}.payAtHotel`)}</p>
                 <p className="text-3xl font-bold text-card-foreground tabular-nums">{fmt(currency, updatedAmount)}</p>
                 {updatedAmount !== originalAmount && (
                   <p className="text-sm text-muted-foreground mt-1 line-through">{fmt(currency, originalAmount)}</p>
@@ -137,19 +141,19 @@ const PriceSection: FC<IPriceSectionProps> = ({
                 className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium mt-1"
               >
                 <Info className="h-4 w-4" />
-                {showBreakdown ? "Hide" : "Details"}
+                {showBreakdown ? t(`${p}.hide`) : t(`${p}.details`)}
                 {showBreakdown ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </button>
             </div>
           ) : (
             <div className="px-5 py-4 grid grid-cols-2 gap-4 border-b border-border">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Original</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">{t(`${p}.original`)}</p>
                 <p className="text-2xl font-bold text-card-foreground tabular-nums">{fmt(currency, originalAmount)}</p>
               </div>
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Updated</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">{t(`${p}.updated`)}</p>
                   <p className="text-2xl font-bold text-primary tabular-nums">{fmt(currency, updatedAmount)}</p>
                 </div>
                 <button
@@ -157,7 +161,7 @@ const PriceSection: FC<IPriceSectionProps> = ({
                   className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium mt-1"
                 >
                   <Info className="h-4 w-4" />
-                  {showBreakdown ? "Hide" : "Details"}
+                  {showBreakdown ? t(`${p}.hide`) : t(`${p}.details`)}
                   {showBreakdown ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                 </button>
               </div>
@@ -167,12 +171,17 @@ const PriceSection: FC<IPriceSectionProps> = ({
           {/* Breakdown panel */}
           {showBreakdown && (
             <div className="bg-muted/30 px-5 py-4 border-b border-border space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Price Breakdown</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">{t(`${p}.priceBreakdown`)}</p>
 
               {finalPrice.amountBeforeTax > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    Base Rate{numberOfNights > 0 ? ` · ${numberOfNights} ${numberOfNights === 1 ? "night" : "nights"}` : ""}
+                    {numberOfNights > 0
+                      ? t(`${p}.baseRateNights`, {
+                          count: numberOfNights,
+                          unit: numberOfNights === 1 ? t(`${p}.night`) : t(`${p}.nights`),
+                        })
+                      : t(`${p}.baseRate`)}
                   </span>
                   <span className="font-medium text-card-foreground">{fmt(currency, finalPrice.amountBeforeTax)}</span>
                 </div>
@@ -181,7 +190,7 @@ const PriceSection: FC<IPriceSectionProps> = ({
               {finalPrice.totalAddonAmount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5" />Add-ons
+                    <Tag className="w-3.5 h-3.5" />{t(`${p}.addOns`)}
                   </span>
                   <span className="font-medium text-card-foreground">{fmt(currency, finalPrice.totalAddonAmount)}</span>
                 </div>
@@ -189,31 +198,31 @@ const PriceSection: FC<IPriceSectionProps> = ({
 
               {finalPrice.totalPromotionAmount > 0 && (
                 <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
-                  <span className="flex items-center gap-1.5"><Percent className="w-3.5 h-3.5" />Promotion Discount</span>
+                  <span className="flex items-center gap-1.5"><Percent className="w-3.5 h-3.5" />{t(`${p}.promotionDiscount`)}</span>
                   <span>− {fmt(currency, finalPrice.totalPromotionAmount)}</span>
                 </div>
               )}
 
               {finalPrice.loyalityDiscount > 0 && (
                 <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
-                  <span>Loyalty Discount</span>
+                  <span>{t(`${p}.loyaltyDiscount`)}</span>
                   <span>− {fmt(currency, finalPrice.loyalityDiscount)}</span>
                 </div>
               )}
 
               {finalPrice.taxBrakeDown?.length > 0 && (
                 <div className="pt-2 border-t border-border space-y-1.5">
-                  {finalPrice.taxBrakeDown.map((t, i) => (
+                  {finalPrice.taxBrakeDown.map((tx, i) => (
                     <div key={i} className="flex justify-between text-sm text-muted-foreground">
-                      <span>{t.name}</span>
-                      <span>{fmt(currency, t.taxedAmount)}</span>
+                      <span>{tx.name}</span>
+                      <span>{fmt(currency, tx.taxedAmount)}</span>
                     </div>
                   ))}
                 </div>
               )}
 
               <div className="flex justify-between font-bold text-base border-t border-border pt-2.5">
-                <span className="text-card-foreground">Total</span>
+                <span className="text-card-foreground">{t(`${p}.total`)}</span>
                 <span className="text-primary">{fmt(currency, finalPrice.totalAmount)}</span>
               </div>
             </div>
@@ -224,16 +233,16 @@ const PriceSection: FC<IPriceSectionProps> = ({
             <div className="px-5 py-4 space-y-2.5 border-b border-border">
               {finalPrice.currentChargeableAmount > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Pay Now</span>
+                  <span className="text-sm text-muted-foreground">{t(`${p}.payNow`)}</span>
                   <span className="text-sm font-semibold text-card-foreground">{fmt(currency, finalPrice.currentChargeableAmount)}</span>
                 </div>
               )}
               {finalPrice.latterpayableAmount > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-                    Pay Later
+                    {t(`${p}.payLater`)}
                     <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
-                      at property
+                      {t(`${p}.atProperty`)}
                     </span>
                   </span>
                   <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{fmt(currency, finalPrice.latterpayableAmount)}</span>
@@ -246,20 +255,20 @@ const PriceSection: FC<IPriceSectionProps> = ({
           {!isPayAtHotel && (
             <div className="px-5 py-4 space-y-3">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Already Paid</span>
+                <span className="text-muted-foreground">{t(`${p}.alreadyPaid`)}</span>
                 <span className="font-semibold text-card-foreground">{fmt(currency, paidAmount)}</span>
               </div>
 
               {(finalPrice.booking?.finalPayable ?? 0) > 0 && (
                 <div className="flex justify-between items-center bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
-                  <span className="text-sm font-medium text-destructive">Additional Amount Due</span>
+                  <span className="text-sm font-medium text-destructive">{t(`${p}.additionalAmountDue`)}</span>
                   <span className="text-sm font-bold text-destructive">{fmt(currency, finalPrice.booking!.finalPayable)}</span>
                 </div>
               )}
 
               {(finalPrice.booking?.refundAmount ?? 0) > 0 && (
                 <div className="flex justify-between items-center bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3">
-                  <span className="text-sm font-medium text-green-700 dark:text-green-400">Refund Amount</span>
+                  <span className="text-sm font-medium text-green-700 dark:text-green-400">{t(`${p}.refundAmount`)}</span>
                   <span className="text-sm font-bold text-green-700 dark:text-green-400">{fmt(currency, finalPrice.booking!.refundAmount)}</span>
                 </div>
               )}
@@ -270,10 +279,10 @@ const PriceSection: FC<IPriceSectionProps> = ({
 
       {/* ── Policy Notes ── */}
       <div className="rounded-xl bg-muted/40 border border-border/60 px-4 py-3.5 space-y-1.5">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Policy Notes</p>
-        <p className="text-xs text-muted-foreground">· Date changes are subject to availability</p>
-        <p className="text-xs text-muted-foreground">· Changes within 72 hours of check-in may incur fees</p>
-        <p className="text-xs text-muted-foreground">· Reducing length of stay may be subject to cancellation policy</p>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t(`${p}.policyNotes`)}</p>
+        <p className="text-xs text-muted-foreground">{t(`${p}.policy1`)}</p>
+        <p className="text-xs text-muted-foreground">{t(`${p}.policy2`)}</p>
+        <p className="text-xs text-muted-foreground">{t(`${p}.policy3`)}</p>
       </div>
 
       {/* ── Navigation ── */}
@@ -286,7 +295,7 @@ const PriceSection: FC<IPriceSectionProps> = ({
             disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {t(`${p}.back`)}
         </button>
         <button
           onClick={onConfirm}
@@ -302,9 +311,9 @@ const PriceSection: FC<IPriceSectionProps> = ({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Updating Reservation...
+              {t(`${p}.updatingReservation`)}
             </>
-          ) : "Confirm Amendment"}
+          ) : t(`${p}.confirmAmendment`)}
         </button>
       </div>
     </div>

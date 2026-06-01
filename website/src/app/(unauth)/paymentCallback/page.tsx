@@ -13,6 +13,7 @@ import {
 } from "@/src/store/bookingSlice";
 import { Loader2, CheckCircle2, XCircle, AlertCircle, Wifi, WifiOff } from "lucide-react";
 import { usePaymentSocket } from "@/src/hooks/usePaymentSocket";
+import createAxiosInstance from "@/src/components/axiosInstance";
 
 const PaymentCallbackPage = () => {
   const router = useRouter();
@@ -51,21 +52,17 @@ const PaymentCallbackPage = () => {
     }, 3000);
   }, [router]);
 
-  const handleSuccessfulPayment = useCallback(async (orderRef: string) => {
+const handleSuccessfulPayment = useCallback(async (orderRef: string) => {
     try {
       setStatus("success");
       setMessage("Payment successful! Creating your booking...");
 
-      // Get booking data from localStorage or Redux
       let bookingData;
       const storedBookingData = localStorage.getItem("pendingBookingData");
 
       if (storedBookingData) {
         bookingData = JSON.parse(storedBookingData);
-        //console.log("📦 Using stored booking data");
       } else {
-        //console.log("⚠️ No stored data, using Redux state");
-        // Use ref here to avoid dependency on 'booking'
         const currentBooking = bookingRef.current;
 
         bookingData = {
@@ -89,43 +86,30 @@ const PaymentCallbackPage = () => {
           selectedPromotions: currentBooking.selectedPromotions || [],
           selectedAddons: currentBooking.selectedAddons || [],
           platforms: "web",
-          isLoyalityGuest: !!currentBooking.loyalityMemberEmail,
           customerId: customer.isAuthenticated ? customer.customer?.id : undefined,
         };
       }
 
-      // Attach payment info to booking
       if (bookingData) {
         bookingData.ngeniusOrderRef = orderRef;
       }
-
-      //console.log("📤 Sending booking request:", bookingData);
-
-      // Create booking via backend
-      const response = await fetch(
+const axiosInstace=createAxiosInstance();
+      // ✅ Axios with withCredentials
+      const { data: result } = await axiosInstace.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations`,
+        bookingData,
         {
-          method: "POST",
+          withCredentials: true,
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(bookingData),
         }
       );
 
-      const result = await response.json();
-      //console.log("📥 Booking Response:", result);
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to create booking");
-      }
-
-      // Update Redux and navigate
       dispatch(setBookingCode(result.data.bookingCode));
       dispatch(setBookingStatus(result.data.bookingStatus));
       dispatch(setFullBookingDetails(result.data));
 
-      // Cleanup
       localStorage.removeItem("ngeniusOrderRef");
       localStorage.removeItem("pendingBookingData");
 
@@ -140,7 +124,14 @@ const PaymentCallbackPage = () => {
     } catch (err: any) {
       console.error("❌ Booking creation error:", err);
       setStatus("error");
-      setMessage(err?.message || "Failed to create booking after successful payment");
+
+      // ✅ Axios error shape
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create booking after successful payment";
+
+      setMessage(errorMessage);
       toast.error("Failed to create booking. Please contact support.", {
         id: "booking-error",
       });

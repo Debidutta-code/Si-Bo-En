@@ -3,15 +3,18 @@ import { ICLoyalityLevels } from '../types';
 import {
     propertyLoyalityRepository,
     LoyalityLevelRepository,
+    creationLoyalityRepository
 } from '../repository';
 
 export class LoyalityLevelService {
     private loyalityLevelRepository: LoyalityLevelRepository;
     private propertyLoyalityRepo: propertyLoyalityRepository;
+    private creationLoyalityRepo: creationLoyalityRepository;
 
     constructor() {
         this.loyalityLevelRepository = new LoyalityLevelRepository();
         this.propertyLoyalityRepo = new propertyLoyalityRepository();
+        this.creationLoyalityRepo = new creationLoyalityRepository();
     }
 
     public async createLoyalityLevel(
@@ -20,7 +23,7 @@ export class LoyalityLevelService {
         try {
             // console.log(data);
             const [propertyConfig, existingLevels] = await Promise.all([
-                this.propertyLoyalityRepo.getPropertyLoyaltyConfigById(
+                this.creationLoyalityRepo.getCreationLoyalityById(
                     data.creationLoyaltyConfigId
                 ),
                 this.loyalityLevelRepository.findAllByPropertyConfigId(
@@ -31,7 +34,7 @@ export class LoyalityLevelService {
             if (!propertyConfig) {
                 return errorResponse(`Property loyalty config not found`);
             }
-            if (!propertyConfig.CreationLoyaltyConfig) {
+            if (!propertyConfig) {
                 return errorResponse(
                     `No loyalty configuration found for this property`
                 );
@@ -41,18 +44,18 @@ export class LoyalityLevelService {
             }
             if (
                 data.discountPercentage >
-                propertyConfig.CreationLoyaltyConfig.discountValue
+                propertyConfig.discountValue
             ) {
                 return errorResponse(
-                    `The Percentage value can't be higher than ${propertyConfig.CreationLoyaltyConfig.discountValue}`
+                    `The Percentage value can't be higher than ${propertyConfig.discountValue}`
                 );
             }
             if (
                 data.discountPercentage >
-                propertyConfig.CreationLoyaltyConfig.discountValue
+                propertyConfig.discountValue
             ) {
                 return errorResponse(
-                    `Discount percentage cannot exceed the property's maximum discount of ${propertyConfig.CreationLoyaltyConfig.discountValue}%`
+                    `Discount percentage cannot exceed the property's maximum discount of ${propertyConfig.discountValue}%`
                 );
             }
             if (existingLevels.find(l => l.level === data.level)) {

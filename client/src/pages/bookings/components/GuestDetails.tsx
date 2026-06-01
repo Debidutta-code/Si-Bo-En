@@ -3,6 +3,7 @@
 import { type FC } from "react";
 import { ArrowRight, ArrowLeft, User, Baby } from "lucide-react";
 import type { IAmendGuest, IGuestFieldErrors } from "../types/amend.types";
+import { useTranslation } from "react-i18next";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,7 +28,8 @@ interface IGuestCardProps {
 
 const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, isPrimary, errors, onGuestChange }) => {
   const isAdult = guest.type === "adult";
-
+  const { t } = useTranslation();
+  const gd = "AmendReservation.guestDetailsForm";
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden transition-all hover:border-primary/30">
       {/* Card header */}
@@ -40,20 +42,20 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, isPrimary,
         <div className="flex items-center gap-2">
           <span className={`text-xs font-bold uppercase tracking-wider
             ${isAdult ? "text-primary" : "text-muted-foreground"}`}>
-            {isAdult ? "Adult" : "Child"} {displayIndex}
+            {isAdult ? t(`${gd}.adult`) : t(`${gd}.child`)} {displayIndex}
           </span>
           {isPrimary ? (
             <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-              Primary Guest
+              {t('Bookings.reservationCard.primaryGuest')}
             </span>
           ) : (
             <span className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full">
-              Optional
+              {t(`${gd}.optional`)}
             </span>
           )}
           {guest.type === "child" && guest.age != null && (
             <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
-              Age {guest.age}
+              {t(`${gd}.ageTag`, { age: guest.age })}
             </span>
           )}
         </div>
@@ -72,11 +74,11 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, isPrimary,
           {/* First Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">
-              First Name {isPrimary && <span className="text-destructive">*</span>}
+              {t(`${gd}.firstName`)} {isPrimary && <span className="text-destructive">*</span>}
             </label>
             <input
               type="text"
-              placeholder="e.g. John"
+              placeholder={t(`${gd}.firstNamePlaceholder`)}
               value={guest.firstName}
               onChange={(e) => onGuestChange(index, "firstName", e.target.value)}
               className={`w-full rounded-lg border px-3.5 py-2.5 text-sm bg-background text-card-foreground
@@ -92,11 +94,11 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, isPrimary,
           {/* Last Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">
-              Last Name {isPrimary && <span className="text-destructive">*</span>}
+              {t(`${gd}.lastName`)} {isPrimary && <span className="text-destructive">*</span>}
             </label>
             <input
               type="text"
-              placeholder="e.g. Smith"
+              placeholder={t(`${gd}.lastNamePlaceholder`)}
               value={guest.lastName}
               onChange={(e) => onGuestChange(index, "lastName", e.target.value)}
               className={`w-full rounded-lg border px-3.5 py-2.5 text-sm bg-background text-card-foreground
@@ -111,7 +113,7 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, isPrimary,
 
           {/* Date of Birth */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Date of Birth</label>
+            <label className="text-xs font-medium text-muted-foreground">{t(`${gd}.dateOfBirth`)}</label>
             <input
               type="date"
               value={guest.dob}
@@ -124,7 +126,7 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, isPrimary,
 
           {guest.type === "child" && (
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-muted-foreground">Age</label>
+              <label className="text-xs font-medium text-muted-foreground">{t(`${gd}.ageLabel`)}</label>
               <select
                 value={guest.age ?? 0}
                 onChange={(e) => onGuestChange(index, "age", e.target.value)}
@@ -155,6 +157,8 @@ const GuestDetails: FC<IGuestDetailsProps> = ({
   onBack,
   onNext,
 }) => {
+  const { t } = useTranslation();
+  const gd = "AmendReservation.guestDetailsForm";
   const adultGuests = guests.filter((g) => g.type === "adult");
   const childGuests = guests.filter((g) => g.type === "child");
   const hasErrors = Object.keys(guestErrors).length > 0;
@@ -170,13 +174,13 @@ const GuestDetails: FC<IGuestDetailsProps> = ({
       {/* Progress hint */}
       <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2.5 border border-border/50">
         <span>
-          <span className="font-semibold text-card-foreground">{adultGuests.length}</span> adult{adultGuests.length !== 1 ? "s" : ""}
+          <span className="font-semibold text-card-foreground">{adultGuests.length}</span> {adultGuests.length !== 1 ? t(`${gd}.adult`) + "s" : t(`${gd}.adult`)}
           {childGuests.length > 0 && (
-            <>, <span className="font-semibold text-card-foreground">{childGuests.length}</span> child{childGuests.length !== 1 ? "ren" : ""}</>
+            <>, <span className="font-semibold text-card-foreground">{childGuests.length}</span> {childGuests.length !== 1 ? t(`${gd}.child`) + "ren" : t(`${gd}.child`)}</>
           )}
         </span>
         <span>
-          {guests.filter((g) => g.firstName.trim() && g.lastName.trim()).length}/{guests.length} filled
+          {guests.filter((g) => g.firstName.trim() && g.lastName.trim()).length}/{guests.length} {t(`${gd}.filled`)}
         </span>
       </div>
 
@@ -209,12 +213,12 @@ const GuestDetails: FC<IGuestDetailsProps> = ({
       {/* Hints */}
       {hasErrors && (
         <p className="text-xs text-destructive text-center">
-          Please fix the errors above before continuing.
+          {t(`${gd}.fixErrors`)}
         </p>
       )}
       {!allFilled && !hasErrors && (
         <p className="text-xs text-muted-foreground text-center ">
-          Fill in the primary guest name to continue.
+          {t(`${gd}.fillPrimary`)}
         </p>
       )}
 
@@ -226,7 +230,7 @@ const GuestDetails: FC<IGuestDetailsProps> = ({
             text-muted-foreground hover:text-card-foreground hover:bg-accent transition-all"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {t(`${gd}.back`)}
         </button>
         <button
           onClick={onNext}
@@ -236,7 +240,7 @@ const GuestDetails: FC<IGuestDetailsProps> = ({
             disabled:opacity-40 disabled:cursor-not-allowed
             shadow-sm hover:shadow-md active:scale-[0.99]"
         >
-          Review & Check Price
+          {t(`${gd}.reviewAndCheckPrice`)}
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

@@ -986,7 +986,7 @@ export class DashBoardRepository {
         return { methodBreakdown };
     }
 
-    private async getTopPerformingProperties(
+    public async getTopPerformingProperties(
         propertyIdsAndCodes: IPropertyCodeAndIds[],
         targetCurrency: CurrencyCode
     ): Promise<ITopPerformingProperties> {

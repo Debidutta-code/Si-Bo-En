@@ -161,6 +161,7 @@ export class LoyaltyGuestService {
                             {
                                 propertyLoyalityId: propertyLoyaltyConfig.id,
                                 customerId: existingGuest.id,
+                                noOfBookings:0
                             }
                         )
                     );

@@ -20,6 +20,7 @@ import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import FikafiPaymentButton from "@/src/components/payment/FikafiPaymentButton";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+import createAxiosInstance from "@/src/components/axiosInstance";
 
 // Updated interface to match actual API response
 interface PaymentIntegrationDetail {
@@ -331,14 +332,11 @@ const BookingReviewPage = () => {
         selectedPromotions: bookingDetails.selectedPromotions || [],
         selectedAddons: bookingDetails.selectedAddons || [],
         platforms: "web",
-        isLoyalityGuest: !!(                             // ADD THIS
-          bookingDetails.loyalityMemberEmail ||
-          localStorage.getItem(`loyalty_member_${PropertyId}`)
-        ),
         customerId: customer.isAuthenticated ? customer.customer?.id : undefined,
       };
 
-      const response = await axios.post(
+      const axiosInstance=createAxiosInstance();
+      const response = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations`,bookingData
         
       );
