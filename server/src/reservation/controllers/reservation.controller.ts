@@ -88,12 +88,13 @@ export class ReservationController {
             const geoLocation = await getGeoLocationDetails(req);
             const countryCode = geoLocation?.country;
             const { deviceType } = getDeviceInfo(req);
-
+            const loyaltyToken = req.cookies?.loyalty_token;
             const serviceRes = await this.reservationService.createReservation(
                 data,
                 PropertyDetails,
                 countryCode,
-                deviceType
+                deviceType,
+                loyaltyToken
             );
 
             return res.status(serviceRes.success ? 200 : 400).json(serviceRes);
@@ -145,7 +146,7 @@ export class ReservationController {
                 reservationCode,
                 propertyCode
             );
-            
+
             serRes = await ReservationInterceptor.intercept(serRes, locale);
 
             return res.status(serRes.success ? 200 : 400).json(serRes);
@@ -164,7 +165,7 @@ export class ReservationController {
         }
     }
 
-    
+
 
     /** GET /reservations  (protected via customerProtect) — my reservations for the logged-in customer */
     public async getMyReservations(

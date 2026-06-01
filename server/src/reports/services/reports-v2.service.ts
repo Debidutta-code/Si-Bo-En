@@ -4,6 +4,10 @@ import {
     ReportsV2Repository,
 } from '../dao/reports-v2.dao';
 import { ReportsV2ExcelService } from '.';
+import { convertCurrency } from '../../currency-maping/utils/currency-exchnage.utils';
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
+import { DashBoardRepository } from '../../dashboard/repository/dash.repository';
+import { IPropertyCodeAndIds } from '../../dashboard/types';
 
 const XLSX_CONTENT_TYPE =
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
@@ -12,11 +16,13 @@ export class ReportsV2Service {
     private dao: ReportsV2Repository;
     private xl: ReportsV2ExcelService;
     private scopeResolver: CreationScopeResolver;
+    private dashRepo: DashBoardRepository;
 
     constructor() {
         this.dao = new ReportsV2Repository();
         this.xl = new ReportsV2ExcelService();
         this.scopeResolver = new CreationScopeResolver();
+        this.dashRepo = new DashBoardRepository();
     }
 
     private async resolveScope(
@@ -33,37 +39,85 @@ export class ReportsV2Service {
         );
     }
 
-    // ── Report 1: Comparison ──────────────────────────────────────────────────
+    /**
+     * Builds a multiplier map: nativeCurrency → factor to reach targetCurrency.
+     * Fetches exchange rates only once per unique currency to avoid N*Redis-round-trips.
+     */
+    private async buildRateMap(
+        reservations: any[],
+        targetCurrency: string
+    ): Promise<Map<string, number>> {
+        const uniqueCurrencies = new Set<string>();
+        for (const r of reservations) {
+            const c = r.PricingBrakeDown?.currencyCode || r.currencyCode;
+            if (c) uniqueCurrencies.add(c);
+        }
+
+        const rateMap = new Map<string, number>();
+        await Promise.all(
+            [...uniqueCurrencies].map(async (from) => {
+                try {
+                    // Convert 1 unit → get the multiplier
+                    const converted = await convertCurrency(
+                        1,
+                        from as CurrencyCode,
+                        targetCurrency as CurrencyCode
+                    );
+                    rateMap.set(from, converted);
+                } catch {
+                    // If rate missing, fall back to 1 (native amount, no conversion)
+                    rateMap.set(from, 1);
+                }
+            })
+        );
+        return rateMap;
+    }
+
+    // ── Report 1: Comparison ────────────────────────────────────────────
+    /**
+     * Uses the dashboard’s getStatisticsComparison to produce a
+     * current-vs-previous-period comparison report (date / month / year).
+     */
     public async generateComparison(params: {
         creationId: string;
-        startDate: string;
-        endDate: string;
-        groupBy?: 'day' | 'month' | 'year';
+        comparisonType?: 'date' | 'month' | 'year';
+        selectedDate?: string;   // ISO date string; defaults to today
+        targetCurrency?: string;
         propertyId?: string;
         brandId?: string;
         groupId?: string;
     }) {
         try {
+            console.log("Querry Params",params)
             const propertyIds = await this.resolveScope(
                 params.creationId,
                 params.propertyId,
                 params.brandId,
                 params.groupId
             );
+            console.log("ProperytIds",propertyIds)
             if (!propertyIds.length)
                 return errorResponse('No properties found for your account');
 
-            const data = await this.dao.getComparisonData(
+            const comparisonType = params.comparisonType || 'month';
+            const selectedDate = params.selectedDate
+                ? new Date(params.selectedDate)
+                : new Date();
+            const currency = (params.targetCurrency || 'USD') as CurrencyCode;
+
+            const data = await this.dashRepo.getStatisticsComparison(
                 propertyIds,
-                params.startDate,
-                params.endDate,
-                params.groupBy || 'month'
+                comparisonType,
+                selectedDate,
+                currency
             );
+
             const excel = await this.xl.generateComparison(data);
 
+            const label = selectedDate.toISOString().split('T')[0];
             return successResponse('Comparison report generated', {
                 excel,
-                fileName: `comparison-report-${params.startDate}-${params.endDate}.xlsx`,
+                fileName: `comparison-${comparisonType}-${label}.xlsx`,
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
@@ -203,12 +257,14 @@ export class ReportsV2Service {
         }
     }
 
-    // ── Report 5: Top Properties ──────────────────────────────────────────────
+    // ── Report 5: Top Properties ────────────────────────────────────────────
+    /**
+     * Uses the dashboard’s getTopPerformingProperties to produce a report
+     * with three dimensions: By Revenue, By Bookings, and By Occupancy.
+     */
     public async generateTopProperties(params: {
         creationId: string;
-        startDate: string;
-        endDate: string;
-        sortBy?: 'revenue' | 'bookings' | 'nights';
+        targetCurrency?: string;
         propertyId?: string;
         brandId?: string;
         groupId?: string;
@@ -223,19 +279,20 @@ export class ReportsV2Service {
             if (!propertyIds.length)
                 return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getTopPropertiesData(
-                propertyIds,
-                params.startDate,
-                params.endDate
+            // Build IPropertyCodeAndIds[] directly from DB records
+            const propertyIdsAndCodes: IPropertyCodeAndIds[] = await this.dao.getPropertyCodesAndNames(propertyIds);
+
+            const currency = (params.targetCurrency || 'USD') as CurrencyCode;
+            const data = await this.dashRepo.getTopPerformingProperties(
+                propertyIdsAndCodes,
+                currency
             );
-            const excel = await this.xl.generateTopProperties(
-                reservations,
-                params.sortBy || 'revenue'
-            );
+
+            const excel = await this.xl.generateTopProperties(data, currency);
 
             return successResponse('Top properties report generated', {
                 excel,
-                fileName: `top-properties-${params.startDate}-${params.endDate}.xlsx`,
+                fileName: `top-properties-${new Date().toISOString().split('T')[0]}.xlsx`,
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
@@ -254,6 +311,7 @@ export class ReportsV2Service {
         propertyId?: string;
         brandId?: string;
         groupId?: string;
+        targetCurrency?: string;
     }) {
         try {
             const propertyIds = await this.resolveScope(
@@ -271,9 +329,19 @@ export class ReportsV2Service {
                 params.endDate
             );
             const propertyNames = await this.dao.getPropertyNames(propertyIds);
+
+            // Build conversion rate map if a target currency was requested
+            let rateMap: Map<string, number> | undefined;
+            if (params.targetCurrency) {
+                rateMap = await this.buildRateMap(reservations, params.targetCurrency);
+            }
+
             const excel = await this.xl.generateAllReservations(
                 reservations,
-                propertyNames
+                propertyNames,
+                params.targetCurrency
+                    ? { targetCurrency: params.targetCurrency, rateMap: rateMap! }
+                    : undefined
             );
 
             return successResponse('All reservations report generated', {
@@ -378,41 +446,91 @@ export class ReportsV2Service {
             );
         }
     }
-
-    // ── Report 9: Loyalty Guests ──────────────────────────────────────────────
     public async generateLoyaltyGuests(params: {
         creationId: string;
-        propertyId?: string;
         brandId?: string;
         groupId?: string;
+        startDate?: string;
+        endDate?: string;
+        propertyId?: string;
+        propertyCreationId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(
-                params.creationId,
-                params.propertyId,
-                params.brandId,
-                params.groupId
+            const today = new Date().toISOString().split('T')[0];
+
+            if (params.propertyId && params.propertyCreationId) {
+                const [creationConfig,config] = await Promise.all([
+                    this.dao.getLoyaltyGuestsByCreation(
+                    params.propertyCreationId,
+                    params.startDate,
+                    params.endDate
+                ),
+                this.dao.getLoyaltyGuestsByProperty(
+                    params.propertyId,
+                    params.startDate,
+                    params.endDate
+                )
+                ]) 
+
+                if (creationConfig&&config&&creationConfig.id==config.creationLoyaltyConfigId) {
+                    const excel = await this.xl.generateLoyaltyGuests({
+                        mode: 'creation',
+                        loyaltyLevels: creationConfig.LoyalityLevels,
+                        guests: creationConfig.CreationGuest,
+                    });
+
+                    return successResponse('Loyalty guest report generated', {
+                        excel,
+                        fileName: `loyalty-guests-property-${today}.xlsx`,
+                        contentType: XLSX_CONTENT_TYPE,
+                    });
+                }
+                if (!config) {
+                    return errorResponse(
+                        'No loyalty program configured for this property'
+                    );
+                }
+
+                const excel = await this.xl.generateLoyaltyGuests({
+                    mode: 'property',
+                    propertyName: config.propertyName,
+                    propertyCode: config.propertyCode,
+                    guests: config.PropertyLoyalityGuests,
+                });
+
+                return successResponse('Loyalty guest report generated', {
+                    excel,
+                    fileName: `loyalty-guests-property-${today}.xlsx`,
+                    contentType: XLSX_CONTENT_TYPE,
+                });
+            }
+
+            const targetCreationId =
+                params.brandId ??
+                params.groupId ??
+                params.creationId;
+
+            const config = await this.dao.getLoyaltyGuestsByCreation(
+                targetCreationId,
+                params.startDate,
+                params.endDate
             );
-            if (!propertyIds.length)
-                return errorResponse('No properties found for your account');
 
-            const guests = await this.dao.getLoyaltyGuests(propertyIds);
+            if (!config) {
+                return errorResponse(
+                    `No loyalty program configured for this ${targetCreationId === params.brandId ? 'Brand' : targetCreationId === params.groupId ? 'Group' : 'Super Group'}`
+                );
+            }
 
-            // Build cross-property spend map: for each loyalty guest collect
-            // their email + all enrolled property IDs, then aggregate spend
-            const spendInput = guests.map((g: any) => ({
-                email: g.email,
-                enrolledPropertyIds: (g.PropertyLoyalityGuests ?? []).map(
-                    (plg: any) => plg.PropertyLoyalityConfig?.propertyId
-                ).filter(Boolean),
-            }));
-            const spendMap = await this.dao.getLoyaltyGuestSpendMap(spendInput);
-
-            const excel = await this.xl.generateLoyaltyGuests(guests, spendMap);
+            const excel = await this.xl.generateLoyaltyGuests({
+                mode: 'creation',
+                loyaltyLevels: config.LoyalityLevels,
+                guests: config.CreationGuest,
+            });
 
             return successResponse('Loyalty guest report generated', {
                 excel,
-                fileName: `loyalty-guests-${new Date().toISOString().split('T')[0]}.xlsx`,
+                fileName: `loyalty-guests-${today}.xlsx`,
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {

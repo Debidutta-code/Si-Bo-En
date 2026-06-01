@@ -69,18 +69,18 @@ export class LoyaltyGuestRepository {
                 },
                 include: {
                     Customer: {
-                        select:{
-                            firstName:true,
-                            lastName:true,
-                            email:true,
-                            id:true
+                        select: {
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            id: true
                         }
                     }
                 },
                 skip,
                 take,
             });
-            
+
         } catch (error) {
             throw new Error('Failed to get loyalty guests for property');
         }
@@ -145,7 +145,7 @@ export class LoyaltyGuestRepository {
             throw new Error('Failed to get loyalty guest for creation');
         }
     }
-    public async getPropertyLoyaltyConfig(propertyId: string): Promise<IPropertyLoyaltyConfig|null> {
+    public async getPropertyLoyaltyConfig(propertyId: string): Promise<IPropertyLoyaltyConfig | null> {
         try {
             return await prisma.propertyLoyaltyConfig.findUnique({
                 where: { propertyId, isActive: true },
@@ -196,6 +196,7 @@ export class LoyaltyGuestRepository {
                 data: {
                     noOfBookings: newBookings,
                     ...(shouldUpgrade && { guestLevel: nextLevel!.level }),
+                    updatedAt: new Date()
                 },
             });
         } catch (error) {
@@ -204,14 +205,15 @@ export class LoyaltyGuestRepository {
     }
 
     public async handlePostBookingLoyalty(
-        guestEmail: string,
-        creationLoyaltyConfigId: string,
         propertyId: string,
-        isLoyalityGuest?: boolean
+        loyaltyToken?: string
     ): Promise<void> {
         try {
-            if (!isLoyalityGuest) return;
-
+            if (!loyaltyToken) return
+            const guestId = loyaltyToken.split("split")[0]
+            const lPropertyId = loyaltyToken.split("split")[1]
+            const shouldUpgrade = lPropertyId === propertyId
+            if (!shouldUpgrade) return
 
             const propertyLoyaltyConfig =
                 await this.getPropertyLoyaltyConfigByPropertyId(propertyId);
@@ -221,33 +223,41 @@ export class LoyaltyGuestRepository {
             const propertyCreationConfigId =
                 propertyLoyaltyConfig.creationLoyaltyConfigId;
 
-            const loyalityGuest = await prisma.customers.findUnique({
-                where: { email: guestEmail },
+            const customer = await prisma.customers.findUnique({
+                where: { id: guestId },
             });
-            if (!loyalityGuest) return;
+            if (!customer) return;
 
             const alreadyLinkedToProperty =
                 await this.propertyGuestRepo.guestExistForProperty(
                     propertyLoyaltyConfig.id,
-                    loyalityGuest.id
+                    customer.id
                 );
             if (!alreadyLinkedToProperty) {
                 await this.propertyGuestRepo.createPropertyLoyaltyGuest({
                     propertyLoyalityId: propertyLoyaltyConfig.id,
-                    customerId: loyalityGuest.id,
+                    customerId: customer.id,
+                    noOfBookings: 0
                 });
             }
 
-            const creationGuest = await this.creationGuestRepo.checkIfGuestExist(
-                propertyCreationConfigId,
-                loyalityGuest.id
-            );
+
+            const [creationGuest, inRes] = await Promise.all([
+                this.creationGuestRepo.checkIfGuestExist(
+                    propertyCreationConfigId,
+                    customer.id
+                ),
+                await this.propertyGuestRepo.increasePropertyLoyalityBookings(
+                    propertyLoyaltyConfig.id,
+                    customer.id
+                )
+            ])
 
             if (creationGuest) {
                 const levels = await this.loyaltyLevelRepo.findAllByPropertyConfigId(
                     propertyCreationConfigId
                 );
-                
+
 
                 await this.incrementBookingsAndMaybeUpgrade(
                     creationGuest.id,
@@ -257,7 +267,7 @@ export class LoyaltyGuestRepository {
                 );
             } else {
                 await this.creationGuestRepo.createCreationGuest({
-                    customerId: loyalityGuest.id,
+                    customerId: customer.id,
                     creationLoyaltyConfigId: propertyCreationConfigId,
                     guestLevel: 1,
                     noOfBookings: 1,
@@ -273,11 +283,11 @@ export class LoyaltyGuestRepository {
      * Post-cancel loyalty handler — called after a reservation is cancelled.
      */
     public async handlePostCancelLoyalty(
-        guestEmail: string,
+        customerId: string | null,
         propertyId: string
     ): Promise<void> {
         try {
-            const creationGuestRepo = new CreationGuestRepository();
+            if (!customerId) return;
 
             const propertyLoyaltyConfig =
                 await this.getPropertyLoyaltyConfigByPropertyId(propertyId);
@@ -287,15 +297,21 @@ export class LoyaltyGuestRepository {
             const propertyCreationConfigId =
                 propertyLoyaltyConfig.creationLoyaltyConfigId;
 
-            const loyalityGuest = await prisma.customers.findUnique({
-                where: { email: guestEmail },
+            const customer = await prisma.customers.findUnique({
+                where: { id: customerId },
             });
-            if (!loyalityGuest) return;
+            if (!customer) return;
 
-            const creationGuest = await creationGuestRepo.checkIfGuestExist(
-                propertyCreationConfigId,
-                loyalityGuest.id
-            );
+            const [creationGuest, inRes] = await Promise.all([
+                this.creationGuestRepo.checkIfGuestExist(
+                    propertyCreationConfigId,
+                    customer.id
+                ),
+                await this.propertyGuestRepo.decreasePropertyLoyalityBookings(
+                    propertyLoyaltyConfig.id,
+                    customer.id
+                )
+            ])
             if (!creationGuest || creationGuest.noOfBookings <= 0) return;
 
             const newBookings = creationGuest.noOfBookings - 1;

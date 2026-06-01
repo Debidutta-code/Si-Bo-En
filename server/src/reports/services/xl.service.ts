@@ -98,80 +98,71 @@ export class ReportsV2ExcelService {
     }
 
     // ── Report 1: Comparison ──────────────────────────────────────────────────
-    public async generateComparison(data: any): Promise<Buffer> {
+    public async generateComparison(data: {
+        currencyCode: string;
+        bookings: { current: number; previous: number; percentageChange: number };
+        cancelledBookings: { current: number; previous: number; percentageChange: number };
+        revenue: { current: number; previous: number; percentageChange: number };
+        averageBookingValue: { current: number; previous: number; percentageChange: number };
+        roomNights: { current: number; previous: number; percentageChange: number };
+        period: {
+            current: { start: Date; end: Date; label: string };
+            previous: { start: Date; end: Date; label: string };
+        };
+    }): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
-        const ws = wb.addWorksheet('Comparison Report');
-        const cols = 7;
+        const ws = wb.addWorksheet('Statistics Comparison');
+        const cols = 4;
+
+        const currentLabel = data.period.current.label || this.fmtDate(data.period.current.start);
+        const previousLabel = data.period.previous.label || this.fmtDate(data.period.previous.start);
+
         this.addTitle(
             ws,
-            'Comparison Report',
-            `Period: ${this.fmtDate(data.start)} – ${this.fmtDate(data.end)} | Group By: ${data.groupBy}`,
+            'Statistics Comparison Report',
+            `${previousLabel}  →  ${currentLabel} | Currency: ${data.currencyCode}`,
             cols
         );
 
-        const grouped = new Map<string, any[]>();
-        for (const r of data.reservations) {
-            const d = new Date(r.reservationStartDate);
-            let key: string;
-            if (data.groupBy === 'day') key = d.toLocaleDateString('en-GB');
-            else if (data.groupBy === 'month')
-                key = `${d.getMonth() + 1}/${d.getFullYear()}`;
-            else key = String(d.getFullYear());
-            if (!grouped.has(key)) grouped.set(key, []);
-            grouped.get(key)!.push(r);
-        }
-
-        const hdr = ws.addRow([
-            'Period',
-            'Total Bookings',
-            'Revenue',
-            'Avg. Booking Value',
-            'Cancellation Rate',
-            'Room Nights',
-            'Properties',
-        ]);
+        const hdr = ws.addRow(['Metric', previousLabel, currentLabel, '% Change']);
         this.styleHeader(hdr, cols);
         ws.columns = [
-            { width: 18 },
+            { width: 28 },
+            { width: 22 },
+            { width: 22 },
             { width: 16 },
-            { width: 16 },
-            { width: 20 },
-            { width: 18 },
-            { width: 14 },
-            { width: 20 },
         ];
+
         const startRow = ws.lastRow!.number + 1;
 
-        for (const [period, rows] of grouped) {
-            const total = rows.length;
-            const revenue = rows
-                .filter(r => r.bookingStatus !== 'cancelled')
-                .reduce((s, r) => s + Number(r.amount), 0);
-            const cancelled = rows.filter(
-                r => r.bookingStatus === 'cancelled'
-            ).length;
-            const avgVal = total > 0 ? revenue / total : 0;
-            const cancelRate =
-                total > 0 ? ((cancelled / total) * 100).toFixed(1) + '%' : '0%';
-            const nights = rows.reduce(
-                (s, r) =>
-                    s +
-                    this.roomNights(
-                        r.reservationStartDate,
-                        r.reservationEndDate
-                    ),
-                0
-            );
-            const props = [...new Set(rows.map(r => r.hotelName))].join(', ');
-            ws.addRow([
-                period,
-                total,
-                this.fmtNum(revenue),
-                this.fmtNum(avgVal),
-                cancelRate,
-                nights,
-                props,
+        const fmtChange = (pct: number): string => {
+            const sign = pct >= 0 ? '+' : '';
+            return `${sign}${pct.toFixed(1)}%`;
+        };
+
+        const metrics: [string, { current: number; previous: number; percentageChange: number }, boolean][] = [
+            ['Total Bookings',        data.bookings,          false],
+            ['Cancelled Bookings',    data.cancelledBookings, false],
+            [`Revenue (${data.currencyCode})`, data.revenue,  true],
+            [`Avg. Booking Value (${data.currencyCode})`, data.averageBookingValue, true],
+            ['Room Nights',           data.roomNights,        false],
+        ];
+
+        for (const [label, m, isMoney] of metrics) {
+            const row = ws.addRow([
+                label,
+                isMoney ? this.fmtNum(m.previous) : m.previous,
+                isMoney ? this.fmtNum(m.current) : m.current,
+                fmtChange(m.percentageChange),
             ]);
+
+            // Colour the % change cell: green if positive, red if negative
+            const changeCell = row.getCell(4);
+            if (m.percentageChange > 0) {
+                changeCell.font = { bold: true, color: { argb: 'FF15803D' } };
+            } else if (m.percentageChange < 0) {
+                changeCell.font = { bold: true, color: { argb: 'FFB91C1C' } };
+            }
         }
 
         const endRow = ws.lastRow!.number;
@@ -485,120 +476,111 @@ if(!pb) continue;
 
     // ── Report 5: Top Properties ──────────────────────────────────────────────
     public async generateTopProperties(
-        reservations: any[],
-        sortBy: 'revenue' | 'bookings' | 'nights'
+        data: {
+            topByRevenue: { propertyId: string; propertyCode: string; propertyName: string; totalRevenue: number }[];
+            topByBookings: { propertyId: string; propertyCode: string; propertyName: string; totalBookings: number }[];
+            topByOccupancy: { propertyId: string; propertyCode: string; propertyName: string; occupancyRate: number; totalRooms: number; occupiedRooms: number }[];
+        },
+        currency: string
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
-        const ws = wb.addWorksheet('Top Properties');
-        const cols = 7;
-        this.addTitle(
-            ws,
-            'Top Performing Properties',
-            `Sorted by: ${sortBy}`,
-            cols
-        );
+        const generatedAt = new Date().toLocaleDateString('en-GB');
 
-        const map = new Map<
-            string,
-            {
-                name: string;
-                code: string;
-                bookings: number;
-                revenue: number;
-                nights: number;
-                cancelled: number;
-            }
-        >();
-        for (const r of reservations) {
-            if (!map.has(r.propertyId))
-                map.set(r.propertyId, {
-                    name: r.hotelName,
-                    code: r.propertyCode,
-                    bookings: 0,
-                    revenue: 0,
-                    nights: 0,
-                    cancelled: 0,
-                });
-            const e = map.get(r.propertyId)!;
-            e.bookings++;
-            if (r.bookingStatus === 'cancelled') e.cancelled++;
-            else {
-                e.revenue += Number(r.amount);
-                e.nights += this.roomNights(
-                    r.reservationStartDate,
-                    r.reservationEndDate
-                );
-            }
-        }
+        // ── Sheet 1: Top by Revenue ───────────────────────────────────────────
+        const ws1 = wb.addWorksheet('Top by Revenue');
+        this.addTitle(ws1, 'Top Properties by Revenue', `Currency: ${currency} | Generated: ${generatedAt}`, 4);
+        const h1 = ws1.addRow(['Rank', 'Property', 'Code', `Revenue (${currency})`]);
+        this.styleHeader(h1, 4);
+        ws1.columns = [{ width: 8 }, { width: 30 }, { width: 12 }, { width: 20 }];
+        const s1 = ws1.lastRow!.number + 1;
+        data.topByRevenue.forEach((p, i) => {
+            ws1.addRow([i + 1, p.propertyName, p.propertyCode, this.fmtNum(p.totalRevenue)]);
+        });
+        this.addBorders(ws1, s1 - 1, ws1.lastRow!.number, 4);
+        this.styleAltRows(ws1, s1, 4);
 
-        const rows = [...map.values()].sort((a, b) =>
-            sortBy === 'revenue'
-                ? b.revenue - a.revenue
-                : sortBy === 'bookings'
-                    ? b.bookings - a.bookings
-                    : b.nights - a.nights
-        );
+        // ── Sheet 2: Top by Bookings ──────────────────────────────────────────
+        const ws2 = wb.addWorksheet('Top by Bookings');
+        this.addTitle(ws2, 'Top Properties by Bookings', `Generated: ${generatedAt}`, 4);
+        const h2 = ws2.addRow(['Rank', 'Property', 'Code', 'Total Bookings']);
+        this.styleHeader(h2, 4);
+        ws2.columns = [{ width: 8 }, { width: 30 }, { width: 12 }, { width: 18 }];
+        const s2 = ws2.lastRow!.number + 1;
+        data.topByBookings.forEach((p, i) => {
+            ws2.addRow([i + 1, p.propertyName, p.propertyCode, p.totalBookings]);
+        });
+        this.addBorders(ws2, s2 - 1, ws2.lastRow!.number, 4);
+        this.styleAltRows(ws2, s2, 4);
 
-        const hdr = ws.addRow([
-            'Rank',
-            'Property',
-            'Code',
-            'Total Bookings',
-            'Revenue',
-            'Avg Booking Value',
-            'Room Nights',
-            'Cancellation Rate',
-        ]);
-        this.styleHeader(hdr, 8);
-        ws.columns = [
-            { width: 8 },
-            { width: 28 },
-            { width: 10 },
-            { width: 16 },
-            { width: 16 },
-            { width: 20 },
-            { width: 14 },
-            { width: 18 },
-        ];
-        const startRow = ws.lastRow!.number + 1;
-
-        rows.forEach((r, i) => {
-            const avgVal = r.bookings > 0 ? r.revenue / r.bookings : 0;
-            const cancelRate =
-                r.bookings > 0
-                    ? ((r.cancelled / r.bookings) * 100).toFixed(1) + '%'
-                    : '0%';
-            ws.addRow([
+        // ── Sheet 3: Top by Occupancy ─────────────────────────────────────────
+        const ws3 = wb.addWorksheet('Top by Occupancy');
+        this.addTitle(ws3, 'Top Properties by Occupancy', `Generated: ${generatedAt}`, 6);
+        const h3 = ws3.addRow(['Rank', 'Property', 'Code', 'Total Rooms', 'Occupied Rooms', 'Occupancy Rate']);
+        this.styleHeader(h3, 6);
+        ws3.columns = [{ width: 8 }, { width: 30 }, { width: 12 }, { width: 14 }, { width: 16 }, { width: 16 }];
+        const s3 = ws3.lastRow!.number + 1;
+        data.topByOccupancy.forEach((p, i) => {
+            ws3.addRow([
                 i + 1,
-                r.name,
-                r.code,
-                r.bookings,
-                this.fmtNum(r.revenue),
-                this.fmtNum(avgVal),
-                r.nights,
-                cancelRate,
+                p.propertyName,
+                p.propertyCode,
+                p.totalRooms,
+                p.occupiedRooms,
+                `${p.occupancyRate.toFixed(1)}%`,
             ]);
         });
+        this.addBorders(ws3, s3 - 1, ws3.lastRow!.number, 6);
+        this.styleAltRows(ws3, s3, 6);
 
-        this.addBorders(ws, startRow - 1, ws.lastRow!.number, 8);
-        this.styleAltRows(ws, startRow, 8);
         return Buffer.from(await wb.xlsx.writeBuffer());
     }
 
+
+
     public async generateAllReservations(
         reservations: any[],
-        propertyNames: Map<string, string>
+        propertyNames: Map<string, string>,
+        conversionOptions?: { targetCurrency: string; rateMap: Map<string, number> }
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
         const ws = wb.addWorksheet('All Reservations');
         const cols = 21;
 
-        this.addTitle(
-            ws,
-            'All Reservations Report',
-            `Total: ${reservations.length}`,
-            cols
-        );
+        const isConverted = !!conversionOptions;
+        const { targetCurrency, rateMap } = conversionOptions ?? { targetCurrency: '', rateMap: new Map() };
+
+        // Helper: apply conversion factor for a given native currency
+        const applyRate = (amount: number, nativeCurrency: string): number => {
+            if (!isConverted) return amount;
+            const factor = rateMap.get(nativeCurrency) ?? 1;
+            return Math.round(amount * factor * 100) / 100;
+        };
+
+        // Title + subtitle
+        const subtitle = isConverted
+            ? `Total: ${reservations.length} | Amounts converted to ${targetCurrency} ⚠ Indicative prices only`
+            : `Total: ${reservations.length}`;
+
+        this.addTitle(ws, 'All Reservations Report', subtitle, cols);
+
+        // Warning row (only when conversion is active)
+        if (isConverted) {
+            ws.mergeCells(ws.lastRow!.number + 1, 1, ws.lastRow!.number + 1, cols);
+            const warnRow = ws.lastRow!;
+            warnRow.getCell(1).value =
+                `⚠  All monetary amounts below are indicative conversions to ${targetCurrency} based on live exchange rates and may differ from the amounts actually charged to guests.`;
+            warnRow.getCell(1).font = { bold: true, color: { argb: 'FF92400E' }, size: 10 };
+            warnRow.getCell(1).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFFFF3CD' },
+            };
+            warnRow.getCell(1).alignment = { wrapText: true, horizontal: 'left', vertical: 'middle' };
+            warnRow.height = 30;
+            ws.addRow([]); // spacer
+        }
+
+        const currencyHeader = isConverted ? `Currency (${targetCurrency} – Indicative)` : 'Currency';
 
         const hdr = ws.addRow([
             'Booking Code',
@@ -611,10 +593,10 @@ if(!pb) continue;
             'Check-In',
             'Check-Out',
             'Nights',
-            'Currency',
+            currencyHeader,
             'Amount Before Tax',
             'Tax Amount',
-            "Amount after Tax",
+            'Amount after Tax',
             'Later Payable',
             'Total Amount',
             'Status',
@@ -630,16 +612,19 @@ if(!pb) continue;
 
         for (const r of reservations) {
             const pb = r.PricingBrakeDown;
-        if(!pb) continue; 
+            if (!pb) continue;
 
+            const nativeCurrency: string = pb?.currencyCode || r.currencyCode || '';
             const nights = this.roomNights(r.reservationStartDate, r.reservationEndDate);
 
-            const amountBeforeTax = Number(pb?.amountBeforeTax ?? 0);
-            const taxedAmount = Number(pb?.taxedAmount ?? 0);
-            const totalAmount = Number(pb?.totalAmount ?? r.amount ?? 0);
-            const chargeableAmount = Number(pb?.currentChargeableAmount ?? 0);
-            const laterPayable = Number(pb?.latterpayableAmount ?? r.extraAmountToPay ?? 0);
-            const amountAfterTax = amountBeforeTax + taxedAmount;
+            const amountBeforeTax  = applyRate(Number(pb?.amountBeforeTax ?? 0), nativeCurrency);
+            const taxedAmount      = applyRate(Number(pb?.taxedAmount ?? 0), nativeCurrency);
+            const totalAmount      = applyRate(Number(pb?.totalAmount ?? r.amount ?? 0), nativeCurrency);
+            const laterPayable     = applyRate(Number(pb?.latterpayableAmount ?? r.extraAmountToPay ?? 0), nativeCurrency);
+            const amountAfterTax   = amountBeforeTax + taxedAmount;
+
+            const displayCurrency  = isConverted ? targetCurrency : (nativeCurrency || 'N/A');
+
             ws.addRow([
                 r.bookingCode?.split('-').slice(1).join('-') ?? r.bookingCode,
                 propertyNames.get(r.propertyId) || r.hotelName,
@@ -653,7 +638,7 @@ if(!pb) continue;
                 this.fmtDate(r.reservationStartDate),
                 this.fmtDate(r.reservationEndDate),
                 nights,
-                r.currencyCode || pb?.currencyCode || 'N/A',
+                displayCurrency,
                 this.fmtNum(amountBeforeTax),
                 this.fmtNum(taxedAmount),
                 this.fmtNum(amountAfterTax),
@@ -671,6 +656,7 @@ if(!pb) continue;
         this.styleAltRows(ws, startRow, cols);
         return Buffer.from(await wb.xlsx.writeBuffer());
     }
+
     // ── Report 7: Check-In / Check-Out ───────────────────────────────────────
     public async generateCheckInOut(
         reservations: any[],
@@ -697,7 +683,6 @@ if(!pb) continue;
             'Room Type',
             'Check-In',
             'Check-Out',
-            'Nights',
             'Currency',
             'Amount',
             'Status',
@@ -712,7 +697,6 @@ if(!pb) continue;
             { width: 14 },
             { width: 12 },
             { width: 12 },
-            { width: 8 },
             { width: 10 },
             { width: 12 },
             { width: 14 },
@@ -731,7 +715,6 @@ if(!pb) continue;
                 r.roomTypeCode || 'N/A',
                 this.fmtDate(r.checkInDate),
                 this.fmtDate(r.checkOutDate),
-                this.roomNights(r.reservationStartDate, r.reservationEndDate),
                 r.PricingBrakeDown?.currencyCode || r.currencyCode || 'N/A',
                 this.fmtNum(r.amount),
                 r.bookingStatus,
@@ -808,16 +791,95 @@ if(!pb) continue;
 
     // ── Report 9: Loyalty Guests ──────────────────────────────────────────────
     public async generateLoyaltyGuests(
-        guests: any[],
-        spendMap: Map<string, number>
+        input:
+            | {
+                  mode: 'property';
+                  propertyName: string;
+                  propertyCode: string;
+                  guests: Array<{
+                      Customer: { firstName: string; lastName: string; email: string } | null;
+                      noOfBookings: number;
+                      createdAt: Date;
+                  }>;
+              }
+            | {
+                  mode: 'creation';
+                  loyaltyLevels: Array<{ level: number; discountPercentage: number; noOfReservations: number }>;
+                  guests: Array<{
+                      guestLevel: number;
+                      noOfBookings: number;
+                      metaData: any;
+                      createdAt: Date;
+                      Customer: {
+                          firstName: string;
+                          lastName: string;
+                          email: string;
+                          PropertyLoyalityGuests: Array<{
+                              PropertyLoyalityConfig: {
+                                  propertyName: string;
+                                  propertyCode: string;
+                                  isActive: boolean;
+                              } | null;
+                          }>;
+                      } | null;
+                  }>;
+              }
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
+        const generatedAt = new Date().toLocaleDateString('en-GB');
+
+        // ── Path A: Property mode ─────────────────────────────────────────────
+        if (input.mode === 'property') {
+            const ws = wb.addWorksheet('Loyalty Guests');
+            const cols = 5;
+            this.addTitle(
+                ws,
+                'Loyalty Guest Report',
+                `Property: ${input.propertyName} (${input.propertyCode}) | Total: ${input.guests.length} | Generated: ${generatedAt}`,
+                cols
+            );
+
+            const hdr = ws.addRow([
+                'First Name',
+                'Last Name',
+                'Email',
+                'No. of Bookings',
+                'Enrolled Since',
+            ]);
+            this.styleHeader(hdr, cols);
+            ws.columns = [
+                { width: 18 },
+                { width: 18 },
+                { width: 30 },
+                { width: 18 },
+                { width: 18 },
+            ];
+            const startRow = ws.lastRow!.number + 1;
+
+            for (const g of input.guests) {
+                ws.addRow([
+                    g.Customer?.firstName || 'N/A',
+                    g.Customer?.lastName || 'N/A',
+                    g.Customer?.email || 'N/A',
+                    g.noOfBookings,
+                    g.createdAt
+                        ? new Date(g.createdAt).toLocaleDateString('en-GB')
+                        : 'N/A',
+                ]);
+            }
+
+            this.addBorders(ws, startRow - 1, ws.lastRow!.number, cols);
+            this.styleAltRows(ws, startRow, cols);
+            return Buffer.from(await wb.xlsx.writeBuffer());
+        }
+
+        // ── Path B: Creation mode (Group / Brand / Super) ─────────────────────
         const ws = wb.addWorksheet('Loyalty Guests');
-        const cols = 11;
+        const cols = 7;
         this.addTitle(
             ws,
             'Loyalty Guest Report',
-            `Total Loyalty Guests: ${guests.length}`,
+            `Total Loyalty Guests: ${input.guests.length} | Generated: ${generatedAt}`,
             cols
         );
 
@@ -825,46 +887,30 @@ if(!pb) continue;
             'First Name',
             'Last Name',
             'Email',
-            'Phone',
-            'Country',
-            'Home Property',
-            'Enrolled Properties',
             'Loyalty Level',
-            'Total Bookings',
-            'Total Spend',
+            'No. of Bookings',
+            'Enrolled Properties',
             'Enrolled Since',
         ]);
         this.styleHeader(hdr, cols);
         ws.columns = [
-            { width: 16 },
-            { width: 16 },
-            { width: 26 },
-            { width: 16 },
-            { width: 12 },
-            { width: 22 },
-            { width: 28 },
-            { width: 14 },
-            { width: 16 },
-            { width: 14 },
-            { width: 16 },
+            { width: 18 },
+            { width: 18 },
+            { width: 30 },
+            { width: 18 },
+            { width: 18 },
+            { width: 36 },
+            { width: 18 },
         ];
         const startRow = ws.lastRow!.number + 1;
 
-        for (const g of guests) {
-            // Personal info lives on the linked Guests record (nullable)
-            const guestInfo = g.PrimaryGuests?.[0];
-            const firstName = guestInfo?.firstName || 'N/A';
-            const lastName = guestInfo?.lastName || 'N/A';
-            const email = g.email || guestInfo?.email || 'N/A';
-            const phone = guestInfo?.phoneNumber || 'N/A';
-            const country = guestInfo?.country || 'N/A';
-            const homeProperty = guestInfo?.property
-                ? `${guestInfo.property.propertyName} (${guestInfo.property.propertyCode})`
-                : 'N/A';
-
-            // Enrolled properties via PropertyLoyalityGuests
-            const enrolledProperties = (g.PropertyLoyalityGuests ?? [])
-                .map((plg: any) =>
+        // Build level label helper: level number → "Level X (≥N stays, Y% disc)"
+        
+        for (const g of input.guests) {
+            const enrolledProperties = (
+                g.Customer?.PropertyLoyalityGuests ?? []
+            )
+                .map(plg =>
                     plg.PropertyLoyalityConfig
                         ? `${plg.PropertyLoyalityConfig.propertyName} (${plg.PropertyLoyalityConfig.propertyCode})`
                         : ''
@@ -872,40 +918,37 @@ if(!pb) continue;
                 .filter(Boolean)
                 .join(', ') || 'N/A';
 
-            // A LoyalityGuest can belong to MULTIPLE loyalty programs (one CreationGuest
-            // per CreationLoyaltyConfig). Sum noOfBookings across all programs for the
-            // true total, and take the highest guestLevel as their best tier.
-            const allCreationGuests: any[] = g.CreationGuest ?? [];
-            const noOfBookings = allCreationGuests.reduce(
-                (sum: number, cg: any) => sum + (cg.noOfBookings ?? 0),
-                0
-            );
-            const guestLevel = allCreationGuests.reduce(
-                (max: number, cg: any) => Math.max(max, cg.guestLevel ?? 1),
-                1
-            );
-
-            // Total spend: cross-property sum from spendMap (keyed by email)
-            const totalSpend = spendMap.get(g.email) ?? 0;
-
-            // Enrolled since = LoyalityGuest.createdAt
-            const enrolledSince = g.createdAt
-                ? new Date(g.createdAt).toLocaleDateString('en-GB')
-                : 'N/A';
+            // Render metaData as compact key: value pairs if it's an object
+            const metaStr =
+                g.metaData && typeof g.metaData === 'object'
+                    ? Object.entries(g.metaData as Record<string, unknown>)
+                          .map(([k, v]) => `${k}: ${v}`)
+                          .join(' | ')
+                    : String(g.metaData ?? '');
 
             ws.addRow([
-                firstName,
-                lastName,
-                email,
-                phone,
-                country,
-                homeProperty,
+                g.Customer?.firstName || 'N/A',
+                g.Customer?.lastName || 'N/A',
+                g.Customer?.email || 'N/A',
+                g.guestLevel,
+                g.noOfBookings,
                 enrolledProperties,
-                `Level ${guestLevel}`,
-                noOfBookings,
-                this.fmtNum(totalSpend),
-                enrolledSince,
+                g.createdAt
+                    ? new Date(g.createdAt).toLocaleDateString('en-GB')
+                    : 'N/A',
             ]);
+
+            // If metaData has content add it as a sub-row in italics (merged)
+            if (metaStr) {
+                const metaRow = ws.addRow([`    ↳ Meta: ${metaStr}`]);
+                ws.mergeCells(metaRow.number, 1, metaRow.number, cols);
+                metaRow.getCell(1).font = { italic: true, color: { argb: 'FF6B7280' }, size: 9 };
+                metaRow.getCell(1).fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FFF9FAFB' },
+                };
+            }
         }
 
         this.addBorders(ws, startRow - 1, ws.lastRow!.number, cols);

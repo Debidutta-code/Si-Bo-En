@@ -13,6 +13,7 @@ export class CreationGuestRepository {
             const creationGuest = await prisma.creationGuest.create({
                 data: {
                     ...data,
+                    createdAt:new Date()
                 },
             });
             return creationGuest;

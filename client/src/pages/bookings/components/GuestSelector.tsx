@@ -4,6 +4,7 @@ import { type FC } from "react";
 import { isBefore, startOfDay } from "date-fns";
 import { AlertTriangle, Plus, Trash2, CalendarDays, BedDouble, ArrowRight } from "lucide-react";
 import type { IAmendRoom } from "../types/amend.types";
+import { useTranslation } from "react-i18next";
 
 
 interface IGuestSelectorProps {
@@ -79,6 +80,9 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
   onChildAgeChange,
   onApply,
 }) => {
+  const { t } = useTranslation();
+  const gs = "AmendReservation.guestSelector";
+
   const checkInIsPast = isBefore(startOfDay(new Date(originalCheckIn)), startOfDay(new Date()));
   const totalAdults = roomConfigs.reduce((s, r) => s + r.adults, 0);
   const totalChildren = roomConfigs.reduce((s, r) => s + r.children, 0);
@@ -98,14 +102,14 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
       <div>
         <div className="flex items-center gap-2 mb-3">
           <CalendarDays className="w-4 h-4 text-primary" />
-          <p className="text-sm font-semibold text-card-foreground">Stay Dates</p>
+          <p className="text-sm font-semibold text-card-foreground">{t(`${gs}.stayDates`)}</p>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-4">
           {/* Check-in */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Check-In
+              {t(`${gs}.checkIn`)}
             </label>
             <input
               type="date"
@@ -121,7 +125,7 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
             {checkInIsPast && (
               <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
                 <AlertTriangle className="h-3 w-3 flex-shrink-0" />
-                Check-in has already passed
+                {t(`${gs}.checkInPassed`)}
               </p>
             )}
             {dateErrors.checkIn && (
@@ -135,7 +139,7 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
           {/* Check-out */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Check-Out
+              {t(`${gs}.checkOut`)}
             </label>
             <input
               type="date"
@@ -158,7 +162,7 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
 
         {/* Original dates reference */}
         <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-          <span className="font-medium">Original:</span>
+          <span className="font-medium">{t(`${gs}.original`)}</span>
           {new Date(originalCheckIn).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           {" → "}
           {new Date(originalCheckOut).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
@@ -171,9 +175,9 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
           <div className="flex items-center gap-2">
             <BedDouble className="w-4 h-4 text-primary" />
             <p className="text-sm font-semibold text-card-foreground">
-              Rooms
+              {t(`${gs}.rooms`)}
               <span className="ml-2 text-xs text-muted-foreground font-normal">
-                (originally: {originalRooms})
+                {t(`${gs}.roomsOriginally`, { count: originalRooms })}
               </span>
             </p>
           </div>
@@ -183,7 +187,7 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
               text-xs font-medium text-primary hover:bg-primary/5 hover:border-primary transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
-            Add Room
+            {t(`${gs}.addRoom`)}
           </button>
         </div>
 
@@ -199,7 +203,9 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
                   <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
                     {roomIdx + 1}
                   </span>
-                  <span className="text-sm font-semibold text-card-foreground">Room {roomIdx + 1}</span>
+                  <span className="text-sm font-semibold text-card-foreground">
+                    {t(`${gs}.room`, { number: roomIdx + 1 })}
+                  </span>
                 </div>
                 {roomConfigs.length > 1 && (
                   <button
@@ -214,8 +220,8 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
               {/* Adults */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-card-foreground">Adults</p>
-                  <p className="text-xs text-muted-foreground">Min. 1 required</p>
+                  <p className="text-sm font-medium text-card-foreground">{t(`${gs}.adults`)}</p>
+                  <p className="text-xs text-muted-foreground">{t(`${gs}.adultsMin`)}</p>
                 </div>
                 <Counter
                   value={room.adults}
@@ -231,8 +237,8 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
               {/* Children */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-card-foreground">Children</p>
-                  <p className="text-xs text-muted-foreground">Age required per child</p>
+                  <p className="text-sm font-medium text-card-foreground">{t(`${gs}.children`)}</p>
+                  <p className="text-xs text-muted-foreground">{t(`${gs}.childrenAgeNote`)}</p>
                 </div>
                 <Counter
                   value={room.children}
@@ -250,12 +256,12 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
                     <div key={childIdx} className="mt-3">
                       {childIdx === 0 && (
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
-                          Child Ages (required)
+                          {t(`${gs}.childAgesRequired`)}
                         </p>
                       )}
                       <div className="flex items-center gap-3">
                         <label className="text-xs text-muted-foreground w-16 flex-shrink-0">
-                          Child {childIdx + 1}
+                          {t(`${gs}.child`, { number: childIdx + 1 })}
                         </label>
                         <select
                           value={age}
@@ -266,7 +272,9 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
                         >
                           {Array.from({ length: 16 }, (_, a) => (
                             <option key={a} value={a}>
-                              {a === 0 ? "< 1 year" : `${a} ${a === 1 ? "year" : "years"}`}
+                              {a === 0
+                                ? t(`${gs}.lessThanOneYear`)
+                                : `${a} ${a === 1 ? t(`${gs}.yearSingular`) : t(`${gs}.yearPlural`)}`}
                             </option>
                           ))}
                         </select>
@@ -281,14 +289,18 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
 
         {/* Summary pill */}
         <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2.5 border border-border/50">
-          <span className="font-semibold text-card-foreground">{roomConfigs.length} {roomConfigs.length === 1 ? "room" : "rooms"}</span>
+          <span className="font-semibold text-card-foreground">
+            {roomConfigs.length} {roomConfigs.length === 1 ? t(`${gs}.summaryRoom`) : t(`${gs}.summaryRooms`)}
+          </span>
           <span className="text-border">·</span>
-          <span>{totalAdults} {totalAdults === 1 ? "adult" : "adults"}</span>
+          <span>{totalAdults} {totalAdults === 1 ? t(`${gs}.summaryAdult`) : t(`${gs}.summaryAdults`)}</span>
           {totalChildren > 0 && (
             <>
               <span className="text-border">·</span>
-              <span>{totalChildren} {totalChildren === 1 ? "child" : "children"}</span>
-              <span className="text-muted-foreground/60">(ages: {totalChildAges.join(", ")})</span>
+              <span>{totalChildren} {totalChildren === 1 ? t(`${gs}.summaryChild`) : t(`${gs}.summaryChildren`)}</span>
+              <span className="text-muted-foreground/60">
+                {t(`${gs}.summaryAges`, { ages: totalChildAges.join(", ") })}
+              </span>
             </>
           )}
         </div>
@@ -304,13 +316,13 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
             disabled:opacity-40 disabled:cursor-not-allowed
             shadow-sm hover:shadow-md active:scale-[0.99]"
         >
-          Continue to Guest Details
+          {t(`${gs}.continueToGuests`)}
           <ArrowRight className="w-4 h-4" />
         </button>
         {!canApply && (
           <p className="text-xs text-amber-600 dark:text-amber-400 text-center mt-2 flex items-center justify-center gap-1">
             <AlertTriangle className="w-3 h-3" />
-            Please fill in all required fields
+            {t(`${gs}.fillRequired`)}
           </p>
         )}
       </div>

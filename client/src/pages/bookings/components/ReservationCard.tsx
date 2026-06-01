@@ -116,7 +116,6 @@ export default function ReservationCard({
 
           {/* Action buttons - always visible in header */}
           <div className="flex items-center gap-2">
-            {reservation.bookingStatus === "confirmed" && (
               <>
                 <Button
                   onClick={() => onAmend?.(reservation.id)}
@@ -136,7 +135,6 @@ export default function ReservationCard({
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </>
-            )}
             {/* Close button — only shows when inside modal */}
             {onClose && (
               <Button
@@ -473,7 +471,7 @@ export default function ReservationCard({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-semibold text-gray-900">
-                      Primary Guest
+                      {t('Bookings.reservationCard.primaryGuest')}
                     </h4>
                     {reservation.bookingStatus === "checked_in" && (
                       <button
@@ -490,7 +488,7 @@ export default function ReservationCard({
                       {primary.firstName} {primary.lastName}
                     </span>
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize">
-                      Primary
+                      {t('Bookings.reservationCard.primary')}
                     </span>
                   </div>
                   {reservation.guests.length > 1 && (

@@ -19,7 +19,9 @@ model PropertyLoyalityGuests {
   customerId             String?                @map("customer_id")
   PropertyLoyalityConfig PropertyLoyaltyConfig @relation(fields: [propertyLoyalityId], references: [id], onDelete: Cascade)
   Customer               Customers?             @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
+  noOfBookings           Int                   @default(0) @map("no_of_bookings")
+  createdAt              DateTime              @default(now()) @map("created_at")
+  updatedAt              DateTime              @default(now()) @map("updated_at")
   @@unique([propertyLoyalityId, customerId])
   @@map("property_loyality_guests")
 }

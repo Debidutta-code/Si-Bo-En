@@ -1409,7 +1409,9 @@
       "failedFetchPrice": "Failed to fetch updated price",
       "stay": "Stay",
       "roomLabel": "Room",
-      "rateLabel": "Rate"
+      "rateLabel": "Rate",
+      "primaryGuest": "Primary Guest",
+      "primary": "Primary"
     },
     "pricing": {
       "title": "Price Summary",
@@ -1628,7 +1630,86 @@
     "failedFetchPrice": "Failed to fetch updated price",
     "stay": "Stay",
     "roomLabel": "Room",
-    "rateLabel": "Rate"
+    "rateLabel": "Rate",
+    "guestSelector": {
+      "stayDates": "Stay Dates",
+      "checkIn": "Check-In",
+      "checkOut": "Check-Out",
+      "checkInPassed": "Check-in has already passed",
+      "original": "Original:",
+      "rooms": "Rooms",
+      "roomsOriginally": "(originally: {{count}})",
+      "addRoom": "Add Room",
+      "room": "Room {{number}}",
+      "adults": "Adults",
+      "adultsMin": "Min. 1 required",
+      "children": "Children",
+      "childrenAgeNote": "Age required per child",
+      "childAgesRequired": "Child Ages (required)",
+      "child": "Child {{number}}",
+      "yearSingular": "year",
+      "yearPlural": "years",
+      "lessThanOneYear": "< 1 year",
+      "summaryRoom": "room",
+      "summaryRooms": "rooms",
+      "summaryAdult": "adult",
+      "summaryAdults": "adults",
+      "summaryChild": "child",
+      "summaryChildren": "children",
+      "summaryAges": "(ages: {{ages}})",
+      "continueToGuests": "Continue to Guest Details",
+      "fillRequired": "Please fill in all required fields"
+    },
+    "guestDetailsForm": {
+      "adult": "Adult",
+      "child": "Child",
+      "optional": "Optional",
+      "ageTag": "Age {{age}}",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "dateOfBirth": "Date of Birth",
+      "ageLabel": "Age",
+      "firstNamePlaceholder": "e.g. John",
+      "lastNamePlaceholder": "e.g. Smith",
+      "filled": "filled",
+      "fixErrors": "Please fix the errors above before continuing.",
+      "fillPrimary": "Fill in the primary guest name to continue.",
+      "back": "Back",
+      "reviewAndCheckPrice": "Review & Check Price"
+    },
+    "pricing": {
+      "checkingPrice": "Checking availability & price...",
+      "availabilityConfirmed": "Availability confirmed",
+      "couldNotFetchPrice": "Could not fetch price. Please try again.",
+      "retry": "Retry",
+      "payAtHotel": "Pay at Hotel",
+      "original": "Original",
+      "updated": "Updated",
+      "hide": "Hide",
+      "details": "Details",
+      "priceBreakdown": "Price Breakdown",
+      "baseRate": "Base Rate",
+      "baseRateNights": "Base Rate · {{count}} {{unit}}",
+      "night": "night",
+      "nights": "nights",
+      "addOns": "Add-ons",
+      "promotionDiscount": "Promotion Discount",
+      "loyaltyDiscount": "Loyalty Discount",
+      "total": "Total",
+      "payNow": "Pay Now",
+      "payLater": "Pay Later",
+      "atProperty": "at property",
+      "alreadyPaid": "Already Paid",
+      "additionalAmountDue": "Additional Amount Due",
+      "refundAmount": "Refund Amount",
+      "policyNotes": "Policy Notes",
+      "policy1": "· Date changes are subject to availability",
+      "policy2": "· Changes within 72 hours of check-in may incur fees",
+      "policy3": "· Reducing length of stay may be subject to cancellation policy",
+      "back": "Back",
+      "confirmAmendment": "Confirm Amendment",
+      "updatingReservation": "Updating Reservation..."
+    }
   },
   "Logs": {
     "title": "Activity Logs",
@@ -2001,7 +2082,7 @@
     "allFieldsAdded": "All available fields have been added to the registration form",
     "saveChanges": "Save Changes",
     "field": "Field",
-    "guestsNAInfo":"Guests Not Available",
+    "guestsNAInfo": "Guests Not Available",
     "visibleInRegistration": "Visible in Registration Form",
     "required": "Required",
     "noFieldsConfigured": "No fields available. Please configure master registration fields first.",
@@ -2053,6 +2134,10 @@
     "cancel": "Cancel",
     "update": "Update",
     "create": "Create",
+    "guestName": "Guest Name",
+    "email": "Email",
+    "guestLevel": "Guest Level",
+    "loyaltyFields": "Loyalty Fields",
     "editSpecialCondition": "Edit Special Condition",
     "addNewSpecialCondition": "Add New Special Condition",
     "conditionTitle": "Title",
@@ -2343,7 +2428,9 @@
     "reject": "Reject",
     "paginationInfo": "Showing {{start}} to {{end}} of {{total}} applications",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "email": "Email",
+    "actions": "Actions"
   },
   "PropertyDetails": {
     "title": "Property Details",
@@ -4211,7 +4298,12 @@
       "reportType": "Report Type",
       "startDate": "Start Date",
       "endDate": "End Date",
-      "selectReportType": "Select report type"
+      "selectReportType": "Select report type",
+      "convertCurrency": "Convert to Currency",
+      "noCurrencyConversion": "No conversion (native currency)",
+      "indicativePriceNote": "Prices will be converted to {{currency}}. These are indicative amounts only.",
+      "comparisonType": "Comparison Type",
+      "selectPeriod": "Select Period"
     },
     "portfolioFilters": {
       "title": "Portfolio Filters",
@@ -5076,5 +5168,42 @@
     "cancel": "Cancel",
     "update": "Update Translation",
     "updating": "Updating..."
+  },
+  "ApplicationDetailsDialog": {
+    "title": "Application Details",
+    "applicationNo": "Application #{{number}}",
+    "sections": {
+      "status": "Status",
+      "applicantInformation": "Applicant Information",
+      "agencyInformation": "Agency Information",
+      "commissionDetails": "Commission Details"
+    },
+    "fields": {
+      "fullName": "Full Name",
+      "email": "Email",
+      "phoneNumber": "Phone Number",
+      "agencyName": "Agency Name",
+      "agencyType": "Agency Type",
+      "agencyEmail": "Agency Email",
+      "contactNumber": "Contact Number",
+      "taxNumber": "Tax Number",
+      "iataCode": "IATA Code",
+      "address": "Address",
+      "commissionType": "Commission Type",
+      "commissionValue": "Commission Value"
+    },
+    "status": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "agencyType": {
+      "travelAgency": "Travel Agency",
+      "corporate": "Corporate"
+    },
+    "commissionType": {
+      "percentage": "Percentage",
+      "fixedAmount": "Fixed Amount"
+    }
   }
 }

@@ -5,12 +5,16 @@ export const downloadReportService = async (params: {
     reportType: string;
     startDate?: string;
     endDate?: string;
+    propertyCreationId?: string;
     propertyId?: string;
     brandId?: string;
     groupId?: string;
     groupBy?: string;
     sortBy?: string;
     mode?: string;
+    targetCurrency?: string;
+    comparisonType?: string;
+    selectedDate?: string;
 }) => {
     try {
         const response = await downloadReportApi(params);
