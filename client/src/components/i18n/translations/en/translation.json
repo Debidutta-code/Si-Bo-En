@@ -510,7 +510,8 @@
     "videoSaveFailed": "Failed to save video",
     "videoDeleteSuccess": "Video deleted successfully",
     "videoDeleteFailed": "Failed to delete video",
-    "goBackAndTryAgain": "Go back and try again"
+    "goBackAndTryAgain": "Go back and try again",
+    "spaActivityUpdatedSuccessfully": "Spa/Activity updated successfully"
   },
   "Property": {
     "title": "Properties",

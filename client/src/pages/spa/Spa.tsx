@@ -146,7 +146,9 @@ const [editIsActive,setEditIsActive]=useState(false)
       if (res.success) {
         setIsEditOpen(false);
         fetchData();
-        toast.success('Spa/Activity updated successfully');
+       toast.success(t('Toast.spaActivityUpdatedSuccessfully'));
+
+
       } else {
         toast.error(res.message || 'Failed to update Spa/Activity');
       }
@@ -265,14 +267,16 @@ const [editIsActive,setEditIsActive]=useState(false)
         <Label>{t('Spa.form.category')}</Label>
         <select className="w-full border rounded-md p-2" value={formData.categoryId} onChange={(e) => setFormData({...formData, categoryId: e.target.value})}>
           <option value="">{t('Spa.form.selectCategory')}</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c._translations ? c._translations.name : c.name}</option>)}
+         {categories.map(c => <option key={c.id} value={c.id}>{c._translations?.name ?? c.name}</option>)}
+
         </select>
       </div>
       <div className="space-y-2">
         <Label>{t('Spa.form.subCategory')}</Label>
         <select className="w-full border rounded-md p-2" value={formData.subCategoryId} onChange={(e) => setFormData({...formData, subCategoryId: e.target.value})}>
           <option value="">{t('Spa.form.selectSubCategory')}</option>
-          {subCategories.filter(sc => sc.categoryId === formData.categoryId).map(sc => <option key={sc.id} value={sc.id}>{sc._translations ? sc._translations.name : sc.name}</option>)}
+          {subCategories.filter(sc => sc.categoryId === formData.categoryId).map(sc => <option key={sc.id} value={sc.id}>{sc._translations?.name ?? sc.name}</option>)}
+
         </select>
       </div>
       <div className="space-y-2">
@@ -373,10 +377,13 @@ const [editIsActive,setEditIsActive]=useState(false)
           <TableBody>
             {spas.map((spa) => (
               <TableRow key={spa.id}>
-                <TableCell className="font-medium">{spa._translations ? spa._translations.name : spa.name}</TableCell>
+               <TableCell className="font-medium">{spa._translations?.name ?? spa.name}</TableCell>
+
                 <TableCell>{spa.itemCode}</TableCell>
-                <TableCell>{spa.Category?._translations ? spa.Category._translations.name : spa.Category?.name || t('Spa.table.na')}</TableCell>
-                <TableCell>{spa.SubCategory?._translations ? spa.SubCategory._translations.name : spa.SubCategory?.name || t('Spa.table.na')}</TableCell>
+                <TableCell>{spa.Category?._translations?.name ?? spa.Category?.name ?? t('Spa.table.na')}</TableCell>
+
+                <TableCell>{spa.SubCategory?._translations?.name ?? spa.SubCategory?.name ?? t('Spa.table.na')}</TableCell>
+
                 <TableCell>{spa.serviceTime}</TableCell>
                 <TableCell>{spa.location}</TableCell>
                 <TableCell>

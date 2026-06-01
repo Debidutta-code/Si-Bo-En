@@ -494,7 +494,8 @@
     "videoSaveFailed": "वीडियो सहेजने में विफल",
     "videoDeleteSuccess": "वीडियो सफलतापूर्वक हटा दिया गया",
     "videoDeleteFailed": "वीडियो हटाने में विफल",
-    "goBackAndTryAgain": "वापस जाएं और पुनः प्रयास करें"
+    "goBackAndTryAgain": "वापस जाएं और पुनः प्रयास करें",
+    "spaActivityUpdatedSuccessfully": "स्पा/गतिविधि सफलतापूर्वक अपडेट हो गई"
   },
   "Property": {
     "title": "संपत्तियाँ",

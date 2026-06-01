@@ -303,7 +303,8 @@ export default function Spa() {
               >
                 <option value="all">{t('SpaManagement.allCategories')}</option>
                 {categories.map(c => (
-                  <option key={c.id} value={c.id} className="capitalize">{c.name}</option>
+                  <option key={c.id} value={c.id} className="capitalize">{c._translations?.name ?? c.name}</option>
+
                 ))}
               </select>
             </div>
@@ -321,7 +322,8 @@ export default function Spa() {
                   <div>
                     <span className="font-medium block capitalize text-lg">{sub._translations?.name ?? sub.name}</span>
                     <span className="text-xs text-gray-500 capitalize px-2 py-1 bg-gray-100 rounded-full mt-2 inline-block">
-                      {parentCat?.name || t('SpaManagement.unknownCategory')}
+                      {parentCat?._translations?.name ?? parentCat?.name ?? t('SpaManagement.unknownCategory')}
+
                     </span>
                   </div>
                   <DropdownMenu>
@@ -419,7 +421,8 @@ export default function Spa() {
                 disabled={!!selectedSubCategory}
               >
                 {categories.map(c => (
-                  <option key={c.id} value={c.id} className="capitalize">{c.name}</option>
+                  <option key={c.id} value={c.id} className="capitalize">{c._translations?.name ?? c.name}</option>
+
                 ))}
               </select>
             </div>
