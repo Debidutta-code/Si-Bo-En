@@ -120,6 +120,8 @@
     "october": "October",
     "november": "November",
     "december": "December"
+    
+
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -2343,7 +2345,9 @@
     "reject": "Reject",
     "paginationInfo": "Showing {{start}} to {{end}} of {{total}} applications",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "email": "Email",
+    "actions": "Actions"  
   },
   "PropertyDetails": {
     "title": "Property Details",

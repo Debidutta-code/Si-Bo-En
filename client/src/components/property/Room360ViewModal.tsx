@@ -20,7 +20,7 @@ import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 
 interface Props {
-    propertyId: string
+    propertyId: string  
     isOpen: boolean
     onClose: () => void
     roomId: string

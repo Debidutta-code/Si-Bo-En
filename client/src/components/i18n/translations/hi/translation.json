@@ -2320,7 +2320,9 @@
     "reject": "अस्वीकृत करें",
     "paginationInfo": "{{total}} आवेदनों में से {{start}} से {{end}} दिखा रहे हैं",
     "previous": "पिछला",
-    "next": "अगला"
+    "next": "अगला",
+     "actions": "कार्रवाई",
+     "email": "ईमेल"
   },
   "PropertyDetails": {
     "title": "संपत्ति विवरण",
