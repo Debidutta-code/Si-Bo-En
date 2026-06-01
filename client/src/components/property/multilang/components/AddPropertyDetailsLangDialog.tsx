@@ -4,7 +4,7 @@ import { languages } from "@/components/language/language";
 import { usePropertyContextSafe } from "@/contexts/PropertyContext";
 import { upsertPropertyTranslationService } from "../services/property.services";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
