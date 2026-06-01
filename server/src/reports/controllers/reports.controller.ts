@@ -175,7 +175,7 @@ export class ReportsController {
 
             const { startDate, endDate } = this.getDateRange(req);
             const queryParams = req.query as Record<string, string>;
-            const { propertyId, brandId, groupId } = queryParams;
+            const { propertyCreationId,propertyId, brandId, groupId } = queryParams;
 
             let result;
 
@@ -186,7 +186,7 @@ export class ReportsController {
                         comparisonType: (queryParams.comparisonType as 'date' | 'month' | 'year') || 'month',
                         selectedDate: queryParams.selectedDate || new Date().toISOString(),
                         targetCurrency: queryParams.targetCurrency || undefined,
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                     });
@@ -196,7 +196,7 @@ export class ReportsController {
                         creationId,
                         startDate,
                         endDate,
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                     });
@@ -206,7 +206,7 @@ export class ReportsController {
                         creationId,
                         startDate,
                         endDate,
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                     });
@@ -216,7 +216,7 @@ export class ReportsController {
                         creationId,
                         startDate,
                         endDate,
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                     });
@@ -225,7 +225,7 @@ export class ReportsController {
                     result = await this.v2Service.generateTopProperties({
                         creationId,
                         targetCurrency: queryParams.targetCurrency || undefined,
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                     });
@@ -235,7 +235,7 @@ export class ReportsController {
                         creationId,
                         startDate,
                         endDate,
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                         targetCurrency: queryParams.targetCurrency || undefined,
@@ -249,7 +249,7 @@ export class ReportsController {
                         mode:
                             (queryParams.mode as 'checkin' | 'checkout') ||
                             'checkin',
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                     });
@@ -259,7 +259,7 @@ export class ReportsController {
                         creationId,
                         startDate,
                         endDate,
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                     });
@@ -272,6 +272,7 @@ export class ReportsController {
                         groupId,
                         startDate,
                         endDate,
+                        propertyCreationId
                     });
                     break;
                 case 'payment-status':
@@ -279,7 +280,7 @@ export class ReportsController {
                         creationId,
                         startDate,
                         endDate,
-                        propertyId,
+                        propertyId:propertyCreationId,
                         brandId,
                         groupId,
                     });

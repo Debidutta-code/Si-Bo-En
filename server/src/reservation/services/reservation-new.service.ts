@@ -1431,7 +1431,7 @@ export class NewReservationService {
             // Build non-blocking tasks array
             await Promise.all([
                 this.loyalityGuestRepo.handlePostCancelLoyalty(
-                    reservation.bookingUserEmail,
+                    reservation.customerId,
                     reservation.propertyId
                 ),
                 this.increaseAri(delPropConfig, {

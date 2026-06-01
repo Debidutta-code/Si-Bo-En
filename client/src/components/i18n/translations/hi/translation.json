@@ -1354,7 +1354,9 @@
       "bookedAt": "बुक किया गया",
       "promoApplied": "प्रोमो लागू किया गया",
       "allGuests": "सभी अतिथि",
-      "close": "बंद करें"
+      "close": "बंद करें",
+      "primaryGuest": "प्राथमिक अतिथि",
+      "primary": "प्राथमिक"
     },
     "amend": {
       "title": "आरक्षण संशोधित करें",
@@ -1596,7 +1598,86 @@
     "failedFetchPrice": "अपडेटेड कीमत लाने में विफल",
     "stay": "प्रवास",
     "roomLabel": "कमरा",
-    "rateLabel": "दर"
+    "rateLabel": "दर",
+    "guestSelector": {
+      "stayDates": "ठहरने की तिथियाँ",
+      "checkIn": "चेक-इन",
+      "checkOut": "चेक-आउट",
+      "checkInPassed": "चेक-इन की तिथि पहले ही बीत चुकी है",
+      "original": "मूल:",
+      "rooms": "कमरे",
+      "roomsOriginally": "(मूल रूप से: {{count}})",
+      "addRoom": "कमरा जोड़ें",
+      "room": "कमरा {{number}}",
+      "adults": "वयस्क",
+      "adultsMin": "कम से कम 1 आवश्यक",
+      "children": "बच्चे",
+      "childrenAgeNote": "प्रत्येक बच्चे की आयु आवश्यक है",
+      "childAgesRequired": "बच्चों की आयु (आवश्यक)",
+      "child": "बच्चा {{number}}",
+      "yearSingular": "वर्ष",
+      "yearPlural": "वर्ष",
+      "lessThanOneYear": "1 वर्ष से कम",
+      "summaryRoom": "कमरा",
+      "summaryRooms": "कमरे",
+      "summaryAdult": "वयस्क",
+      "summaryAdults": "वयस्क",
+      "summaryChild": "बच्चा",
+      "summaryChildren": "बच्चे",
+      "summaryAges": "(आयु: {{ages}})",
+      "continueToGuests": "अतिथि विवरण पर जाएँ",
+      "fillRequired": "कृपया सभी आवश्यक फ़ील्ड भरें"
+    },
+    "guestDetailsForm": {
+      "adult": "वयस्क",
+      "child": "बच्चा",
+      "optional": "वैकल्पिक",
+      "ageTag": "आयु {{age}}",
+      "firstName": "प्रथम नाम",
+      "lastName": "अंतिम नाम",
+      "dateOfBirth": "जन्म तिथि",
+      "ageLabel": "आयु",
+      "firstNamePlaceholder": "उदाहरण: जॉन",
+      "lastNamePlaceholder": "उदाहरण: स्मिथ",
+      "filled": "भरा गया",
+      "fixErrors": "जारी रखने से पहले कृपया ऊपर दी गई त्रुटियों को ठीक करें।",
+      "fillPrimary": "जारी रखने के लिए प्राथमिक अतिथि का नाम भरें।",
+      "back": "वापस",
+      "reviewAndCheckPrice": "समीक्षा करें और मूल्य जाँचें"
+    },
+    "pricing": {
+      "checkingPrice": "उपलब्धता और मूल्य जाँचे जा रहे हैं...",
+      "availabilityConfirmed": "उपलब्धता की पुष्टि हो गई",
+      "couldNotFetchPrice": "मूल्य प्राप्त नहीं किया जा सका। कृपया पुनः प्रयास करें।",
+      "retry": "पुनः प्रयास करें",
+      "payAtHotel": "होटल में भुगतान करें",
+      "original": "मूल",
+      "updated": "अद्यतन",
+      "hide": "छिपाएँ",
+      "details": "विवरण",
+      "priceBreakdown": "मूल्य विवरण",
+      "baseRate": "मूल दर",
+      "baseRateNights": "मूल दर · {{count}} {{unit}}",
+      "night": "रात",
+      "nights": "रातें",
+      "addOns": "अतिरिक्त सेवाएँ",
+      "promotionDiscount": "प्रमोशन छूट",
+      "loyaltyDiscount": "लॉयल्टी छूट",
+      "total": "कुल",
+      "payNow": "अभी भुगतान करें",
+      "payLater": "बाद में भुगतान करें",
+      "atProperty": "संपत्ति पर",
+      "alreadyPaid": "पहले ही भुगतान किया जा चुका है",
+      "additionalAmountDue": "देय अतिरिक्त राशि",
+      "refundAmount": "वापसी राशि",
+      "policyNotes": "नीति नोट्स",
+      "policy1": "· तिथि परिवर्तन उपलब्धता के अधीन हैं",
+      "policy2": "· चेक-इन से 72 घंटे के भीतर किए गए परिवर्तनों पर शुल्क लग सकता है",
+      "policy3": "· ठहरने की अवधि कम करने पर रद्दीकरण नीति लागू हो सकती है",
+      "back": "वापस",
+      "confirmAmendment": "संशोधन की पुष्टि करें",
+      "updatingReservation": "आरक्षण अपडेट किया जा रहा है..."
+    }
   },
   "Logs": {
     "title": "गतिविधि लॉग",
@@ -1964,7 +2045,7 @@
     "allFieldsAdded": "सभी उपलब्ध फ़ील्ड पंजीकरण फॉर्म में जोड़ दिए गए हैं",
     "saveChanges": "परिवर्तन सहेजें",
     "field": "फ़ील्ड",
-      "guestsNAInfo": "अतिथि उपलब्ध नहीं हैं",
+    "guestsNAInfo": "अतिथि उपलब्ध नहीं हैं",
     "guestName": "अतिथि का नाम",
     "email": "ईमेल",
     "guestLevel": "अतिथि स्तर",
@@ -2310,7 +2391,9 @@
     "reject": "अस्वीकृत करें",
     "paginationInfo": "{{total}} आवेदनों में से {{start}} से {{end}} दिखा रहे हैं",
     "previous": "पिछला",
-    "next": "अगला"
+    "next": "अगला",
+    "email": "ईमेल",
+    "actions": "कार्रवाइयाँ"
   },
   "PropertyDetails": {
     "title": "संपत्ति विवरण",
@@ -5036,5 +5119,42 @@
     "cancel": "रद्द करें",
     "update": "अनुवाद अपडेट करें",
     "updating": "अपडेट किया जा रहा है..."
+  },
+  "ApplicationDetailsDialog": {
+    "title": "आवेदन विवरण",
+    "applicationNo": "आवेदन #{{number}}",
+    "sections": {
+      "status": "स्थिति",
+      "applicantInformation": "आवेदक जानकारी",
+      "agencyInformation": "एजेंसी जानकारी",
+      "commissionDetails": "कमीशन विवरण"
+    },
+    "fields": {
+      "fullName": "पूरा नाम",
+      "email": "ईमेल",
+      "phoneNumber": "फ़ोन नंबर",
+      "agencyName": "एजेंसी का नाम",
+      "agencyType": "एजेंसी का प्रकार",
+      "agencyEmail": "एजेंसी ईमेल",
+      "contactNumber": "संपर्क नंबर",
+      "taxNumber": "कर संख्या",
+      "iataCode": "आईएटीए कोड",
+      "address": "पता",
+      "commissionType": "कमीशन का प्रकार",
+      "commissionValue": "कमीशन मूल्य"
+    },
+    "status": {
+      "approved": "स्वीकृत",
+      "rejected": "अस्वीकृत",
+      "pending": "लंबित"
+    },
+    "agencyType": {
+      "travelAgency": "ट्रैवल एजेंसी",
+      "corporate": "कॉर्पोरेट"
+    },
+    "commissionType": {
+      "percentage": "प्रतिशत",
+      "fixedAmount": "निश्चित राशि"
+    }
   }
 }

@@ -372,57 +372,57 @@ export class ReportsV2Repository {
     }
 
     // ── Report 6: All Reservations ────────────────────────────────────────────
-      public async getAllReservations(
-          propertyIds: string[],
-          startDate: string,
-          endDate: string
-      ) {
-          const start = this.parseDate(startDate);
-          const end = this.parseEndDate(endDate);
-  
-          return prisma.reservation.findMany({
-              where: {
-                  propertyId: { in: propertyIds },
-                  reservationStartDate: { gte: start, lte: end },
-              },
-              include: {
-                  primaryGuest: {
-                      select: {
-                          firstName: true,
-                          lastName: true,
-                          email: true,
-                          phoneNumber: true,
-                      },
-                  },
-                  addOns: {
-                      select: { name: true, totalPrice: true, quantity: true },
-                  },
-                  agency: { select: { agencyName: true } },
-                  PricingBrakeDown: {
-                      select: {
-                          // all scalar fields from PricingBreakdown model
-                          totalAmount: true,
-                          amountBeforeTax: true,
-                          taxedAmount: true,
-                          totalAddonAmount: true,
-                          totalPromotionAmount: true,
-                          currentChargeableAmount: true,
-                          latterpayableAmount: true,
-                          loyalityDiscount: true,
-                          promoCodeDiscount: true,
-                          totalSpa: true,
-                          currencyCode: true,
-                          // relations
-                          DailyPriceBrakeDown: true,
-                          AddonBrakeDowns: true,
-                          taxBrakeDown: true,
-                          promotionBrakeDown: true,
-                      },
-                  },
-              },
-              orderBy: { bookedAt: 'desc' },
-          });
-      }
+    public async getAllReservations(
+        propertyIds: string[],
+        startDate: string,
+        endDate: string
+    ) {
+        const start = this.parseDate(startDate);
+        const end = this.parseEndDate(endDate);
+
+        return prisma.reservation.findMany({
+            where: {
+                propertyId: { in: propertyIds },
+                reservationStartDate: { gte: start, lte: end },
+            },
+            include: {
+                primaryGuest: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phoneNumber: true,
+                    },
+                },
+                addOns: {
+                    select: { name: true, totalPrice: true, quantity: true },
+                },
+                agency: { select: { agencyName: true } },
+                PricingBrakeDown: {
+                    select: {
+                        // all scalar fields from PricingBreakdown model
+                        totalAmount: true,
+                        amountBeforeTax: true,
+                        taxedAmount: true,
+                        totalAddonAmount: true,
+                        totalPromotionAmount: true,
+                        currentChargeableAmount: true,
+                        latterpayableAmount: true,
+                        loyalityDiscount: true,
+                        promoCodeDiscount: true,
+                        totalSpa: true,
+                        currencyCode: true,
+                        // relations
+                        DailyPriceBrakeDown: true,
+                        AddonBrakeDowns: true,
+                        taxBrakeDown: true,
+                        promotionBrakeDown: true,
+                    },
+                },
+            },
+            orderBy: { bookedAt: 'desc' },
+        });
+    }
 
     // ── Report 7: Check-In / Check-Out ────────────────────────────────────────
     public async getCheckInOutData(
@@ -476,13 +476,6 @@ export class ReportsV2Repository {
         });
     }
 
-    // ── Report 9: Loyalty Guests — Path A (Property selected) ────────────────
-    /**
-     * Called when the user selects a specific property.
-     * Finds the PropertyLoyaltyConfig for that property, then returns
-     * all PropertyLoyalityGuests (enrollment records) filtered by createdAt.
-     * Returns null if no loyalty program is configured for that property.
-     */
     public async getLoyaltyGuestsByProperty(
         propertyId: string,
         startDate?: string,
@@ -510,13 +503,6 @@ export class ReportsV2Repository {
         });
     }
 
-    // ── Report 9: Loyalty Guests — Path B (Group / Brand / Super) ────────────
-    /**
-     * Called when the user selects a group, brand, or super (no specific property).
-     * Finds the CreationLoyaltyConfig for the creationId, then returns all
-     * CreationGuest records filtered by createdAt with full customer details.
-     * Returns null if no loyalty program is configured.
-     */
     public async getLoyaltyGuestsByCreation(
         creationId: string,
         startDate?: string,
@@ -552,9 +538,14 @@ export class ReportsV2Repository {
                                 },
                             },
                         },
+
                     },
                     orderBy: { createdAt: 'desc' },
+
                 },
+                PropertyLoyaltyConfig: {
+
+                }
             },
         });
     }
@@ -604,7 +595,7 @@ export class ReportsV2Repository {
                         commissionType: true,
                     },
                 },
-                PricingBrakeDown: { select: { amountBeforeTax:true,taxedAmount:true,totalAmount:true,currentChargeableAmount:true,latterpayableAmount:true,currencyCode:true } },
+                PricingBrakeDown: { select: { amountBeforeTax: true, taxedAmount: true, totalAmount: true, currentChargeableAmount: true, latterpayableAmount: true, currencyCode: true } },
             },
             orderBy: { bookedAt: 'desc' },
         });

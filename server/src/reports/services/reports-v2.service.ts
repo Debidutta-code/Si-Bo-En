@@ -88,12 +88,14 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
+            console.log("Querry Params",params)
             const propertyIds = await this.resolveScope(
                 params.creationId,
                 params.propertyId,
                 params.brandId,
                 params.groupId
             );
+            console.log("ProperytIds",propertyIds)
             if (!propertyIds.length)
                 return errorResponse('No properties found for your account');
 
@@ -444,33 +446,45 @@ export class ReportsV2Service {
             );
         }
     }
-
-    // ── Report 9: Loyalty Guests ──────────────────────────────────────────────
-    /**
-     * Two-path logic:
-     *  - Path A (propertyId present): queries PropertyLoyaltyConfig → PropertyLoyalityGuests
-     *  - Path B (group/brand/super): queries CreationLoyaltyConfig → CreationGuest
-     * Date range filters enrollment createdAt in both paths.
-     */
     public async generateLoyaltyGuests(params: {
         creationId: string;
-        propertyId?: string;
         brandId?: string;
         groupId?: string;
         startDate?: string;
         endDate?: string;
+        propertyId?: string;
+        propertyCreationId?: string;
     }) {
         try {
             const today = new Date().toISOString().split('T')[0];
 
-            // ── Path A: Property selected ──────────────────────────────────────
-            if (params.propertyId) {
-                const config = await this.dao.getLoyaltyGuestsByProperty(
+            if (params.propertyId && params.propertyCreationId) {
+                const [creationConfig,config] = await Promise.all([
+                    this.dao.getLoyaltyGuestsByCreation(
+                    params.propertyCreationId,
+                    params.startDate,
+                    params.endDate
+                ),
+                this.dao.getLoyaltyGuestsByProperty(
                     params.propertyId,
                     params.startDate,
                     params.endDate
-                );
+                )
+                ]) 
 
+                if (creationConfig&&config&&creationConfig.id==config.creationLoyaltyConfigId) {
+                    const excel = await this.xl.generateLoyaltyGuests({
+                        mode: 'creation',
+                        loyaltyLevels: creationConfig.LoyalityLevels,
+                        guests: creationConfig.CreationGuest,
+                    });
+
+                    return successResponse('Loyalty guest report generated', {
+                        excel,
+                        fileName: `loyalty-guests-property-${today}.xlsx`,
+                        contentType: XLSX_CONTENT_TYPE,
+                    });
+                }
                 if (!config) {
                     return errorResponse(
                         'No loyalty program configured for this property'
@@ -491,16 +505,20 @@ export class ReportsV2Service {
                 });
             }
 
-            // ── Path B: Group / Brand / Super ─────────────────────────────────
+            const targetCreationId =
+                params.brandId ??
+                params.groupId ??
+                params.creationId;
+
             const config = await this.dao.getLoyaltyGuestsByCreation(
-                params.creationId,
+                targetCreationId,
                 params.startDate,
                 params.endDate
             );
 
             if (!config) {
                 return errorResponse(
-                    'No loyalty program configured for this account'
+                    `No loyalty program configured for this ${targetCreationId === params.brandId ? 'Brand' : targetCreationId === params.groupId ? 'Group' : 'Super Group'}`
                 );
             }
 

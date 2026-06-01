@@ -6,6 +6,7 @@ export const downloadReportApi = async (params: {
     reportType: string;
     startDate?: string;
     endDate?: string;
+    propertyCreationId?: string;
     propertyId?: string;
     brandId?: string;
     groupId?: string;

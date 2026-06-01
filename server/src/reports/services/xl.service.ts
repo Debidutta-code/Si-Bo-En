@@ -905,12 +905,7 @@ if(!pb) continue;
         const startRow = ws.lastRow!.number + 1;
 
         // Build level label helper: level number → "Level X (≥N stays, Y% disc)"
-        const levelLabel = (level: number): string => {
-            const tier = input.loyaltyLevels.find(l => l.level === level);
-            if (!tier) return `Level ${level}`;
-            return `Level ${level} (≥${tier.noOfReservations} stays, ${tier.discountPercentage}% disc)`;
-        };
-
+        
         for (const g of input.guests) {
             const enrolledProperties = (
                 g.Customer?.PropertyLoyalityGuests ?? []
@@ -935,7 +930,7 @@ if(!pb) continue;
                 g.Customer?.firstName || 'N/A',
                 g.Customer?.lastName || 'N/A',
                 g.Customer?.email || 'N/A',
-                levelLabel(g.guestLevel),
+                g.guestLevel,
                 g.noOfBookings,
                 enrolledProperties,
                 g.createdAt

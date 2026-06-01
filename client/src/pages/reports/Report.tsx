@@ -133,7 +133,8 @@ const Report = () => {
                 endDate: endDate || undefined,
                 groupId: isSelected(selectedGroupId) ? selectedGroupId : undefined,
                 brandId: isSelected(selectedBrandId) ? selectedBrandId : undefined,
-                propertyId: isSelected(selectedPropertyId) ? selectedPropertyId : undefined,
+                propertyCreationId: isSelected(selectedPropertyId) ? selectedPropertyId : undefined,
+                propertyId:isSelected(selectedPropertyId) ? filterOptions?.properties.find((prop)=>prop.id === selectedPropertyId)?.property?.id : undefined,
                 targetCurrency: selectedCurrency && selectedCurrency !== 'none' ? selectedCurrency : undefined,
                 // Comparison-specific
                 comparisonType: reportType === 'comparison' ? comparisonType : undefined,
