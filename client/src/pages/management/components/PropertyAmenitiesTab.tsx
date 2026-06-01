@@ -100,12 +100,14 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
                   <Input
                     value={propertyAmenityInput}
                     onChange={(e) => setPropertyAmenityInput(e.target.value)}
-                    placeholder="e.g., Swimming Pool"
+                    placeholder={t("Management.PropertyAmenity.placeholder")}
+
                     onKeyPress={(e) => {
                       if (e.key === "Enter") { e.preventDefault(); handleAddPropertyAmenityToList(); }
                     }}
                   />
-                  <Button onClick={handleAddPropertyAmenityToList}>Add</Button>
+                  <Button onClick={handleAddPropertyAmenityToList}>{t("Management.add")}</Button>
+
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {amenitiesList.map((amenity, index) => (
@@ -117,8 +119,10 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => { setIsPropertyAmenityDialogOpen(false); setAmenitiesList([]); }}>{t("Management.Common.cancel", { ns: "translation" })}</Button>
-                <Button onClick={handleCreatePropertyAmenities}>{t("Management.Common.save", { ns: "translation" })}</Button>
+                <Button variant="outline" onClick={() => { setIsPropertyAmenityDialogOpen(false); setAmenitiesList([]); }}>{t("Management.cancel")}</Button>
+
+               <Button onClick={handleCreatePropertyAmenities}>{t("Management.create")}</Button>
+
               </DialogFooter>
             </DialogContent>
           </Dialog>

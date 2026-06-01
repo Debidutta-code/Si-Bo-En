@@ -737,7 +737,8 @@
     },
     "roomAmenity": {
       "title": "Room Amenities",
-      "loading": "Loading Room Amenities..."
+      "loading": "Loading Room Amenities...",
+      "placeholder": "e.g., Air Conditioning"
     },
     "propertyAmenity": {
       "title": "Property Amenities",

@@ -100,12 +100,14 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
                   <Input
                     value={roomAmenityInput}
                     onChange={(e) => setRoomAmenityInput(e.target.value)}
-                    placeholder="e.g., Air Conditioning"
+                    placeholder={t("Management.RoomAmenity.placeholder")}
+
                     onKeyPress={(e) => {
                       if (e.key === "Enter") { e.preventDefault(); handleAddRoomAmenityToList(); }
                     }}
                   />
-                  <Button onClick={handleAddRoomAmenityToList}>Add</Button>
+                  <Button onClick={handleAddRoomAmenityToList}>{t("Management.add")}</Button>
+
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {amenitiesList.map((amenity, index) => (
@@ -117,8 +119,10 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => { setIsRoomAmenityDialogOpen(false); setAmenitiesList([]); }}>{t("Management.Common.cancel", { ns: "translation" })}</Button>
-                <Button onClick={handleCreateRoomAmenities}>{t("Management.Common.save", { ns: "translation" })}</Button>
+                <Button variant="outline" onClick={() => { setIsRoomAmenityDialogOpen(false); setAmenitiesList([]); }}>{t("Management.cancel")}</Button>
+
+                <Button onClick={handleCreateRoomAmenities}>{t("Management.create")}</Button>
+
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -128,7 +132,7 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
         <div className="flex flex-wrap gap-2">
           {roomAmenities.map((amenity) => (
             <Badge key={amenity.id} variant="outline" className="text-sm py-2 px-3 flex items-center gap-2">
-              {amenity._translations?amenity._translations.amenityName:amenity.amenityName}
+              {amenity._translations ? amenity._translations.amenityName : amenity.amenityName}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="hover:text-blue-600 ml-1">
@@ -175,7 +179,7 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title={t("Common.checkTranslation", )}
+            title={t("Common.checkTranslation",)}
             displayFields={[
               { key: "amenityName", label: t("Management.roomAmenitiesTitle") },
               { key: "description", label: t("Management.description") },

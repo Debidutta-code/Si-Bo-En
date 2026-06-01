@@ -712,7 +712,8 @@
     },
     "roomAmenity": {
       "title": "कमरे की सुविधाएँ",
-      "loading": "कमरे की सुविधाएँ लोड हो रही हैं..."
+      "loading": "कमरे की सुविधाएँ लोड हो रही हैं...",
+       "placeholder": "उदाहरण: एयर कंडीशनर"
     },
     "propertyAmenity": {
       "title": "संपत्ति सुविधाएँ",
@@ -1947,12 +1948,15 @@
       "checkTrans": "प्रॉपर्टी प्रकार अनुवाद",
        "editTranslation": "प्रॉपर्टी प्रकार अनुवाद संपादित करें" 
     },
-    "PropertyAmenity": {
-      "placeholder": "उदाहरण: एयर कंडीशनर"
-    },
-    "RoomView": {
-      "placeholder": "उदाहरण: समुद्र दृश्य"
-    },
+   "PropertyAmenity": {
+  "placeholder": "उदाहरण: एयर कंडीशनर"
+},
+"RoomAmenity": {
+  "placeholder": "उदाहरण: एयर कंडीशनर"
+},
+"RoomView": {
+  "placeholder": "उदाहरण: समुद्र दृश्य"
+},
     "LoyalityField": {
       "createPlaceholder": "उदाहरण: फोन नंबर, जन्म तिथि",
       "addLoyalityFieldTranlation": "लॉयल्टी फ़ील्ड अनुवाद जोड़ें",

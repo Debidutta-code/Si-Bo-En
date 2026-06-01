@@ -338,7 +338,7 @@ export default function MasterIntegrationsTab({
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Master Integration
+            {t('Management.addMasterIntegration')}
           </Button>
         </div>
       </CardHeader>
@@ -430,7 +430,7 @@ export default function MasterIntegrationsTab({
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t('Management.createMasterIntegrationTitle')}</DialogTitle>
-             <DialogDescription>
+            <DialogDescription>
               {t('Management.createMasterIntegrationDescription')}
             </DialogDescription>
           </DialogHeader>
@@ -586,8 +586,8 @@ export default function MasterIntegrationsTab({
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <Label className="text-base font-semibold">{t('Management.urlFields')}</Label>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => setIsAddUrlFieldDialogOpen(true)}
                   >
@@ -645,8 +645,8 @@ export default function MasterIntegrationsTab({
               <div>
                 <div className="flex justify-between items-center mb-3">
                   <Label className="text-base font-semibold">{t('Management.requiredFields')}</Label>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     variant="outline"
                     onClick={() => setIsAddRequiredFieldDialogOpen(true)}
                   >
