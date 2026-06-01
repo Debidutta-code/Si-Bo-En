@@ -5,7 +5,7 @@ import loyaltyConditionRoutes from './loyality-condition.route';
 import propertyLoyaltyRoutes from './property-loyality.route';
 import creationLoyaltyRoutes from './creation-loyality.route';
 import loyaltyGuestRoutes from './loyality-guest.route';
-import { loyalityLevel } from './loyality-leve.route';
+import { loyalityLevel } from './loyality-level.route';
 const router = Router();
 
 // Mount all loyalty sub-routes

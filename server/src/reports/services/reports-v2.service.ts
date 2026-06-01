@@ -446,39 +446,73 @@ export class ReportsV2Service {
     }
 
     // ── Report 9: Loyalty Guests ──────────────────────────────────────────────
+    /**
+     * Two-path logic:
+     *  - Path A (propertyId present): queries PropertyLoyaltyConfig → PropertyLoyalityGuests
+     *  - Path B (group/brand/super): queries CreationLoyaltyConfig → CreationGuest
+     * Date range filters enrollment createdAt in both paths.
+     */
     public async generateLoyaltyGuests(params: {
         creationId: string;
         propertyId?: string;
         brandId?: string;
         groupId?: string;
+        startDate?: string;
+        endDate?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(
+            const today = new Date().toISOString().split('T')[0];
+
+            // ── Path A: Property selected ──────────────────────────────────────
+            if (params.propertyId) {
+                const config = await this.dao.getLoyaltyGuestsByProperty(
+                    params.propertyId,
+                    params.startDate,
+                    params.endDate
+                );
+
+                if (!config) {
+                    return errorResponse(
+                        'No loyalty program configured for this property'
+                    );
+                }
+
+                const excel = await this.xl.generateLoyaltyGuests({
+                    mode: 'property',
+                    propertyName: config.propertyName,
+                    propertyCode: config.propertyCode,
+                    guests: config.PropertyLoyalityGuests,
+                });
+
+                return successResponse('Loyalty guest report generated', {
+                    excel,
+                    fileName: `loyalty-guests-property-${today}.xlsx`,
+                    contentType: XLSX_CONTENT_TYPE,
+                });
+            }
+
+            // ── Path B: Group / Brand / Super ─────────────────────────────────
+            const config = await this.dao.getLoyaltyGuestsByCreation(
                 params.creationId,
-                params.propertyId,
-                params.brandId,
-                params.groupId
+                params.startDate,
+                params.endDate
             );
-            if (!propertyIds.length)
-                return errorResponse('No properties found for your account');
 
-            const guests = await this.dao.getLoyaltyGuests(propertyIds);
+            if (!config) {
+                return errorResponse(
+                    'No loyalty program configured for this account'
+                );
+            }
 
-            // Build cross-property spend map: for each loyalty guest collect
-            // their email + all enrolled property IDs, then aggregate spend
-            const spendInput = guests.map((g: any) => ({
-                email: g.email,
-                enrolledPropertyIds: (g.PropertyLoyalityGuests ?? []).map(
-                    (plg: any) => plg.PropertyLoyalityConfig?.propertyId
-                ).filter(Boolean),
-            }));
-            const spendMap = await this.dao.getLoyaltyGuestSpendMap(spendInput);
-
-            const excel = await this.xl.generateLoyaltyGuests(guests, spendMap);
+            const excel = await this.xl.generateLoyaltyGuests({
+                mode: 'creation',
+                loyaltyLevels: config.LoyalityLevels,
+                guests: config.CreationGuest,
+            });
 
             return successResponse('Loyalty guest report generated', {
                 excel,
-                fileName: `loyalty-guests-${new Date().toISOString().split('T')[0]}.xlsx`,
+                fileName: `loyalty-guests-${today}.xlsx`,
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {

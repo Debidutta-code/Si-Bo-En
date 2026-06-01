@@ -9,6 +9,9 @@ model CreationGuest {
   creationLoyaltyConfigId String                @map("creation_loyalty_config_id")
   noOfBookings            Int                   @default(0) @map("no_of_bookings")
   CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
+  
+    createdAt              DateTime              @default(now()) @map("created_at")
+  updatedAt              DateTime              @default(now()) @map("updated_at")
 
   @@unique([creationLoyaltyConfigId, customerId])
   @@map("creation_guest")

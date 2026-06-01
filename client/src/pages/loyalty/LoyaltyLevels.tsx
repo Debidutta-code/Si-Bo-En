@@ -550,7 +550,7 @@ export default function LoyaltyLevels() {
               onClick={() => setIsFormOpen(false)}
               disabled={submitting}
             >
-              {t('PropertyLoyalties.cancel')}
+              {t('Common.cancel')}
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
               {submitting ? (

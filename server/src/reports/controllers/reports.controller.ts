@@ -265,12 +265,13 @@ export class ReportsController {
                     });
                     break;
                 case 'loyalty-guests':
-                    // Loyalty guests report does not need date range
                     result = await this.v2Service.generateLoyaltyGuests({
                         creationId,
                         propertyId,
                         brandId,
                         groupId,
+                        startDate,
+                        endDate,
                     });
                     break;
                 case 'payment-status':

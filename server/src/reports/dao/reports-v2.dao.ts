@@ -476,100 +476,99 @@ export class ReportsV2Repository {
         });
     }
 
-    // ── Report 9: Loyalty Guest ───────────────────────────────────────────────
-    public async getLoyaltyGuests(propertyIds: string[]) {
-        // Query LoyalityGuest (the cross-property loyalty identity) that are
-        // enrolled in at least one of the resolved properties via
-        // PropertyLoyalityGuests → PropertyLoyaltyConfig.propertyId
-        return prisma.customers.findMany({
-            where: {
-                PropertyLoyalityGuests: {
-                    some: {
-                        PropertyLoyalityConfig: {
-                            propertyId: { in: propertyIds },
-                        },
-                    },
-                },
-            },
+    // ── Report 9: Loyalty Guests — Path A (Property selected) ────────────────
+    /**
+     * Called when the user selects a specific property.
+     * Finds the PropertyLoyaltyConfig for that property, then returns
+     * all PropertyLoyalityGuests (enrollment records) filtered by createdAt.
+     * Returns null if no loyalty program is configured for that property.
+     */
+    public async getLoyaltyGuestsByProperty(
+        propertyId: string,
+        startDate?: string,
+        endDate?: string
+    ) {
+        const dateFilter = this.buildDateFilter(startDate, endDate);
+
+        return prisma.propertyLoyaltyConfig.findUnique({
+            where: { propertyId },
             include: {
-                // Primary linked Customers record (home property personal info)
-                PrimaryGuests: {
-                    include: {
-                        property: {
-                            select: { propertyName: true, propertyCode: true },
-                        },
-                    },
-                },
-                // All properties this loyalty guest is enrolled in
                 PropertyLoyalityGuests: {
+                    where: dateFilter ? { createdAt: dateFilter } : undefined,
                     include: {
-                        PropertyLoyalityConfig: {
+                        Customer: {
                             select: {
-                                propertyName: true,
-                                propertyCode: true,
-                                propertyId: true,
-                                isActive: true,
+                                firstName: true,
+                                lastName: true,
+                                email: true,
                             },
                         },
                     },
-                },
-                // Loyalty program membership details (level, bookings count)
-                CreationGuest: {
-                    select: {
-                        guestLevel: true,
-                        noOfBookings: true,
-                        metaData: true,
-                        CreationLoyaltyConfig: {
-                            select: {
-                                loyaltyDiscountType: true,
-                                discountValue: true,
-                                LoyalityLevels: {
-                                    select: {
-                                        level: true,
-                                        discountPercentage: true,
-                                        noOfReservations: true,
-                                    },
-                                    orderBy: { level: 'asc' },
-                                },
-                            },
-                        },
-                    },
+                    orderBy: { createdAt: 'desc' },
                 },
             },
         });
     }
 
-    public async getLoyaltyGuestSpendMap(
-        loyaltyGuests: { email: string; enrolledPropertyIds: string[] }[]
-    ): Promise<Map<string, number>> {
-        if (!loyaltyGuests.length) return new Map();
+    // ── Report 9: Loyalty Guests — Path B (Group / Brand / Super) ────────────
+    /**
+     * Called when the user selects a group, brand, or super (no specific property).
+     * Finds the CreationLoyaltyConfig for the creationId, then returns all
+     * CreationGuest records filtered by createdAt with full customer details.
+     * Returns null if no loyalty program is configured.
+     */
+    public async getLoyaltyGuestsByCreation(
+        creationId: string,
+        startDate?: string,
+        endDate?: string
+    ) {
+        const dateFilter = this.buildDateFilter(startDate, endDate);
 
-        const emails = loyaltyGuests.map(g => g.email);
-        const allPropertyIds = [
-            ...new Set(loyaltyGuests.flatMap(g => g.enrolledPropertyIds)),
-        ];
-
-        const reservations = await prisma.reservation.findMany({
-            where: {
-                propertyId: { in: allPropertyIds },
-                bookingStatus: { not: 'cancelled' },
-                primaryGuest: {
-                    email: { in: emails },
+        return prisma.creationLoyaltyConfig.findUnique({
+            where: { creationId },
+            include: {
+                LoyalityLevels: {
+                    orderBy: { level: 'asc' },
+                },
+                CreationGuest: {
+                    where: dateFilter ? { createdAt: dateFilter } : undefined,
+                    include: {
+                        Customer: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                email: true,
+                                // enrolled properties for this customer
+                                PropertyLoyalityGuests: {
+                                    include: {
+                                        PropertyLoyalityConfig: {
+                                            select: {
+                                                propertyName: true,
+                                                propertyCode: true,
+                                                isActive: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    orderBy: { createdAt: 'desc' },
                 },
             },
-            select: {
-                amount: true,
-                primaryGuest: { select: { email: true } },
-            },
         });
+    }
 
-        const spendMap = new Map<string, number>();
-        for (const r of reservations) {
-            const email = r.primaryGuest?.email;
-            if (!email) continue;
-            spendMap.set(email, (spendMap.get(email) ?? 0) + Number(r.amount));
-        }
-        return spendMap;
+    /** Builds a Prisma date range filter from optional ISO date strings. */
+    private buildDateFilter(
+        startDate?: string,
+        endDate?: string
+    ): { gte?: Date; lte?: Date } | null {
+        if (!startDate && !endDate) return null;
+        const filter: { gte?: Date; lte?: Date } = {};
+        if (startDate) filter.gte = this.parseDate(startDate);
+        if (endDate) filter.lte = this.parseEndDate(endDate);
+        return filter;
     }
 
     // ── Report 10: Payment Status ──────────────────────────────────────────────

@@ -791,16 +791,95 @@ if(!pb) continue;
 
     // ── Report 9: Loyalty Guests ──────────────────────────────────────────────
     public async generateLoyaltyGuests(
-        guests: any[],
-        spendMap: Map<string, number>
+        input:
+            | {
+                  mode: 'property';
+                  propertyName: string;
+                  propertyCode: string;
+                  guests: Array<{
+                      Customer: { firstName: string; lastName: string; email: string } | null;
+                      noOfBookings: number;
+                      createdAt: Date;
+                  }>;
+              }
+            | {
+                  mode: 'creation';
+                  loyaltyLevels: Array<{ level: number; discountPercentage: number; noOfReservations: number }>;
+                  guests: Array<{
+                      guestLevel: number;
+                      noOfBookings: number;
+                      metaData: any;
+                      createdAt: Date;
+                      Customer: {
+                          firstName: string;
+                          lastName: string;
+                          email: string;
+                          PropertyLoyalityGuests: Array<{
+                              PropertyLoyalityConfig: {
+                                  propertyName: string;
+                                  propertyCode: string;
+                                  isActive: boolean;
+                              } | null;
+                          }>;
+                      } | null;
+                  }>;
+              }
     ): Promise<Buffer> {
         const wb = new ExcelJS.Workbook();
+        const generatedAt = new Date().toLocaleDateString('en-GB');
+
+        // ── Path A: Property mode ─────────────────────────────────────────────
+        if (input.mode === 'property') {
+            const ws = wb.addWorksheet('Loyalty Guests');
+            const cols = 5;
+            this.addTitle(
+                ws,
+                'Loyalty Guest Report',
+                `Property: ${input.propertyName} (${input.propertyCode}) | Total: ${input.guests.length} | Generated: ${generatedAt}`,
+                cols
+            );
+
+            const hdr = ws.addRow([
+                'First Name',
+                'Last Name',
+                'Email',
+                'No. of Bookings',
+                'Enrolled Since',
+            ]);
+            this.styleHeader(hdr, cols);
+            ws.columns = [
+                { width: 18 },
+                { width: 18 },
+                { width: 30 },
+                { width: 18 },
+                { width: 18 },
+            ];
+            const startRow = ws.lastRow!.number + 1;
+
+            for (const g of input.guests) {
+                ws.addRow([
+                    g.Customer?.firstName || 'N/A',
+                    g.Customer?.lastName || 'N/A',
+                    g.Customer?.email || 'N/A',
+                    g.noOfBookings,
+                    g.createdAt
+                        ? new Date(g.createdAt).toLocaleDateString('en-GB')
+                        : 'N/A',
+                ]);
+            }
+
+            this.addBorders(ws, startRow - 1, ws.lastRow!.number, cols);
+            this.styleAltRows(ws, startRow, cols);
+            return Buffer.from(await wb.xlsx.writeBuffer());
+        }
+
+        // ── Path B: Creation mode (Group / Brand / Super) ─────────────────────
         const ws = wb.addWorksheet('Loyalty Guests');
-        const cols = 11;
+        const cols = 7;
         this.addTitle(
             ws,
             'Loyalty Guest Report',
-            `Total Loyalty Guests: ${guests.length}`,
+            `Total Loyalty Guests: ${input.guests.length} | Generated: ${generatedAt}`,
             cols
         );
 
@@ -808,46 +887,35 @@ if(!pb) continue;
             'First Name',
             'Last Name',
             'Email',
-            'Phone',
-            'Country',
-            'Home Property',
-            'Enrolled Properties',
             'Loyalty Level',
-            'Total Bookings',
-            'Total Spend',
+            'No. of Bookings',
+            'Enrolled Properties',
             'Enrolled Since',
         ]);
         this.styleHeader(hdr, cols);
         ws.columns = [
-            { width: 16 },
-            { width: 16 },
-            { width: 26 },
-            { width: 16 },
-            { width: 12 },
-            { width: 22 },
-            { width: 28 },
-            { width: 14 },
-            { width: 16 },
-            { width: 14 },
-            { width: 16 },
+            { width: 18 },
+            { width: 18 },
+            { width: 30 },
+            { width: 18 },
+            { width: 18 },
+            { width: 36 },
+            { width: 18 },
         ];
         const startRow = ws.lastRow!.number + 1;
 
-        for (const g of guests) {
-            // Personal info lives on the linked Guests record (nullable)
-            const guestInfo = g.PrimaryGuests?.[0];
-            const firstName = guestInfo?.firstName || 'N/A';
-            const lastName = guestInfo?.lastName || 'N/A';
-            const email = g.email || guestInfo?.email || 'N/A';
-            const phone = guestInfo?.phoneNumber || 'N/A';
-            const country = guestInfo?.country || 'N/A';
-            const homeProperty = guestInfo?.property
-                ? `${guestInfo.property.propertyName} (${guestInfo.property.propertyCode})`
-                : 'N/A';
+        // Build level label helper: level number → "Level X (≥N stays, Y% disc)"
+        const levelLabel = (level: number): string => {
+            const tier = input.loyaltyLevels.find(l => l.level === level);
+            if (!tier) return `Level ${level}`;
+            return `Level ${level} (≥${tier.noOfReservations} stays, ${tier.discountPercentage}% disc)`;
+        };
 
-            // Enrolled properties via PropertyLoyalityGuests
-            const enrolledProperties = (g.PropertyLoyalityGuests ?? [])
-                .map((plg: any) =>
+        for (const g of input.guests) {
+            const enrolledProperties = (
+                g.Customer?.PropertyLoyalityGuests ?? []
+            )
+                .map(plg =>
                     plg.PropertyLoyalityConfig
                         ? `${plg.PropertyLoyalityConfig.propertyName} (${plg.PropertyLoyalityConfig.propertyCode})`
                         : ''
@@ -855,40 +923,37 @@ if(!pb) continue;
                 .filter(Boolean)
                 .join(', ') || 'N/A';
 
-            // A LoyalityGuest can belong to MULTIPLE loyalty programs (one CreationGuest
-            // per CreationLoyaltyConfig). Sum noOfBookings across all programs for the
-            // true total, and take the highest guestLevel as their best tier.
-            const allCreationGuests: any[] = g.CreationGuest ?? [];
-            const noOfBookings = allCreationGuests.reduce(
-                (sum: number, cg: any) => sum + (cg.noOfBookings ?? 0),
-                0
-            );
-            const guestLevel = allCreationGuests.reduce(
-                (max: number, cg: any) => Math.max(max, cg.guestLevel ?? 1),
-                1
-            );
-
-            // Total spend: cross-property sum from spendMap (keyed by email)
-            const totalSpend = spendMap.get(g.email) ?? 0;
-
-            // Enrolled since = LoyalityGuest.createdAt
-            const enrolledSince = g.createdAt
-                ? new Date(g.createdAt).toLocaleDateString('en-GB')
-                : 'N/A';
+            // Render metaData as compact key: value pairs if it's an object
+            const metaStr =
+                g.metaData && typeof g.metaData === 'object'
+                    ? Object.entries(g.metaData as Record<string, unknown>)
+                          .map(([k, v]) => `${k}: ${v}`)
+                          .join(' | ')
+                    : String(g.metaData ?? '');
 
             ws.addRow([
-                firstName,
-                lastName,
-                email,
-                phone,
-                country,
-                homeProperty,
+                g.Customer?.firstName || 'N/A',
+                g.Customer?.lastName || 'N/A',
+                g.Customer?.email || 'N/A',
+                levelLabel(g.guestLevel),
+                g.noOfBookings,
                 enrolledProperties,
-                `Level ${guestLevel}`,
-                noOfBookings,
-                this.fmtNum(totalSpend),
-                enrolledSince,
+                g.createdAt
+                    ? new Date(g.createdAt).toLocaleDateString('en-GB')
+                    : 'N/A',
             ]);
+
+            // If metaData has content add it as a sub-row in italics (merged)
+            if (metaStr) {
+                const metaRow = ws.addRow([`    ↳ Meta: ${metaStr}`]);
+                ws.mergeCells(metaRow.number, 1, metaRow.number, cols);
+                metaRow.getCell(1).font = { italic: true, color: { argb: 'FF6B7280' }, size: 9 };
+                metaRow.getCell(1).fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FFF9FAFB' },
+                };
+            }
         }
 
         this.addBorders(ws, startRow - 1, ws.lastRow!.number, cols);

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { downloadReportService, getFilterOptionsService } from './services';
-import { Download, Loader2, FileBarChart, CalendarRange, Building2, Filter, DollarSign } from 'lucide-react';
+import { Download, Loader2, FileBarChart, CalendarRange, Building2, Filter, DollarSign} from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import type { ReportType, IFilterOptionsResponse } from './interfaces';
 import { currencies } from '@/components/currency-code/cuurency';
@@ -48,7 +48,7 @@ const Report = () => {
 
     const showCurrencyFilter = reportType === 'all-reservations' || reportType === 'comparison' || reportType === 'top-properties';
     const showComparisonControls = reportType === 'comparison';
-    const showDateRange = !showComparisonControls;
+    const isLoyaltyReport = reportType === 'loyalty-guests';
 
     const handleReportTypeChange = (val: string) => {
         setReportType(val as ReportType);
@@ -125,7 +125,6 @@ const Report = () => {
             toast.error(t('Report.toast.selectReportType'));
             return;
         }
-
         setIsDownloading(true);
         try {
             const result = await downloadReportService({
@@ -249,7 +248,9 @@ const Report = () => {
                             /* Normal date range for all other reports */
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-3">
-                                    <Label className="text-sm font-semibold text-gray-700">{t('Report.reportSettings.startDate')}</Label>
+                                    <Label className="text-sm font-semibold text-gray-700">
+                                        {isLoyaltyReport ? 'Enrollment Start Date' : t('Report.reportSettings.startDate')}
+                                    </Label>
                                     <Input
                                         type="date"
                                         value={startDate}
@@ -258,7 +259,9 @@ const Report = () => {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <Label className="text-sm font-semibold text-gray-700">{t('Report.reportSettings.endDate')}</Label>
+                                    <Label className="text-sm font-semibold text-gray-700">
+                                        {isLoyaltyReport ? 'Enrollment End Date' : t('Report.reportSettings.endDate')}
+                                    </Label>
                                     <Input
                                         type="date"
                                         value={endDate}
@@ -268,6 +271,8 @@ const Report = () => {
                                 </div>
                             </div>
                         )}
+
+ 
 
                         {showCurrencyFilter && (
                             <div className="space-y-3">
