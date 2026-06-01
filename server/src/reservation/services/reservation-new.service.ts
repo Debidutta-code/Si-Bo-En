@@ -121,7 +121,8 @@ export class NewReservationService {
         payload: ICReservationS,
         propertyDetails: IPropertyDetailsFromMiddleware,
         countryCode: CurrencyCode,
-        deviceType: DeviceType
+        deviceType: DeviceType,
+        loyaltyToken?:string
     ): Promise<IApiResponse> {
         try {
             const {
@@ -182,14 +183,9 @@ export class NewReservationService {
             }
 
             const [bookingCode, 
-                // loyalityGuestRepo,
                  rateplan, propertyConfig] =
                 await Promise.all([
                     await this.generateBookingCode(propertyCode),
-                    // await this.loyalityGuestRepo.addGuestTOLoyalty(
-                    //     bookingUserEmail,
-                    //     primaryGuestId
-                    // ),
                     await this.ariManupulationRepo.getRatePlanName(
                         ratePlanCode,
                         propertyDetails.id
@@ -391,10 +387,8 @@ export class NewReservationService {
             await Promise.all([
                 this.decreaseAri(propertyConfig, ariPayload),
                 this.loyalityGuestRepo.handlePostBookingLoyalty(
-                    bookingUserEmail,
-                    propertyDetails.creationId,
                     propertyDetails.id,
-                    payload.isLoyalityGuest
+                    loyaltyToken
                 ),
                 this.reservationRepository
                     .getReservaltionByCode(bookingCode, propertyCode)

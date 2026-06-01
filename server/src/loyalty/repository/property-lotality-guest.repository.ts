@@ -21,10 +21,15 @@ export class PropertyLoyalityGuest{
     public async createPropertyLoyaltyGuest(data: {
         propertyLoyalityId: string;
         customerId: string;
+        noOfBookings:number;
     }): Promise<IPropertyLoyalityGuest> {
         try {
             return await prisma.propertyLoyalityGuests.create({
-                data,
+                data:{
+                    ...data,
+                    createdAt:new Date()
+                }
+                
             });
         } catch (error) {
             throw new Error('Failed to create property loyalty guest');
