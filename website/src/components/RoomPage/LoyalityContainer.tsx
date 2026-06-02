@@ -75,9 +75,7 @@ export const LoyaltyContainer = ({
   };
   const verifyLoyaltyMembership = async () => {
     if (!loyaltyProgram) return;
-
     setIsVerifying(true);
-
     try {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,

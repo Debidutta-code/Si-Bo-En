@@ -52,6 +52,7 @@ interface RoomCardProps {
   loyalty: IPropertyLoyalityWithLoyality | null;
   onUnlockLoyalty?: () => void;
   loyaltyDiscountInfo?: { type: string; value: number; currencyCode: string } | null;
+  loyaltyToggleOn?: boolean;
 
 }
 
@@ -122,10 +123,11 @@ const RoomCard: React.FC<RoomCardProps> = ({
   onPriceUpdate,
   activeRatePlan,
   selectedBoardType,
-  loyaltyMemberEmail,
+  // loyaltyMemberEmail,
   loyalty,
   onUnlockLoyalty,
   loyaltyDiscountInfo,
+  loyaltyToggleOn,
 }) => {
   const { t } = useTranslation();
   // const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
@@ -134,7 +136,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   // Get loyalty program info from loyalty prop (passed from parent) or bookingContext
   const loyaltyProgram = loyalty; // ← use the loyalty prop directly
   const loyaltyDiscount = loyalty?.CreationLoyaltyConfig;
-  const isLoyaltyMember = !!loyaltyMemberEmail;
+  const isLoyaltyMember = !!loyaltyDiscountInfo;
   const [expandedCombo, setExpandedCombo] = useState<string | null>(null);
 
   const isLoadingForRatePlan = (comboLabel: string) => {
@@ -409,7 +411,7 @@ const proceedWithBooking = async (
           "Content-Type": "application/json",
           "Accept-Language": currentLanguage,
         },
-        withCredentials: true,
+        withCredentials: !!loyaltyToggleOn,
       },
     );
 

@@ -42,7 +42,7 @@ const GuestFormModal: React.FC<Props> = ({
   price,
   finalPrice,
   bookingContext,
-  loyaltyMemberEmail,
+  // loyaltyMemberEmail,
   loyaltyDiscountInfo,
   propertyId,
   onClose,
@@ -64,14 +64,14 @@ const GuestFormModal: React.FC<Props> = ({
   const toggleSection = (key: string) =>
     setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   const { t } = useTranslation();
-  const isLoyaltyMember = !!loyaltyMemberEmail && !!loyaltyDiscountInfo;
+  // const isLoyaltyMember = !!loyaltyMemberEmail && !!loyaltyDiscountInfo;
   const loyaltyDiscount = loyaltyDiscountInfo ?? null;
 
-  useEffect(() => {
-    if (loyaltyMemberEmail && !contactInfo.email) {
-      handleContactChange("email", loyaltyMemberEmail);
-    }
-  }, [loyaltyMemberEmail]);
+  // useEffect(() => {
+  //   if (loyaltyMemberEmail && !contactInfo.email) {
+  //     handleContactChange("email", loyaltyMemberEmail);
+  //   }
+  // }, [loyaltyMemberEmail]);
 
   //   // const verifyLoyaltyMembership = async (email: string) => {
   //   //   if (!email || !propertyId) return;
@@ -405,7 +405,7 @@ const GuestFormModal: React.FC<Props> = ({
               <CardTitle className="text-lg flex items-center gap-2">
                 <Mail className="h-5 w-5" style={{ color: colors.primaryColor }} />
                 {t("GuestForm.contactInfo")}
-                {isLoyaltyMember && (
+                {loyaltyDiscount && (
                   <Badge className="ml-2 bg-green-500 text-white">
                     {t("GuestForm.loyaltyMember")}
                   </Badge>
@@ -428,14 +428,16 @@ const GuestFormModal: React.FC<Props> = ({
                     }}
                     placeholder={t("GuestForm.emailPlaceholder")}
                     className={errors.email ? "border-red-500" : ""}
-                    disabled={!!loyaltyMemberEmail}
+                    // disabled={!!loyaltyMemberEmail}
                   />
                   
                 </div>
                 {errors.email && (
                   <p className="text-sm text-red-600">{errors.email}</p>
                 )}
-                {isLoyaltyMember && loyaltyDiscount && (
+                {
+                // isLoyaltyMember&&
+                 loyaltyDiscount && (
                   <div
                     className="flex items-center gap-2 p-2 rounded-lg text-sm font-medium"
                     style={{ backgroundColor: `${colors.primaryColor}10`, color: colors.primaryColor }}

@@ -27,16 +27,12 @@ import { useTranslation } from "react-i18next";
 export const LoyaltyProgramBanner = ({
   loyaltyProgram,
   primaryColor,
-  showSignUpModal: externalShowSignUpModal,
-  onShowSignUpModalChange,
   onSignUpSuccess,
   onLogoutSuccess,
   onDiscountVerified,
 }: {
   loyaltyProgram: IPropertyLoyalityWithLoyality | null;
   primaryColor: string;
-  showSignUpModal?: boolean;
-  onShowSignUpModalChange?: (show: boolean) => void;
   onSignUpSuccess?: (email: string) => void;
   onLogoutSuccess?: () => void;
   onDiscountVerified?: (discount: { type: string; value: number; currencyCode: string }) => void;
@@ -425,44 +421,7 @@ export const LoyaltyProgramBanner = ({
 
                 <div className="flex-1" />
 
-                {/* Commented-out Join/Logout buttons preserved as-is */}
-                {/* {!isRegistered ? (
-                  <button
-                    onClick={() => setShowSignUpModal(true)}
-                    className="px-4 py-2 rounded-lg text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5 whitespace-nowrap flex-shrink-0"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    <User className="w-3.5 h-3.5" />
-                    Join Program
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <div
-                      className="rounded-lg px-3 py-1.5 text-center border"
-                      style={{
-                        backgroundColor: `${primaryColor}15`,
-                        borderColor: `${primaryColor}40`
-                      }}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <Award className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
-                        <div className="text-left">
-                          <p className="text-[10px] font-bold text-gray-900 whitespace-nowrap">Active Member</p>
-                          <p className="text-[8px] font-semibold text-gray-600 truncate max-w-[100px]" title={registeredEmail}>
-                            {registeredEmail}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleLogout}
-                      className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition-all flex items-center justify-center gap-1 border border-red-200 whitespace-nowrap flex-shrink-0"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      Logout
-                    </button>
-                  </div>
-                )} */}
+             
               </div>
             </div>
           </div>
