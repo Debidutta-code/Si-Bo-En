@@ -54,6 +54,23 @@
     "fridayShort": "Пт",
     "saturdayShort": "Сб"
   },
+  "AddRoomLangDialog": {
+    "title": "Добавить перевод номера",
+    "form": {
+      "languagePlaceholder": "Выберите язык",
+      "roomName": "Название номера",
+      "roomNamePlaceholder": "например: Делюкс океанский номер",
+      "roomType": "Тип номера",
+      "roomTypePlaceholder": "например: Делюкс",
+      "descriptionPlaceholder": "Введите переведенное описание..."
+    },
+    "toast": {
+      "languageRequired": "Пожалуйста, выберите язык.",
+      "fieldRequired": "Пожалуйста, укажите хотя бы название или описание номера.",
+      "saveSuccess": "Перевод номера успешно добавлен!",
+      "saveFailed": "Не удалось добавить перевод."
+    }
+  },
   "Navigation": {
     "dashboard": "Панель управления",
     "properties": "Объекты",

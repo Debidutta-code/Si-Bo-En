@@ -54,6 +54,23 @@
     "fridayShort": "جمع",
     "saturdayShort": "سبت"
   },
+  "AddRoomLangDialog": {
+    "title": "إضافة ترجمة الغرفة",
+    "form": {
+      "languagePlaceholder": "اختر اللغة",
+      "roomName": "اسم الغرفة",
+      "roomNamePlaceholder": "مثال: غرفة ديلوكس مطلة على المحيط",
+      "roomType": "نوع الغرفة",
+      "roomTypePlaceholder": "مثال: ديلوكس",
+      "descriptionPlaceholder": "أدخل الوصف المترجم..."
+    },
+    "toast": {
+      "languageRequired": "الرجاء اختيار لغة.",
+      "fieldRequired": "الرجاء توفير اسم الغرفة أو الوصف على الأقل.",
+      "saveSuccess": "تمت إضافة ترجمة الغرفة بنجاح!",
+      "saveFailed": "فشلت إضافة الترجمة."
+    }
+  },
   "Navigation": {
     "dashboard": "لوحة التحكم",
     "properties": "الخصائص",

@@ -87,6 +87,23 @@
     "translationUpdated": "Çeviri başarıyla güncellendi!",
     "failedToUpdateTranslation": "Çeviri güncellenemedi"
   },
+  "AddRoomLangDialog": {
+    "title": "Oda Çevirisi Ekle",
+    "form": {
+      "languagePlaceholder": "Dil Seçin",
+      "roomName": "Oda Adı",
+      "roomNamePlaceholder": "örnek: Lüks Okyanus Odası",
+      "roomType": "Oda Tipi",
+      "roomTypePlaceholder": "örnek: Lüks",
+      "descriptionPlaceholder": "Çevrilmiş açıklamayı girin..."
+    },
+    "toast": {
+      "languageRequired": "Lütfen bir dil seçin.",
+      "fieldRequired": "Lütfen en az bir oda adı veya açıklama belirtin.",
+      "saveSuccess": "Oda çevirisi başarıyla eklendi!",
+      "saveFailed": "Çeviri eklenemedi."
+    }
+  },
   "BookingStatus": {
     "confirmed": "Onaylandı",
     "cancelled": "İptal Edildi",

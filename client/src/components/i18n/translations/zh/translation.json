@@ -87,6 +87,23 @@
 "translationUpdated": "翻译更新成功！",
 "failedToUpdateTranslation": "更新翻译失败"
   },
+  "AddRoomLangDialog": {
+    "title": "添加房间翻译",
+    "form": {
+      "languagePlaceholder": "选择语言",
+      "roomName": "房间名称",
+      "roomNamePlaceholder": "例如：豪华海景房",
+      "roomType": "房型",
+      "roomTypePlaceholder": "例如：豪华房",
+      "descriptionPlaceholder": "输入翻译后的描述..."
+    },
+    "toast": {
+      "languageRequired": "请选择一种语言。",
+      "fieldRequired": "请至少提供房间名称或描述。",
+      "saveSuccess": "房间翻译添加成功！",
+      "saveFailed": "添加翻译失败。"
+    }
+  },
   "BookingStatus": {
     "confirmed": "已确认",
     "cancelled": "已取消",
