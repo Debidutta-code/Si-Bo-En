@@ -3,10 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import type { IUPropertyConfig, IMasterPartnersWProperty } from '../types';
 import { formatTimezoneLabel, getAllTimezones } from '../utils/timezone.utils';
-import { minutesToTime, timeToMinutes } from '../utils/time.utils';
 import PartnerIntegrationSection from './PartnerIntegrationSection';
 import { currencies } from '@/components/currency-code/cuurency';
 import { useTranslation } from 'react-i18next';
@@ -208,22 +206,6 @@ export default function PropertyConfigDialog({
                         </div>
                     )}
 
-                    {/* Reservation Reset Time */}
-                    <div className='space-y-2'>
-                        <Label htmlFor='reservationResetTime'>{t('PropertyConfigDialog.form.reservationResetTime')}</Label>
-                        <Input
-                            id='reservationResetTime'
-                            type='time'
-                            value={minutesToTime(propertyConfig.reservationResetMinutes)}
-                            onChange={(e) => {
-                                const minutes = timeToMinutes(e.target.value);
-                                setPropertyConfig({ ...propertyConfig, reservationResetMinutes: minutes });
-                            }}
-                        />
-                        <p className='text-xs text-muted-foreground'>
-                            {t('PropertyConfigDialog.form.reservationResetTimeHint')}
-                        </p>
-                    </div>
 
                     {/* Timezone */}
                     <div className='space-y-2'>
@@ -249,26 +231,92 @@ export default function PropertyConfigDialog({
 
                     {/* Base Currency */}
                     <div className='space-y-2'>
-                        <Label htmlFor="currencyCode">{t('PropertyConfigDialog.form.currencyCode')}</Label>
+                        <Label htmlFor="currencyCode"></Label>
                         <Select
                             value={propertyConfig.baseCurrency}
                             onValueChange={(value) =>
                                 setPropertyConfig({ ...propertyConfig, baseCurrency: value })
                             }                                      >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {currencies.map((currency) => (
-                                    <SelectItem key={currency.code} value={currency.code}>
-                                        {currency.name} ({currency.symbol})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
                         </Select>
                     </div>
                 </div>
-
+                <div className='flex items-center justify-between space-x-2'>
+                    <div className='space-y-0.5'>
+                        <Label htmlFor='isAvailableForBooking'>{t('PropertyConfigDialog.switches.isAvailableForBooking.label')}</Label>
+                        <p className='text-xs text-muted-foreground'>{t('PropertyConfigDialog.switches.isAvailableForBooking.description')}</p>
+                    </div>
+                    <Switch
+                        id='isAvailableForBooking'
+                        checked={propertyConfig.isAvailableForBooking}
+                        onCheckedChange={(checked) =>
+                            setPropertyConfig({ ...propertyConfig, isAvailableForBooking: checked })
+                        }
+                    />
+                </div>
+                <div className='flex items-center justify-between space-x-2'>
+                    <div className='space-y-0.5'>
+                        <Label htmlFor='isAvailableForBookingEngine'>{t('PropertyConfigDialog.switches.isAvailableForBookingEngine.label')}</Label>
+                        <p className='text-xs text-muted-foreground'>{t('PropertyConfigDialog.switches.isAvailableForBookingEngine.description')}</p>
+                    </div>
+                    <Switch
+                        id='isAvailableForBookingEngine'
+                        checked={propertyConfig.isAvailableForBookingEngine}
+                        onCheckedChange={(checked) =>
+                            setPropertyConfig({ ...propertyConfig, isAvailableForBookingEngine: checked })
+                        }
+                    />
+                </div>
+                {userLevel === 4 && (
+                    <div className='flex items-center justify-between space-x-2'>
+                        <div className='space-y-0.5'>
+                            <Label htmlFor='isAvailableForOTA'>{t('PropertyConfigDialog.switches.isAvailableForOTA.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>
+                                {t('PropertyConfigDialog.switches.isAvailableForOTA.description')}
+                            </p>
+                        </div>
+                        <Switch
+                            id='isAvailableForOTA'
+                            checked={propertyConfig.isAvailableForOTA}
+                            onCheckedChange={(checked) =>
+                                setPropertyConfig({ ...propertyConfig, isAvailableForOTA: checked })
+                            }
+                        />
+                    </div>
+                )}
+                {userLevel === 4 && (
+                    <div className='flex items-center justify-between space-x-2'>
+                        <div className='space-y-0.5'>
+                            <Label htmlFor='isSpaModuleEnabled'>{t('PropertyConfigDialog.switches.isSpaModuleEnabled.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>
+                                {t('PropertyConfigDialog.switches.isSpaModuleEnabled.description')}
+                            </p>
+                        </div>
+                        <Switch
+                            id='isSpaModuleEnabled'
+                            checked={propertyConfig.isSpaModuleEnabled}
+                            onCheckedChange={(checked) =>
+                                setPropertyConfig({ ...propertyConfig, isSpaModuleEnabled: checked })
+                            }
+                        />
+                    </div>
+                )}
+                {userLevel === 4 && (
+                    <div className='flex items-center justify-between space-x-2'>
+                        <div className='space-y-0.5'>
+                            <Label htmlFor='isLoyaltyProgramEnabled'>{t('PropertyConfigDialog.switches.isLoyaltyProgramEnabled.label')}</Label>
+                            <p className='text-xs text-muted-foreground'>
+                                {t('PropertyConfigDialog.switches.isLoyaltyProgramEnabled.description')}
+                            </p>
+                        </div>
+                        <Switch
+                            id='isLoyaltyProgramEnabled'
+                            checked={propertyConfig.isLoyaltyProgramEnabled}
+                            onCheckedChange={(checked) =>
+                                setPropertyConfig({ ...propertyConfig, isLoyaltyProgramEnabled: checked })
+                            }
+                        />
+                    </div>
+                )}
                 <DialogFooter>
                     <Button variant='outline' onClick={onClose} disabled={isSaving}>
                         {t('PropertyConfigDialog.footer.cancel')}

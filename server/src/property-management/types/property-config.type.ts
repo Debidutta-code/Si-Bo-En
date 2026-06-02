@@ -14,6 +14,7 @@ export interface IUPropertyConfig {
     isAvailableForOTA: boolean;
     isAvailableForBookingEngine: boolean;
     isSpaModuleEnabled: boolean;
+    isLoyaltyProgramEnabled: boolean;
 }
 export interface IPropertyConfig extends IUPropertyConfig {
     id: string;

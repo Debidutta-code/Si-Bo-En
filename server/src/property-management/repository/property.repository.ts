@@ -74,8 +74,11 @@ export class PropertyDao {
                         isB2bAvailable: false,
                         selfAriActive: true,
                         showVideo: true,
-                        isAvailableForBooking: true,
-                        isAvailableForOTA: true,
+                        isAvailableForBooking: false,
+                        isAvailableForOTA: false,
+                        isAvailableForBookingEngine: false,
+                        isSpaModuleEnabled: false,
+                        isLoyaltyProgramEnabled: false,
                     },
                 }),
                 await prisma.creation.update({
