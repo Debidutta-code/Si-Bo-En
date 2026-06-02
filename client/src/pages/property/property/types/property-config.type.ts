@@ -2,37 +2,42 @@ import type { IMasterIntegrationFields } from "@/pages/management/types";
 import type { FieldError, FieldValue } from "../../types/types";
 
 export interface IUPropertyConfig {
-    pmsIntegrationActive: boolean;
     channelManagerIntegrationActive: boolean;
+    pmsIntegrationActive: boolean;
+    baseCurrency: string;
+    commission: boolean;
+    isB2cAvailable: boolean;
+    isB2bAvailable: boolean;
     selfAriActive: boolean;
-    reservationResetMinutes: number;
-    isB2bAvailable?: boolean;
-    isB2cAvailable?: boolean;
-    commission?: boolean;
-    timezone?: string;
-    baseCurrency?: string;
-    showVideo:boolean;
+    timezone: string;
+    showVideo: boolean;
+    isAvailableForBooking: boolean;
+    isAvailableForOTA: boolean;
+    isAvailableForBookingEngine: boolean;
+    isSpaModuleEnabled: boolean;
+    isLoyaltyProgramEnabled: boolean;
+
 }
 
-export interface IMasterPartnersWProperty{
+export interface IMasterPartnersWProperty {
     id: string;
-    type: "channel_manager"|"pms";
+    type: "channel_manager" | "pms";
     name: string;
     isActive: boolean;
     createdAt: string;
-    masterIntegrationURLFields:ImasterIntegrationURLFields[];
-    requiredFieldsForMasterIntegration:IrequiredFieldsForMasterIntegration[];
-    propertyIntegrations:IpropertyIntegrations[]
+    masterIntegrationURLFields: ImasterIntegrationURLFields[];
+    requiredFieldsForMasterIntegration: IrequiredFieldsForMasterIntegration[];
+    propertyIntegrations: IpropertyIntegrations[]
 }
-export interface IpropertyIntegrations{
+export interface IpropertyIntegrations {
     id: string;
     propertyId: string;
     masterIntegrationId: string;
     isActive: boolean;
     createdAt?: string;
-    propertyIntegrationSecrets:IpropertyIntegrationSecrets[];
+    propertyIntegrationSecrets: IpropertyIntegrationSecrets[];
 }
-export interface IpropertyIntegrationSecrets{
+export interface IpropertyIntegrationSecrets {
     id: string;
     propertyIntegrationId: string;
     requiredFieldId: string;
@@ -40,38 +45,38 @@ export interface IpropertyIntegrationSecrets{
     createdAt?: string;
     RequiredField?: IrequiredFieldsForMasterIntegration;
 }
-export interface ImasterIntegrationURLFields{
+export interface ImasterIntegrationURLFields {
     id: string;
     name: string;
     url: string;
     masterIntegrationId: string;
 }
-export interface IrequiredFieldsForMasterIntegration{
+export interface IrequiredFieldsForMasterIntegration {
     id: string;
     name: string;
     masterIntegrationId: string;
 }
-export interface ICPropertyIntegration{
+export interface ICPropertyIntegration {
     propertyId: string;
     masterIntegrationId: string;
 }
-export interface ICPropertyIntegrationS extends ICPropertyIntegration{
-    fields:ICPropertyInregrationSecrets[]
+export interface ICPropertyIntegrationS extends ICPropertyIntegration {
+    fields: ICPropertyInregrationSecrets[]
 }
-export interface IPropertyIntegration extends ICPropertyIntegration{
-    id:string;
+export interface IPropertyIntegration extends ICPropertyIntegration {
+    id: string;
     isActive: boolean;
-    propertyIntegrationSecrets:IPropertyInregrationSecrets[];
+    propertyIntegrationSecrets: IPropertyInregrationSecrets[];
 }
-export interface ICPropertyInregrationSecrets{
-    
-    requiredFieldId:string;
-    value:string;
+export interface ICPropertyInregrationSecrets {
+
+    requiredFieldId: string;
+    value: string;
 }
-export interface IPropertyInregrationSecrets extends ICPropertyInregrationSecrets{
-    id:string;
+export interface IPropertyInregrationSecrets extends ICPropertyInregrationSecrets {
+    id: string;
     createdAt: Date;
-    RequiredField:IMasterIntegrationFields;
+    RequiredField: IMasterIntegrationFields;
 }
 export interface FormFieldsSectionProps {
     fields: IrequiredFieldsForMasterIntegration[];

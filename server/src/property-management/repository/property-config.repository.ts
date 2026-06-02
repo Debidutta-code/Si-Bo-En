@@ -26,6 +26,7 @@ export class PropertyConfigRepo {
                     updatedAt: new Date(),
                     isAvailableForBookingEngine: config.isAvailableForBookingEngine,
                     isSpaModuleEnabled: config.isSpaModuleEnabled,
+                    isLoyaltyProgramEnabled: config.isLoyaltyProgramEnabled,
                 },
             });
         } catch (error: any) {

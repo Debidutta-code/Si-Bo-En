@@ -22,20 +22,22 @@ model PropertyConfigs {
   isAvailableForBooking           Boolean      @default(true) @map("is_available_for_booking")
   isAvailableForOTA               Boolean      @default(true) @map("is_available_for_ota")
   isAvailableForBookingEngine     Boolean      @default(true) @map("is_available_for_booking_engine")
-  isSpaModuleEnabled              Boolean      @default(true) @map("is_spa_module_enabled")
+  isSpaModuleEnabled              Boolean      @default(false) @map("is_spa_module_enabled")
+  isLoyaltyProgramEnabled         Boolean      @default(false) @map("is_loyalty_program_enabled")
 
-  createdAt                       DateTime     @default(now())
-  updatedAt                       DateTime     @updatedAt
-  property                        Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  property  Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("property_configs")
 }
+
 model PropertyActiveLanguages {
   id         String   @id @default(uuid())
   propertyId String   @map("property_id")
   language   Language @default(hi)
-  
-  Property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  Property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@unique([propertyId, language])
   @@map("property_active_languages")

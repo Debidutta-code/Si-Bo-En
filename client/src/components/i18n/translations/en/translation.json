@@ -75,7 +75,7 @@
     "october": "October",
     "november": "November",
     "december": "December",
-    "create": "Create",         
+    "create": "Create",
     "creating": "Creating...",
     "saving": "Saving...",
     "loadingTranslations": "Loading translations...",
@@ -584,7 +584,6 @@
     "translationFieldName": "Property Name",
     "translationFieldNamePlaceholder": "e.g., Hotel Sol"
   },
-  
   "PropertySuper": {
     "title": "Hotels & Properties",
     "subtitle": "Manage all your hotel properties and their performance",
@@ -655,12 +654,12 @@
       "previous": "Previous",
       "saveRoom": "Save Room",
       "saveAndContinue": "Save & Continue",
-  "cancel": "Cancel",
-  "saving": "Saving...",
-  "previewLink": "Preview Link",
-  "provide360Link": "Please provide a 360° view link or upload an image.",
-  "viewUpdated": "360° view updated successfully!",
-  "failedUpdate360": "Failed to update 360° view"
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "previewLink": "Preview Link",
+      "provide360Link": "Please provide a 360° view link or upload an image.",
+      "viewUpdated": "360° view updated successfully!",
+      "failedUpdate360": "Failed to update 360° view"
     },
     "toast": {
       "loadOptions": "Failed to load property options",
@@ -940,7 +939,6 @@
       "title": "Available Translations",
       "loader": {
         "fetching": "Fetching translations..."
-         
       },
       "empty": "No translations found.",
       "fields": {
@@ -2064,7 +2062,7 @@
       "nameEx": "e.g., Hotel",
       "placeholderEx": "Describe this type",
       "checkTrans": "Property Type Translations",
-       "editTranslation": "Edit Property Type Translation" 
+      "editTranslation": "Edit Property Type Translation"
     },
     "PropertyAmenity": {
       "placeholder": "e.g., Aire acondicionado"
@@ -2506,8 +2504,8 @@
     "email": "Email",
     "contact": "Contact",
     "propertyCode": "Property Code",
-     "addTranslation": "Add Property Details Translation",
-     "selectLanguage": "Select Language",
+    "addTranslation": "Add Property Details Translation",
+    "selectLanguage": "Select Language",
     "propertyName": "Property Name"
   },
   "Rooms": {
@@ -4789,6 +4787,26 @@
       "showVideo": {
         "label": "Show Video In Booking Engine",
         "description": "Enable this to show property video in booking engine"
+      },
+      "isAvailableForBooking": {
+        "label": "Available For Booking",
+        "description": "Enable this to show property in booking engine"
+      },
+      "isAvailableForOTA": {
+        "label": "Available For OTA",
+        "description": "Enable this to show property in OTA"
+      },
+      "isAvailableForBookingEngine": {
+        "label": "Available For Booking Engine",
+        "description": "Enable this to show property in Booking Engine"
+      },
+      "isSpaModuleEnabled": {
+        "label": "Spa Module",
+        "description": "Enable this to show spa module"
+      },
+      "isLoyaltyProgramEnabled": {
+        "label": "Loyalty Program",
+        "description": "Enable this to show loyalty program"
       }
     },
     "partnerSections": {

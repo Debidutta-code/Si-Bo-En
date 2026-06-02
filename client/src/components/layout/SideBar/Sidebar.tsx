@@ -130,7 +130,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
       { name: t('Sidebar.agencyApplications'), href: `/app/agency/applications`, icon: ClipboardCheck, userLevels: [4], priority: 2, roles: ['super_admin'] },
     ];
     if (isPropertyContext && resolvedPropId) {
-      items.push({ name: t('Sidebar.propertyAgencies'), href: `/property/${resolvedPropId}/agencies`, icon: Briefcase, userLevels: [0, 1, 2, 3, 4], priority: 2, roles: ['super_admin'] });
+      items.push({ name: t('Sidebar.propertyAgencies'), href: `/property/${resolvedPropId}/agencies`, icon: Briefcase, userLevels: [4], priority: 2, roles: ['super_admin'] });
     }
     return items;
   };

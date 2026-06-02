@@ -577,7 +577,6 @@
     "properties": "संपत्तियाँ",
     "regionals": "क्षेत्रीय"
   },
-  
   "PropertyCreate": {
     "generalPropertyInfo": "सामान्य संपत्ति जानकारी",
     "locationOfProperty": "संपत्ति का स्थान",
@@ -721,7 +720,7 @@
     "roomAmenity": {
       "title": "कमरे की सुविधाएँ",
       "loading": "कमरे की सुविधाएँ लोड हो रही हैं...",
-       "placeholder": "उदाहरण: एयर कंडीशनर"
+      "placeholder": "उदाहरण: एयर कंडीशनर"
     },
     "propertyAmenity": {
       "title": "संपत्ति सुविधाएँ",
@@ -2035,17 +2034,17 @@
       "nameEx": "उदाहरण: होटल",
       "placeholderEx": "इस प्रकार का विवरण दें",
       "checkTrans": "प्रॉपर्टी प्रकार अनुवाद",
-       "editTranslation": "प्रॉपर्टी प्रकार अनुवाद संपादित करें" 
+      "editTranslation": "प्रॉपर्टी प्रकार अनुवाद संपादित करें"
     },
-   "PropertyAmenity": {
-  "placeholder": "उदाहरण: एयर कंडीशनर"
-},
-"RoomAmenity": {
-  "placeholder": "उदाहरण: एयर कंडीशनर"
-},
-"RoomView": {
-  "placeholder": "उदाहरण: समुद्र दृश्य"
-},
+    "PropertyAmenity": {
+      "placeholder": "उदाहरण: एयर कंडीशनर"
+    },
+    "RoomAmenity": {
+      "placeholder": "उदाहरण: एयर कंडीशनर"
+    },
+    "RoomView": {
+      "placeholder": "उदाहरण: समुद्र दृश्य"
+    },
     "LoyalityField": {
       "createPlaceholder": "उदाहरण: फोन नंबर, जन्म तिथि",
       "addLoyalityFieldTranlation": "लॉयल्टी फ़ील्ड अनुवाद जोड़ें",
@@ -2477,8 +2476,8 @@
     "contact": "संपर्क",
     "propertyCode": "संपत्ति कोड",
     "addTranslation": "संपत्ति विवरण अनुवाद जोड़ें",
-  "selectLanguage": "भाषा चुनें",
-  "propertyName": "संपत्ति का नाम"
+    "selectLanguage": "भाषा चुनें",
+    "propertyName": "संपत्ति का नाम"
   },
   "Rooms": {
     "title": "कमरे",
@@ -2562,21 +2561,20 @@
     "failedToSaveVideo": "वीडियो सहेजने में विफल",
     "videoDeletedSuccessfully": "वीडियो सफलतापूर्वक हटा दिया गया!",
     "failedToDeleteVideo": "वीडियो हटाने में विफल",
-  "upload360Text": "360° पैनोरमिक छवि अपलोड करें या बाहरी 360° व्यूअर का लिंक दें।",
-  "viewLink": "360° दृश्य लिंक",
-  "orUploadImage": "या छवि अपलोड करें",
-  "upload360Image": "360° छवि अपलोड करें",
-  "add360ViewFor": "{{name}} के लिए 360° दृश्य जोड़ें",
-"upload360Description": "360° पैनोरमिक छवि अपलोड करें या बाहरी 360° व्यूअर का लिंक प्रदान करें।",
-"view360Link": "360° दृश्य लिंक",
-"view360Placeholder": "https://example.com/360-view.jpg",
-"enter360ViewerUrl": "360° छवि या पैनोरमिक व्यूअर का URL दर्ज करें",
-"previewLink": "पूर्वावलोकन लिंक",
-"pleaseProvide360Link": "कृपया 360° दृश्य लिंक प्रदान करें या छवि अपलोड करें।",
-"view360Updated": "360° दृश्य सफलतापूर्वक अपडेट हो गया!",
-"failedToUpdate360View": "360° दृश्य अपडेट करने में विफल",
-"saving": "सहेजा जा रहा है..."
-  
+    "upload360Text": "360° पैनोरमिक छवि अपलोड करें या बाहरी 360° व्यूअर का लिंक दें।",
+    "viewLink": "360° दृश्य लिंक",
+    "orUploadImage": "या छवि अपलोड करें",
+    "upload360Image": "360° छवि अपलोड करें",
+    "add360ViewFor": "{{name}} के लिए 360° दृश्य जोड़ें",
+    "upload360Description": "360° पैनोरमिक छवि अपलोड करें या बाहरी 360° व्यूअर का लिंक प्रदान करें।",
+    "view360Link": "360° दृश्य लिंक",
+    "view360Placeholder": "https://example.com/360-view.jpg",
+    "enter360ViewerUrl": "360° छवि या पैनोरमिक व्यूअर का URL दर्ज करें",
+    "previewLink": "पूर्वावलोकन लिंक",
+    "pleaseProvide360Link": "कृपया 360° दृश्य लिंक प्रदान करें या छवि अपलोड करें।",
+    "view360Updated": "360° दृश्य सफलतापूर्वक अपडेट हो गया!",
+    "failedToUpdate360View": "360° दृश्य अपडेट करने में विफल",
+    "saving": "सहेजा जा रहा है..."
   },
   "BankDetails": {
     "title": "बैंक और भुगतान विवरण",
@@ -4765,6 +4763,26 @@
       "showVideo": {
         "label": "बुकिंग इंजन में वीडियो दिखाएँ",
         "description": "बुकिंग इंजन में प्रॉपर्टी वीडियो दिखाने के लिए इसे सक्षम करें"
+      },
+      "isAvailableForBooking": {
+        "label": "बुकिंग के लिए उपलब्ध",
+        "description": "बुकिंग इंजन में प्रॉपर्टी दिखाने के लिए इसे सक्षम करें"
+      },
+      "isAvailableForOTA": {
+        "label": "OTA के लिए उपलब्ध",
+        "description": "OTA में प्रॉपर्टी दिखाने के लिए इसे सक्षम करें"
+      },
+      "isAvailableForBookingEngine": {
+        "label": "बुकिंग इंजन के लिए उपलब्ध",
+        "description": "बुकिंग इंजन में प्रॉपर्टी दिखाने के लिए इसे सक्षम करें"
+      },
+      "isSpaModuleEnabled": {
+        "label": "स्पा मॉड्यूल",
+        "description": "स्पा मॉड्यूल दिखाने के लिए इसे सक्षम करें"
+      },
+      "isLoyaltyProgramEnabled": {
+        "label": "लॉयल्टी प्रोग्राम",
+        "description": "लॉयल्टी प्रोग्राम दिखाने के लिए इसे सक्षम करें"
       }
     },
     "partnerSections": {
