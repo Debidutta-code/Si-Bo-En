@@ -312,7 +312,7 @@
     "statistics": "Statistics"
   },
   "DashboardStats": {
-    "totalReservations": "Nu. of Nights",
+    "totalReservations": "No. of Nights",
     "todaysCheckIns": "Today's Check-ins",
     "todaysCheckOuts": "Today's Check-outs",
     "upcomingReservations": "Upcoming Reservations",
