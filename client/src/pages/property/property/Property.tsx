@@ -65,14 +65,18 @@ export default function PropertyPage() {
     const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
         channelManagerIntegrationActive: false,
         pmsIntegrationActive: false,
-        reservationResetMinutes: 570,
         selfAriActive: false,
         isB2bAvailable: false,
         isB2cAvailable: false,
         commission: false,
         showVideo: true,
         timezone: "Asia/Kolkata",
-        baseCurrency: "INR"
+        baseCurrency: "INR",
+        isAvailableForBooking:true,
+        isAvailableForBookingEngine:true,
+        isAvailableForOTA:false,
+        isLoyaltyProgramEnabled:false,
+        isSpaModuleEnabled:false
     })
     const [masterPartners, setMasterPartners] = useState<IMasterPartnersWProperty[]>([]);
     const navigate = useNavigate();
