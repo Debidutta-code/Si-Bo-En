@@ -132,8 +132,6 @@ const Rooms = () => {
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [guestForms, setGuestForms] = useState<Guest[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [loyaltyMemberEmail, setLoyaltyMemberEmail] = useState<string>("");
-  // Controls LoyaltyContainer's modal only; LoyaltyProgramBanner manages its own modal state
   const [showLoyaltySignup, setShowLoyaltySignup] = useState(false);
   const [contactInfo, setContactInfo] = useState({
     email: "",
@@ -143,6 +141,7 @@ const Rooms = () => {
   const [loyaltyDiscountInfo, setLoyaltyDiscountInfo] = useState<{
     type: string; value: number; currencyCode: string;
   } | null>(null);
+  const [loyaltyToggleOn, setLoyaltyToggleOn] = useState(false);
   const [errorRooms, setErrorRooms] = useState<string | null>(null);
   // const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
   const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
@@ -384,14 +383,14 @@ const Rooms = () => {
       setPropertyDetails(propertyDetails || null);
 
       // Check for loyalty membership
-      if (propertyDetails?.id) {
-        const storedEmail = localStorage.getItem(
-          `loyalty_member_${propertyDetails.id}`,
-        );
-        if (storedEmail) {
-          setLoyaltyMemberEmail(storedEmail);
-        }
-      }
+      // if (propertyDetails?.id) {
+      //   const storedEmail = localStorage.getItem(
+      //     `loyalty_member_${propertyDetails.id}`,
+      //   );
+      //   if (storedEmail) {
+      //     setLoyaltyMemberEmail(storedEmail);
+      //   }
+      // }
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || t("Rooms.somethingWentWrong"));
@@ -882,8 +881,8 @@ const Rooms = () => {
                   <LoyaltyProgramBanner
                     loyaltyProgram={loyaltyProgram}
                     primaryColor={primaryColor}
-                    onSignUpSuccess={(email) => setLoyaltyMemberEmail(email)}
-                    onLogoutSuccess={() => setLoyaltyMemberEmail("")}
+                    // onSignUpSuccess={(email) => setLoyaltyMemberEmail(email)}
+                    // onLogoutSuccess={() => setLoyaltyMemberEmail("")}
                     onDiscountVerified={setLoyaltyDiscountInfo}
                   />
                 </div>
@@ -898,18 +897,9 @@ const Rooms = () => {
                   showSignUpModal={showLoyaltySignup}
                   onDiscountVerified={setLoyaltyDiscountInfo}
                   onShowSignUpModalChange={setShowLoyaltySignup}
-                  toggleOn={!!loyaltyMemberEmail}
+                  toggleOn={!!loyaltyToggleOn}
                   onToggleChange={(isOn) => {
-                    if (isOn) {
-                      const storedEmail = localStorage.getItem(
-                        `loyalty_member_${loyaltyProgram?.propertyId}`,
-                      );
-                      if (storedEmail) {
-                        setLoyaltyMemberEmail(storedEmail);
-                      }
-                    } else {
-                      setLoyaltyMemberEmail("");
-                    }
+                    setLoyaltyToggleOn(isOn);
                   }}
                 />
               </div>
@@ -964,9 +954,10 @@ const Rooms = () => {
                               loadingBookNow={loadingBookNow}
                               onPriceUpdate={handlePriceUpdate}
                               selectedBoardType={selectedBoardType}
-                              loyaltyMemberEmail={loyaltyMemberEmail}
+                              // loyaltyMemberEmail={loyaltyMemberEmail}
                               loyalty={loyaltyProgram}
                               loyaltyDiscountInfo={loyaltyDiscountInfo}
+                              loyaltyToggleOn={loyaltyToggleOn}
                               onUnlockLoyalty={() => {
                                 setShowLoyaltySignup(true);
                               }}
@@ -1068,7 +1059,6 @@ const Rooms = () => {
           price={price}
           finalPrice={finalPrice}
           bookingContext={bookingContext}
-          loyaltyMemberEmail={loyaltyMemberEmail}
           loyaltyDiscountInfo={loyaltyDiscountInfo}
           propertyId={propertyDetails?.id || ""}
           onClose={() => {
@@ -1123,8 +1113,7 @@ const Rooms = () => {
               type: "booking/setFullBookingDetails",
               payload: {
                 ...bookingData,
-                isLoyalityGuest: !!loyaltyMemberEmail,        // ADD THIS
-                loyalityMemberEmail: loyaltyMemberEmail || undefined,
+                isLoyaltyGuest: !!loyaltyDiscountInfo,        // ADD THIS
               }
             });
 

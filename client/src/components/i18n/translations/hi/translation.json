@@ -77,7 +77,15 @@
     "december": "दिसंबर",
     "create": "बनाएँ",
     "creating": "बनाया जा रहा है...",
-    "saving": "सहेजा जा रहा है..."
+    "saving": "सहेजा जा रहा है...",
+    "loadingTranslations": "अनुवाद लोड हो रहे हैं...",
+"noTranslationsFound": "कोई अनुवाद नहीं मिला।",
+"pleaseSelectLanguage": "कृपया एक भाषा चुनें",
+"pleaseFillOneField": "कृपया कम से कम एक फ़ील्ड भरें",
+"translationSaved": "अनुवाद सफलतापूर्वक सहेजा गया!",
+"failedToSaveTranslation": "अनुवाद सहेजने में विफल",
+"translationUpdated": "अनुवाद सफलतापूर्वक अपडेट हुआ!",
+"failedToUpdateTranslation": "अनुवाद अपडेट करने में विफल"
   },
   "BookingStatus": {
     "confirmed": "पुष्टि की गई",
@@ -2044,7 +2052,8 @@
       "fieldName": "फ़ील्ड नाम",
       "placeholder": "उदाहरण: Número de teléfono",
       "checkTranslations": "लॉयल्टी फ़ील्ड अनुवाद",
-      "editTranslation": "लॉयल्टी फ़ील्ड अनुवाद संपादित करें"
+      "editTranslation": "लॉयल्टी फ़ील्ड अनुवाद संपादित करें",
+      "noTranslationsFound": "कोई अनुवाद नहीं मिला।" 
     }
   },
   "Loyalty": {

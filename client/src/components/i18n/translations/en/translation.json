@@ -77,7 +77,15 @@
     "december": "December",
     "create": "Create",         
     "creating": "Creating...",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "loadingTranslations": "Loading translations...",
+"noTranslationsFound": "No translations found.",
+"pleaseSelectLanguage": "Please select a language",
+"pleaseFillOneField": "Please fill in at least one field",
+"translationSaved": "Translation saved successfully!",
+"failedToSaveTranslation": "Failed to save translation",
+"translationUpdated": "Translation updated successfully!",
+"failedToUpdateTranslation": "Failed to update translation"
   },
   "BookingStatus": {
     "confirmed": "Confirmed",
@@ -2073,7 +2081,9 @@
       "fieldName": "Field Name",
       "placeholder": "e.g., Número de teléfono",
       "checkTranslations": "Loyalty Field Translations",
-      "editTranslation": "Edit Loyalty Field Translation"
+      "editTranslation": "Edit Loyalty Field Translation",
+          "noTranslationsFound": "No translations found."   
+
     }
   },
   "Loyalty": {
