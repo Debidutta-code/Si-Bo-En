@@ -4718,23 +4718,7 @@
       "deleteFailed": "Failed to delete translation"
     }
   },
-  "AddRoomLangDialog": {
-    "title": "Add Room Translation",
-    "form": {
-      "languagePlaceholder": "Select Language",
-      "roomName": "Room Name",
-      "roomNamePlaceholder": "e.g., Deluxe Ocean Room",
-      "roomType": "Room Type",
-      "roomTypePlaceholder": "e.g., Deluxe",
-      "descriptionPlaceholder": "Enter translated description..."
-    },
-    "toast": {
-      "languageRequired": "Please select a language.",
-      "fieldRequired": "Please provide at least a room name or description.",
-      "saveSuccess": "Room translation added successfully!",
-      "saveFailed": "Failed to add translation."
-    }
-  },
+  
   "SpaManagement": {
     "categories": "Spa Categories",
     "addCategory": "Add Category",
