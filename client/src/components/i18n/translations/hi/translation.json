@@ -2672,7 +2672,8 @@
     "availableTranslations": "उपलब्ध अनुवाद",
     "allSavedTranslations": "इस नीति के लिए सभी सहेजे गए अनुवाद।",
     "name": "नाम",
-    "decs": "विवरण"
+    "decs": "विवरण",
+    "getStartedCreating": "अपनी पहली नीति बनाकर शुरुआत करें।"
   },
   "PromoCode": {
     "title": "प्रोमो कोड",

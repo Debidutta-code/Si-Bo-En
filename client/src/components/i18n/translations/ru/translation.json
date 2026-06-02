@@ -2326,7 +2326,8 @@
     "policyUpdated": "Политика успешно обновлена",
     "failedToUpdatePolicy": "Не удалось обновить политику",
     "errorUpdatingPolicy": "Ошибка при обновлении политики",
-    "noDescription": "Описание не указано."
+    "noDescription": "Описание не указано.",
+    "getStartedCreating": "Начните с создания своей первой политики."
   },
   "PromoCode": {
     "title": "Промокоды",
