@@ -311,8 +311,8 @@ if(!pb) continue;
             if (r.bookingStatus !== 'cancelled') {
                 e.revenue += Number(r.amount);
                 e.paid += Number(r.paidAmount);
-                e.refund += Number(r.refundAmount);
-                e.outstanding += Number(r.extraAmountToPay);
+                e.refund += Number(r.paidAmount > 0 ? r.paidAmount - r.amount + r.extraAmountToPay : 0);
+                e.outstanding += Number(r.amount + r.extraAmountToPay - r.paidAmount - r.refundAmount - r.PricingBrakeDown.latterpayableAmount);
             }
             e.bookings++;
             const room = r.roomTypeCode || 'Unknown';

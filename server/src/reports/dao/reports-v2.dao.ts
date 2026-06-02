@@ -294,7 +294,7 @@ export class ReportsV2Repository {
                 reservationStartDate: { gte: start, lte: end },
             },
             select: {
-                bookingCode:true,
+                bookingCode: true,
                 propertyId: true,
                 hotelName: true,
                 propertyCode: true,
@@ -311,7 +311,7 @@ export class ReportsV2Repository {
                 reservationStartDate: true,
                 reservationEndDate: true,
                 addOns: { select: { totalPrice: true } },
-                PricingBrakeDown: { select: { currencyCode: true } },
+                PricingBrakeDown: { select: { currencyCode: true, latterpayableAmount: true } },
             },
             orderBy: { reservationStartDate: 'asc' },
         });

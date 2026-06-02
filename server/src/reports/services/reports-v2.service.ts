@@ -88,14 +88,13 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            console.log("Querry Params", params)
+
             const propertyIds = await this.resolveScope(
                 params.creationId,
                 params.propertyId,
                 params.brandId,
                 params.groupId
             );
-            console.log("ProperytIds", propertyIds)
             if (!propertyIds.length)
                 return errorResponse('No properties found for your account');
 
@@ -198,7 +197,6 @@ export class ReportsV2Service {
                 ),
                 this.dao.getPropertyNames(propertyIds)
             ]);
-            console.log("Reservations", reservations);
             const excel = await this.xl.generateRevenueAnalytics(
                 reservations,
                 propertyNames
