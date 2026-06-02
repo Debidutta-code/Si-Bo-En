@@ -294,6 +294,7 @@ export class ReportsV2Repository {
                 reservationStartDate: { gte: start, lte: end },
             },
             select: {
+                bookingCode:true,
                 propertyId: true,
                 hotelName: true,
                 propertyCode: true,

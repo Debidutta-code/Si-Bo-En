@@ -229,17 +229,27 @@ export default function PropertyConfigDialog({
                         </Select>
                     </div>
 
+                </div>
                     {/* Base Currency */}
-                    <div className='space-y-2'>
-                        <Label htmlFor="currencyCode"></Label>
+                      <div className='space-y-2'>
+                        <Label htmlFor="currencyCode">{t('PropertyConfigDialog.form.currencyCode')}</Label>
                         <Select
                             value={propertyConfig.baseCurrency}
                             onValueChange={(value) =>
                                 setPropertyConfig({ ...propertyConfig, baseCurrency: value })
                             }                                      >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {currencies.map((currency) => (
+                                    <SelectItem key={currency.code} value={currency.code}>
+                                        {currency.name} ({currency.code} - {currency.symbol})
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
                         </Select>
                     </div>
-                </div>
                 <div className='flex items-center justify-between space-x-2'>
                     <div className='space-y-0.5'>
                         <Label htmlFor='isAvailableForBooking'>{t('PropertyConfigDialog.switches.isAvailableForBooking.label')}</Label>

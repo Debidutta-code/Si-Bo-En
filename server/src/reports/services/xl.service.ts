@@ -391,7 +391,7 @@ if(!pb) continue;
         const s2 = ws2.lastRow!.number + 1;
         for (const r of reservations) {
             ws2.addRow([
-                r.bookingCode,
+                r.bookingCode.split('-')[1],
                 propertyNames.get(r.propertyId) || r.hotelName,
                 r.roomTypeCode || 'N/A',
                 r.ratePlanName || r.ratePlanCode || 'N/A',
