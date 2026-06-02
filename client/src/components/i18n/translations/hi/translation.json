@@ -321,14 +321,14 @@
     "statistics": "आँकड़े"
   },
   "DashboardStats": {
-    "totalReservations": "कुल आरक्षण",
+    "totalReservations": "कुल रातें",
     "todaysCheckIns": "आज का चेक-इन",
     "todaysCheckOuts": "आज का चेक-आउट",
     "upcomingReservations": "आगामी आरक्षण",
     "totalGuests": "कुल अतिथि",
     "avgStayDuration": "औसत प्रवास अवधि",
     "avgGuestsPerBooking": "औसत अतिथि/बुकिंग",
-    "cancellationRate": "रद्दीकरण दर",
+    "cancellationRate": "रद्दीकरण / अनुपस्थित अतिथि",
     "nights": "रातें",
     "allTimeBookings": "सभी समय की बुकिंग",
     "arrivalsToday": "आज आगमन",
@@ -340,7 +340,7 @@
     "allTimeCancellationRate": "सभी समय की रद्दीकरण दर",
     "reservationOverview": "आरक्षण अवलोकन",
     "reservationStatusDistribution": "आरक्षण स्थिति वितरण",
-    "totalRevenue": "कुल राजस्व",
+    "totalRevenue": "कुल बुकिंग राशि",
     "todaysRevenue": "आज का राजस्व",
     "thisWeek": "इस सप्ताह",
     "thisMonth": "इस महीने",
@@ -4693,6 +4693,23 @@
     "toast": {
       "deleteSuccess": "अनुवाद सफलतापूर्वक हटा दिया गया!",
       "deleteFailed": "अनुवाद हटाने में विफल"
+    }
+  },
+  "AddRoomLangDialog": {
+    "title": "कमरे का अनुवाद जोड़ें",
+    "form": {
+      "languagePlaceholder": "भाषा चुनें",
+      "roomName": "कमरे का नाम",
+      "roomNamePlaceholder": "जैसे, डीलक्स ओशन रूम",
+      "roomType": "कमरे का प्रकार",
+      "roomTypePlaceholder": "जैसे, डीलक्स",
+      "descriptionPlaceholder": "अनुवादित विवरण दर्ज करें..."
+    },
+    "toast": {
+      "languageRequired": "कृपया एक भाषा चुनें।",
+      "fieldRequired": "कृपया कम से कम कमरे का नाम या विवरण प्रदान करें।",
+      "saveSuccess": "कमरे का अनुवाद सफलतापूर्वक जोड़ा गया!",
+      "saveFailed": "अनुवाद जोड़ने में विफल।"
     }
   },
   "SpaManagement": {

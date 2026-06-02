@@ -1058,7 +1058,11 @@ export default function Rooms({ propertyId }: PropertyId) {
 
       {translationRoomId && (
         <>
-          <AddRoomLangDialog open={addTranslationOpen} onOpenChange={setAddTranslationOpen} roomId={translationRoomId} />
+          <AddRoomLangDialog
+           open={addTranslationOpen}
+            onOpenChange={setAddTranslationOpen}
+             roomId={translationRoomId}
+              />
           <CheckRoomLangDialog
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}

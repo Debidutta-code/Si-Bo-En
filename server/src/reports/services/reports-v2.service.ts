@@ -88,14 +88,13 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            console.log("Querry Params",params)
+
             const propertyIds = await this.resolveScope(
                 params.creationId,
                 params.propertyId,
                 params.brandId,
                 params.groupId
             );
-            console.log("ProperytIds",propertyIds)
             if (!propertyIds.length)
                 return errorResponse('No properties found for your account');
 
@@ -190,12 +189,14 @@ export class ReportsV2Service {
             if (!propertyIds.length)
                 return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getRevenueAnalytics(
-                propertyIds,
-                params.startDate,
-                params.endDate
-            );
-            const propertyNames = await this.dao.getPropertyNames(propertyIds);
+            const [reservations, propertyNames] = await Promise.all([
+                this.dao.getRevenueAnalytics(
+                    propertyIds,
+                    params.startDate,
+                    params.endDate
+                ),
+                this.dao.getPropertyNames(propertyIds)
+            ]);
             const excel = await this.xl.generateRevenueAnalytics(
                 reservations,
                 propertyNames
@@ -459,20 +460,20 @@ export class ReportsV2Service {
             const today = new Date().toISOString().split('T')[0];
 
             if (params.propertyId && params.propertyCreationId) {
-                const [creationConfig,config] = await Promise.all([
+                const [creationConfig, config] = await Promise.all([
                     this.dao.getLoyaltyGuestsByCreation(
-                    params.propertyCreationId,
-                    params.startDate,
-                    params.endDate
-                ),
-                this.dao.getLoyaltyGuestsByProperty(
-                    params.propertyId,
-                    params.startDate,
-                    params.endDate
-                )
-                ]) 
+                        params.propertyCreationId,
+                        params.startDate,
+                        params.endDate
+                    ),
+                    this.dao.getLoyaltyGuestsByProperty(
+                        params.propertyId,
+                        params.startDate,
+                        params.endDate
+                    )
+                ])
 
-                if (creationConfig&&config&&creationConfig.id==config.creationLoyaltyConfigId) {
+                if (creationConfig && config && creationConfig.id == config.creationLoyaltyConfigId) {
                     const excel = await this.xl.generateLoyaltyGuests({
                         mode: 'creation',
                         loyaltyLevels: creationConfig.LoyalityLevels,

@@ -311,8 +311,8 @@ if(!pb) continue;
             if (r.bookingStatus !== 'cancelled') {
                 e.revenue += Number(r.amount);
                 e.paid += Number(r.paidAmount);
-                e.refund += Number(r.refundAmount);
-                e.outstanding += Number(r.extraAmountToPay);
+                e.refund += Number(r.paidAmount > 0 ? r.paidAmount - r.amount + r.extraAmountToPay : 0);
+                e.outstanding += Number(r.amount + r.extraAmountToPay - r.paidAmount - r.refundAmount - r.PricingBrakeDown.latterpayableAmount);
             }
             e.bookings++;
             const room = r.roomTypeCode || 'Unknown';
@@ -391,7 +391,7 @@ if(!pb) continue;
         const s2 = ws2.lastRow!.number + 1;
         for (const r of reservations) {
             ws2.addRow([
-                r.bookingCode,
+                r.bookingCode.split('-')[1],
                 propertyNames.get(r.propertyId) || r.hotelName,
                 r.roomTypeCode || 'N/A',
                 r.ratePlanName || r.ratePlanCode || 'N/A',

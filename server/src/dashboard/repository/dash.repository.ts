@@ -349,9 +349,9 @@ export class DashBoardRepository {
         const monthOverMonthGrowth =
             lastMonthAmount > 0
                 ? (
-                      ((thisMonthAmount - lastMonthAmount) / lastMonthAmount) *
-                      100
-                  ).toFixed(2)
+                    ((thisMonthAmount - lastMonthAmount) / lastMonthAmount) *
+                    100
+                ).toFixed(2)
                 : '0';
 
         const totalRooms = await prisma.room.aggregate({
@@ -408,94 +408,32 @@ export class DashBoardRepository {
         };
     }
 
-    /**
-     * Room Analytics - Based on Room types and Inventory
-     */
-    // private async getRoomAnalytics(propertyIds: string[]): Promise<IRoomAnalytics> {
-    //     const [roomTypeStats, inventoryData] = await Promise.all([
-    //         // Room type statistics
-    //         prisma.room.findMany({
-    //             where: { propertyId: { in: propertyIds } },
-    //             select: {
-    //                 roomType: true,
-    //                 roomName: true,
-    //                 totalRoom: true
-    //             }
-    //         }),
-    //         // Get current inventory availability
-    //         prisma.inventory.findMany({
-    //             where: {
-    //                 propertyCode: { in: propertyIds },
-    //                 date: new Date().toISOString().split('T')[0]
-    //             }
-    //         })
-    //     ]);
 
-    //     const totalRooms = roomTypeStats.reduce((sum, room) => sum + room.totalRoom, 0);
-    //     const totalAvailable = inventoryData.reduce((sum, inv) => sum + inv.availability, 0);
-    //     const occupiedRooms = Math.max(0, totalRooms - totalAvailable);
-    //     const occupancyRate = totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0;
 
-    //     // Room type occupancy
-    //     const roomTypeOccupancy = roomTypeStats.map(roomType => {
-    //         const inventory = inventoryData.find(inv => inv.roomTypeCode === roomType.roomType);
-    //         const available = inventory?.availability || roomType.totalRoom;
-    //         const occupied = roomType.totalRoom - available;
-    //         const occupancyRateForType = roomType.totalRoom > 0
-    //             ? (occupied / roomType.totalRoom * 100).toFixed(2)
-    //             : '0';
 
-    //         return {
-    //             roomType: roomType.roomType,
-    //             roomName: roomType.roomName,
-    //             totalRooms: roomType.totalRoom,
-    //             occupiedRooms: occupied,
-    //             availableRooms: available,
-    //             occupancyRate: occupancyRateForType
-    //         };
-    //     });
 
-    //     // Get reserved rooms from today's reservations
-    //     const today = new Date();
-    //     today.setHours(0, 0, 0, 0);
-    //     const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
 
-    //     const reservedRooms = await prisma.reservation.count({
-    //         where: {
-    //             propertyId: { in: propertyIds },
-    //             checkInDate: { gte: today, lt: tomorrow },
-    //             bookingStatus: 'confirmed'
-    //         }
-    //     });
 
-    //     const checkedInRooms = await prisma.reservation.count({
-    //         where: {
-    //             propertyId: { in: propertyIds },
-    //             checkInDate: { lt: today },
-    //             checkOutDate: { gte: today },
-    //             bookingStatus: 'confirmed'
-    //         }
-    //     });
 
-    //     return {
-    //         totalRooms,
-    //         occupiedRooms,
-    //         availableRooms: totalAvailable,
-    //         dirtyRooms: 0, // No longer tracked
-    //         reservedRooms,
-    //         checkedInRooms,
-    //         tentativeRooms: 0, // No longer tracked
-    //         occupancyRate: occupancyRate.toFixed(2),
-    //         roomStatusBreakdown: [
-    //             { status: 'available', count: totalAvailable },
-    //             { status: 'occupied', count: occupiedRooms }
-    //         ],
-    //         roomTypeStats,
-    //         roomTypeOccupancy
-    //     };
-    // }
 
-    // Add this method to your DashBoardRepository class
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     public async getStatisticsComparison(
         propertyIds: string[],
         comparisonType: 'date' | 'month' | 'year',
@@ -571,7 +509,9 @@ export class DashBoardRepository {
             prisma.reservation.findMany({
                 where: {
                     propertyId: { in: propertyIds },
-                    bookingStatus: 'confirmed',
+                    bookingStatus: {
+                        notIn: ["cancelled", "no_show",]
+                    },
                     createdAt: { gte: startDate, lte: endDate },
                 },
                 select: { amount: true, currencyCode: true },
@@ -579,7 +519,9 @@ export class DashBoardRepository {
             prisma.reservation.findMany({
                 where: {
                     propertyId: { in: propertyIds },
-                    bookingStatus: 'confirmed',
+                    bookingStatus: {
+                        notIn: ["cancelled", "no_show",]
+                    },
                     createdAt: { gte: startDate, lte: endDate },
                 },
                 select: {
@@ -591,7 +533,7 @@ export class DashBoardRepository {
 
         const totalBookings = bookingsData.length;
         const cancelledBookings = bookingsData.filter(
-            b => b.bookingStatus === 'cancelled'
+            b => b.bookingStatus === 'cancelled' || b.bookingStatus === "no_show"
         ).length;
 
         const revenue = (
@@ -725,8 +667,8 @@ export class DashBoardRepository {
             previous > 0
                 ? ((current - previous) / previous) * 100
                 : current > 0
-                  ? 100
-                  : 0;
+                    ? 100
+                    : 0;
 
         return {
             current,
