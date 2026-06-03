@@ -96,7 +96,7 @@ export default function InventoryPage() {
           _translations: room._translations
         }));
 
-        console.log('✅ Transformed room types:', transformedRoomTypes);
+        // console.log('✅ Transformed room types:', transformedRoomTypes);
 
         setRoomTypes(transformedRoomTypes);
 
