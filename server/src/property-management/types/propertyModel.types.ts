@@ -3,13 +3,13 @@ import { Types } from 'mongoose';
 // Interface definitions remain the same...
 export interface IPropertyAddress {
     addressLine1: string;
-    addressLine2?: string;
+    addressLine2: string|null;
     country: string;
     state: string;
     city: string;
     location: string;
     landmark: string;
-    zipCode: number;
+    zipCode: string;
     latitude: number;
     longitude: number;
 }

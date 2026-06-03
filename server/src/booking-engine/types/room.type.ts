@@ -375,12 +375,18 @@ export interface IPropertyData {
 export interface IPropertyConfig {
     id: string;
     propertyId: string;
-    pmsIntegrationActive: Boolean;
-    channelManagerIntegrationActive: Boolean;
-    selfAriActive: Boolean;
-    isB2bAvailable: Boolean;
-    isB2cAvailable: Boolean;
-    showVideo: Boolean;
-    commission: Boolean;
+    channelManagerIntegrationActive: boolean;
+    pmsIntegrationActive: boolean;
     baseCurrency: CurrencyCode;
+    commission: boolean;
+    isB2cAvailable: boolean;
+    isB2bAvailable: boolean;
+    selfAriActive: boolean;
+    timezone: string;
+    showVideo: boolean;
+    isAvailableForBooking: boolean;
+    isAvailableForOTA: boolean;
+    isAvailableForBookingEngine: boolean;
+    isSpaModuleEnabled: boolean;
+    isLoyaltyProgramEnabled: boolean;
 }

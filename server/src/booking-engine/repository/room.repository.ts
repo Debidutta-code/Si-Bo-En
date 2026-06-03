@@ -8,6 +8,12 @@ export class RoomBookingRepository {
         const property = await prisma.property.findUnique({
             where: { propertyCode },
             include: {
+                propertyConfigs:{
+                    select:{
+                        isSpaModuleEnabled: true,
+                        isLoyaltyProgramEnabled: true
+                    }
+                },
                 propertyAddress: true,
 
                 propertyAmenities: {

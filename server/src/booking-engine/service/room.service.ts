@@ -139,7 +139,7 @@ export class RoomBookingService {
                     propertyVideos: property.propertyConfigs?.showVideo
                         ? property.propertyVideos
                         : null,
-                    loyaltyProgramConfig: property.loyaltyProgramConfig,
+                    loyaltyProgramConfig: property.propertyConfigs?.isLoyaltyProgramEnabled?property.loyaltyProgramConfig:null,
                     propertyCode: property.propertyCode,
                     starRating: property.starRating,
                     bookingEngineConfig: property.bookingEngineConfig,

@@ -25,6 +25,7 @@ import {
     IBookingAddonCreate,
     ICPrimaryGuest,
     IPropertyEmails,
+    IReservationByCode,
     IReservationPromotion,
     IReservationPromotionCreate,
 } from '../types/reservation.type';
@@ -775,7 +776,7 @@ export class ReservationRepository {
     public async getReservaltionByCode(
         reservationCode: string,
         propertyCode: string
-    ): Promise<IReservationWithAllDetails | null> {
+    ): Promise<IReservationByCode | null> {
         try {
             return await prisma.reservation.findUnique({
                 where: { bookingCode: reservationCode, propertyCode },
@@ -822,7 +823,15 @@ export class ReservationRepository {
                             propertyContact: true,
                             description: true,
                             image: true,
+                            propertyAddress:true,
+                            propertyConfigs:{
+                                 select:{
+                                    isSpaModuleEnabled: true,
+                                    isLoyaltyProgramEnabled: true
+                                 }
+                            }
                         },
+
                     },
                 },
             });

@@ -8,6 +8,7 @@ import { PostingRhythm } from '../../add-on/interfaces';
 import { RestrictionType } from '../../../prisma/generated/prisma/enums';
 import { AgentCommissionType } from '../../agency/types';
 import { GuestType } from './guest.type';
+import { IPropertyAddress } from '../../property-management/types';
 export type Platforms = 'web' | 'mobile' | 'desktop';
 export type BookingSource =
     | 'direct'
@@ -144,7 +145,29 @@ export interface IPrimaryGuest extends ICPrimaryGuest {
     id: string;
 
 }
-
+export interface IPropertyDetailsByCode {
+    id: string;
+    propertyName: string;
+    propertyEmail: string;
+    propertyContact: string;
+    propertyCode: string;
+    description: string;
+    image: string[];
+    propertyAddress:IPropertyAddress|null,
+    propertyConfigs:{
+        isLoyaltyProgramEnabled: boolean;
+        isSpaModuleEnabled: boolean;
+    }|null
+}
+export interface IReservationByCode extends IReservation {
+    primaryGuest: IPrimaryGuest;
+    addOns: IBookingAddon[];
+    PricingBrakeDown?: IPricingBreakDown | null;
+    property: IPropertyDetailsByCode;
+    reservationPromoCodes?: IReservationPromoCodes[];
+    promo: IPromoCode | null;
+    agencyCommission?: IAgencyCommissionData | null;
+}
 export interface IReservationGuest extends ICReservationGuest {
     id: string
 }
