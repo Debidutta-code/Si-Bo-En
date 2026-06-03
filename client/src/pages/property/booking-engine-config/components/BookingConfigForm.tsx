@@ -9,6 +9,7 @@ import ColorPicker from './ColorPicker';
 import LivePreview from './LivePreview';
 import type { BookingEngineConfig } from '../interface';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
+import { useTranslation } from 'react-i18next';
 
 interface BookingConfigFormProps {
   initialConfig?: BookingEngineConfig;
@@ -21,6 +22,8 @@ export default function BookingConfigForm({
   onSave, 
   isUpdate 
 }: BookingConfigFormProps) {
+  const { t } = useTranslation();
+
   const [primaryColor, setPrimaryColor] = React.useState(initialConfig?.primaryColor || '#02438D');
   const [secondaryColor, setSecondaryColor] = React.useState(initialConfig?.secondaryColor || '#10B981');
   const [tertiaryColor, setTertiaryColor] = React.useState(initialConfig?.tertiaryColor || '#F59E0B');
@@ -62,34 +65,34 @@ const handleUploadSuccess = (urls: string[]) => {
       <div className="space-y-6">
         <Card className="p-6">
           <div>
-            <h2 className="text-xl font-bold ">Hotel Website URL</h2>
+            <h2 className="text-xl font-bold ">{t('BookingEngine.hotelWebsiteUrl')}</h2>
             <input
               type="text"
-              placeholder="Paste url here"
+              placeholder={t('BookingEngine.pasteUrlHere')}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
-          <h2 className="text-xl font-bold my-4">Color Configuration</h2>
+          <h2 className="text-xl font-bold my-4">{t('BookingEngine.colorConfiguration')}</h2>
           <div className="space-y-4">
             <ColorPicker
-              label="Primary Color"
+              label={t('BookingEngine.primaryColor')}
               value={primaryColor}
               onChange={setPrimaryColor}
             />
             <ColorPicker
-              label="Secondary Color"
+              label={t('BookingEngine.secondaryColor')}
               value={secondaryColor}
               onChange={setSecondaryColor}
             />
             <ColorPicker
-              label="Tertiary Color"
+              label={t('BookingEngine.tertiaryColor')}
               value={tertiaryColor}
               onChange={setTertiaryColor}
             />
             <ColorPicker
-              label="Button Text Color"
+              label={t('BookingEngine.buttonTextColor')}
               value={buttonTextColor}
               onChange={setButtonTextColor}
             />
@@ -99,15 +102,15 @@ const handleUploadSuccess = (urls: string[]) => {
 
         <Card className="p-6">
           
-          <h2 className="text-xl font-bold my-4">Images</h2>
+          <h2 className="text-xl font-bold my-4">{t('BookingEngine.images')}</h2>
           <div className="space-y-4">
             {/* Banner Image */}
           
             <div>
-              <label className="text-sm font-medium mb-2 block">Logo</label>
+              <label className="text-sm font-medium mb-2 block">{t('BookingEngine.logo')}</label>
               {logo ? (
                 <div className="relative w-32 h-32 bg-gray-100 rounded-lg overflow-hidden group mx-auto">
-                  <img src={logo} alt="Logo" className="w-full h-full object-contain p-2" />
+                  <img src={logo} alt={t('BookingEngine.logo')} className="w-full h-full object-contain p-2" />
                   <button
                     onClick={() => setLogo('')}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -117,7 +120,7 @@ const handleUploadSuccess = (urls: string[]) => {
                 </div>
               ) : (
                 <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center mx-auto">
-                  <span className="text-gray-400 text-sm">No logo</span>
+                  <span className="text-gray-400 text-sm">{t('BookingEngine.noLogo')}</span>
                 </div>
               )}
               <Button
@@ -126,7 +129,7 @@ const handleUploadSuccess = (urls: string[]) => {
                 className="w-full mt-2"
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Upload Logo
+                {t('BookingEngine.uploadLogo')}
               </Button>
             </div>
           </div>
@@ -141,10 +144,10 @@ const handleUploadSuccess = (urls: string[]) => {
           {isSaving ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
+              {t('BookingEngine.saving')}
             </>
           ) : (
-            isUpdate ? 'Update Configuration' : 'Create Configuration'
+            isUpdate ? t('BookingEngine.updateConfiguration') : t('BookingEngine.createConfiguration')
           )}
         </Button>
       </div>

@@ -55,9 +55,11 @@ import { EditTranslationDialog } from "@/pages/management/components/multilang/M
 import { upsertCreationTranslationService } from "../service/creation-lang.service";
 
 import { useTranslation } from 'react-i18next';
+import { usePropertyContextSafe } from '@/contexts/PropertyContext';
 
 export default function PropertyPage() {
     const { t } = useTranslation();
+    const propertyCtx = usePropertyContextSafe();
 
     const { user } = useAppSelector((state) => state.user);
     const [addMemberDialogOpen, setAddMemberDialogOpen] = useState<boolean>(false)
@@ -247,6 +249,8 @@ export default function PropertyPage() {
             const response = await fetchPropertyConfigService(creationId);
             if (response.success) {
                 setPropertyConfig(response.data);
+                // Push spa flag into shared context so the sidebar can read it
+                propertyCtx?.setPropertyConfig(response.data);
             } else {
                 toast.error(response.message || t('Toast.failedToFetchPropertyConfig'))
             }
@@ -625,7 +629,6 @@ export default function PropertyPage() {
                                 </Button>
                             </DropdownMenuItem>
 
-                            {(user?.role === "super_admin" || user?.role === "regional_admin") && propertyDetails?.id && (
                                 <DropdownMenuItem
                                     onSelect={(e) => {
                                         e.preventDefault();
@@ -637,7 +640,6 @@ export default function PropertyPage() {
                                         <Settings className='h-4 w-4 mr-2' /> {t('Property.propertyConfig')}
                                     </Button>
                                 </DropdownMenuItem>
-                            )}
 
                             <Dialog onOpenChange={setAddMemberDialogOpen} open={addMemberDialogOpen}>
                                 <DialogTrigger asChild>

@@ -681,7 +681,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                       <label className="text-xs font-medium text-gray-500  tracking-wide mb-2 block">
                         {t("Rooms.description")}
                       </label>
-                      <PropertyDetailsDialog description={room.description} />
+                      <PropertyDetailsDialog description={room._translations?room._translations.description:room.description} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

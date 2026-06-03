@@ -1,6 +1,7 @@
 // components/LivePreview.tsx
 'use client'
 import type { BookingEngineConfig } from '../interface';
+import { useTranslation } from 'react-i18next';
 
 interface LivePreviewProps {
   config: BookingEngineConfig;
@@ -8,12 +9,13 @@ interface LivePreviewProps {
 
 export default function LivePreview({ config }: LivePreviewProps) {
   const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor, logo } = config;
+  const { t } = useTranslation();
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
       <div className="p-4 bg-gray-50 border-b">
-        <h3 className="text-lg font-semibold text-gray-900">Live Preview</h3>
-        <p className="text-sm text-gray-600">See how your booking engine will look</p>
+        <h3 className="text-lg font-semibold text-gray-900">{t('BookingEngine.livePreview')}</h3>
+        <p className="text-sm text-gray-600">{t('BookingEngine.livePreviewSubtitle')}</p>
       </div>
 
       <div className="p-6 space-y-6">
@@ -24,9 +26,9 @@ export default function LivePreview({ config }: LivePreviewProps) {
           {/* Logo Overlay */}
           <div className="absolute top-4 left-4 w-20 h-20 bg-white rounded-lg shadow-md flex items-center justify-center p-2">
             {logo ? (
-              <img src={logo} alt="Logo" className="w-full h-full object-contain" />
+              <img src={logo} alt={t('BookingEngine.logo')} className="w-full h-full object-contain" />
             ) : (
-              <div className="text-xs text-gray-400 text-center">Logo</div>
+              <div className="text-xs text-gray-400 text-center">{t('BookingEngine.logo')}</div>
             )}
           </div>
         </div>
@@ -34,35 +36,35 @@ export default function LivePreview({ config }: LivePreviewProps) {
         {/* Booking Form Preview */}
         <div className="space-y-4">
           <h4 className="text-xl font-bold" style={{ color: primaryColor }}>
-            Book Your Stay
+            {t('BookingEngine.bookYourStay')}
           </h4>
 
           {/* Form Fields */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm font-medium mb-1 block" style={{ color: secondaryColor }}>
-                Check-in
+                {t('BookingEngine.checkIn')}
               </label>
               <div className="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50" style={{ borderColor: tertiaryColor }}>
-                Select date
+                {t('BookingEngine.selectDate')}
               </div>
             </div>
             <div>
               <label className="text-sm font-medium mb-1 block" style={{ color: secondaryColor }}>
-                Check-out
+                {t('BookingEngine.checkOut')}
               </label>
               <div className="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50" style={{ borderColor: tertiaryColor }}>
-                Select date
+                {t('BookingEngine.selectDate')}
               </div>
             </div>
           </div>
 
           <div>
             <label className="text-sm font-medium mb-1 block" style={{ color: secondaryColor }}>
-              Guests
+              {t('BookingEngine.guests')}
             </label>
             <div className="w-full px-3 py-2 border rounded-lg text-sm bg-gray-50" style={{ borderColor: tertiaryColor }}>
-              2 Adults
+              {t('BookingEngine.twoAdults')}
             </div>
           </div>
 
@@ -74,7 +76,7 @@ export default function LivePreview({ config }: LivePreviewProps) {
               color: buttonTextColor 
             }}
           >
-            Search Availability
+            {t('BookingEngine.searchAvailability')}
           </button>
 
           {/* Secondary Actions */}
@@ -86,7 +88,7 @@ export default function LivePreview({ config }: LivePreviewProps) {
                 color: secondaryColor 
               }}
             >
-              View Rooms
+              {t('BookingEngine.viewRooms')}
             </button>
             <button
               className="flex-1 py-2 px-4 rounded-lg border text-sm font-medium transition-all hover:opacity-80"
@@ -95,7 +97,7 @@ export default function LivePreview({ config }: LivePreviewProps) {
                 color: tertiaryColor 
               }}
             >
-              Special Offers
+              {t('BookingEngine.specialOffers')}
             </button>
           </div>
         </div>
@@ -110,7 +112,7 @@ export default function LivePreview({ config }: LivePreviewProps) {
             >
               <div className="text-2xl mb-1">★</div>
               <div className="text-xs font-medium" style={{ color: secondaryColor }}>
-                Feature {i}
+                {t('BookingEngine.feature', { number: i })}
               </div>
             </div>
           ))}

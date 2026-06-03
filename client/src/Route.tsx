@@ -26,7 +26,7 @@ import Policies from "./pages/policies/Policies.tsx";
 import PromoCode from "./pages/promocode/Promocode.tsx";
 import AddOn from "./pages/add-on/Addon.tsx";
 import TaxSystem from "./pages/tax-system/TaxSystem.tsx";
-import BookingEngineConfig from "./pages/property/booking-engine-config/page.tsx";
+import BookingEngineConfig from "./pages/property/booking-engine-config/CPanel.tsx";
 import StartStopSell from "./pages/start-stop-sell/Start-Stop-Sell.tsx";
 import SeasonsManagement from "./pages/price-management/seasons/SeasonsManagement.tsx";
 import CalendarView from "./pages/price-management/calendar/CalendarView.tsx";
