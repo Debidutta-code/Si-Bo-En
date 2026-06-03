@@ -20,6 +20,7 @@ import type { roomUnit, smokingPolicy } from "../create/types/types";
 import type { IMasterRoomView } from "@/pages/management/types";
 import toast from "react-hot-toast";
 import { getAllRoomViews } from "@/pages/management/services/room-view.services";
+import { useTranslation } from "react-i18next";
 const roomSchema = z.object({
   roomName: z.string().min(3, "Room name is required and must be at least 3 characters."),
   roomType: z.string().min(1, "Please select a room type."),
@@ -57,6 +58,7 @@ export default function Rooms({
   updateRoomDetails: Dispatch<SetStateAction<IRoomDetails>>;
   isLoading: boolean;
 }) {
+  const { t } = useTranslation();
   useEffect(() => {
     fetchRoomViews();
   }, []);
@@ -74,10 +76,10 @@ export default function Rooms({
       if (response.success && response.data) {
         setRoomViews(response.data);
       } else {
-        toast.error("Failed to load room views for the dropdown.");
+        toast.error(t("UpdateRooms.toast.roomViewsLoadFailed"));
       }
     } catch (error) {
-      toast.error("Could not fetch room views.");
+      toast.error(t("UpdateRooms.toast.roomViewsFetchFailed"));
     }
   };
   const handleUploadSuccess = (newImageUrls: string[]) => {
@@ -98,7 +100,7 @@ export default function Rooms({
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <Loader text="Loading Room Details" />
+        <Loader text={t("UpdateRooms.loader.loading")} />
       </div>
     );
   }
@@ -115,7 +117,7 @@ export default function Rooms({
                       <Bed className="w-4 h-4 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-black">
-                      Basic Information
+                      {t("UpdateRooms.sections.basicInfo")}
                     </h3>
                   </div>
 
@@ -124,7 +126,7 @@ export default function Rooms({
                       htmlFor="roomName"
                       className="text-gray-800 font-medium"
                     >
-                      Room Name *
+                      {t("UpdateRooms.form.roomName")}
                     </Label>
                     <Input
                       id="roomName"
@@ -132,7 +134,7 @@ export default function Rooms({
                       onChange={(e) =>
                         updateRoom({ ...roomDetails, roomName: e.target.value })
                       }
-                      placeholder="e.g., Deluxe King Suite"
+                      placeholder={t("UpdateRooms.placeholder.roomName")}
                       className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                     />
                     {errors?.roomName?._errors[0] && (
@@ -148,7 +150,7 @@ export default function Rooms({
                         htmlFor="roomType"
                         className="text-gray-800 font-medium"
                       >
-                        Room Code *
+                        {t("UpdateRooms.form.roomCode")}
                       </Label>
                       <Input
                         id="roomType"
@@ -156,7 +158,7 @@ export default function Rooms({
                         onChange={(e) =>
                           updateRoom({ ...roomDetails, roomType: e.target.value })
                         }
-                        placeholder="e.g., DKS"
+                        placeholder={t("UpdateRooms.placeholder.roomCode")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                       {errors?.roomType?._errors[0] && (
@@ -171,7 +173,7 @@ export default function Rooms({
                         htmlFor="totalRoom"
                         className="text-gray-800 font-medium"
                       >
-                        Total Rooms of This Type *
+                        {t("UpdateRooms.form.totalRooms")}
                       </Label>
                       <Input
                         id="totalRoom"
@@ -184,7 +186,7 @@ export default function Rooms({
                           })
                         }
                         min={0}
-                        placeholder="e.g., 10"
+                        placeholder={t("UpdateRooms.placeholder.totalRooms")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                       {errors?.totalRoom?._errors[0] && (
@@ -198,7 +200,7 @@ export default function Rooms({
                         htmlFor="isAvailable"
                         className="text-gray-800 font-medium"
                       >
-                        Room Availability
+                        {t("UpdateRooms.form.roomAvailability")}
                       </Label>
                       <div className="flex items-center space-x-3 mt-3">
                         <Switch
@@ -212,8 +214,8 @@ export default function Rooms({
                         />
                         <span className="text-sm text-gray-600 transition-colors">
                           {roomDetails.available
-                            ? "This room type is available for booking."
-                            : "This room type is currently unavailable."}
+                            ? t("UpdateRooms.availability.available")
+                            : t("UpdateRooms.availability.unavailable")}
                         </span>
                       </div>
                       {errors?.available?._errors[0] && (
@@ -229,7 +231,7 @@ export default function Rooms({
                       htmlFor="description"
                       className="text-gray-800 font-medium"
                     >
-                      Room Description *
+                      {t("UpdateRooms.form.roomDescription")}
                     </Label>
                     <Textarea
                       id="description"
@@ -237,7 +239,7 @@ export default function Rooms({
                       onChange={(e) =>
                         updateRoom({ ...roomDetails, description: e.target.value })
                       }
-                      placeholder="Describe the room's features, view, and what makes it special."
+                      placeholder={t("UpdateRooms.placeholder.description")}
                       className="mt-2 min-h-[100px] border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100 p-3"
                     />
                     {errors?.description ? (
@@ -254,7 +256,7 @@ export default function Rooms({
                         }`}
                     >
                       {(roomDetails.description || "").length || 0}/5000
-                      characters
+                       {t("UpdateRooms.characters")}
                     </p>
                   </div>
                 </div>
@@ -264,7 +266,7 @@ export default function Rooms({
                       <Settings className="w-4 h-4 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-black">
-                      Room Specifications
+                      {t("UpdateRooms.sections.specifications")}
                     </h3>
                   </div>
 
@@ -274,7 +276,7 @@ export default function Rooms({
                         htmlFor="priority"
                         className="text-gray-800 font-medium"
                       >
-                        Priority
+                        {t("UpdateRooms.form.priority")}
                       </Label>
                       <Input
                         id="priority"
@@ -287,7 +289,7 @@ export default function Rooms({
                             priority: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 1,2,3"
+                        placeholder={t("UpdateRooms.placeholder.priority")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
@@ -296,7 +298,7 @@ export default function Rooms({
                         htmlFor="roomView"
                         className="text-gray-800 font-medium"
                       >
-                        Room View
+                        {t("UpdateRooms.form.roomView")}
                       </Label>
                       <Select value={roomDetails.RoomViews?.MasterRoomView?.id || ''} onValueChange={(value) =>
                         updateRoomDetails((prev) => ({
@@ -309,7 +311,7 @@ export default function Rooms({
                           }
                         }))}>
                         <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
-                          <SelectValue placeholder="Select view" />
+                          <SelectValue placeholder={t("UpdateRooms.placeholder.selectView")} />
                         </SelectTrigger>
                         <SelectContent className="bg-white border border-gray-300">
                           {roomViews.length > 0 && roomViews.map((view) => (
@@ -325,7 +327,7 @@ export default function Rooms({
                         htmlFor="floor"
                         className="text-gray-800 font-medium"
                       >
-                        Floor
+                        {t("UpdateRooms.form.floor")}
                       </Label>
                       <Input
                         id="floor"
@@ -338,7 +340,7 @@ export default function Rooms({
                             floor: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 8"
+                        placeholder={t("UpdateRooms.placeholder.floor")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
@@ -348,7 +350,7 @@ export default function Rooms({
                         htmlFor="smokingPolicy"
                         className="text-gray-800 font-medium"
                       >
-                        Smoking Policy
+                        {t("UpdateRooms.form.smokingPolicy")}
                       </Label>
                       <Select
                         value={roomDetails.smokingPolicy || ""}
@@ -357,26 +359,26 @@ export default function Rooms({
                         }
                       >
                         <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
-                          <SelectValue placeholder="Select policy" />
+                          <SelectValue placeholder={t("UpdateRooms.placeholder.selectPolicy")} />
                         </SelectTrigger>
                         <SelectContent className="bg-white border border-gray-300">
                           <SelectItem
                             value="non_smoking"
                             className="hover:bg-gray-100"
                           >
-                            Non-Smoking
+                            {t("UpdateRooms.smokingOptions.nonSmoking")}
                           </SelectItem>
                           <SelectItem
                             value="smoking"
                             className="hover:bg-gray-100"
                           >
-                            Smoking Allowed
+                            {t("UpdateRooms.smokingOptions.smokingAllowed")}
                           </SelectItem>
                           <SelectItem
                             value="designated_area"
                             className="hover:bg-gray-100"
                           >
-                            Designated Area
+                            {t("UpdateRooms.smokingOptions.designatedArea")}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -386,7 +388,7 @@ export default function Rooms({
                         htmlFor="roomSize"
                         className="text-gray-800 font-medium"
                       >
-                        Room Size
+                        {t("UpdateRooms.form.roomSize")}
                       </Label>
                       <Input
                         id="roomSize"
@@ -399,7 +401,7 @@ export default function Rooms({
                             roomSize: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 350"
+                        placeholder={t("UpdateRooms.placeholder.roomSize")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
@@ -408,7 +410,7 @@ export default function Rooms({
                         htmlFor="roomUnit"
                         className="text-gray-800 font-medium"
                       >
-                        Size Unit
+                        {t("UpdateRooms.form.sizeUnit")}
                       </Label>
                       <Select
                         value={roomDetails.roomUnit}
@@ -424,10 +426,10 @@ export default function Rooms({
                             value="sqft"
                             className="hover:bg-gray-100"
                           >
-                            Square Feet (sqft)
+                            {t("UpdateRooms.sizeUnitOptions.sqft")}
                           </SelectItem>
                           <SelectItem value="sqm" className="hover:bg-gray-100">
-                            Square Meters (sqm)
+                            {t("UpdateRooms.sizeUnitOptions.sqm")}
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -441,7 +443,7 @@ export default function Rooms({
                         htmlFor="numberOfBedrooms"
                         className="text-gray-800 font-medium"
                       >
-                        No.of Bedrooms
+                        {t("UpdateRooms.form.numberOfBedrooms")}
                       </Label>
                       <Input
                         id="numberOfBedrooms"
@@ -454,7 +456,7 @@ export default function Rooms({
                             numberOfBedrooms: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 350"
+                        placeholder={t("UpdateRooms.placeholder.bedrooms")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
@@ -463,7 +465,7 @@ export default function Rooms({
                         htmlFor="numberOfBedrooms"
                         className="text-gray-800 font-medium"
                       >
-                        No.of Living Rooms
+                        {t("UpdateRooms.form.numberOfLivingRooms")}
                       </Label>
                       <Input
                         id="numberOfLivingRoom"
@@ -476,7 +478,7 @@ export default function Rooms({
                             numberOfLivingRoom: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 350"
+                        placeholder={t("UpdateRooms.placeholder.livingRooms")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
@@ -485,7 +487,7 @@ export default function Rooms({
                         htmlFor="extraBed"
                         className="text-gray-800 font-medium"
                       >
-                        No.of Extra Beds
+                        {t("UpdateRooms.form.numberOfExtraBeds")}
                       </Label>
                       <Input
                         id="extraBed"
@@ -498,7 +500,7 @@ export default function Rooms({
                             extraBed: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 350"
+                        placeholder={t("UpdateRooms.placeholder.extraBeds")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
@@ -512,7 +514,7 @@ export default function Rooms({
                       <Users className="w-4 h-4 text-white" />
                     </div>
                     <h3 className="text-xl font-bold text-black">
-                      Occupancy Details
+                      {t("UpdateRooms.sections.occupancy")}
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -521,7 +523,7 @@ export default function Rooms({
                         htmlFor="maxOccupancy"
                         className="text-gray-800 font-medium"
                       >
-                        Max Occupancy *
+                        {t("UpdateRooms.form.maxOccupancy")}
                       </Label>
                       <Input
                         id="maxOccupancy"
@@ -535,7 +537,7 @@ export default function Rooms({
                             maxOccupancy: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 3"
+                        placeholder={t("UpdateRooms.placeholder.maxOccupancy")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                       {errors?.maxOccupancy?._errors[0] && (
@@ -549,7 +551,7 @@ export default function Rooms({
                         htmlFor="maxNumberOfAdults"
                         className="text-gray-800 font-medium"
                       >
-                        Max Adults
+                        {t("UpdateRooms.form.maxAdults")}
                       </Label>
                       <Input
                         id="maxNumberOfAdults"
@@ -563,7 +565,7 @@ export default function Rooms({
                             maxNumberOfAdults: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 2"
+                        placeholder={t("UpdateRooms.placeholder.maxAdults")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
@@ -572,7 +574,7 @@ export default function Rooms({
                         htmlFor="maxNumberOfChildren"
                         className="text-gray-800 font-medium"
                       >
-                        Max Children
+                        {t("UpdateRooms.form.maxChildren")}
                       </Label>
                       <Input
                         id="maxNumberOfChildren"
@@ -586,7 +588,7 @@ export default function Rooms({
                             maxNumberOfChildren: parseInt(e.target.value) || 0,
                           })
                         }
-                        placeholder="e.g., 1"
+                        placeholder={t("UpdateRooms.placeholder.maxChildren")}
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
@@ -601,10 +603,10 @@ export default function Rooms({
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900">
-                        Room Images *
+                        {t("UpdateRooms.sections.images")}
                       </h2>
                       <p className="text-sm text-gray-600">
-                        Showcase your room with stunning photos
+                        {t("UpdateRooms.images.subtitle")}
                       </p>
                     </div>
                   </div>
@@ -614,7 +616,7 @@ export default function Rooms({
                     onClick={() => setIsModalOpen(true)}
                     className="h-12 px-6"
                   >
-                    <Upload className="w-5 h-5 mr-2" /> Add or Edit Images
+                    <Upload className="w-5 h-5 mr-2" /> {t("UpdateRooms.images.addEditImages")}
                   </Button>
                   {roomDetails.image && roomDetails.image.length > 0 && (
                     <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
@@ -625,7 +627,7 @@ export default function Rooms({
                         >
                           <img
                             src={src}
-                            alt={`Room image ${index + 1}`}
+                            alt={t("UpdateRooms.images.altText", { index: index + 1 })}
                             className="h-full w-full object-cover rounded-md"
                           />
                           <button

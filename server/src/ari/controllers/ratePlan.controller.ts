@@ -159,14 +159,12 @@ export class RatePlanController {
         res: Response
     ) {
         try {
-            if (!req.body.propertyId) {
+            if (!req.property) {
                 return res
                     .status(400)
                     .json(errorResponse('Property ID is not provided'));
             }
-            const hotelCode = await getPropertyIdFromPropertyId(
-                req.body.propertyId
-            );
+            const hotelCode = req.property.propertyCode;
             if (!hotelCode) {
                 return res
                     .status(400)
@@ -283,6 +281,12 @@ export class RatePlanController {
         res: Response
     ) {
         try {
+            if(!req.property) {
+                return res.status(500).json(errorResponse('Property configuration not found'));
+            }
+            if(!req.property.propertyConfig?.selfAriActive) {
+                return res.status(400).json(errorResponse('Self ARI is not active for this property'));
+            }
             const {
                 propertyCode,
                 roomTypeCode,

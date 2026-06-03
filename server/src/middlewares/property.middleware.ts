@@ -18,7 +18,7 @@ export function attachPropertyDetails(rule: PropertyResolveRule) {
         next: NextFunction
     ) => {
         try {
-            if (req.property?.timezone) {
+            if (req.property?.propertyConfig) {
                 return next();
             }
             const resolved = resolvePropertyIdentifier(req, rule);
@@ -31,8 +31,9 @@ export function attachPropertyDetails(rule: PropertyResolveRule) {
       const property = await prisma.property.findFirst({
         where:
           resolved.type === "id"
-            ? { id: resolved.value }
+            ? { id: resolved.value ,}
             : { propertyCode: resolved.value }
+
       });
 
       if (!property) {
@@ -49,9 +50,8 @@ export function attachPropertyDetails(rule: PropertyResolveRule) {
         id: property.id,
         propertyName: property.propertyName,
         propertyCode: property.propertyCode,
-        timezone: propertyConfigs?.timezone,
-        currencyCode: propertyConfigs?.baseCurrency,
         creationId: property.creationId,
+        propertyConfig: propertyConfigs
       };
 
             next();
@@ -69,10 +69,6 @@ export function attachPropertyDetails(rule: PropertyResolveRule) {
     };
 }
 
-/**
- * Helper function to get nested value from an object using dot notation
- * e.g., getNestedValue(obj, "data.bookingDetails.propertyCode")
- */
 const getNestedValue = (obj: any, path: string): any => {
     if (!obj || !path) return undefined;
 

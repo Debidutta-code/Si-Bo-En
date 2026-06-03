@@ -484,8 +484,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
                         open={addTranslationOpen}
                         onOpenChange={setAddTranslationOpen}
                         entityId={translationEntityId}
-                        title="Add Promotion Translation"
-                        fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Reserva Anticipada" }]}
+                        title={t("Common.addPromotion")}
+                        fields={[{ key: "promotionName", label: (t("Common.promotionName")) }]}
                         onSave={async (id, locale, data) => {
                             return await upsertPromotionTranslationService(id, { [locale]: data });
                         }}
@@ -495,7 +495,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                         open={checkTranslationsOpen}
                         onOpenChange={setCheckTranslationsOpen}
                         entityId={translationEntityId}
-                        title="Promotion Translations"
+                        title={t("Common.promotionTranslations")}
                         displayFields={[{ key: "promotionName", label: "Name" }]}
                         onFetch={getAllPromotionTranslationsService}
                         onDelete={deletePromotionTranslationLocaleService}
@@ -507,8 +507,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
                         entityId={translationEntityId!}
                         locale={editingLocale}
                         initialData={editingData}
-                        title="Edit Promotion Translation"
-                        fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Reserva Anticipada" }]}
+                        title={t("Common.editTranslation")}
+                        fields={[{ key: "promotionName", label: (t("Common.promotionName")) }]}
                         onSave={async (id, locale, data) => upsertPromotionTranslationService(id, { [locale]: data })}
                     />
                 </>

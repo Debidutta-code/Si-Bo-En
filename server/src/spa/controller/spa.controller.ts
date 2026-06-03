@@ -15,6 +15,12 @@ export class SpaController {
         res: Response
     ): Promise<Response> {
         try {
+            if (!req.property) {
+                return res.status(500).json(errorResponse('Property configuration not found'));
+            }
+            if (!req.property.propertyConfig?.isSpaModuleEnabled) {
+                return res.status(400).json(errorResponse('Spa module is not enabled for this property'));
+            }
             const spaData: ICSpaC = req.body;
             if (!req.user) {
                 return res
@@ -64,16 +70,23 @@ export class SpaController {
         }
     }
     public async getSpaForProperty(
-        req: Request,
+        req: CustomRequest,
         res: Response
     ): Promise<Response> {
         try {
             const propertyId = req.params.propertyId;
+            if (!req.property) {
+                return res.status(500).json(errorResponse('Property configuration not found'));
+            }
+            if (!req.property.propertyConfig?.isSpaModuleEnabled) {
+                return res.status(400).json(errorResponse('Spa module is not enabled for this property'));
+            }
+
             const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
 
             let response =
                 await this.spaService.getSpaForProperty(propertyId);
-            
+
             response = await SpaInterceptor.intercept(response as any, locale);
 
             return res.status(response.success ? 200 : 400).json(response);
@@ -96,17 +109,24 @@ export class SpaController {
         }
     }
     public async getSpaForPropertyCode(
-        req: Request,
+        req: CustomRequest,
         res: Response
     ): Promise<Response> {
         try {
-            const propertyCode = req.params.propertyCode;
+            if (!req.property) {
+                return res.status(500).json(errorResponse('Property configuration not found'));
+            }
+            if (!req.property.propertyConfig?.isSpaModuleEnabled) {
+                return res.status(400).json(errorResponse('Spa module is not enabled for this property'));
+            }
+
+            const propertyCode = req.property.propertyCode;
             const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             let response =
                 await this.spaService.getSpaForPropertyCode(propertyCode);
-                
+
             response = await SpaInterceptor.intercept(response, locale);
-                
+
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {
@@ -131,7 +151,14 @@ export class SpaController {
         res: Response
     ): Promise<Response> {
         try {
+            if (!req.property) {
+                return res.status(500).json(errorResponse('Property configuration not found'));
+            }
+            if (!req.property.propertyConfig?.isSpaModuleEnabled) {
+                return res.status(400).json(errorResponse('Spa module is not enabled for this property'));
+            }
             const spaId = req.params.id;
+
             if (!spaId) {
                 return res
                     .status(400)
@@ -181,6 +208,12 @@ export class SpaController {
         res: Response
     ): Promise<Response> {
         try {
+            if (!req.property) {
+                return res.status(500).json(errorResponse('Property configuration not found'));
+            }
+            if (!req.property.propertyConfig?.isSpaModuleEnabled) {
+                return res.status(400).json(errorResponse('Spa module is not enabled for this property'));
+            }
             const spaId = req.params.id;
             if (!spaId) {
                 return res
@@ -258,13 +291,11 @@ export class SpaController {
     ): Promise<Response> {
         try {
             const bookingData = req.body;
-            // Optionally, assign userId/userEmail if the user or customer is authenticated and we want to link it
-            if (req.user) {
-                bookingData.userId = req.user.id;
-            } else if (req.customer) {
+            if(!req.customer){
+                return res.status(401).json(errorResponse('Unauthorized User', 'Complete Authentication to create a booking'));
+            }
                 bookingData.userId = req.customer.id;
                 bookingData.userEmail = req.customer.email;
-            }
 
             if (!bookingData.userEmail || !bookingData.userContactNumber || !bookingData.slots || bookingData.slots.length === 0) {
                 return res

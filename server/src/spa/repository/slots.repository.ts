@@ -34,6 +34,13 @@ export class SpaDatesRepo {
             return await prisma.spaDates.findUnique({
                 where: {
                     id,
+                    spaModule:{
+                        Property:{
+                            propertyConfigs:{
+                                isSpaModuleEnabled: true
+                            }
+                        }
+                    }
                 },
                 include: {
                     Slots: {
@@ -64,6 +71,13 @@ export class SpaDatesRepo {
                         gte: startDate,
                         lte: endDate,
                     },
+                    spaModule:{
+                        Property:{
+                            propertyConfigs:{
+                                isSpaModuleEnabled: true
+                            }
+                        }
+                    }
                 },
                 include: {
                     Slots: {
@@ -94,6 +108,13 @@ export class SpaDatesRepo {
                     date: {
                         equals: date,
                     },
+                    spaModule:{
+                        Property:{
+                            propertyConfigs:{
+                                isSpaModuleEnabled: true
+                            }
+                        }
+                    }
                 },
                 include: {
                     Slots: {
@@ -116,6 +137,13 @@ export class SpaDatesRepo {
             return await prisma.spaDates.delete({
                 where: {
                     id,
+                    spaModule:{
+                        Property:{
+                            propertyConfigs:{
+                                isSpaModuleEnabled: true
+                            }
+                        }
+                    }
                 },
                 include: {
                     Slots: true,
@@ -141,6 +169,15 @@ export class SpaSlotsRepo {
             return await prisma.spaSlots.findUnique({
                 where: {
                     id,
+                    spaDate:{
+                        spaModule:{
+                            Property:{
+                                propertyConfigs:{
+                                    isSpaModuleEnabled:true
+                                }
+                            }
+                        }
+                    }
                 },
             });
         } catch (error) {
@@ -152,6 +189,15 @@ export class SpaSlotsRepo {
             return await prisma.spaSlots.delete({
                 where: {
                     id,
+                    spaDate:{
+                        spaModule:{
+                            Property:{
+                                propertyConfigs:{
+                                    isSpaModuleEnabled:true
+                                }
+                            }
+                        }
+                    }
                 },
             });
         } catch (error) {
@@ -167,6 +213,15 @@ export class SpaSlotsRepo {
             return await prisma.spaSlots.update({
                 where: {
                     id,
+                    spaDate:{
+                        spaModule:{
+                            Property:{
+                                propertyConfigs:{
+                                    isSpaModuleEnabled:true
+                                }
+                            }
+                        }
+                    }
                 },
                 data: {
                     isBooked: true,
@@ -183,6 +238,15 @@ export class SpaSlotsRepo {
             return await prisma.spaSlots.update({
                 where: {
                     id,
+                    spaDate:{
+                        spaModule:{
+                            Property:{
+                                propertyConfigs:{
+                                    isSpaModuleEnabled:true
+                                }
+                            }
+                        }
+                    }
                 },
                 data: {
                     isBooked: false,
@@ -199,6 +263,15 @@ export class SpaSlotsRepo {
             return await prisma.spaSlots.update({
                 where: {
                     id,
+                    spaDate:{
+                        spaModule:{
+                            Property:{
+                                propertyConfigs:{
+                                    isSpaModuleEnabled:true
+                                }
+                            }
+                        }
+                    }
                 },
                 data: {
                     isCompleted: true,

@@ -436,14 +436,14 @@ export const OfferForTonightList: React.FC = () => {
                                                         className="cursor-pointer"
                                                     >
                                                         <Plus className="w-4 h-4 mr-3 text-blue-500" />
-                                                        {t('OfferForTonight.addTranslation')}
+                                                        {t('Common.addTranslation')}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => { setTranslationEntityId(promotion.id); setCheckTranslationsOpen(true); }}
                                                         className="cursor-pointer"
                                                     >
                                                         <Languages className="w-4 h-4 mr-3 text-green-600" />
-                                                        {t('OfferForTonight.checkTranslations')}
+                                                        {t('Common.checkTranslation')}
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => handleDeleteClick(promotion.id)}
@@ -502,8 +502,8 @@ export const OfferForTonightList: React.FC = () => {
                         open={addTranslationOpen}
                         onOpenChange={setAddTranslationOpen}
                         entityId={translationEntityId}
-                        title="Add Promotion Translation"
-                        fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Oferta para esta noche" }]}
+                        title={t("Common.addPromotion")}
+                        fields={[{ key: "promotionName", label: (t("Common.promotionName"))}]}
                         onSave={async (id, locale, data) => {
                             return await upsertPromotionTranslationService(id, { [locale]: data });
                         }}
@@ -514,8 +514,8 @@ export const OfferForTonightList: React.FC = () => {
                         open={checkTranslationsOpen}
                         onOpenChange={setCheckTranslationsOpen}
                         entityId={translationEntityId}
-                        title="Promotion Translations"
-                        displayFields={[{ key: "promotionName", label: "Name" }]}
+                        title={t("Common.promotionTranslations")}
+                        displayFields={[{ key: "promotionName", label: (t("Common.promotionName")) }]}
                         onFetch={getAllPromotionTranslationsService}
                         onDelete={deletePromotionTranslationLocaleService}
                         onEdit={(locale, data) => { setEditingLocale(locale); setEditingData(data); setEditTranslationOpen(true); }}
@@ -526,8 +526,8 @@ export const OfferForTonightList: React.FC = () => {
                         entityId={translationEntityId!}
                         locale={editingLocale}
                         initialData={editingData}
-                        title="Edit Promotion Translation"
-                        fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Oferta para esta noche" }]}
+                        title={t("Common.editTranslation")}
+                        fields={[{ key: "promotionName", label: (t("Common.promotionName")) }]}
                         onSave={async (id, locale, data) => upsertPromotionTranslationService(id, { [locale]: data })}
                     />
                 </>

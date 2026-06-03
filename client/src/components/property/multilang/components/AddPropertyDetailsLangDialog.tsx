@@ -4,7 +4,7 @@ import { languages } from "@/components/language/language";
 import { usePropertyContextSafe } from "@/contexts/PropertyContext";
 import { upsertPropertyTranslationService } from "../services/property.services";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -24,10 +24,11 @@ export default function AddPropertyDetailsLangDialog({ open, onOpenChange, prope
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const propertyCtx = usePropertyContextSafe();
-  const availableLanguages = propertyCtx?.languages && propertyCtx.languages.length > 0
-    ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))
-    : languages;
+    const propertyCtx = usePropertyContextSafe();
+  const availableLanguages =
+    propertyCtx?.languages && propertyCtx.languages.length > 0
+      ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))
+      : languages;
 
   const handleSave = async () => {
     if (!selectedLang) { toast.error("Please select a language"); return; }
@@ -61,7 +62,9 @@ export default function AddPropertyDetailsLangDialog({ open, onOpenChange, prope
           <div className="space-y-2">
             <Label>{t("Common.language")}</Label>
             <Select value={selectedLang} onValueChange={setSelectedLang}>
-              <SelectValue placeholder={t("PropertyDetails.selectLanguage")} />
+              <SelectTrigger>
+                <SelectValue placeholder={t("PropertyDetails.selectLanguage")} />
+              </SelectTrigger>
               <SelectContent>
                 {availableLanguages.map((lang) => (
                   <SelectItem key={lang.code} value={lang.code}>{lang.name}</SelectItem>

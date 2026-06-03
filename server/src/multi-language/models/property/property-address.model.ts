@@ -3,13 +3,13 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 // ─── Interfaces ───────────────────────────────────────────────────────────────
 
 export interface ILocaleBlock {
-  addressLine1: string;
-  addressLine2: string;
-  country:      string;
-  state:        string;
-  city:         string;
-  location:     string;
-  landmark:     string;
+  addressLine1: string|null;
+  addressLine2: string|null;
+  country:      string|null;
+  state:        string|null;
+  city:         string|null;
+  location:     string|null;
+  landmark:     string|null;
 }
 
 export interface IPropertyAddressTranslation extends Document {
@@ -43,13 +43,13 @@ const validateLocaleKeys = (localeData: Record<string, unknown>): void => {
 
 const localeBlockSchema = new Schema<ILocaleBlock>(
   {
-    addressLine1: { type: String, default: '' },
-    addressLine2: { type: String, default: '' },
-    country:      { type: String, default: '' },
-    state:        { type: String, default: '' },
-    city:         { type: String, default: '' },
-    location:     { type: String, default: '' },
-    landmark:     { type: String, default: '' },
+    addressLine1: { type: String, default: null },
+    addressLine2: { type: String, default: null },
+    country:      { type: String, default: null },
+    state:        { type: String, default: null },
+    city:         { type: String, default: null },
+    location:     { type: String, default: null },
+    landmark:     { type: String, default: null },
   },
   { _id: false }
 );

@@ -480,7 +480,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}
             entityId={translationEntityId}
-            title="Promotion Translations"
+            title={t("Common.promotionTranslations")}
             displayFields={[{ key: "promotionName", label: "Name" }]}
             onFetch={getAllPromotionTranslationsService}
             onDelete={deletePromotionTranslationLocaleService}

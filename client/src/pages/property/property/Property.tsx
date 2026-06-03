@@ -1000,7 +1000,7 @@ export default function PropertyPage() {
             {/* ──────────────────────────────────────────────────────────── */}
 
             {/* Loyalty Configuration Section */}
-            {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') && (
+            {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') &&  propertyConfig.isLoyaltyProgramEnabled && (
                 <div className="bg-white p-6 rounded-lg shadow">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">{t('Sidebar.loyaltyConfiguration')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

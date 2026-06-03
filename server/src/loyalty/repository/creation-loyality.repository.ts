@@ -77,6 +77,13 @@ export class creationLoyalityRepository {
             return await prisma.creationLoyaltyConfig.findUnique({
                 where: {
                     creationId,
+                    Creation:{
+                        property:{
+                            propertyConfigs:{
+                                isLoyaltyProgramEnabled: true
+                            }
+                        }
+                    }
                 },
                 include: {
                     BasicLoyaltyProgram: true,

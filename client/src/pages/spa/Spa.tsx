@@ -118,6 +118,8 @@ const [editIsActive,setEditIsActive]=useState(false)
       setIsCreateOpen(false);
       fetchData();
       setFormData(initialFormState);
+    }else{
+      toast.error(res.message || 'Failed to create Spa/Activity');
     }
     setLoader({ isLoading: false, message: '' });
   };

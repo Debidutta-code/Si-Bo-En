@@ -58,6 +58,7 @@
     "addPromotion": "Add Promotion Translation",
     "promotionName": "Promotion Name",
     "editTranslation": "Edit Promotion Translation",
+    "promotionTranslations": "Promotion Translations",
     "createAll": "Create All",
     "day": "Day",
     "week": "Week",
@@ -79,13 +80,13 @@
     "creating": "Creating...",
     "saving": "Saving...",
     "loadingTranslations": "Loading translations...",
-"noTranslationsFound": "No translations found.",
-"pleaseSelectLanguage": "Please select a language",
-"pleaseFillOneField": "Please fill in at least one field",
-"translationSaved": "Translation saved successfully!",
-"failedToSaveTranslation": "Failed to save translation",
-"translationUpdated": "Translation updated successfully!",
-"failedToUpdateTranslation": "Failed to update translation"
+    "noTranslationsFound": "No translations found.",
+    "pleaseSelectLanguage": "Please select a language",
+    "pleaseFillOneField": "Please fill in at least one field",
+    "translationSaved": "Translation saved successfully!",
+    "failedToSaveTranslation": "Failed to save translation",
+    "translationUpdated": "Translation updated successfully!",
+    "failedToUpdateTranslation": "Failed to update translation"
   },
   "AddRoomLangDialog": {
     "title": "Add Room Translation",
@@ -103,7 +104,7 @@
       "saveSuccess": "Room translation added successfully!",
       "saveFailed": "Failed to add translation."
     }
-  },   
+  },
   "BookingStatus": {
     "confirmed": "Confirmed",
     "cancelled": "Cancelled",
@@ -145,8 +146,6 @@
     "october": "October",
     "november": "November",
     "december": "December"
-    
-
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -2097,8 +2096,7 @@
       "placeholder": "e.g., Número de teléfono",
       "checkTranslations": "Loyalty Field Translations",
       "editTranslation": "Edit Loyalty Field Translation",
-          "noTranslationsFound": "No translations found."   
-
+      "noTranslationsFound": "No translations found."
     }
   },
   "Loyalty": {
@@ -4718,7 +4716,6 @@
       "deleteFailed": "Failed to delete translation"
     }
   },
-  
   "SpaManagement": {
     "categories": "Spa Categories",
     "addCategory": "Add Category",
@@ -5251,5 +5248,125 @@
       "percentage": "Percentage",
       "fixedAmount": "Fixed Amount"
     }
+  },
+  "UpdatePropertyAddress": {
+    "loader": {
+      "updating": "Updating the property details"
+    },
+    "form": {
+      "addressLine1": "Address Line 1 *",
+      "addressLine2": "Address Line 2",
+      "country": "Country *",
+      "state": "State *",
+      "city": "City *",
+      "areaLocation": "Area/Location *",
+      "landmark": "Landmark",
+      "pinCode": "PIN Code *",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "googleMapsLink": "Google Maps Link"
+    },
+    "placeholder": {
+      "addressLine1": "Street number and name",
+      "addressLine2": "Apartment, building, etc.",
+      "country": "Search or type country...",
+      "state": "Search or type state...",
+      "city": "Search or type city...",
+      "location": "e.g., Badi Chopar",
+      "landmark": "Near City Palace",
+      "mapLink": "https://maps.google.com/?q=26.9124,75.7873"
+    },
+    "coordinates": {
+      "sectionTitle": "Location Coordinates",
+      "autoLocation": "Auto Location",
+      "autoFetch": "Auto Fetch Location",
+      "fetching": "Fetching...",
+      "useMapLink": "Use Map Link",
+      "manualEntry": "Manual Entry",
+      "latitude": "Latitude:",
+      "longitude": "Longitude:"
+    },
+    "toast": {
+      "geolocationNotSupported": "Geolocation is not supported by your browser",
+      "enableLocationPermission": "Please enable location permissions in your browser"
+    },
+    "status": {
+      "fetchingLocation": "Fetching your location...",
+      "geolocationNotSupported": "Geolocation not supported",
+      "locationPermissionDenied": "Location permission denied",
+      "coordsExtracted": "Coordinates extracted: ({{lat}}, {{lng}})",
+      "extractionFailed": "Could not extract coordinates from this link",
+      "locationFetched": "Location fetched: ({{lat}}, {{lng}})"
+    }
+  },
+  "UpdateRooms": {
+    "loader": {
+      "loading": "Loading Room Details"
+    },
+    "toast": {
+      "roomViewsLoadFailed": "Failed to load room views for the dropdown.",
+      "roomViewsFetchFailed": "Could not fetch room views."
+    },
+    "sections": {
+      "basicInfo": "Basic Information",
+      "specifications": "Room Specifications",
+      "occupancy": "Occupancy Details",
+      "images": "Room Images *"
+    },
+    "form": {
+      "roomName": "Room Name *",
+      "roomCode": "Room Code *",
+      "totalRooms": "Total Rooms of This Type *",
+      "roomAvailability": "Room Availability",
+      "roomDescription": "Room Description *",
+      "priority": "Priority",
+      "roomView": "Room View",
+      "floor": "Floor",
+      "smokingPolicy": "Smoking Policy",
+      "roomSize": "Room Size",
+      "sizeUnit": "Size Unit",
+      "numberOfBedrooms": "No.of Bedrooms",
+      "numberOfLivingRooms": "No.of Living Rooms",
+      "numberOfExtraBeds": "No.of Extra Beds",
+      "maxOccupancy": "Max Occupancy *",
+      "maxAdults": "Max Adults",
+      "maxChildren": "Max Children"
+    },
+    "placeholder": {
+      "roomName": "e.g., Deluxe King Suite",
+      "roomCode": "e.g., DKS",
+      "totalRooms": "e.g., 10",
+      "description": "Describe the room's features, view, and what makes it special.",
+      "priority": "e.g., 1,2,3",
+      "selectView": "Select view",
+      "floor": "e.g., 8",
+      "selectPolicy": "Select policy",
+      "roomSize": "e.g., 350",
+      "bedrooms": "e.g., 350",
+      "livingRooms": "e.g., 350",
+      "extraBeds": "e.g., 350",
+      "maxOccupancy": "e.g., 3",
+      "maxAdults": "e.g., 2",
+      "maxChildren": "e.g., 1"
+    },
+    "availability": {
+      "available": "This room type is available for booking.",
+      "unavailable": "This room type is currently unavailable."
+    },
+    "smokingOptions": {
+      "nonSmoking": "Non-Smoking",
+      "smokingAllowed": "Smoking Allowed",
+      "designatedArea": "Designated Area"
+    },
+    "sizeUnitOptions": {
+      "sqft": "Square Feet (sqft)",
+      "sqm": "Square Meters (sqm)"
+    },
+    "images": {
+      "subtitle": "Showcase your room with stunning photos",
+      "addEditImages": "Add or Edit Images",
+      "altText": "Room image {{index}}"
+    },
+    "characters": "characters"
   }
 }

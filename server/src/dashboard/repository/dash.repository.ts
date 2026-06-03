@@ -1085,6 +1085,12 @@ export class DashUtilsRepo {
                         },
                         include: {
                             property: {
+                                where: {
+                                    propertyConfigs: {
+                                        isLoyaltyProgramEnabled: true
+                                    }
+
+                                },
                                 select: {
                                     id: true,
                                     propertyCode: true,
@@ -1104,6 +1110,13 @@ export class DashUtilsRepo {
                                 },
                                 include: {
                                     property: {
+                                        where: {
+                                            propertyConfigs: {
+                                                isLoyaltyProgramEnabled: true
+                                            }
+
+                                        },
+
                                         select: {
                                             id: true,
                                             propertyCode: true,
@@ -1123,6 +1136,13 @@ export class DashUtilsRepo {
                                         },
                                         include: {
                                             property: {
+                                                where: {
+                                                    propertyConfigs: {
+                                                        isLoyaltyProgramEnabled: true
+                                                    }
+
+                                                },
+
                                                 select: {
                                                     id: true,
                                                     propertyCode: true,
@@ -1142,6 +1162,13 @@ export class DashUtilsRepo {
                                                 },
                                                 include: {
                                                     property: {
+                                                        where: {
+                                                            propertyConfigs: {
+                                                                isLoyaltyProgramEnabled: true
+                                                            }
+
+                                                        },
+
                                                         select: {
                                                             id: true,
                                                             propertyCode: true,
@@ -1163,6 +1190,13 @@ export class DashUtilsRepo {
                                 where: { isActive: true, isDeleted: false },
                                 include: {
                                     property: {
+                                        where: {
+                                            propertyConfigs: {
+                                                isLoyaltyProgramEnabled: true
+                                            }
+
+                                        },
+
                                         select: {
                                             id: true,
                                             propertyCode: true,
@@ -1181,6 +1215,13 @@ export class DashUtilsRepo {
                                         },
                                         include: {
                                             property: {
+                                                where: {
+                                                    propertyConfigs: {
+                                                        isLoyaltyProgramEnabled: true
+                                                    }
+
+                                                },
+
                                                 select: {
                                                     id: true,
                                                     propertyCode: true,
@@ -1332,6 +1373,13 @@ export class DashUtilsRepo {
                 },
                 include: {
                     property: {
+                        where: {
+                            propertyConfigs: {
+                                isLoyaltyProgramEnabled: true
+                            }
+
+                        },
+
                         select: {
                             id: true,
                             propertyCode: true,
@@ -1351,6 +1399,11 @@ export class DashUtilsRepo {
                         },
                         include: {
                             property: {
+                                where: {
+                                    propertyConfigs: {
+                                        isLoyaltyProgramEnabled: true
+                                    }
+                                },
                                 select: {
                                     id: true,
                                     propertyCode: true,
@@ -1369,7 +1422,15 @@ export class DashUtilsRepo {
                                     isDeleted: false,
                                 },
                                 include: {
+
                                     property: {
+                                        where: {
+                                            propertyConfigs: {
+                                                isLoyaltyProgramEnabled: true
+                                            }
+
+                                        },
+
                                         select: {
                                             id: true,
                                             propertyCode: true,
@@ -1389,6 +1450,13 @@ export class DashUtilsRepo {
                                         },
                                         include: {
                                             property: {
+                                                where: {
+                                                    propertyConfigs: {
+                                                        isLoyaltyProgramEnabled: true
+                                                    }
+
+                                                },
+
                                                 select: {
                                                     id: true,
                                                     propertyCode: true,
@@ -1501,6 +1569,13 @@ export class DashUtilsRepo {
                 include: {
                     // Direct property (if level2 has a direct property)
                     property: {
+                        where: {
+                            propertyConfigs: {
+                                isLoyaltyProgramEnabled: true
+                            }
+
+                        },
+
                         select: {
                             id: true,
                             propertyCode: true,
@@ -1520,6 +1595,13 @@ export class DashUtilsRepo {
                         },
                         include: {
                             property: {
+                                where: {
+                                    propertyConfigs: {
+                                        isLoyaltyProgramEnabled: true
+                                    }
+
+                                },
+
                                 select: {
                                     id: true,
                                     propertyCode: true,
@@ -1539,6 +1621,13 @@ export class DashUtilsRepo {
                                 },
                                 include: {
                                     property: {
+                                        where: {
+                                            propertyConfigs: {
+                                                isLoyaltyProgramEnabled: true
+                                            }
+
+                                        },
+
                                         select: {
                                             id: true,
                                             propertyCode: true,
@@ -1627,6 +1716,13 @@ export class DashUtilsRepo {
                 },
                 include: {
                     property: {
+                        where: {
+                            propertyConfigs: {
+                                isLoyaltyProgramEnabled: true
+                            }
+
+                        },
+
                         select: {
                             id: true,
                             propertyCode: true,

@@ -5,7 +5,11 @@ export class SpaUserRepository {
     public async getSpaUsersForProperty(propertyId: string) {
         try {
             return await prisma.creation.findFirst({
-                where: { propertyId },
+                where: { propertyId,property:{
+                    propertyConfigs:{
+                        isSpaModuleEnabled: true
+                    }
+                } },
                 include: {
                     level0Users: {
                         where: {
@@ -24,6 +28,7 @@ export class SpaUserRepository {
     ): Promise<ISpaWUser> {
         try {
             return await prisma.userAssignedSpa.create({
+                
                 data: {
                     spaId,
                     userId,
@@ -47,6 +52,13 @@ export class SpaUserRepository {
                         userId,
                         spaId,
                     },
+                    Spa:{
+                        Property:{
+                            propertyConfigs:{
+                                isSpaModuleEnabled: true
+                            }
+                        }
+                    }
                 },
                 include: {
                     User: true,
@@ -67,6 +79,13 @@ export class SpaUserRepository {
                         userId,
                         spaId,
                     },
+                    Spa:{
+                        Property:{
+                            propertyConfigs:{
+                                isSpaModuleEnabled: true
+                            }
+                        }
+                    }
                 },
                 include: {
                     User: true,
@@ -91,6 +110,11 @@ export class SpaUserRepository {
                             userId: userId,
                         },
                     },
+                    Property:{
+                        propertyConfigs:{
+                            isSpaModuleEnabled: true
+                        }
+                    }
                 },
                 include: {
                     Category: true,

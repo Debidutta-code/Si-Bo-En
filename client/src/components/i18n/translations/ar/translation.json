@@ -85,7 +85,9 @@
     "translationSaved": "تم حفظ الترجمة بنجاح!",
     "failedToSaveTranslation": "فشل حفظ الترجمة",
     "translationUpdated": "تم تحديث الترجمة بنجاح!",
-    "failedToUpdateTranslation": "فشل تحديث الترجمة"
+    "failedToUpdateTranslation": "فشل تحديث الترجمة",
+    "promotionTranslations": "ترجمات العروض"
+
   },
   "AddRoomLangDialog": {
     "title": "إضافة ترجمة الغرفة",
@@ -5247,5 +5249,125 @@
       "percentage": "نسبة مئوية",
       "fixedAmount": "مبلغ ثابت"
     }
+  },
+  "UpdatePropertyAddress": {
+    "loader": {
+      "updating": "جارٍ تحديث تفاصيل العقار"
+    },
+    "form": {
+      "addressLine1": "سطر العنوان 1 *",
+      "addressLine2": "سطر العنوان 2",
+      "country": "الدولة *",
+      "state": "الولاية *",
+      "city": "المدينة *",
+      "areaLocation": "المنطقة/الموقع *",
+      "landmark": "معلم بارز",
+      "pinCode": "الرمز البريدي *",
+      "latitude": "خط العرض",
+      "longitude": "خط الطول",
+      "googleMapsLink": "رابط خرائط Google"
+    },
+    "placeholder": {
+      "addressLine1": "رقم الشارع والاسم",
+      "addressLine2": "الشقة، المبنى، إلخ.",
+      "country": "ابحث أو اكتب الدولة...",
+      "state": "ابحث أو اكتب الولاية...",
+      "city": "ابحث أو اكتب المدينة...",
+      "location": "مثال: بادي شوبار",
+      "landmark": "بالقرب من قصر المدينة",
+      "mapLink": "https://maps.google.com/?q=26.9124,75.7873"
+    },
+    "coordinates": {
+      "sectionTitle": "إحداثيات الموقع",
+      "autoLocation": "الموقع التلقائي",
+      "autoFetch": "جلب الموقع تلقائياً",
+      "fetching": "جارٍ الجلب...",
+      "useMapLink": "استخدام رابط الخريطة",
+      "manualEntry": "الإدخال اليدوي",
+      "latitude": "خط العرض:",
+      "longitude": "خط الطول:"
+    },
+    "toast": {
+      "geolocationNotSupported": "تحديد الموقع الجغرافي غير مدعوم من متصفحك",
+      "enableLocationPermission": "يرجى تمكين أذونات الموقع في متصفحك"
+    },
+    "status": {
+      "fetchingLocation": "جارٍ جلب موقعك...",
+      "geolocationNotSupported": "تحديد الموقع الجغرافي غير مدعوم",
+      "locationPermissionDenied": "تم رفض إذن الموقع",
+      "coordsExtracted": "تم استخراج الإحداثيات: ({{lat}}, {{lng}})",
+      "extractionFailed": "تعذّر استخراج الإحداثيات من هذا الرابط",
+      "locationFetched": "تم جلب الموقع: ({{lat}}, {{lng}})"
+    }
+  },
+  "UpdateRooms": {
+    "loader": {
+      "loading": "جارٍ تحميل تفاصيل الغرفة"
+    },
+    "toast": {
+      "roomViewsLoadFailed": "فشل تحميل مشاهد الغرفة للقائمة المنسدلة.",
+      "roomViewsFetchFailed": "تعذّر جلب مشاهد الغرفة."
+    },
+    "sections": {
+      "basicInfo": "المعلومات الأساسية",
+      "specifications": "مواصفات الغرفة",
+      "occupancy": "تفاصيل الإشغال",
+      "images": "صور الغرفة *"
+    },
+    "form": {
+      "roomName": "اسم الغرفة *",
+      "roomCode": "رمز الغرفة *",
+      "totalRooms": "إجمالي الغرف من هذا النوع *",
+      "roomAvailability": "توفر الغرفة",
+      "roomDescription": "وصف الغرفة *",
+      "priority": "الأولوية",
+      "roomView": "إطلالة الغرفة",
+      "floor": "الطابق",
+      "smokingPolicy": "سياسة التدخين",
+      "roomSize": "حجم الغرفة",
+      "sizeUnit": "وحدة الحجم",
+      "numberOfBedrooms": "عدد غرف النوم",
+      "numberOfLivingRooms": "عدد غرف الجلوس",
+      "numberOfExtraBeds": "عدد الأسرّة الإضافية",
+      "maxOccupancy": "الحد الأقصى للإشغال *",
+      "maxAdults": "الحد الأقصى للبالغين",
+      "maxChildren": "الحد الأقصى للأطفال"
+    },
+    "placeholder": {
+      "roomName": "مثال: جناح ديلكس كينج",
+      "roomCode": "مثال: DKS",
+      "totalRooms": "مثال: 10",
+      "description": "صف ميزات الغرفة وإطلالتها وما يجعلها مميزة.",
+      "priority": "مثال: 1,2,3",
+      "selectView": "اختر الإطلالة",
+      "floor": "مثال: 8",
+      "selectPolicy": "اختر السياسة",
+      "roomSize": "مثال: 350",
+      "bedrooms": "مثال: 350",
+      "livingRooms": "مثال: 350",
+      "extraBeds": "مثال: 350",
+      "maxOccupancy": "مثال: 3",
+      "maxAdults": "مثال: 2",
+      "maxChildren": "مثال: 1"
+    },
+    "availability": {
+      "available": "نوع الغرفة هذا متاح للحجز.",
+      "unavailable": "نوع الغرفة هذا غير متاح حالياً."
+    },
+    "smokingOptions": {
+      "nonSmoking": "غير مدخّنين",
+      "smokingAllowed": "التدخين مسموح",
+      "designatedArea": "منطقة مخصصة"
+    },
+    "sizeUnitOptions": {
+      "sqft": "قدم مربع (sqft)",
+      "sqm": "متر مربع (sqm)"
+    },
+    "images": {
+      "subtitle": "اعرض غرفتك بصور رائعة",
+      "addEditImages": "إضافة الصور أو تحريرها",
+      "altText": "صورة الغرفة {{index}}"
+    },
+    "characters": "حرفاً"
   }
 }
