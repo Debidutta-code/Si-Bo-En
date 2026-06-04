@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useActivityLogs, formatActivityLog, getActionColor, getSeverityColor, getEntityIcon } from './services/logs.services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,6 +19,7 @@ import { Loader2, RefreshCw, ChevronLeft, ChevronRight, Search, AlertCircle, Eye
 import type { IActivityLog } from './interfaces';
 
 export default function LogsPage() {
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [search, setSearch] = useState('');
@@ -38,7 +39,7 @@ export default function LogsPage() {
 
   const handleLimitChange = (value: string) => {
     setLimit(parseInt(value));
-    setPage(1); // Reset to first page when changing limit
+    setPage(1);
   };
 
   const handleViewDetails = (log: IActivityLog) => {
@@ -77,9 +78,9 @@ export default function LogsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Activity Logs</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('ApiLogs.title')}</h1>
           <p className="text-muted-foreground mt-1">
-            Track all system activities and changes
+            {t('ApiLogs.subtitle')}
           </p>
         </div>
         <Button
@@ -89,7 +90,7 @@ export default function LogsPage() {
           disabled={isLoading}
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('ApiLogs.refresh')}
         </Button>
       </div>
 
@@ -98,37 +99,37 @@ export default function LogsPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Logs</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('ApiLogs.totalLogs')}</CardTitle>
               <span className="text-2xl">📊</span>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{data.data.total.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                {data.data.totalPages} pages total
+                {t('ApiLogs.pagesTotal', { count: data.data.totalPages })}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Page</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('ApiLogs.currentPage')}</CardTitle>
               <span className="text-2xl">📄</span>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{data.data.page}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Showing {data.data.data.length} logs
+                {t('ApiLogs.showingLogs', { count: data.data.data.length })}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Per Page</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('ApiLogs.perPage')}</CardTitle>
               <span className="text-2xl">⚙️</span>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{data.data.limit}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Adjust in controls below
+                {t('ApiLogs.adjustBelow')}
               </p>
             </CardContent>
           </Card>
@@ -140,15 +141,15 @@ export default function LogsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Activity Timeline</CardTitle>
-              <CardDescription>Recent system activities and changes</CardDescription>
+              <CardTitle>{t('ApiLogs.activityTimeline')}</CardTitle>
+              <CardDescription>{t('ApiLogs.recentActivities')}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               {/* Search */}
               <div className="relative w-64">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search logs..."
+                  placeholder={t('ApiLogs.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-8"
@@ -173,25 +174,25 @@ export default function LogsPage() {
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Loading logs...</span>
+              <span className="ml-2 text-muted-foreground">{t('ApiLogs.loadingLogs')}</span>
             </div>
           ) : isError ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-              <h3 className="text-lg font-semibold">Failed to Load Logs</h3>
+              <h3 className="text-lg font-semibold">{t('ApiLogs.failedToLoad')}</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {error?.message || 'An error occurred while fetching logs'}
+                {error?.message || t('ApiLogs.errorFetching')}
               </p>
               <Button onClick={() => refetch()} variant="outline" className="mt-4">
-                Try Again
+                {t('ApiLogs.tryAgain')}
               </Button>
             </div>
           ) : filteredLogs.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <span className="text-6xl mb-4">📝</span>
-              <h3 className="text-lg font-semibold">No Logs Found</h3>
+              <h3 className="text-lg font-semibold">{t('ApiLogs.noLogsFound')}</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {search ? 'Try adjusting your search criteria' : 'No activity logs available yet'}
+                {search ? t('ApiLogs.tryAdjustingSearch') : t('ApiLogs.noLogsYet')}
               </p>
             </div>
           ) : (
@@ -199,15 +200,15 @@ export default function LogsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[180px]">Timestamp</TableHead>
-                    <TableHead className="w-[100px]">Action</TableHead>
-                    <TableHead className="w-[120px]">Entity</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="w-[150px]">Performed By</TableHead>
-                    <TableHead className="w-[120px]">IP Address</TableHead>
-                    <TableHead className="w-[100px]">Device</TableHead>
-                    <TableHead className="w-[100px]">Severity</TableHead>
-                    <TableHead className="w-[80px]">Details</TableHead>
+                    <TableHead className="w-[180px]">{t('ApiLogs.columns.timestamp')}</TableHead>
+                    <TableHead className="w-[100px]">{t('ApiLogs.columns.action')}</TableHead>
+                    <TableHead className="w-[120px]">{t('ApiLogs.columns.entity')}</TableHead>
+                    <TableHead>{t('ApiLogs.columns.description')}</TableHead>
+                    <TableHead className="w-[150px]">{t('ApiLogs.columns.performedBy')}</TableHead>
+                    <TableHead className="w-[120px]">{t('ApiLogs.columns.ipAddress')}</TableHead>
+                    <TableHead className="w-[100px]">{t('ApiLogs.columns.device')}</TableHead>
+                    <TableHead className="w-[100px]">{t('ApiLogs.columns.severity')}</TableHead>
+                    <TableHead className="w-[80px]">{t('ApiLogs.columns.details')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -220,8 +221,8 @@ export default function LogsPage() {
                           <div className="text-muted-foreground">{formatted.formattedTime}</div>
                         </TableCell>
                         <TableCell>
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={`${getActionColor(log.action)} font-medium`}
                           >
                             {formatted.actionDisplay}
@@ -264,7 +265,7 @@ export default function LogsPage() {
                           <div className="flex items-center gap-2">
                             {getDeviceIcon(log.metadata?.deviceType)}
                             <div className="text-xs">
-                              <div className="capitalize">{log.metadata?.deviceType || 'Unknown'}</div>
+                              <div className="capitalize">{log.metadata?.deviceType || t('ApiLogs.unknown')}</div>
                               {log.metadata?.browser && (
                                 <div className="text-muted-foreground">{log.metadata.browser}</div>
                               )}
@@ -272,8 +273,8 @@ export default function LogsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge 
-                            variant="outline" 
+                          <Badge
+                            variant="outline"
                             className={`${getSeverityColor(log.severity)} capitalize`}
                           >
                             {log.severity}
@@ -301,7 +302,11 @@ export default function LogsPage() {
           {data?.data && data.data.totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-muted-foreground">
-                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, data.data.total)} of {data.data.total} logs
+                {t('ApiLogs.showing', {
+                  from: ((page - 1) * limit) + 1,
+                  to: Math.min(page * limit, data.data.total),
+                  total: data.data.total,
+                })}
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -311,7 +316,7 @@ export default function LogsPage() {
                   disabled={page === 1}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
+                  {t('ApiLogs.previous')}
                 </Button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, data.data.totalPages) }, (_, i) => {
@@ -344,7 +349,7 @@ export default function LogsPage() {
                   onClick={() => handlePageChange(page + 1)}
                   disabled={page === data.data.totalPages}
                 >
-                  Next
+                  {t('ApiLogs.next')}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
@@ -357,9 +362,9 @@ export default function LogsPage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh]">
           <DialogHeader>
-            <DialogTitle>Activity Log Details</DialogTitle>
+            <DialogTitle>{t('ApiLogs.dialog.title')}</DialogTitle>
             <DialogDescription>
-              Detailed information about this activity log entry
+              {t('ApiLogs.dialog.description')}
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="h-[60vh] pr-4">
@@ -371,11 +376,11 @@ export default function LogsPage() {
                   <div>
                     <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                       <span className="text-2xl">{getEntityIcon(selectedLog.entity)}</span>
-                      Basic Information
+                      {t('ApiLogs.dialog.basicInfo')}
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <span className="font-medium text-muted-foreground">Action:</span>
+                        <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.action')}</span>
                         <div className="mt-1">
                           <Badge variant="outline" className={`${getActionColor(selectedLog.action)} font-medium`}>
                             {formatted.actionDisplay}
@@ -383,23 +388,23 @@ export default function LogsPage() {
                         </div>
                       </div>
                       <div>
-                        <span className="font-medium text-muted-foreground">Entity:</span>
+                        <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.entity')}</span>
                         <div className="mt-1 capitalize">{selectedLog.entity.replace('_', ' ')}</div>
                       </div>
                       <div>
-                        <span className="font-medium text-muted-foreground">Entity ID:</span>
+                        <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.entityId')}</span>
                         <div className="mt-1 font-mono text-xs">{selectedLog.entityId}</div>
                       </div>
                       <div>
-                        <span className="font-medium text-muted-foreground">Entity Name:</span>
+                        <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.entityName')}</span>
                         <div className="mt-1">{selectedLog.entityName || '-'}</div>
                       </div>
                       <div>
-                        <span className="font-medium text-muted-foreground">Timestamp:</span>
+                        <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.timestamp')}</span>
                         <div className="mt-1">{formatted.formattedTimestamp}</div>
                       </div>
                       <div>
-                        <span className="font-medium text-muted-foreground">Severity:</span>
+                        <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.severity')}</span>
                         <div className="mt-1">
                           <Badge variant="outline" className={`${getSeverityColor(selectedLog.severity)} capitalize`}>
                             {selectedLog.severity}
@@ -407,12 +412,12 @@ export default function LogsPage() {
                         </div>
                       </div>
                       <div className="col-span-2">
-                        <span className="font-medium text-muted-foreground">Description:</span>
+                        <span className="font-medium text-muted-foreground">{t('ApiLogs.columns.description')}</span>
                         <div className="mt-1">{selectedLog.description}</div>
                       </div>
                       {selectedLog.shortMessage && (
                         <div className="col-span-2">
-                          <span className="font-medium text-muted-foreground">Short Message:</span>
+                          <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.shortMessage')}</span>
                           <div className="mt-1">{selectedLog.shortMessage}</div>
                         </div>
                       )}
@@ -423,36 +428,36 @@ export default function LogsPage() {
                   {(selectedLog.userId || selectedLog.userEmail || selectedLog.userName) && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        👤 User Details
+                        👤 {t('ApiLogs.dialog.userDetails')}
                       </h3>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         {selectedLog.userName && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Name:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.name')}</span>
                             <div className="mt-1">{selectedLog.userName}</div>
                           </div>
                         )}
                         {selectedLog.userEmail && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Email:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.email')}</span>
                             <div className="mt-1">{selectedLog.userEmail}</div>
                           </div>
                         )}
                         {selectedLog.userId && (
                           <div>
-                            <span className="font-medium text-muted-foreground">User ID:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.userId')}</span>
                             <div className="mt-1 font-mono text-xs">{selectedLog.userId}</div>
                           </div>
                         )}
                         {selectedLog.userRole && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Role:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.role')}</span>
                             <div className="mt-1 capitalize">{selectedLog.userRole.replace('_', ' ')}</div>
                           </div>
                         )}
                         {selectedLog.userLevel !== undefined && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Level:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.level')}</span>
                             <div className="mt-1">{selectedLog.userLevel}</div>
                           </div>
                         )}
@@ -464,24 +469,24 @@ export default function LogsPage() {
                   {(selectedLog.propertyId || selectedLog.propertyName) && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        🏨 Property Context
+                        🏨 {t('ApiLogs.dialog.propertyContext')}
                       </h3>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         {selectedLog.propertyName && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Property Name:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.propertyName')}</span>
                             <div className="mt-1">{selectedLog.propertyName}</div>
                           </div>
                         )}
                         {selectedLog.propertyCode && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Property Code:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.propertyCode')}</span>
                             <div className="mt-1">{selectedLog.propertyCode}</div>
                           </div>
                         )}
                         {selectedLog.propertyId && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Property ID:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.propertyId')}</span>
                             <div className="mt-1 font-mono text-xs">{selectedLog.propertyId}</div>
                           </div>
                         )}
@@ -493,18 +498,18 @@ export default function LogsPage() {
                   {selectedLog.metadata && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        💻 Device & Network Information
+                        💻 {t('ApiLogs.dialog.deviceNetwork')}
                       </h3>
                       <div className="grid grid-cols-2 gap-4 text-sm">
                         {selectedLog.metadata.ipAddress && (
                           <div>
-                            <span className="font-medium text-muted-foreground">IP Address:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.ipAddress')}</span>
                             <div className="mt-1 font-mono">{selectedLog.metadata.ipAddress}</div>
                           </div>
                         )}
                         {selectedLog.metadata.deviceType && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Device Type:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.deviceType')}</span>
                             <div className="mt-1 flex items-center gap-2 capitalize">
                               {getDeviceIcon(selectedLog.metadata.deviceType)}
                               {selectedLog.metadata.deviceType}
@@ -513,55 +518,55 @@ export default function LogsPage() {
                         )}
                         {selectedLog.metadata.browser && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Browser:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.browser')}</span>
                             <div className="mt-1">{selectedLog.metadata.browser}</div>
                           </div>
                         )}
                         {selectedLog.metadata.os && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Operating System:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.os')}</span>
                             <div className="mt-1">{selectedLog.metadata.os}</div>
                           </div>
                         )}
                         {selectedLog.metadata.country && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Country:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.country')}</span>
                             <div className="mt-1">{selectedLog.metadata.country}</div>
                           </div>
                         )}
                         {selectedLog.metadata.city && (
                           <div>
-                            <span className="font-medium text-muted-foreground">City:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.city')}</span>
                             <div className="mt-1">{selectedLog.metadata.city}</div>
                           </div>
                         )}
                         {selectedLog.metadata.timezone && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Timezone:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.timezone')}</span>
                             <div className="mt-1">{selectedLog.metadata.timezone}</div>
                           </div>
                         )}
                         {selectedLog.metadata.userAgent && (
                           <div className="col-span-2">
-                            <span className="font-medium text-muted-foreground">User Agent:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.userAgent')}</span>
                             <div className="mt-1 text-xs font-mono break-all">{selectedLog.metadata.userAgent}</div>
                           </div>
                         )}
                         {selectedLog.metadata.sessionId && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Session ID:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.sessionId')}</span>
                             <div className="mt-1 text-xs font-mono">{selectedLog.metadata.sessionId}</div>
                           </div>
                         )}
                         {selectedLog.metadata.requestId && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Request ID:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.requestId')}</span>
                             <div className="mt-1 text-xs font-mono">{selectedLog.metadata.requestId}</div>
                           </div>
                         )}
                         {selectedLog.metadata.executionTimeMs !== undefined && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Execution Time:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.executionTime')}</span>
                             <div className="mt-1">{selectedLog.metadata.executionTimeMs}ms</div>
                           </div>
                         )}
@@ -573,18 +578,18 @@ export default function LogsPage() {
                   {(selectedLog.requestUrl || selectedLog.apiStatus) && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        🔗 API Context
+                        🔗 {t('ApiLogs.dialog.apiContext')}
                       </h3>
                       <div className="grid grid-cols-1 gap-4 text-sm">
                         {selectedLog.requestUrl && (
                           <div>
-                            <span className="font-medium text-muted-foreground">Request URL:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.requestUrl')}</span>
                             <div className="mt-1 font-mono text-xs break-all">{selectedLog.requestUrl}</div>
                           </div>
                         )}
                         {selectedLog.apiStatus && (
                           <div>
-                            <span className="font-medium text-muted-foreground">API Status:</span>
+                            <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.apiStatus')}</span>
                             <div className="mt-1">{selectedLog.apiStatus}</div>
                           </div>
                         )}
@@ -596,7 +601,7 @@ export default function LogsPage() {
                   {selectedLog.requestPayload && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        📦 Request Payload
+                        📦 {t('ApiLogs.dialog.requestPayload')}
                       </h3>
                       <div className="bg-muted p-4 rounded-lg">
                         <pre className="text-xs overflow-auto">
@@ -610,7 +615,7 @@ export default function LogsPage() {
                   {selectedLog.changes && selectedLog.changes.length > 0 && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        🔄 State Changes
+                        🔄 {t('ApiLogs.dialog.stateChanges')}
                       </h3>
                       <div className="space-y-2">
                         {selectedLog.changes.map((change, index) => (
@@ -618,13 +623,13 @@ export default function LogsPage() {
                             <div className="font-medium mb-2">{change.field}</div>
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <span className="text-xs text-muted-foreground">Old Value:</span>
+                                <span className="text-xs text-muted-foreground">{t('ApiLogs.dialog.oldValue')}</span>
                                 <div className="mt-1 bg-muted p-2 rounded text-xs font-mono">
                                   {JSON.stringify(change.oldValue, null, 2)}
                                 </div>
                               </div>
                               <div>
-                                <span className="text-xs text-muted-foreground">New Value:</span>
+                                <span className="text-xs text-muted-foreground">{t('ApiLogs.dialog.newValue')}</span>
                                 <div className="mt-1 bg-muted p-2 rounded text-xs font-mono">
                                   {JSON.stringify(change.newValue, null, 2)}
                                 </div>
@@ -640,25 +645,25 @@ export default function LogsPage() {
                   {selectedLog.isError && selectedLog.errorDetails && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-destructive">
-                        ❌ Error Details
+                        ❌ {t('ApiLogs.dialog.errorDetails')}
                       </h3>
                       <div className="border-destructive border rounded-lg p-4 bg-destructive/5">
                         <div className="space-y-3 text-sm">
                           {selectedLog.errorDetails.errorCode && (
                             <div>
-                              <span className="font-medium text-muted-foreground">Error Code:</span>
+                              <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.errorCode')}</span>
                               <div className="mt-1">{selectedLog.errorDetails.errorCode}</div>
                             </div>
                           )}
                           {selectedLog.errorDetails.errorMessage && (
                             <div>
-                              <span className="font-medium text-muted-foreground">Error Message:</span>
+                              <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.errorMessage')}</span>
                               <div className="mt-1">{selectedLog.errorDetails.errorMessage}</div>
                             </div>
                           )}
                           {selectedLog.errorDetails.stackTrace && (
                             <div>
-                              <span className="font-medium text-muted-foreground">Stack Trace:</span>
+                              <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.stackTrace')}</span>
                               <div className="mt-1 bg-muted p-2 rounded">
                                 <pre className="text-xs overflow-auto">{selectedLog.errorDetails.stackTrace}</pre>
                               </div>
@@ -666,8 +671,10 @@ export default function LogsPage() {
                           )}
                           {selectedLog.errorDetails.recoverable !== undefined && (
                             <div>
-                              <span className="font-medium text-muted-foreground">Recoverable:</span>
-                              <div className="mt-1">{selectedLog.errorDetails.recoverable ? 'Yes' : 'No'}</div>
+                              <span className="font-medium text-muted-foreground">{t('ApiLogs.dialog.recoverable')}</span>
+                              <div className="mt-1">
+                                {selectedLog.errorDetails.recoverable ? t('ApiLogs.dialog.yes') : t('ApiLogs.dialog.no')}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -679,23 +686,23 @@ export default function LogsPage() {
                   {selectedLog.relatedEntities && selectedLog.relatedEntities.length > 0 && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        🔗 Related Entities
+                        🔗 {t('ApiLogs.dialog.relatedEntities')}
                       </h3>
                       <div className="space-y-2">
                         {selectedLog.relatedEntities.map((entity, index) => (
                           <div key={index} className="border rounded-lg p-3 text-sm">
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <span className="text-xs text-muted-foreground">Type:</span>
+                                <span className="text-xs text-muted-foreground">{t('ApiLogs.dialog.type')}</span>
                                 <div className="mt-1 capitalize">{entity.entityType.replace('_', ' ')}</div>
                               </div>
                               <div>
-                                <span className="text-xs text-muted-foreground">ID:</span>
+                                <span className="text-xs text-muted-foreground">{t('ApiLogs.dialog.id')}</span>
                                 <div className="mt-1 font-mono text-xs">{entity.entityId}</div>
                               </div>
                               {entity.entityName && (
                                 <div>
-                                  <span className="text-xs text-muted-foreground">Name:</span>
+                                  <span className="text-xs text-muted-foreground">{t('ApiLogs.dialog.entityNameLabel')}</span>
                                   <div className="mt-1">{entity.entityName}</div>
                                 </div>
                               )}
@@ -710,7 +717,7 @@ export default function LogsPage() {
                   {selectedLog.tags && selectedLog.tags.length > 0 && (
                     <div>
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        🏷️ Tags
+                        🏷️ {t('ApiLogs.dialog.tags')}
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {selectedLog.tags.map((tag, index) => (

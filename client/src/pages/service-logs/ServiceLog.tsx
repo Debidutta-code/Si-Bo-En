@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   useServiceLogs,
   useErrorSummary,
@@ -43,20 +44,26 @@ function LevelBadge({ level }: { level: IServiceLog['level'] }) {
   );
 }
 
+// ─── Repo calls table ─────────────────────────────────────────────────────────
 
 function RepoCallsTable({ calls }: { calls: IServiceLog['repoCalls'] }) {
-  if (!calls?.length) return <p className="text-sm text-muted-foreground">No repo calls recorded.</p>;
+  const { t } = useTranslation();
+
+  if (!calls?.length) return (
+    <p className="text-sm text-muted-foreground">{t('ServiceLog.repoCalls.noRecords')}</p>
+  );
+
   return (
     <div className="rounded-md border overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Repo</TableHead>
-            <TableHead>Method</TableHead>
-            <TableHead>Input sent</TableHead>
-            <TableHead>Response received</TableHead>
-            <TableHead>Duration</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>{t('ServiceLog.repoCalls.repo')}</TableHead>
+            <TableHead>{t('ServiceLog.repoCalls.method')}</TableHead>
+            <TableHead>{t('ServiceLog.repoCalls.inputSent')}</TableHead>
+            <TableHead>{t('ServiceLog.repoCalls.responseReceived')}</TableHead>
+            <TableHead>{t('ServiceLog.repoCalls.duration')}</TableHead>
+            <TableHead>{t('ServiceLog.repoCalls.status')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -99,6 +106,8 @@ function LogDetailDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
+
   if (!log) return null;
   const { date, time } = formatTs(log.timestamp);
 
@@ -113,7 +122,8 @@ function LogDetailDialog({
             <span className="font-mono text-sm">{log.method}</span>
           </DialogTitle>
           <DialogDescription>
-            {date} at {time} — requestId: <span className="font-mono">{log.requestId}</span>
+            {date} {t('ServiceLog.dialog.at')} {time} — {t('ServiceLog.dialog.requestId')}{' '}
+            <span className="font-mono">{log.requestId}</span>
           </DialogDescription>
         </DialogHeader>
 
@@ -123,7 +133,7 @@ function LogDetailDialog({
             {/* 1. Incoming Data */}
             {log.incomingData && (
               <div>
-                <h3 className="mb-3 font-semibold">Incoming Data</h3>
+                <h3 className="mb-3 font-semibold">{t('ServiceLog.dialog.incomingData')}</h3>
                 <pre className="overflow-auto rounded-md bg-muted p-4 text-xs whitespace-pre-wrap">
                   {JSON.stringify(log.incomingData, null, 2)}
                 </pre>
@@ -132,14 +142,14 @@ function LogDetailDialog({
 
             {/* 2. Repository Calls */}
             <div>
-              <h3 className="mb-3 font-semibold">Repository Calls</h3>
+              <h3 className="mb-3 font-semibold">{t('ServiceLog.dialog.repositoryCalls')}</h3>
               <RepoCallsTable calls={log.repoCalls} />
             </div>
 
             {/* 3. Messages */}
             {log.messages?.length > 0 && (
               <div>
-                <h3 className="mb-3 font-semibold">Messages</h3>
+                <h3 className="mb-3 font-semibold">{t('ServiceLog.dialog.messages')}</h3>
                 <div className="space-y-2">
                   {log.messages.map((m, i) => (
                     <div key={i} className="flex items-start gap-3 rounded-md border p-3 text-sm">
@@ -164,7 +174,7 @@ function LogDetailDialog({
             {/* 4. Service Response */}
             {log.serviceResponse && (
               <div>
-                <h3 className="mb-3 font-semibold">Service Response</h3>
+                <h3 className="mb-3 font-semibold">{t('ServiceLog.dialog.serviceResponse')}</h3>
                 <pre className="overflow-auto rounded-md bg-muted p-4 text-xs whitespace-pre-wrap">
                   {JSON.stringify(log.serviceResponse, null, 2)}
                 </pre>
@@ -174,7 +184,7 @@ function LogDetailDialog({
             {/* 5. Meta */}
             {log.meta && (
               <div>
-                <h3 className="mb-3 font-semibold">Meta</h3>
+                <h3 className="mb-3 font-semibold">{t('ServiceLog.dialog.meta')}</h3>
                 <pre className="overflow-auto rounded-md bg-muted p-4 text-xs whitespace-pre-wrap">
                   {JSON.stringify(log.meta, null, 2)}
                 </pre>
@@ -185,11 +195,13 @@ function LogDetailDialog({
             {log.error && (
               <div className="rounded-lg border border-red-200 bg-red-50 p-4">
                 <h3 className="mb-2 flex items-center gap-2 font-semibold text-red-700">
-                  <XCircle className="h-4 w-4" /> Error
+                  <XCircle className="h-4 w-4" /> {t('ServiceLog.dialog.error')}
                 </h3>
                 <p className="text-sm font-medium text-red-800">{log.error.message}</p>
                 {log.error.code && (
-                  <p className="text-xs text-red-600 mt-1">Code: {log.error.code}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {t('ServiceLog.dialog.code')} {log.error.code}
+                  </p>
                 )}
                 {log.error.stack && (
                   <pre className="mt-2 overflow-auto rounded bg-red-100 p-3 text-xs text-red-700 whitespace-pre-wrap">
@@ -209,6 +221,7 @@ function LogDetailDialog({
 // ─── Error summary panel ──────────────────────────────────────────────────────
 
 function ErrorSummaryPanel({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const { data, isLoading } = useErrorSummary();
   const items = data?.data ?? [];
 
@@ -216,16 +229,18 @@ function ErrorSummaryPanel({ onClose }: { onClose: () => void }) {
     <div className="rounded-lg border bg-card p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="flex items-center gap-2 font-semibold">
-          <BarChart3 className="h-4 w-4 text-red-500" /> Error Summary
+          <BarChart3 className="h-4 w-4 text-red-500" /> {t('ServiceLog.errorSummaryPanel.title')}
         </h3>
         <Button variant="ghost" size="sm" onClick={onClose}>✕</Button>
       </div>
       {isLoading ? (
         <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+          <Loader2 className="h-4 w-4 animate-spin" /> {t('ServiceLog.errorSummaryPanel.loading')}
         </div>
       ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-4 text-center">🎉 No errors recorded.</p>
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          {t('ServiceLog.errorSummaryPanel.noErrors')}
+        </p>
       ) : (
         <div className="space-y-2">
           {items.map((item, i) => (
@@ -235,7 +250,9 @@ function ErrorSummaryPanel({ onClose }: { onClose: () => void }) {
                 <span className="mx-1 text-muted-foreground">›</span>
                 <span className="font-mono">{item._id.method}</span>
               </div>
-              <Badge variant="destructive">{item.errorCount} errors</Badge>
+              <Badge variant="destructive">
+                {item.errorCount} {t('ServiceLog.errorSummaryPanel.errors')}
+              </Badge>
             </div>
           ))}
         </div>
@@ -247,6 +264,7 @@ function ErrorSummaryPanel({ onClose }: { onClose: () => void }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ServiceLog() {
+  const { t } = useTranslation();
   const [params, setParams] = useState<IServiceLogQueryParams>({ page: 1, limit: 20 });
   const [search, setSearch] = useState('');
   const [selectedLog, setSelectedLog] = useState<IServiceLog | null>(null);
@@ -255,7 +273,6 @@ export default function ServiceLog() {
   const { data, isLoading, isError, error, refetch } = useServiceLogs(params, true);
   const { mutate: deleteLog } = useDeleteServiceLog();
 
-  // Real shape: data.data = IServiceLog[], data.meta = IPaginationMeta
   const logs: IServiceLog[] = data?.data ?? [];
   const meta = data?.meta;
   const page = params.page ?? 1;
@@ -287,10 +304,8 @@ export default function ServiceLog() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Service Logs</h1>
-          <p className="text-muted-foreground mt-1">
-            Internal service call traces, messages, and repo interactions
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('ServiceLog.title')}</h1>
+          <p className="text-muted-foreground mt-1">{t('ServiceLog.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -299,11 +314,11 @@ export default function ServiceLog() {
             onClick={() => setShowErrorSummary((v) => !v)}
           >
             <BarChart3 className="h-4 w-4 mr-2 text-red-500" />
-            Error Summary
+            {t('ServiceLog.errorSummaryBtn')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('ServiceLog.refresh')}
           </Button>
         </div>
       </div>
@@ -315,10 +330,10 @@ export default function ServiceLog() {
       {meta && (
         <div className="grid gap-4 md:grid-cols-4">
           {[
-            { label: 'Total Logs', value: meta.totalCount, icon: '📊' },
-            { label: 'Current Page', value: meta.currentPage, icon: '📄' },
-            { label: 'Total Pages', value: meta.totalPages, icon: '📑' },
-            { label: 'Per Page', value: limit, icon: '⚙️' },
+            { label: t('ServiceLog.stats.totalLogs'), value: meta.totalCount, icon: '📊' },
+            { label: t('ServiceLog.stats.currentPage'), value: meta.currentPage, icon: '📄' },
+            { label: t('ServiceLog.stats.totalPages'), value: meta.totalPages, icon: '📑' },
+            { label: t('ServiceLog.stats.perPage'), value: limit, icon: '⚙️' },
           ].map(({ label, value, icon }) => (
             <Card key={label}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -338,8 +353,8 @@ export default function ServiceLog() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Service Trace Log</CardTitle>
-              <CardDescription>All recorded service calls, ordered by newest first</CardDescription>
+              <CardTitle>{t('ServiceLog.card.title')}</CardTitle>
+              <CardDescription>{t('ServiceLog.card.description')}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               {/* Search */}
@@ -347,7 +362,7 @@ export default function ServiceLog() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="service-log-search"
-                  placeholder="Search service, method…"
+                  placeholder={t('ServiceLog.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="pl-8"
@@ -356,10 +371,10 @@ export default function ServiceLog() {
               {/* Level filter */}
               <Select onValueChange={setLevel} defaultValue="all">
                 <SelectTrigger className="w-28" id="service-log-level-filter">
-                  <SelectValue placeholder="Level" />
+                  <SelectValue placeholder={t('ServiceLog.allLevels')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All levels</SelectItem>
+                  <SelectItem value="all">{t('ServiceLog.allLevels')}</SelectItem>
                   <SelectItem value="info">Info</SelectItem>
                   <SelectItem value="warn">Warn</SelectItem>
                   <SelectItem value="error">Error</SelectItem>
@@ -385,23 +400,25 @@ export default function ServiceLog() {
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-muted-foreground">Loading logs…</span>
+              <span className="ml-2 text-muted-foreground">{t('ServiceLog.loadingLogs')}</span>
             </div>
           ) : isError ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-              <h3 className="text-lg font-semibold">Failed to load logs</h3>
+              <h3 className="text-lg font-semibold">{t('ServiceLog.failedToLoad')}</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {error?.message || 'An error occurred while fetching service logs'}
+                {error?.message || t('ServiceLog.errorFetching')}
               </p>
-              <Button onClick={() => refetch()} variant="outline" className="mt-4">Try Again</Button>
+              <Button onClick={() => refetch()} variant="outline" className="mt-4">
+                {t('ServiceLog.tryAgain')}
+              </Button>
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <span className="text-6xl mb-4">🔍</span>
-              <h3 className="text-lg font-semibold">No Logs Found</h3>
+              <h3 className="text-lg font-semibold">{t('ServiceLog.noLogsFound')}</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                {search ? 'Try adjusting your search or filters.' : 'No service logs recorded yet.'}
+                {search ? t('ServiceLog.tryAdjusting') : t('ServiceLog.noLogsYet')}
               </p>
             </div>
           ) : (
@@ -409,13 +426,13 @@ export default function ServiceLog() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[150px]">Timestamp</TableHead>
-                    <TableHead className="w-[90px]">Level</TableHead>
-                    <TableHead>Service</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="w-[80px] text-center">Repos</TableHead>
-                    <TableHead className="w-[80px] text-center">Msgs</TableHead>
-                    <TableHead className="w-[80px]">Actions</TableHead>
+                    <TableHead className="w-[150px]">{t('ServiceLog.columns.timestamp')}</TableHead>
+                    <TableHead className="w-[90px]">{t('ServiceLog.columns.level')}</TableHead>
+                    <TableHead>{t('ServiceLog.columns.service')}</TableHead>
+                    <TableHead>{t('ServiceLog.columns.method')}</TableHead>
+                    <TableHead className="w-[80px] text-center">{t('ServiceLog.columns.repos')}</TableHead>
+                    <TableHead className="w-[80px] text-center">{t('ServiceLog.columns.msgs')}</TableHead>
+                    <TableHead className="w-[80px]">{t('ServiceLog.columns.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -477,8 +494,11 @@ export default function ServiceLog() {
           {meta && meta.totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Showing {((page - 1) * limit) + 1}–{Math.min(page * limit, meta.totalCount)} of{' '}
-                {meta.totalCount.toLocaleString()} logs
+                {t('ServiceLog.showing', {
+                  from: ((page - 1) * limit) + 1,
+                  to: Math.min(page * limit, meta.totalCount),
+                  total: meta.totalCount.toLocaleString(),
+                })}
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -487,7 +507,7 @@ export default function ServiceLog() {
                   onClick={() => setPage(page - 1)}
                   disabled={page === 1}
                 >
-                  <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                  <ChevronLeft className="h-4 w-4 mr-1" /> {t('ServiceLog.previous')}
                 </Button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, meta.totalPages) }, (_, i) => {
@@ -515,7 +535,7 @@ export default function ServiceLog() {
                   onClick={() => setPage(page + 1)}
                   disabled={page === meta.totalPages}
                 >
-                  Next <ChevronRight className="h-4 w-4 ml-1" />
+                  {t('ServiceLog.next')} <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>
             </div>

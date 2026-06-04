@@ -11,7 +11,7 @@ import Login from "@/pages/login/page.tsx";
 import Dashboard from "./pages/dashboard/Dashboard.tsx";
 import Property from "@/pages/property/Super.tsx";
 import MembersPage from "./pages/members/Members.tsx";
-import LogsPage from "./pages/logs/page.tsx";
+import LogsPage from "./pages/logs/ApiLogs.tsx";
 import Inventory from "./pages/inventory/Inventory.tsx";
 import PropertyById from "./pages/property/id/PropertyD.tsx";
 import RatePlan from "./pages/rate-plan/RatePlan.tsx";

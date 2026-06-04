@@ -849,11 +849,10 @@
     "staff": "स्टाफ",
     "revenueManager": "राजस्व प्रबंधक",
     "spaManager": "स्पा प्रबंधक",
-  "superAdmin": "सुपर एडमिन",
-  "regionalAdmin": "क्षेत्रीय प्रशासक",
-  "groupManager": "समूह प्रबंधक",
-  "brandManager": "ब्रांड प्रबंधक"
-
+    "superAdmin": "सुपर एडमिन",
+    "regionalAdmin": "क्षेत्रीय प्रशासक",
+    "groupManager": "समूह प्रबंधक",
+    "brandManager": "ब्रांड प्रबंधक"
   },
   "Booking": {
     "title": "बुकिंग",
@@ -2806,11 +2805,10 @@
     "transDecs": "विवरण",
     "editTranslation": "प्रोमो कोड अनुवाद संपादित करें",
     "translations": "प्रोमो कोड अनुवाद",
-      "placeholder": {
-    "name": "उदाहरण: ग्रीष्मकालीन ऑफ़र",
-    "description": "अनुवादित विवरण दर्ज करें..."
-  }
-
+    "placeholder": {
+      "name": "उदाहरण: ग्रीष्मकालीन ऑफ़र",
+      "description": "अनुवादित विवरण दर्ज करें..."
+    }
   },
   "Addon": {
     "loadingAddonsData": "ऐड-ऑन डेटा लोड हो रहा है...",
@@ -3224,13 +3222,11 @@
     "saving": "सहेजा जा रहा है...",
     "create": "बनाएं",
     "update": "अपडेट करें",
-      "addRatePlan": "रेट प्लान जोड़ें",
-  "removeRatePlan": "रेट प्लान हटाएँ",
-  "noAvailableRatePlans": "कोई रेट प्लान उपलब्ध नहीं है",
-  "noRatePlanAdded": "कोई रेट प्लान नहीं जोड़ा गया है"
-
+    "addRatePlan": "रेट प्लान जोड़ें",
+    "removeRatePlan": "रेट प्लान हटाएँ",
+    "noAvailableRatePlans": "कोई रेट प्लान उपलब्ध नहीं है",
+    "noRatePlanAdded": "कोई रेट प्लान नहीं जोड़ा गया है"
   },
-  
   "TouristTaxDialog": {
     "createTitle": "अतिरिक्त शुल्क बनाएं",
     "editTitle": "अतिरिक्त शुल्क संपादित करें",
@@ -5444,7 +5440,7 @@
       "create": "टैक्स नियम बनाएं",
       "edit": "टैक्स नियम संपादित करें"
     },
-    "addedToGroup":"समूहों पर लागू:",
+    "addedToGroup": "समूहों पर लागू:",
     "description": {
       "create": "अपनी संपत्ति के लिए एक नया टैक्स नियम बनाएं",
       "edit": "टैक्स नियम विवरण अपडेट करें"
@@ -5475,7 +5471,7 @@
       "totalAmount": "कुल राशि"
     }
   },
-    "TaxRuleTranslation": {
+  "TaxRuleTranslation": {
     "addTitel": "कर नियम अनुवाद जोड़ें",
     "checkTitel": "कर नियम अनुवाद",
     "editTitel": "कर नियम अनुवाद संपादित करें",
@@ -5487,7 +5483,8 @@
       "name": "नियम का नाम दर्ज करें",
       "description": "विवरण दर्ज करें"
     }
-  },  "TaxGroupTranslation": {
+  },
+  "TaxGroupTranslation": {
     "addTitel": "कर समूह अनुवाद जोड़ें",
     "checkTitel": "कर समूह अनुवाद",
     "editTitel": "कर समूह अनुवाद संपादित करें",
@@ -5497,7 +5494,8 @@
     "placeholder": {
       "name": "समूह का नाम दर्ज करें"
     }
-  },  "TouristTaxTranslation": {
+  },
+  "TouristTaxTranslation": {
     "addTitel": "अतिरिक्त शुल्क अनुवाद जोड़ें",
     "checkTitel": "अतिरिक्त शुल्क अनुवाद",
     "editTitel": "अतिरिक्त शुल्क अनुवाद संपादित करें",
@@ -5530,7 +5528,78 @@
     "october": "अक्टूबर",
     "november": "नवंबर",
     "december": "दिसंबर"
+  },
+  "ApiLogs": {
+    "title": "गतिविधि लॉग्स",
+    "subtitle": "सभी सिस्टम गतिविधियों और परिवर्तनों को ट्रैक करें",
+    "refresh": "रीफ्रेश करें",
+    "totalLogs": "कुल लॉग्स",
+    "pagesTotal": "कुल {{count}} पृष्ठ",
+    "currentPage": "वर्तमान पृष्ठ",
+    "showingLogs": "{{count}} लॉग्स दिखाए जा रहे हैं",
+    "perPage": "प्रति पृष्ठ",
+    "adjustBelow": "नीचे दिए गए नियंत्रणों में समायोजित करें",
+    "activityTimeline": "गतिविधि टाइमलाइन",
+    "recentActivities": "हाल की सिस्टम गतिविधियाँ और परिवर्तन",
+    "searchPlaceholder": "लॉग्स खोजें...",
+    "loadingLogs": "लॉग्स लोड हो रहे हैं...",
+    "failedToLoad": "लॉग्स लोड करने में विफल",
+    "errorFetching": "लॉग्स प्राप्त करते समय एक त्रुटि हुई",
+    "tryAgain": "पुनः प्रयास करें",
+    "noLogsFound": "कोई लॉग नहीं मिला",
+    "noLogsYet": "अभी तक कोई गतिविधि लॉग उपलब्ध नहीं है",
+    "tryAdjustingSearch": "अपना खोज मानदंड बदलकर देखें",
+    "previous": "पिछला",
+    "next": "अगला",
+    "unknown": "अज्ञात",
+    "showing": "{{total}} में से {{from}} से {{to}} लॉग दिखाए जा रहे हैं",
+    "columns": {
+      "timestamp": "समय",
+      "action": "कार्रवाई",
+      "entity": "इकाई",
+      "description": "विवरण",
+      "performedBy": "द्वारा किया गया",
+      "ipAddress": "आईपी पता",
+      "device": "डिवाइस",
+      "severity": "गंभीरता",
+      "details": "विवरण"
+    }
+  },
+  "ServiceLog": {
+    "title": "सेवा लॉग्स",
+    "subtitle": "आंतरिक सेवा कॉल ट्रेस, संदेश और रिपॉज़िटरी इंटरैक्शन",
+    "errorSummaryBtn": "त्रुटि सारांश",
+    "refresh": "रीफ्रेश करें",
+    "stats": {
+      "totalLogs": "कुल लॉग्स",
+      "currentPage": "वर्तमान पृष्ठ",
+      "totalPages": "कुल पृष्ठ",
+      "perPage": "प्रति पृष्ठ"
+    },
+    "card": {
+      "title": "सेवा ट्रेस लॉग",
+      "description": "सभी रिकॉर्ड की गई सेवा कॉल्स, नवीनतम पहले"
+    },
+    "searchPlaceholder": "सेवा, मेथड खोजें…",
+    "allLevels": "सभी स्तर",
+    "loadingLogs": "लॉग्स लोड हो रहे हैं…",
+    "failedToLoad": "लॉग्स लोड करने में विफल",
+    "errorFetching": "सेवा लॉग्स प्राप्त करते समय एक त्रुटि हुई",
+    "tryAgain": "पुनः प्रयास करें",
+    "noLogsFound": "कोई लॉग नहीं मिला",
+    "noLogsYet": "अभी तक कोई सेवा लॉग रिकॉर्ड नहीं किया गया है।",
+    "tryAdjusting": "अपनी खोज या फ़िल्टर बदलकर देखें।",
+    "columns": {
+      "timestamp": "समय",
+      "level": "स्तर",
+      "service": "सेवा",
+      "method": "मेथड",
+      "repos": "रिपॉज़",
+      "msgs": "संदेश",
+      "actions": "कार्रवाइयाँ"
+    },
+    "showing": "{{total}} में से {{from}}–{{to}} लॉग दिखाए जा रहे हैं",
+    "previous": "पिछला",
+    "next": "अगला"
   }
-
-
 }

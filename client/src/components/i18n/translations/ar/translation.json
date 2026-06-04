@@ -890,12 +890,11 @@
     "hotelManager": "مدير الفندق",
     "staff": "موظف",
     "revenueManager": "مدير الإيرادات",
-      "spaManager": "مدير السبا",
-  "superAdmin": "المسؤول العام",
-  "regionalAdmin": "المسؤول الإقليمي",
-  "groupManager": "مدير المجموعة",
-  "brandManager": "مدير العلامة التجارية"
-
+    "spaManager": "مدير السبا",
+    "superAdmin": "المسؤول العام",
+    "regionalAdmin": "المسؤول الإقليمي",
+    "groupManager": "مدير المجموعة",
+    "brandManager": "مدير العلامة التجارية"
   },
   "Booking": {
     "title": "الحجوزات",
@@ -5512,7 +5511,7 @@
       "name": "أدخل اسم المجموعة"
     }
   },
-    "TouristTaxTranslation": {
+  "TouristTaxTranslation": {
     "addTitel": "إضافة ترجمة الرسوم الإضافية",
     "checkTitel": "ترجمات الرسوم الإضافية",
     "editTitel": "تعديل ترجمة الرسوم الإضافية",
@@ -5545,7 +5544,67 @@
     "october": "أكتوبر",
     "november": "نوفمبر",
     "december": "ديسمبر"
+  },
+  "ApiLogs": {
+    "title": "سجلات النشاط",
+    "subtitle": "تتبع جميع أنشطة النظام والتغييرات",
+    "refresh": "تحديث",
+    "totalLogs": "إجمالي السجلات",
+    "pagesTotal": "إجمالي {{count}} صفحة",
+    "currentPage": "الصفحة الحالية",
+    "showingLogs": "عرض {{count}} سجل",
+    "perPage": "لكل صفحة",
+    "adjustBelow": "قم بالتعديل من عناصر التحكم أدناه",
+    "activityTimeline": "الجدول الزمني للنشاط",
+    "recentActivities": "آخر أنشطة وتغييرات النظام",
+    "searchPlaceholder": "ابحث في السجلات...",
+    "loadingLogs": "جارٍ تحميل السجلات...",
+    "failedToLoad": "فشل تحميل السجلات",
+    "errorFetching": "حدث خطأ أثناء جلب السجلات",
+    "tryAgain": "حاول مرة أخرى",
+    "noLogsFound": "لم يتم العثور على سجلات",
+    "noLogsYet": "لا توجد سجلات نشاط متاحة بعد",
+    "tryAdjustingSearch": "حاول تعديل معايير البحث",
+    "previous": "السابق",
+    "next": "التالي",
+    "unknown": "غير معروف",
+    "showing": "عرض {{from}} إلى {{to}} من أصل {{total}} سجل"
+  },
+  "ServiceLog": {
+    "title": "سجلات الخدمة",
+    "subtitle": "تتبعات استدعاءات الخدمات الداخلية والرسائل وتفاعلات المستودعات",
+    "errorSummaryBtn": "ملخص الأخطاء",
+    "refresh": "تحديث",
+    "stats": {
+      "totalLogs": "إجمالي السجلات",
+      "currentPage": "الصفحة الحالية",
+      "totalPages": "إجمالي الصفحات",
+      "perPage": "لكل صفحة"
+    },
+    "card": {
+      "title": "سجل تتبع الخدمة",
+      "description": "جميع استدعاءات الخدمة المسجلة، الأحدث أولاً"
+    },
+    "searchPlaceholder": "ابحث عن الخدمة أو الطريقة…",
+    "allLevels": "جميع المستويات",
+    "loadingLogs": "جارٍ تحميل السجلات…",
+    "failedToLoad": "فشل تحميل السجلات",
+    "errorFetching": "حدث خطأ أثناء جلب سجلات الخدمة",
+    "tryAgain": "حاول مرة أخرى",
+    "noLogsFound": "لم يتم العثور على سجلات",
+    "noLogsYet": "لم يتم تسجيل أي سجلات خدمة بعد.",
+    "tryAdjusting": "حاول تعديل البحث أو عوامل التصفية.",
+    "columns": {
+      "timestamp": "الوقت",
+      "level": "المستوى",
+      "service": "الخدمة",
+      "method": "الطريقة",
+      "repos": "المستودعات",
+      "msgs": "الرسائل",
+      "actions": "الإجراءات"
+    },
+    "showing": "عرض {{from}}–{{to}} من أصل {{total}} سجل",
+    "previous": "السابق",
+    "next": "التالي"
   }
-
-
 }
