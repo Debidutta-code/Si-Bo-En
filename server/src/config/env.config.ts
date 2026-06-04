@@ -74,6 +74,8 @@ const config = {
 
     emailQueue: process.env.EMAIL_QUEUE || 'email-send-queue',
     deadLetterQueue: process.env.DEAD_LETTER_QUEUE || 'email-dead-queue',
+    siteMinderAriQueue: process.env.SITEMINDER_ARI_QUEUE || 'siteminder-ari',
+    siteMinderDeadLetterQueue: process.env.SITEMINDER_DEAD_LETTER_QUEUE || 'siteminder-ari-dead-letter',
     currencyExchangeQueue:
         process.env.CURRENCY_EXCHANGE_QUEUE || 'currency-exchange-queue',
 
