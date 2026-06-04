@@ -219,21 +219,15 @@ export const DeviceSpecificPromotionList: React.FC = () => {
 
   const formatDate = (date: string | null | undefined) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    const [y, m, d] = date.split('T')[0].split('-').map(Number);
+    const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    return `${t(`Months.${monthKeys[m - 1]}`)} ${d}, ${y}`;
   };
 
   const getActiveDays = (days: any) => {
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     return Object.entries(days)
       .filter(([_, isActive]) => isActive)
-      .map(([day]) => {
-        const index = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(day.toLowerCase());
-        return dayNames[index];
-      })
+      .map(([day]) => t(`Days.${day.toLowerCase()}`))
       .join(', ');
   };
 
@@ -350,7 +344,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                             title={device.charAt(0).toUpperCase() + device.slice(1)}
                           >
                             {getDeviceIcon(device)}
-                            <span className="capitalize">{device}</span>
+                            <span className="capitalize">{t(`DeviceSpecific.form.${device}`)}</span>
                           </div>
                         ))}
                       </div>

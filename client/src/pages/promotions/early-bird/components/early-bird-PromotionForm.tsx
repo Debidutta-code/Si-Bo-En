@@ -838,7 +838,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                     className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                   />
                   <span className="text-sm text-foreground capitalize">
-                    {day}
+                    {t(`Days.${day}`)}
                   </span>
                 </label>
               ))}

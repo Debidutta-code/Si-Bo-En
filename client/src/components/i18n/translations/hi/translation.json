@@ -200,7 +200,7 @@
         "realTimeAnalytics": "वास्तविक समय विश्लेषण और अंतर्दृष्टि",
         "multiProperty": "बहु-संपत्ति प्रबंधन"
       },
-      "footer": "© {{year}} रेवचिल। सर्वाधिकार सुरक्षित।"
+      "footer": "© {{year}} Revchill. सर्वाधिकार सुरक्षित।"
     },
     "forgotPassword": {
       "title": "पासवर्ड भूल गए",
@@ -848,7 +848,12 @@
     "hotelManager": "होटल प्रबंधक",
     "staff": "स्टाफ",
     "revenueManager": "राजस्व प्रबंधक",
-    "spaManager": "स्पा प्रबंधक"
+    "spaManager": "स्पा प्रबंधक",
+  "superAdmin": "सुपर एडमिन",
+  "regionalAdmin": "क्षेत्रीय प्रशासक",
+  "groupManager": "समूह प्रबंधक",
+  "brandManager": "ब्रांड प्रबंधक"
+
   },
   "Booking": {
     "title": "बुकिंग",
@@ -3737,6 +3742,7 @@
     "cancel": "रद्द करें",
     "delete": "हटाएं",
     "deleting": "हटाया जा रहा है...",
+    "to": "से",
     "form": {
       "save": "सहेजें",
       "create": "बनाएं",
@@ -5501,8 +5507,30 @@
     "placeholder": {
       "name": "शुल्क का नाम दर्ज करें"
     }
+  },
+  "Days": {
+    "monday": "सोमवार",
+    "tuesday": "मंगलवार",
+    "wednesday": "बुधवार",
+    "thursday": "गुरुवार",
+    "friday": "शुक्रवार",
+    "saturday": "शनिवार",
+    "sunday": "रविवार"
+  },
+  "Months": {
+    "january": "जनवरी",
+    "february": "फरवरी",
+    "march": "मार्च",
+    "april": "अप्रैल",
+    "may": "मई",
+    "june": "जून",
+    "july": "जुलाई",
+    "august": "अगस्त",
+    "september": "सितंबर",
+    "october": "अक्टूबर",
+    "november": "नवंबर",
+    "december": "दिसंबर"
   }
-
 
 
 }

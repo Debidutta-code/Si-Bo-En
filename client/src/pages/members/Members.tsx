@@ -252,7 +252,8 @@ export default function MembersPage() {
       width: 'w-40',
       render: (value: string) => (
         <Badge variant="outline">
-          {value ? capitalizeFirstLetter(value.replaceAll("_", " ")) : 'N/A'}
+            <span className="font-medium">{t(`Roles.${value.split("_").map((word, index) => index != 0 ? capitalizeFirstLetter(word) : word).join("")}`)}</span>
+
         </Badge>
       )
     },

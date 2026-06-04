@@ -484,13 +484,13 @@ export default function RatePlan() {
                       </p>
                       <p className="text-sm text-gray-600">
                         {ratePlan.createdAt
-                          ? new Date(ratePlan.createdAt).toLocaleString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })
+                          ? (() => {
+                            const [y, m, d] = ratePlan.createdAt.split('T')[0].split('-').map(Number);
+                            const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+                            const month = t(`Months.${monthKeys[m - 1]}`);
+                            const time = new Date(ratePlan.createdAt).toLocaleString('en-US', { hour: '2-digit', minute: '2-digit' });
+                            return `${month} ${d}, ${y}, ${time}`;
+                          })()
                           : 'N/A'}
                       </p>
                     </div>

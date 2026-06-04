@@ -250,15 +250,12 @@ export default function PromoCodePage() {
     };
 
     const formatDate = (date: Date | string) => {
-        return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        const dateStr = typeof date === 'string' ? date : date.toISOString();
+        const [y, m, d] = dateStr.split('T')[0].split('-').map(Number);
+        const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+        return `${t(`Months.${monthKeys[m - 1]}`)} ${d}, ${y}`;
     };
 
-    // const isPromoCodeActive = (promoCode: IRPromoCode) => {
-    //     const now = new Date();
-    //     const validFrom = new Date(promoCode.validFrom);
-    //     const validTo = new Date(promoCode.validTo);
-    //     return promoCode.isActive && now >= validFrom && now <= validTo;
-    // };
     if (loading.isLoading) {
         return (
             <div className="flex h-screen items-center justify-center">

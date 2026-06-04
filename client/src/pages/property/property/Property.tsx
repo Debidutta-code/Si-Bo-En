@@ -874,7 +874,7 @@ export default function PropertyPage() {
                                     <p className="text-xs text-gray-500">{user.email}</p>
                                 </div>
                                 <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 whitespace-nowrap ml-2">
-                                    {capitalizeFirstLetter(user.role.replaceAll("_", " "))}
+                                          <span className="font-medium">{t(`Roles.${user.role.split("_").map((word, index) => index != 0 ? capitalizeFirstLetter(word) : word).join("")}`)}</span>
                                 </span>
                             </div>
                         ))}

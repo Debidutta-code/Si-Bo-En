@@ -81,7 +81,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   const hasOccupancy = (ratePlanDetails?.baseByGuestAmts?.length ?? 0) > 0;
   const isExpanded = state.expandedOccupancy.has(`${roomType}-${ratePlanType}`);
   const { t } = useTranslation();
-  
+
   const fullRatePlan = ratePlansData?.find(rp => rp.ratePlanCode === ratePlanType);
   const displayName = fullRatePlan?._translations?.ratePlanName || ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType;
 
@@ -307,7 +307,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   const formatDateForStartStop = (day: InventoryDay): string => {
     const monthNames = [
       (t("Common.jan")), (t("Common.feb")), (t("Common.march")), (t("Common.april")), (t("Common.may")), (t("Common.june")),
-     (t("Common.july")), (t("Common.august")), (t("Common.september")), (t("Common.october")), (t("Common.november")), (t("Common.december")),
+      (t("Common.july")), (t("Common.august")), (t("Common.september")), (t("Common.october")), (t("Common.november")), (t("Common.december")),
     ];
     const monthNumber = monthNames.indexOf(day.month) + 1;
     // ✅ Append T00:00:00 to force local time, not UTC
@@ -431,7 +431,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                   type="number"
                   min="0"
                   step="0.01"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
+
                   className="w-24 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -597,7 +598,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                     type="number"
                     min="0"
                     step="0.01"
-                    placeholder="Bulk"
+                    placeholder=              {t('CalendarView.roomTypeSection.bulk')}
+
                     className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                     onChange={(e) => {
                       if (e.target.value) {
@@ -723,7 +725,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       type="number"
                       min="0"
                       step="0.01"
-                      placeholder="Bulk"
+                      placeholder=              {t('CalendarView.roomTypeSection.bulk')}
+
                       className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       onChange={(e) => {
                         if (e.target.value) {
@@ -936,7 +939,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <input
                   type="number"
                   min="0"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
                   className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -978,7 +981,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <input
                   type="number"
                   min="0"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
                   className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -1043,7 +1046,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <input
                   type="number"
                   min="0"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
                   className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -1087,7 +1090,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <input
                   type="number"
                   min="0"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
                   className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -1130,7 +1133,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <input
                   type="number"
                   min="0"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
                   className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -1174,7 +1177,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <input
                   type="number"
                   min="0"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
                   className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -1217,7 +1220,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <input
                   type="number"
                   min="0"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
                   className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -1261,7 +1264,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <input
                   type="number"
                   min="0"
-                  placeholder="Bulk"
+                  placeholder={t('CalendarView.roomTypeSection.bulk')}
                   className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
                   onChange={(e) => {
                     if (e.target.value) {
@@ -1360,7 +1363,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
                         if (response.success) {
                           toast.success(
-                            checked ? t('CalendarView.ratePlanSection.ratePlanOpenedDate', { date: `${day.month.slice(0,3)} ${day.date}` }) : t('CalendarView.ratePlanSection.ratePlanClosedDate', { date: `${day.month.slice(0,3)} ${day.date}` }),
+                            checked ? t('CalendarView.ratePlanSection.ratePlanOpenedDate', { date: `${day.month.slice(0, 3)} ${day.date}` }) : t('CalendarView.ratePlanSection.ratePlanClosedDate', { date: `${day.month.slice(0, 3)} ${day.date}` }),
                           );
                           if (onDataUpdate) await onDataUpdate();
                         } else {

@@ -107,7 +107,7 @@ export default function AvailabilityCalendar({
           <ChevronLeft className="w-4 h-4 text-gray-600" />
         </button>
         <h3 className="text-sm font-semibold text-gray-800">
-          {format(currentMonth, "MMMM yyyy")}
+          {t(`Months.${format(currentMonth, "MMMM").toLowerCase()}`)} {format(currentMonth, "yyyy")}
         </h3>
         <button
           onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}

@@ -272,9 +272,23 @@ export const MLOSRuleList: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {formatDate(rule.startDate ?? null)} - {formatDate(rule.endDate ?? null)}
+                        {(() => {
+                          if (!rule.startDate && !rule.endDate) return "N/A";
+                          const start = rule.startDate ? (() => {
+                            const d = new Date(rule.startDate);
+                            const month = t(`Months.${d.toLocaleString('en-US', { month: 'long' }).toLowerCase()}`);
+                            return `${month} ${d.getDate()}, ${d.getFullYear()}`;
+                          })() : "";
+                          const end = rule.endDate ? (() => {
+                            const d = new Date(rule.endDate);
+                            const month = t(`Months.${d.toLocaleString('en-US', { month: 'long' }).toLowerCase()}`);
+                            return `${month} ${d.getDate()}, ${d.getFullYear()}`;
+                          })() : "";
+                          return start && end ? `${start} - ${end}` : start || end;
+                        })()}
                       </div>
                     </TableCell>
+
                     <TableCell>
                       <span className="px-2 py-1 bg-primary/10 text-primary rounded text-xs font-medium">
                         {rule.minLos} {t("MLOS.nights")}

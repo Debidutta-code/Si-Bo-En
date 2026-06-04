@@ -891,7 +891,11 @@
     "hotelManager": "Hotel Manager",
     "staff": "Staff",
     "revenueManager": "Revenue Manager",
-    "spaManager": "Spa Manager"
+    "spaManager": "Spa Manager",
+    "superAdmin":"Super Admin",
+    "regionalAdmin":"Regional Admin",
+    "groupManager":"Group Manager",
+    "brandManager":"Brand Manager"
   },
   "Booking": {
     "title": "Bookings",
@@ -3763,6 +3767,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "deleting": "Deleting...",
+    "to": "to",
     "form": {
       "save": "Save",
       "create": "Create",
@@ -5517,5 +5522,28 @@
     "placeholder": {
       "name": "Enter charge name"
     }
+  },
+  "Days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "Months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
   }
 }

@@ -177,18 +177,9 @@ const DeviceSpecificPromotionForm: React.FC<
   };
 
   const getActiveDaysSummary = () => {
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
     const activeDays = Object.entries(applicableDays)
       .filter(([_, isActive]) => isActive)
-      .map(([day]) => days.find((d) => d.toLowerCase() === day));
+      .map(([day]) => t(`Days.${day}`));
     return activeDays.join(", ");
   };
 
@@ -592,7 +583,7 @@ const DeviceSpecificPromotionForm: React.FC<
                     className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                   />
                   <span className="text-sm text-foreground capitalize">
-                    {day}
+                    {t(`Days.${day}`)}
                   </span>
                 </label>
               ))}

@@ -24,7 +24,6 @@ import {
 import { fetchAddOnsService } from "@/pages/add-on/services";
 import type { IAddon } from "@/pages/add-on/interface";
 import type { ILoader } from "@/pages/dashboard/interface";
-import { format } from "date-fns";
 import BackButton from "@/components/shared/BackButton";
 import { useTranslation } from "react-i18next";
 
@@ -130,8 +129,11 @@ export const CustomizableDealList: React.FC = () => {
     return <div className="flex items-center gap-1"><DollarSign className="w-3 h-3" /><span>{deal.currencyCode} {deal.discountValue}</span></div>;
   };
 
-  const formatDate = (date: string) =>
-    format(new Date(date), "MMM dd, yyyy");
+  const formatDate = (date: string) => {
+    const [y, m, d] = date.split('T')[0].split('-').map(Number);
+    const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    return `${t(`Months.${monthKeys[m - 1]}`)} ${String(d).padStart(2, '0')}, ${y}`;
+  };
 
   if (showForm) {
     return (
@@ -223,7 +225,7 @@ export const CustomizableDealList: React.FC = () => {
                     <TableCell>
                       <div className="flex flex-col text-sm">
                         <span>{formatDate(deal.startDate)}</span>
-                        <span className="text-muted-foreground text-xs">to</span>
+                        <span className="text-muted-foreground text-xs">{t("CustomizableDeals.to")}</span>
                         <span>{formatDate(deal.endDate)}</span>
                       </div>
                     </TableCell>

@@ -263,13 +263,9 @@ export const OfferForTonightList: React.FC = () => {
     // };
 
     const getActiveDays = (days: any) => {
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         return Object.entries(days)
             .filter(([_, isActive]) => isActive)
-            .map(([day]) => {
-                const index = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(day.toLowerCase());
-                return dayNames[index];
-            })
+            .map(([day]) => t(`Days.${day.toLowerCase()}`))
             .join(', ');
     };
 
@@ -386,13 +382,23 @@ export const OfferForTonightList: React.FC = () => {
                                         <TableCell>
                                             <div className="flex items-center gap-1 text-xs">
                                                 <Calendar className="w-3 h-3 text-muted-foreground" />
-                                                {promotion.validFrom?.split('T')[0]}
+                                                                                                {(() => {
+                                                    if (!promotion.validFrom) return "N/A";
+                                                    const [y, m, d] = promotion.validFrom.split('T')[0].split('-').map(Number);
+                                                    const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+                                                    return `${t(`Months.${monthKeys[m - 1]}`)} ${d}, ${y}`;
+                                                })()}
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-1 text-xs">
                                                 <Calendar className="w-3 h-3 text-muted-foreground" />
-                                                {promotion.validTo?.split('T')[0]}
+                                                                                                {(() => {
+                                                    if (!promotion.validTo) return "N/A";
+                                                    const [y, m, d] = promotion.validTo.split('T')[0].split('-').map(Number);
+                                                    const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+                                                    return `${t(`Months.${monthKeys[m - 1]}`)} ${d}, ${y}`;
+                                                })()}
                                             </div>
                                         </TableCell>
                                         <TableCell>

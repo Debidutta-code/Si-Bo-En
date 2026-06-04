@@ -16,7 +16,7 @@ import Inventory from "./pages/inventory/Inventory.tsx";
 import PropertyById from "./pages/property/id/PropertyD.tsx";
 import RatePlan from "./pages/rate-plan/RatePlan.tsx";
 import CreateProperty from "./pages/property/create/page.tsx";
-import AccessControlPage from "./pages/access-control/page.tsx";
+import AccessControlPage from "./pages/access-control/AccessControll.tsx";
 import NotFound from "./pages/not-found/NotFound.tsx";
 import GroupId from "./pages/property/group/Group.tsx";
 import BrandId from "./pages/property/brand/Brand.tsx";
