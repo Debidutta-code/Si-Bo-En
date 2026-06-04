@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +39,7 @@ export default function TaxRuleDialog({
     taxRule,
     mode,
 }: TaxRuleDialogProps) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState<ICTaxRule>({
         name: "",
         type: "percentage",
@@ -109,22 +111,22 @@ export default function TaxRuleDialog({
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">
-                        {mode === "create" ? "Create Tax Rule" : "Edit Tax Rule"}
+                        {mode === "create" ? t("TaxRuleDialog.title.create") : t("TaxRuleDialog.title.edit")}
                     </DialogTitle>
                     <DialogDescription>
                         {mode === "create"
-                            ? "Create a new tax rule for your property"
-                            : "Update the tax rule details"}
+                            ? t("TaxRuleDialog.description.create")
+                            : t("TaxRuleDialog.description.edit")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                     {/* Tax Rule Name */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">Tax Rule Name *</Label>
+                        <Label htmlFor="name">{t("TaxRuleDialog.form.name")}</Label>
                         <Input
                             id="name"
-                            placeholder="e.g., GST, Service Tax, VAT"
+                            placeholder={t("TaxRuleDialog.form.namePlaceholder")}
                             value={formData.name}
                             onChange={(e) =>
                                 setFormData({ ...formData, name: e.target.value })
@@ -135,7 +137,7 @@ export default function TaxRuleDialog({
                     {/* Type and Value */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="type">Tax Type *</Label>
+                            <Label htmlFor="type">{t("TaxRuleDialog.form.taxType")}</Label>
                             <Select
                                 value={formData.type}
                                 onValueChange={(value: TaxType) =>
@@ -146,15 +148,15 @@ export default function TaxRuleDialog({
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="percentage">Percentage (%)</SelectItem>
-                                    <SelectItem value="fixed">Fixed Amount</SelectItem>
+                                    <SelectItem value="percentage">{t("TaxRuleDialog.taxTypes.percentage")}</SelectItem>
+                                    <SelectItem value="fixed">{t("TaxRuleDialog.taxTypes.fixed")}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="value">
-                                {formData.type === "percentage" ? "Value (%)" : "Amount"} *
+                                {formData.type === "percentage" ? t("TaxRuleDialog.form.valuePercent") : t("TaxRuleDialog.form.valueAmount")}
                             </Label>
                             <Input
                                 id="value"
@@ -176,7 +178,7 @@ export default function TaxRuleDialog({
                     {formData.type === "fixed" && (
                         <>
                             <div className="space-y-2">
-                                <Label htmlFor="currencyCode">Currency Code</Label>
+                                <Label htmlFor="currencyCode">{t("TaxRuleDialog.form.currencyCode")}</Label>
                                 <Select
                                     value={formData.currencyCode}
                                     onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
@@ -197,7 +199,7 @@ export default function TaxRuleDialog({
                     )}
                     {/* Applicable On */}
                     <div className="space-y-2">
-                        <Label htmlFor="applicableOn">Applicable On *</Label>
+                        <Label htmlFor="applicableOn">{t("TaxRuleDialog.form.applicableOn")}</Label>
                         <Select
                             value={formData.applicableOn}
                             onValueChange={(value: TaxApplicableOn) =>
@@ -208,15 +210,15 @@ export default function TaxRuleDialog({
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="room_rate">Room Rate</SelectItem>
-                                <SelectItem value="total_amount">Total Amount</SelectItem>
+                                <SelectItem value="room_rate">{t("TaxRuleDialog.applicableOn.roomRate")}</SelectItem>
+                                <SelectItem value="total_amount">{t("TaxRuleDialog.applicableOn.totalAmount")}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     {/* Priority */}
                     <div className="space-y-2">
-                        <Label htmlFor="priority">Priority (0-5) *</Label>
+                        <Label htmlFor="priority">{t("TaxRuleDialog.form.priority")}</Label>
                         <Input
                             id="priority"
                             type="number"
@@ -232,16 +234,16 @@ export default function TaxRuleDialog({
                             }
                         />
                         <p className="text-xs text-gray-500">
-                            Higher priority taxes are calculated first
+                            {t("TaxRuleDialog.form.priorityHint")}
                         </p>
                     </div>
 
                     {/* Description */}
                     <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">{t("TaxRuleDialog.form.description")}</Label>
                         <Textarea
                             id="description"
-                            placeholder="Add any additional details about this tax rule..."
+                            placeholder={t("TaxRuleDialog.form.descriptionPlaceholder")}
                             value={formData.description}
                             onChange={(e) =>
                                 setFormData({ ...formData, description: e.target.value })
@@ -254,10 +256,10 @@ export default function TaxRuleDialog({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
-                        Cancel
+                        {t("TaxRuleDialog.form.cancel")}
                     </Button>
                     <Button onClick={handleSave} disabled={isSubmitting}>
-                        {isSubmitting ? "Saving..." : mode === "create" ? "Create" : "Update"}
+                        {isSubmitting ? t("TaxRuleDialog.form.saving") : mode === "create" ? t("TaxRuleDialog.form.create") : t("TaxRuleDialog.form.update")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

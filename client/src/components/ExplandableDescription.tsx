@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Button } from './ui/button';
-
+import { useTranslation } from 'react-i18next';
 const ExpandableDescription = ({ description }:{description:string}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const charLimit = 150; 
+  const { t } = useTranslation();
 
   if (!description) {
     return null; 
@@ -25,7 +26,7 @@ const ExpandableDescription = ({ description }:{description:string}) => {
           onClick={toggleReadMore}
           className="text-primary hover:underline text-sm font-semibold p-0"
         >
-          {isExpanded ? 'Show less' : 'Read more...'}
+          {isExpanded ? (t('Common.showLess')) : (t('Common.showMore'))}
         </Button>
       )}
     </div>

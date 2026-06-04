@@ -213,15 +213,15 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
               entityId={propertyId}
               locale={editingLocale}
               initialData={editingData}
-              title="Edit Address Translation"
+              title={t("AddPropertyAddressLangDialog.edit")}
               fields={[
-                { key: "addressLine1", label: "Address Line 1", placeholder: "e.g. Calle 123" },
-                { key: "addressLine2", label: "Address Line 2", placeholder: "e.g. Piso 2" },
-                { key: "city", label: "City", placeholder: "e.g. Madrid" },
-                { key: "state", label: "State", placeholder: "e.g. Comunidad de Madrid" },
-                { key: "country", label: "Country", placeholder: "e.g. España" },
-                { key: "location", label: "Location / Area", placeholder: "e.g. Centro" },
-                { key: "landmark", label: "Landmark", placeholder: "e.g. Cerca del museo" },
+                { key: "addressLine1", label: t("AddPropertyAddressLangDialog.form.addressLine1"), placeholder: t("AddPropertyAddressLangDialog.formEx.addressLine1") },
+                { key: "addressLine2", label: t("AddPropertyAddressLangDialog.form.addressLine2"), placeholder: t("AddPropertyAddressLangDialog.formEx.addressLine2") },
+                { key: "city", label: t("AddPropertyAddressLangDialog.form.city"), placeholder: t("AddPropertyAddressLangDialog.formEx.city") },
+                { key: "state", label: t("AddPropertyAddressLangDialog.form.state"), placeholder: t("AddPropertyAddressLangDialog.formEx.state") },
+                { key: "country", label: t("AddPropertyAddressLangDialog.form.country"), placeholder: t("AddPropertyAddressLangDialog.formEx.country") },
+                { key: "location", label: t("AddPropertyAddressLangDialog.form.location"), placeholder: t("AddPropertyAddressLangDialog.formEx.location") },
+                { key: "landmark", label: t("AddPropertyAddressLangDialog.form.landmark"), placeholder: t("AddPropertyAddressLangDialog.formEx.landmark") },
               ]}
               onSave={async (id, locale, data) => upsertPropertyAddressTranslationService(id, { [locale]: data })}
             />

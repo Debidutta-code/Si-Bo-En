@@ -163,14 +163,14 @@ export default function MappingsTable({
                                                                 className="cursor-pointer"
                                                             >
                                                                 <Edit className="w-4 h-4 mr-2" />
-                                                                Update
+                                                                {t("Common.update")}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem
                                                                 onClick={() => setViewPriceDetails(mapping)}
                                                                 className="cursor-pointer"
                                                             >
                                                                 <Eye className="w-4 h-4 mr-2" />
-                                                                View Details
+                                                                {t("Common.viewDetails")}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem
@@ -178,7 +178,7 @@ export default function MappingsTable({
                                                                 className="cursor-pointer text-red-600 focus:text-red-600"
                                                             >
                                                                 <Trash2 className="w-4 h-4 mr-2" />
-                                                                Delete
+                                                                {t("Common.delete")}
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>

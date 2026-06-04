@@ -86,7 +86,10 @@
     "failedToSaveTranslation": "अनुवाद सहेजने में विफल",
     "translationUpdated": "अनुवाद सफलतापूर्वक अपडेट हुआ!",
     "failedToUpdateTranslation": "अनुवाद अपडेट करने में विफल",
-    "promotionTranslations": "प्रचार अनुवाद"
+    "promotionTranslations": "प्रचार अनुवाद",
+    "showLess": "कम दिखाएँ",
+    "showMore": "और दिखाएँ",
+    "update": "अपडेट करें"
   },
   "BookingStatus": {
     "confirmed": "पुष्टि की गई",
@@ -565,7 +568,15 @@
     "englishLanguage": "अंग्रेज़ी",
     "editTranslationTitle": "प्रॉपर्टी अनुवाद संपादित करें",
     "translationFieldName": "प्रॉपर्टी नाम",
-    "translationFieldNamePlaceholder": "उदाहरण: Hotel Sol"
+    "translationFieldNamePlaceholder": "उदाहरण: होटल सोल",
+    "editPropertyDetailTranslation": "प्रॉपर्टी विवरण अनुवाद संपादित करें",
+    "description": "प्रॉपर्टी विवरण",
+    "descriptionPlaceholder": "अपनी प्रॉपर्टी की विशेषताओं का वर्णन करें...",
+    "namePlaceholder": "उदाहरण: होटल सोल",
+    "detailTranslation": "प्रॉपर्टी विवरण अनुवाद",
+    "videoTour": "वीडियो टूर",
+    "noMediaTitel": "अपनी प्रॉपर्टी को प्रदर्शित करें",
+    "noMediaDecs": "अपनी प्रॉपर्टी को आकर्षक बनाने और अधिक बुकिंग प्राप्त करने के लिए शानदार फ़ोटो और एक आकर्षक वीडियो टूर अपलोड करें"
   },
   "PropertySuper": {
     "title": "होटल और संपत्तियाँ",
@@ -2384,6 +2395,9 @@
       "failedFetch": "लॉयल्टी कार्यक्रम लाने में विफल"
     }
   },
+  "LoyaltyLevel": {
+    "noOfReservations": "आरक्षणों की संख्या"
+  },
   "Agency": {
     "title": "एजेंसियाँ",
     "subtitle": "यात्रा एजेंसियों और कॉर्पोरेट भागीदारों का प्रबंधन करें",
@@ -2784,7 +2798,14 @@
     "delete": "हटाएं",
     "addTranslation": "प्रोमो कोड अनुवाद जोड़ें",
     "transName": "प्रोमो नाम",
-    "transDecs": "विवरण"
+    "transDecs": "विवरण",
+    "editTranslation": "प्रोमो कोड अनुवाद संपादित करें",
+    "translations": "प्रोमो कोड अनुवाद",
+      "placeholder": {
+    "name": "उदाहरण: ग्रीष्मकालीन ऑफ़र",
+    "description": "अनुवादित विवरण दर्ज करें..."
+  }
+
   },
   "Addon": {
     "loadingAddonsData": "ऐड-ऑन डेटा लोड हो रहा है...",
@@ -3197,30 +3218,14 @@
     "cancel": "रद्द करें",
     "saving": "सहेजा जा रहा है...",
     "create": "बनाएं",
-    "update": "अपडेट करें"
+    "update": "अपडेट करें",
+      "addRatePlan": "रेट प्लान जोड़ें",
+  "removeRatePlan": "रेट प्लान हटाएँ",
+  "noAvailableRatePlans": "कोई रेट प्लान उपलब्ध नहीं है",
+  "noRatePlanAdded": "कोई रेट प्लान नहीं जोड़ा गया है"
+
   },
-  "TaxGroupDialog": {
-    "createTitle": "कर समूह बनाएं",
-    "editTitle": "कर समूह संपादित करें",
-    "createDesc": "कई कर नियमों को संयोजित करने के लिए एक समूह बनाएं",
-    "editDesc": "कर समूह विवरण और नियम अपडेट करें",
-    "taxGroupName": "कर समूह का नाम *",
-    "taxGroupNamePlaceholder": "जैसे, मानक कर, विलासिता कर",
-    "activeStatus": "सक्रिय स्थिति",
-    "activeStatusDesc": "दर योजनाओं के लिए इस कर समूह को सक्षम करें",
-    "selectedTaxRules": "चयनित कर नियम ({{count}})",
-    "selectTaxRules": "कर नियम चुनें",
-    "selectTaxRulesDesc": "इस समूह में शामिल करने के लिए कर नियम चुनें",
-    "noTaxRulesAvailable": "कोई कर नियम उपलब्ध नहीं।",
-    "createTaxRulesFirst": "समूहों में जोड़ने के लिए पहले कर नियम बनाएं।",
-    "roomRate": "कमरे की दर",
-    "totalAmount": "कुल राशि",
-    "priority": "प्राथमिकता",
-    "cancel": "रद्द करें",
-    "saving": "सहेजा जा रहा है...",
-    "create": "बनाएं",
-    "update": "अपडेट करें"
-  },
+  
   "TouristTaxDialog": {
     "createTitle": "अतिरिक्त शुल्क बनाएं",
     "editTitle": "अतिरिक्त शुल्क संपादित करें",
@@ -4666,6 +4671,7 @@
   },
   "AddPropertyAddressLangDialog": {
     "title": "पता अनुवाद जोड़ें",
+    "edit": "पता अनुवाद संपादित करें",
     "form": {
       "languageLabel": "भाषा",
       "languagePlaceholder": "भाषा चुनें",
@@ -4676,6 +4682,15 @@
       "country": "देश",
       "location": "स्थान",
       "landmark": "लैंडमार्क"
+    },
+    "formEx": {
+      "addressLine1": "उदाहरण: 123 मुख्य सड़क",
+      "addressLine2": "उदाहरण: फ्लैट 4B",
+      "city": "उदाहरण: मुंबई",
+      "state": "उदाहरण: महाराष्ट्र",
+      "country": "उदाहरण: भारत",
+      "location": "उदाहरण: गेटवे ऑफ इंडिया",
+      "landmark": "उदाहरण: ताज होटल"
     },
     "buttons": {
       "cancel": "रद्द करें",
@@ -5377,5 +5392,117 @@
       "altText": "कमरे की छवि {{index}}"
     },
     "characters": "अक्षर"
+  },
+  "SelectPaymentIntegration": {
+    "title": "पेमेंट इंटीग्रेशन चुनें",
+    "description": "लेन-देन को प्रोसेस करने के लिए अपना पसंदीदा पेमेंट गेटवे चुनें।",
+    "gatewayProvider": "पेमेंट गेटवे प्रदाता",
+    "pgId": "PG आईडी:",
+    "pgIdPlaceholder": "PG आईडी दर्ज करें",
+    "warnings": "ऑनलाइन भुगतान सक्षम करने के लिए कृपया एक पेमेंट इंटीग्रेशन चुनें।"
+  },
+  "TaxGroupDialog": {
+    "title": {
+      "create": "टैक्स ग्रुप बनाएं",
+      "edit": "टैक्स ग्रुप संपादित करें"
+    },
+    "description": {
+      "create": "कई टैक्स नियमों को एक साथ जोड़ने के लिए एक ग्रुप बनाएं",
+      "edit": "टैक्स ग्रुप विवरण और नियम अपडेट करें"
+    },
+    "form": {
+      "name": "टैक्स ग्रुप का नाम *",
+      "namePlaceholder": "जैसे, मानक टैक्स, लग्ज़री टैक्स",
+      "activeStatus": "सक्रिय स्थिति",
+      "activeStatusHint": "इस टैक्स ग्रुप को दर योजनाओं के लिए सक्षम करें",
+      "selectedRules": "चुने गए टैक्स नियम ({{count}})",
+      "selectRules": "टैक्स नियम चुनें",
+      "selectRulesHint": "इस ग्रुप में शामिल करने के लिए टैक्स नियम चुनें",
+      "priority": "प्राथमिकता: {{value}}",
+      "cancel": "रद्द करें",
+      "saving": "सहेजा जा रहा है...",
+      "create": "बनाएं",
+      "update": "अपडेट करें"
+    },
+    "applicableOn": {
+      "roomRate": "कमरे की दर",
+      "totalAmount": "कुल राशि"
+    },
+    "empty": {
+      "noRules": "कोई टैक्स नियम उपलब्ध नहीं है।",
+      "createFirst": "ग्रुप में जोड़ने के लिए पहले टैक्स नियम बनाएं।"
+    }
+  },
+  "TaxRuleDialog": {
+    "title": {
+      "create": "टैक्स नियम बनाएं",
+      "edit": "टैक्स नियम संपादित करें"
+    },
+    "addedToGroup":"समूहों पर लागू:",
+    "description": {
+      "create": "अपनी संपत्ति के लिए एक नया टैक्स नियम बनाएं",
+      "edit": "टैक्स नियम विवरण अपडेट करें"
+    },
+    "form": {
+      "name": "टैक्स नियम का नाम *",
+      "namePlaceholder": "जैसे, जीएसटी, सेवा कर, वैट",
+      "taxType": "टैक्स प्रकार *",
+      "valuePercent": "मूल्य (%) *",
+      "valueAmount": "राशि *",
+      "currencyCode": "मुद्रा कोड",
+      "applicableOn": "लागू होता है *",
+      "priority": "प्राथमिकता (0-5) *",
+      "priorityHint": "उच्च प्राथमिकता वाले टैक्स पहले गणना किए जाते हैं",
+      "description": "विवरण",
+      "descriptionPlaceholder": "इस टैक्स नियम के बारे में कोई अतिरिक्त जानकारी जोड़ें...",
+      "cancel": "रद्द करें",
+      "saving": "सहेजा जा रहा है...",
+      "create": "बनाएं",
+      "update": "अपडेट करें"
+    },
+    "taxTypes": {
+      "percentage": "प्रतिशत (%)",
+      "fixed": "निश्चित राशि"
+    },
+    "applicableOn": {
+      "roomRate": "कमरे की दर",
+      "totalAmount": "कुल राशि"
+    }
+  },
+    "TaxRuleTranslation": {
+    "addTitel": "कर नियम अनुवाद जोड़ें",
+    "checkTitel": "कर नियम अनुवाद",
+    "editTitel": "कर नियम अनुवाद संपादित करें",
+    "fields": {
+      "name": "नियम का नाम",
+      "description": "विवरण"
+    },
+    "placeholder": {
+      "name": "नियम का नाम दर्ज करें",
+      "description": "विवरण दर्ज करें"
+    }
+  },  "TaxGroupTranslation": {
+    "addTitel": "कर समूह अनुवाद जोड़ें",
+    "checkTitel": "कर समूह अनुवाद",
+    "editTitel": "कर समूह अनुवाद संपादित करें",
+    "fields": {
+      "name": "समूह का नाम"
+    },
+    "placeholder": {
+      "name": "समूह का नाम दर्ज करें"
+    }
+  },  "TouristTaxTranslation": {
+    "addTitel": "अतिरिक्त शुल्क अनुवाद जोड़ें",
+    "checkTitel": "अतिरिक्त शुल्क अनुवाद",
+    "editTitel": "अतिरिक्त शुल्क अनुवाद संपादित करें",
+    "fields": {
+      "name": "शुल्क का नाम"
+    },
+    "placeholder": {
+      "name": "शुल्क का नाम दर्ज करें"
+    }
   }
+
+
+
 }

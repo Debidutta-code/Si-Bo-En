@@ -86,8 +86,10 @@
     "failedToSaveTranslation": "فشل حفظ الترجمة",
     "translationUpdated": "تم تحديث الترجمة بنجاح!",
     "failedToUpdateTranslation": "فشل تحديث الترجمة",
-    "promotionTranslations": "ترجمات العروض"
-
+    "promotionTranslations": "ترجمات العروض",
+    "showLess": "عرض أقل",
+    "showMore": "عرض المزيد",
+    "update": "تحديث"
   },
   "AddRoomLangDialog": {
     "title": "إضافة ترجمة الغرفة",
@@ -599,7 +601,15 @@
     "englishLanguage": "الإنجليزية",
     "editTranslationTitle": "تعديل ترجمة العقار",
     "translationFieldName": "اسم العقار",
-    "translationFieldNamePlaceholder": "مثال: فندق الشمس"
+    "translationFieldNamePlaceholder": "مثال: فندق سول",
+    "editPropertyDetailTranslation": "تعديل ترجمة تفاصيل العقار",
+    "description": "وصف العقار",
+    "descriptionPlaceholder": "صف المميزات الفريدة لعقارك...",
+    "namePlaceholder": "مثال: فندق سول",
+    "detailTranslation": "ترجمات تفاصيل العقار",
+    "videoTour": "جولة فيديو",
+    "noMediaTitel": "اعرض عقارك بأفضل صورة",
+    "noMediaDecs": "قم بتحميل صور رائعة وجولة فيديو جذابة لجعل عقارك مميزًا وجذب المزيد من الحجوزات"
   },
   "PropertySuper": {
     "title": "الفنادق والعقارات",
@@ -2428,6 +2438,9 @@
       "failedFetch": "فشل جلب برامج الولاء"
     }
   },
+  "LoyaltyLevel": {
+    "noOfReservations": "عدد الحجوزات"
+  },
   "Agency": {
     "title": "الوكالات",
     "subtitle": "إدارة وكالات السفر والشركاء من الشركات",
@@ -2813,7 +2826,13 @@
     "delete": "حذف",
     "addTranslation": "إضافة ترجمة رمز العرض",
     "transName": "اسم العرض",
-    "transDecs": "الوصف"
+    "transDecs": "الوصف",
+    "editTranslation": "تعديل ترجمة رمز العرض الترويجي",
+    "translations": "ترجمات رموز العروض الترويجية",
+    "placeholder": {
+      "name": "مثال: عرض الصيف",
+      "description": "أدخل الوصف المترجم..."
+    }
   },
   "Addon": {
     "loadingAddonsData": "جارٍ تحميل بيانات الخدمات الإضافية...",
@@ -3231,28 +3250,6 @@
     "removeRatePlan": "إزالة خطة الأسعار",
     "noAvailableRatePlans": "لا توجد خطط أسعار متاحة",
     "noRatePlanAdded": "لم تتم إضافة خطة أسعار"
-  },
-  "TaxGroupDialog": {
-    "createTitle": "إنشاء مجموعة ضريبية",
-    "editTitle": "تعديل المجموعة الضريبية",
-    "createDesc": "إنشاء مجموعة لدمج قواعد ضريبية متعددة",
-    "editDesc": "تحديث تفاصيل المجموعة الضريبية والقواعد",
-    "taxGroupName": "اسم المجموعة الضريبية *",
-    "taxGroupNamePlaceholder": "مثال: الضرائب القياسية، الضرائب الفاخرة",
-    "activeStatus": "الحالة النشطة",
-    "activeStatusDesc": "تمكين هذه المجموعة الضريبية لخطط الأسعار",
-    "selectedTaxRules": "القواعد الضريبية المحددة ({{count}})",
-    "selectTaxRules": "اختر القواعد الضريبية",
-    "selectTaxRulesDesc": "اختر القواعد الضريبية التي تريد تضمينها في هذه المجموعة",
-    "noTaxRulesAvailable": "لا توجد قواعد ضريبية متاحة.",
-    "createTaxRulesFirst": "قم بإنشاء قواعد ضريبية أولاً لإضافتها إلى المجموعات.",
-    "roomRate": "سعر الغرفة",
-    "totalAmount": "المبلغ الإجمالي",
-    "priority": "الأولوية",
-    "cancel": "إلغاء",
-    "saving": "جارٍ الحفظ...",
-    "create": "إنشاء",
-    "update": "تحديث"
   },
   "TouristTaxDialog": {
     "createTitle": "إنشاء رسوم إضافية",
@@ -4704,6 +4701,7 @@
   },
   "AddPropertyAddressLangDialog": {
     "title": "إضافة ترجمة العنوان",
+    "edit": "تعديل ترجمة العنوان",
     "form": {
       "languageLabel": "اللغة",
       "languagePlaceholder": "اختر اللغة",
@@ -4714,6 +4712,15 @@
       "country": "الدولة",
       "location": "الموقع",
       "landmark": "معلم بارز"
+    },
+    "formEx": {
+      "addressLine1": "مثال: شارع 123",
+      "addressLine2": "مثال: شقة 4B",
+      "city": "مثال: مدريد",
+      "state": "مثال: منطقة مدريد",
+      "country": "مثال: إسبانيا",
+      "location": "مثال: بلازا مايور",
+      "landmark": "مثال: إل كورتي إنغليس"
     },
     "buttons": {
       "cancel": "إلغاء",
@@ -5398,5 +5405,117 @@
       "altText": "صورة الغرفة {{index}}"
     },
     "characters": "حرفاً"
+  },
+  "SelectPaymentIntegration": {
+    "title": "اختر تكامل الدفع",
+    "description": "اختر بوابة الدفع المفضلة لديك لمعالجة المعاملات.",
+    "gatewayProvider": "مزود بوابة الدفع",
+    "pgId": "معرّف بوابة الدفع:",
+    "pgIdPlaceholder": "أدخل معرّف بوابة الدفع",
+    "warnings": "يرجى اختيار تكامل دفع واحد لتمكين المدفوعات عبر الإنترنت."
+  },
+  "TaxGroupDialog": {
+    "title": {
+      "create": "إنشاء مجموعة ضريبية",
+      "edit": "تعديل مجموعة ضريبية"
+    },
+    "description": {
+      "create": "أنشئ مجموعة لدمج قواعد ضريبية متعددة",
+      "edit": "تحديث تفاصيل وقواعد المجموعة الضريبية"
+    },
+    "form": {
+      "name": "اسم المجموعة الضريبية *",
+      "namePlaceholder": "مثال: الضرائب القياسية، ضرائب الفاخرة",
+      "activeStatus": "حالة التفعيل",
+      "activeStatusHint": "تفعيل هذه المجموعة الضريبية لخطط الأسعار",
+      "selectedRules": "القواعد الضريبية المحددة ({{count}})",
+      "selectRules": "اختر القواعد الضريبية",
+      "selectRulesHint": "اختر القواعد الضريبية التي تريد تضمينها في هذه المجموعة",
+      "priority": "الأولوية: {{value}}",
+      "cancel": "إلغاء",
+      "saving": "جارٍ الحفظ...",
+      "create": "إنشاء",
+      "update": "تحديث"
+    },
+    "applicableOn": {
+      "roomRate": "سعر الغرفة",
+      "totalAmount": "المبلغ الإجمالي"
+    },
+    "empty": {
+      "noRules": "لا توجد قواعد ضريبية متاحة.",
+      "createFirst": "أنشئ قواعد ضريبية أولاً لإضافتها إلى المجموعات."
+    }
+  },
+  "TaxRuleDialog": {
+    "title": {
+      "create": "إنشاء قاعدة ضريبية",
+      "edit": "تعديل قاعدة ضريبية"
+    },
+    "addedToGroup": "مُطبّق على المجموعات:",
+    "description": {
+      "create": "إنشاء قاعدة ضريبية جديدة لعقارك",
+      "edit": "تحديث تفاصيل القاعدة الضريبية"
+    },
+    "form": {
+      "name": "اسم القاعدة الضريبية *",
+      "namePlaceholder": "مثال: ضريبة القيمة المضافة، ضريبة الخدمة",
+      "taxType": "نوع الضريبة *",
+      "valuePercent": "القيمة (%) *",
+      "valueAmount": "المبلغ *",
+      "currencyCode": "رمز العملة",
+      "applicableOn": "تُطبَّق على *",
+      "priority": "الأولوية (0-5) *",
+      "priorityHint": "يتم احتساب الضرائب ذات الأولوية الأعلى أولاً",
+      "description": "الوصف",
+      "descriptionPlaceholder": "أضف أي تفاصيل إضافية حول هذه القاعدة الضريبية...",
+      "cancel": "إلغاء",
+      "saving": "جارٍ الحفظ...",
+      "create": "إنشاء",
+      "update": "تحديث"
+    },
+    "taxTypes": {
+      "percentage": "نسبة مئوية (%)",
+      "fixed": "مبلغ ثابت"
+    },
+    "applicableOn": {
+      "roomRate": "سعر الغرفة",
+      "totalAmount": "المبلغ الإجمالي"
+    }
+  },
+  "TaxRuleTranslation": {
+    "addTitel": "إضافة ترجمة قاعدة الضريبة",
+    "checkTitel": "ترجمات قواعد الضريبة",
+    "editTitel": "تعديل ترجمة قاعدة الضريبة",
+    "fields": {
+      "name": "اسم القاعدة",
+      "description": "الوصف"
+    },
+    "placeholder": {
+      "name": "أدخل اسم القاعدة",
+      "description": "أدخل الوصف"
+    }
+  },
+  "TaxGroupTranslation": {
+    "addTitel": "إضافة ترجمة مجموعة الضريبة",
+    "checkTitel": "ترجمات مجموعات الضرائب",
+    "editTitel": "تعديل ترجمة مجموعة الضريبة",
+    "fields": {
+      "name": "اسم المجموعة"
+    },
+    "placeholder": {
+      "name": "أدخل اسم المجموعة"
+    }
+  },
+    "TouristTaxTranslation": {
+    "addTitel": "إضافة ترجمة الرسوم الإضافية",
+    "checkTitel": "ترجمات الرسوم الإضافية",
+    "editTitel": "تعديل ترجمة الرسوم الإضافية",
+    "fields": {
+      "name": "اسم الرسوم"
+    },
+    "placeholder": {
+      "name": "أدخل اسم الرسوم"
+    }
   }
+
 }

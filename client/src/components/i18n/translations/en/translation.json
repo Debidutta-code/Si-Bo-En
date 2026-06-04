@@ -86,7 +86,10 @@
     "translationSaved": "Translation saved successfully!",
     "failedToSaveTranslation": "Failed to save translation",
     "translationUpdated": "Translation updated successfully!",
-    "failedToUpdateTranslation": "Failed to update translation"
+    "failedToUpdateTranslation": "Failed to update translation",
+    "showLess": "Show Less",
+    "showMore": "Show More",
+    "update": "Update"
   },
   "AddRoomLangDialog": {
     "title": "Add Room Translation",
@@ -598,7 +601,16 @@
     "englishLanguage": "English",
     "editTranslationTitle": "Edit Property Translation",
     "translationFieldName": "Property Name",
-    "translationFieldNamePlaceholder": "e.g., Hotel Sol"
+    "translationFieldNamePlaceholder": "e.g., Hotel Sol",
+    "editPropertyDetailTranslation": "Edit Property Detail Translation",
+    "description": "Property Description",
+    "descriptionPlaceholder": "Describe your property's unique features...",
+    "namePlaceholder": "e.g., Hotel Sol",
+    "detailTranslation": "Property Details Translations",
+    "name": "Name",
+    "videoTour": "Video Tour",
+    "noMediaTitel": "Showcase Your Property",
+    "noMediaDecs": "Upload stunning photos and an engaging video tour to make your property stand out and attract more bookings"
   },
   "PropertySuper": {
     "title": "Hotels & Properties",
@@ -2427,6 +2439,9 @@
       "failedFetch": "Failed to fetch loyalty programs"
     }
   },
+  "LoyaltyLevel": {
+    "noOfReservations": "Number of Reservations"
+  },
   "Agency": {
     "title": "Agencies",
     "subtitle": "Manage travel agencies and corporate partners",
@@ -2812,7 +2827,13 @@
     "delete": "Delete",
     "addTranslation": "Add Promo Code Translation",
     "transName": "Promo Name",
-    "transDecs": "Description"
+    "transDecs": "Description",
+    "editTranslation": "Edit Promo Code Translation",
+    "translations": "Promo Code Translations",
+    "placeholder": {
+      "name": "e.g. Oferta de Verano",
+      "description": "Enter translated description..."
+    }
   },
   "Addon": {
     "loadingAddonsData": "Loading add-ons data...",
@@ -3230,28 +3251,6 @@
     "removeRatePlan": "Remove Rate Plan",
     "noAvailableRatePlans": "No rate plans available",
     "noRatePlanAdded": "No rate plan added"
-  },
-  "TaxGroupDialog": {
-    "createTitle": "Create Tax Group",
-    "editTitle": "Edit Tax Group",
-    "createDesc": "Create a group to combine multiple tax rules",
-    "editDesc": "Update the tax group details and rules",
-    "taxGroupName": "Tax Group Name *",
-    "taxGroupNamePlaceholder": "e.g., Standard Taxes, Luxury Taxes",
-    "activeStatus": "Active Status",
-    "activeStatusDesc": "Enable this tax group for rate plans",
-    "selectedTaxRules": "Selected Tax Rules ({{count}})",
-    "selectTaxRules": "Select Tax Rules",
-    "selectTaxRulesDesc": "Choose which tax rules to include in this group",
-    "noTaxRulesAvailable": "No tax rules available.",
-    "createTaxRulesFirst": "Create tax rules first to add them to groups.",
-    "roomRate": "Room Rate",
-    "totalAmount": "Total Amount",
-    "priority": "Priority",
-    "cancel": "Cancel",
-    "saving": "Saving...",
-    "create": "Create",
-    "update": "Update"
   },
   "TouristTaxDialog": {
     "createTitle": "Create Additional Charge",
@@ -4703,6 +4702,7 @@
   },
   "AddPropertyAddressLangDialog": {
     "title": "Add Address Translation",
+    "edit": "Edit Address Translation",
     "form": {
       "languageLabel": "Language",
       "languagePlaceholder": "Select Language",
@@ -4713,6 +4713,15 @@
       "country": "Country",
       "location": "Location",
       "landmark": "Landmark"
+    },
+    "formEx": {
+      "addressLine1": "e.g. Calle 123",
+      "addressLine2": "e.g. Apt. 4B",
+      "city": "e.g. Madrid",
+      "state": "e.g. Comunidad de Madrid",
+      "country": "e.g. España",
+      "location": "e.g. Plaza Mayor",
+      "landmark": "e.g. El Corte Inglés"
     },
     "buttons": {
       "cancel": "Cancel",
@@ -5397,5 +5406,116 @@
       "altText": "Room image {{index}}"
     },
     "characters": "characters"
+  },
+  "SelectPaymentIntegration": {
+    "title": "Select Payment Integration",
+    "description": "Choose your preferred payment gateway for processing transactions.",
+    "gatewayProvider": "Payment Gateway Provider",
+    "pgId": "PG Id:",
+    "pgIdPlaceholder": "Enter PG Id",
+    "warnings": "Please select one payment integration to enable online payments."
+  },
+  "TaxGroupDialog": {
+    "title": {
+      "create": "Create Tax Group",
+      "edit": "Edit Tax Group"
+    },
+    "description": {
+      "create": "Create a group to combine multiple tax rules",
+      "edit": "Update the tax group details and rules"
+    },
+    "form": {
+      "name": "Tax Group Name *",
+      "namePlaceholder": "e.g., Standard Taxes, Luxury Taxes",
+      "activeStatus": "Active Status",
+      "activeStatusHint": "Enable this tax group for rate plans",
+      "selectedRules": "Selected Tax Rules ({{count}})",
+      "selectRules": "Select Tax Rules",
+      "selectRulesHint": "Choose which tax rules to include in this group",
+      "priority": "Priority: {{value}}",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "create": "Create",
+      "update": "Update"
+    },
+    "applicableOn": {
+      "roomRate": "Room Rate",
+      "totalAmount": "Total Amount"
+    },
+    "empty": {
+      "noRules": "No tax rules available.",
+      "createFirst": "Create tax rules first to add them to groups."
+    }
+  },
+  "TaxRuleDialog": {
+    "addedToGroup": "Applied to Groups:",
+    "title": {
+      "create": "Create Tax Rule",
+      "edit": "Edit Tax Rule"
+    },
+    "description": {
+      "create": "Create a new tax rule for your property",
+      "edit": "Update the tax rule details"
+    },
+    "form": {
+      "name": "Tax Rule Name *",
+      "namePlaceholder": "e.g., GST, Service Tax, VAT",
+      "taxType": "Tax Type *",
+      "valuePercent": "Value (%) *",
+      "valueAmount": "Amount *",
+      "currencyCode": "Currency Code",
+      "applicableOn": "Applicable On *",
+      "priority": "Priority (0-5) *",
+      "priorityHint": "Higher priority taxes are calculated first",
+      "description": "Description",
+      "descriptionPlaceholder": "Add any additional details about this tax rule...",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "create": "Create",
+      "update": "Update"
+    },
+    "taxTypes": {
+      "percentage": "Percentage (%)",
+      "fixed": "Fixed Amount"
+    },
+    "applicableOn": {
+      "roomRate": "Room Rate",
+      "totalAmount": "Total Amount"
+    }
+  },
+  "TaxRuleTranslation": {
+    "addTitel": "Add Tax Rule Translation",
+    "checkTitel": "Tax Rule Translations",
+    "editTitel": "Edit Tax Rule Translation",
+    "fields": {
+      "name": "Rule Name",
+      "description": "Description"
+    },
+    "placeholder": {
+      "name": "Enter rule name",
+      "description": "Enter description"
+    }
+  },
+  "TaxGroupTranslation": {
+    "addTitel": "Add Tax Group Translation",
+    "checkTitel": "Tax Group Translations",
+    "editTitel": "Edit Tax Group Translation",
+    "fields": {
+      "name": "Group Name"
+    },
+    "placeholder": {
+      "name": "Enter group name"
+    }
+  },
+  "TouristTaxTranslation": {
+    "addTitel": "Add Additional Charge Translation",
+    "checkTitel": "Additional Charge Translations",
+    "editTitel": "Edit Additional Charge Translation",
+    "fields": {
+      "name": "Charge Name"
+    },
+    "placeholder": {
+      "name": "Enter charge name"
+    }
   }
 }

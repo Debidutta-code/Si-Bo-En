@@ -266,7 +266,8 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                     >
                         {isLoading.isLoading
                             ? t("CreateEntity.creating")
-                            : t("CreateEntity.createButton", { type: capitalizeFirstLetter(newGBP.type) })}
+                            : t("CreateEntity.button", { name: t(`CreateEntity.types.${newGBP.type}`) })
+}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

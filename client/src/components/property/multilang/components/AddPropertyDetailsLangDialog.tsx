@@ -24,7 +24,7 @@ export default function AddPropertyDetailsLangDialog({ open, onOpenChange, prope
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-    const propertyCtx = usePropertyContextSafe();
+  const propertyCtx = usePropertyContextSafe();
   const availableLanguages =
     propertyCtx?.languages && propertyCtx.languages.length > 0
       ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))
@@ -33,12 +33,12 @@ export default function AddPropertyDetailsLangDialog({ open, onOpenChange, prope
   const handleSave = async () => {
     if (!selectedLang) { toast.error("Please select a language"); return; }
     if (!propertyName && !description) { toast.error("Please provide at least one translated field"); return; }
-    
+
     setLoading(true);
     const payload = {
       [selectedLang]: { propertyName, description }
     };
-    
+
     const res = await upsertPropertyTranslationService(propertyId, payload);
     if (res.success) {
       toast.success("Translation added successfully!");
@@ -77,14 +77,14 @@ export default function AddPropertyDetailsLangDialog({ open, onOpenChange, prope
             <Input value={propertyName} onChange={(e) => setPropertyName(e.target.value)} />
           </div>
           <div className="space-y-2">
-           <Label>{t("Common.description")}</Label>
+            <Label>{t("Common.description")}</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-  {t("Common.cancel")}
-</Button>
+            {t("Common.cancel")}
+          </Button>
           <Button onClick={handleSave} disabled={loading}>{loading ? t("Common.saving") : t("Common.save")}</Button>
         </DialogFooter>
       </DialogContent>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Play, ChevronLeft, ChevronRight, Video, Image as ImageIcon, Volume2, VolumeX } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
 interface PropertyMediaGalleryProps {
   propertyVideo?: {
     url: string;
@@ -19,6 +19,7 @@ export default function PropertyMediaGallery({
   type = "property"
 
 }: PropertyMediaGalleryProps) {
+  const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isMuted, setIsMuted] = useState(true);
 
@@ -57,10 +58,10 @@ export default function PropertyMediaGallery({
               </div>
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Showcase Your Property
+              {t("Property.noMediaTitel")}
             </h3>
             <p className="text-gray-600 max-w-md">
-              Upload stunning photos and an engaging video tour to make your property stand out and attract more bookings
+              {t("Property.noMediaDecs")}
             </p>
           </div>
         </div>
@@ -99,7 +100,7 @@ export default function PropertyMediaGallery({
                   <div className="absolute top-6 left-6 bg-black/70 backdrop-blur-sm px-4 py-2 rounded-full">
                     <div className="flex items-center gap-2 text-white text-sm font-medium">
                       <Play className="h-3.5 w-3.5" fill="currentColor" />
-                      <span>Video Tour</span>
+                      <span>{t("Property.videoTour")}</span>
                     </div>
                   </div>
                     )

@@ -470,7 +470,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
             onOpenChange={setAddTranslationOpen}
             entityId={translationEntityId}
             title={t('Common.addPromotion')}
-            fields={[{ key: "promotionName", label: t('Common.promotionName'), placeholder: "e.g. Oferta Móvil" }]}
+            fields={[{ key: "promotionName", label: t('Common.promotionName'), placeholder: t("DeviceSpecific.form.promotionName") }]}
             onSave={async (id, locale, data) => {
               return await upsertPromotionTranslationService(id, { [locale]: data });
             }}
@@ -493,7 +493,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
             locale={editingLocale}
             initialData={editingData}
             title={t('Common.editTranslation')}
-            fields={[{ key: "promotionName", label: t('Common.promotionName'), placeholder: "e.g. Oferta Móvil" }]}
+            fields={[{ key: "promotionName", label: t('Common.promotionName'), placeholder: t("DeviceSpecific.form.promotionName") }]}
             onSave={async (id, locale, data) => upsertPromotionTranslationService(id, { [locale]: data })}
           />
         </>
