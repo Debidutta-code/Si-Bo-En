@@ -3257,7 +3257,7 @@
     "noRatePlanAdded": "No rate plan added"
   },
   "TouristTaxDialog": {
-    "createTitle": "Create Additional Charge",
+    "createTitle": "Additional Charge",
     "editTitle": "Edit Additional Charge",
     "createDesc": "Create a new tourist tax for your property",
     "editDesc": "Update the tourist tax details",
@@ -3512,6 +3512,8 @@
       "promotionNameHint": "This is just for you - users won't be able to see it",
       "autoApply": "Auto Apply",
       "autoAppliedDescription": "This promotion is currently auto applied to the reservation",
+      "notAutoAppliedDescription": "This promotion is currently not auto applied to the reservation",
+
       "activeStatus": "Active Status",
       "activeDescription": "This promotion is currently active",
       "inactiveDescription": "This promotion is currently inactive",
