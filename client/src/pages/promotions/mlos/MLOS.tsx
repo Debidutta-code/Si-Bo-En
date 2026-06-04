@@ -175,14 +175,6 @@ export const MLOSRuleList: React.FC = () => {
     setShowForm(true);
   };
 
-  const formatDate = (date: string | null) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
   const formatDiscount = (type: string | null, value: number | null) => {
     if (!type || !value) return t("MLOS.noDiscount");
