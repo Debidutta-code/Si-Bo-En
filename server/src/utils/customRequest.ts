@@ -30,10 +30,6 @@ export interface CustomRequest extends ExpressRequest {
         level?: number;
         creationId: string;
     };
-    loyaltyUser?: {
-        id: string;
-        email: string;
-    };
     customer?: {
         id: string;
         email: string;

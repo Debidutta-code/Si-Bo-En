@@ -16,7 +16,7 @@ export class LoyalityUserController {
 
     public async getMe(req: CustomRequest, res: Response): Promise<Response> {
         try {
-            const userId = req.loyaltyUser?.id;
+            const userId = req.customer?.id;
             if (!userId) {
                 return res.status(401).json(errorResponse('Not authenticated'));
             }

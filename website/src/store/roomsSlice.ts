@@ -1,46 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-export interface baseByGuestAmts{
-  amountBeforeTax:number;
-  numberOfGuests:number;
-}
-export interface room_price{
-  baseByGuestAmts?:baseByGuestAmts[];
-  currencyCode?:string;
-  ratePlanCode?:string;
-  ratePlanName?:string;
-}
-export interface Room {
-  amenities: any;
-  id: string;
-  roomName: string;
-  roomType: string;
-  roomSize: number;
-  maxOccupancy: number;
-  roomPrice: room_price[];
-  numberOfBedrooms:number;
-  currencyCode: string;
-  ratePlanCode: string;
-  hasValidRate: boolean;
-  images:string[];
-  description:string;
-  roomUnit: string
-  roomView: {MasterRoomView:{viewName:string},_translations?:{viewName:string}};
-  roomVideos:IRoomVideo|null;
-  _translations?:{
-    roomName:string;
-    roomType:string;
-    description:string;
-  }
-}
-interface IRoomVideo{
-  id:string;
-  roomId: string,
-  url: string,
-  thumbnail: string,
-               
-}
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { IRoom } from "../app/(unauth)/Rooms/types";
+
 interface RoomsState {
-  rooms: Room[];
+  rooms: IRoom[];
 }
 
 const initialState: RoomsState = {
@@ -48,10 +10,10 @@ const initialState: RoomsState = {
 };
 
 const roomsSlice = createSlice({
-  name: 'rooms',
+  name: "rooms",
   initialState,
   reducers: {
-    setRooms(state, action: PayloadAction<Room[]>) {
+    setRooms(state, action: PayloadAction<IRoom[]>) {
       state.rooms = action.payload;
     },
     clearRooms(state) {
