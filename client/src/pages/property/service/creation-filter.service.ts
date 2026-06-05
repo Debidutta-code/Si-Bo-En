@@ -45,6 +45,7 @@ export async function getGroupCreationId(id: string) {
             superGroupName: data.super.name,
             createdAt: data.createdAt,
             isActive: data.isActive,
+            isDeleted: data.isDeleted,
             images: data.images || [],
             _translations: data._translations
         }

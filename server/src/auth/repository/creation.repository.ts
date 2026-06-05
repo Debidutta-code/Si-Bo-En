@@ -64,11 +64,62 @@ export default class CreationDao {
         }
     }
 
+    private static async collectAllDescendantIds(rootId: string): Promise<Set<string>> {
+        const visited = new Set<string>();
+        const queue: string[] = [rootId];
+
+        while (queue.length > 0) {
+            const currentId = queue.shift()!;
+            if (visited.has(currentId)) continue;
+            visited.add(currentId);
+
+            // Fetch all child relations in one query
+            const node = await prisma.creation.findUnique({
+                where: { id: currentId },
+                select: {
+                    superChildren:   { select: { id: true } },
+                    groupChildren:   { select: { id: true } },
+                    brandChildren:   { select: { id: true } },
+                    regionalChildren:{ select: { id: true } },
+                },
+            });
+
+            if (!node) continue;
+
+            const childIds = [
+                ...node.superChildren,
+                ...node.groupChildren,
+                ...node.brandChildren,
+                ...node.regionalChildren,
+            ].map(c => c.id);
+
+            for (const childId of childIds) {
+                if (!visited.has(childId)) {
+                    queue.push(childId);
+                }
+            }
+        }
+
+        return visited;
+    }
+
     public static async delete(creationId: string) {
         try {
-            return await prisma.creation.delete({
-                where: { id: creationId },
-            });
+            const allIds = await this.collectAllDescendantIds(creationId);
+            const idList = Array.from(allIds);
+
+            await prisma.$transaction([
+                prisma.creation.updateMany({
+                    where: { id: { in: idList } },
+                    data:  { isDeleted: true },
+                }),
+                prisma.property.updateMany({
+                    where: { creationId: { in: idList } },
+                    data:  { isDeleted: true },
+                }),
+            ]);
+
+            return { deletedCreationCount: idList.length };
         } catch (error: any) {
             throw new Error(`Failed to mark as deleted: ${error.message}`);
         }
@@ -170,11 +221,16 @@ export default class CreationDao {
     }
 
     public static async getSpecificCreation(
-        creationId: string
+        creationId: string,
+        isDeleted: boolean = false
     ): Promise<IGetCreations | null> {
         try {
+            let whereCondition: any = { id: creationId };
+            if (!isDeleted) {
+                whereCondition.isDeleted = false;
+            }
             return await prisma.creation.findUnique({
-                where: { id: creationId },
+                where: whereCondition,
                 include: {
                     users: {
                         select: {
@@ -200,6 +256,7 @@ export default class CreationDao {
                             name: true,
                             images: true,
                             type: true,
+                            isDeleted: true,
                         },
                     },
                     brand: {
@@ -208,6 +265,7 @@ export default class CreationDao {
                             name: true,
                             images: true,
                             type: true,
+                            isDeleted: true,
                         },
                     },
                     brandChildren: {
@@ -217,6 +275,7 @@ export default class CreationDao {
                             images: true,
                             type: true,
                             property: true,
+                            isDeleted: true,
                         },
                     },
                     groupChildren: {
@@ -226,6 +285,8 @@ export default class CreationDao {
                             images: true,
                             type: true,
                             property: true,
+                                                        isDeleted: true,
+
                         },
                     },
                     regionalChildren: {
@@ -235,6 +296,7 @@ export default class CreationDao {
                             images: true,
                             type: true,
                             property: true,
+                            isDeleted: true,
                         },
                     },
                 },

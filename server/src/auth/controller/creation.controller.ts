@@ -155,7 +155,6 @@ export default class CreationController {
             // Call the service without page and limit
             let serRes = await CreationService.getPropertyByRole(
                 requestUserLevel,
-                creationId
             );
 
             const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
@@ -174,8 +173,9 @@ export default class CreationController {
     }
     public static async getSpecificCreation(req: CustomRequest, res: Response) {
         try {
+            const includeDeleted = req.user?.level ===  4 ? true : false;
             const id = req.params.creationId;
-            let serRes = await CreationService.getSpecificCreation(id);
+            let serRes = await CreationService.getSpecificCreation(id, includeDeleted);
 
             const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             serRes = await CreationInterceptor.interceptGetSpecificCreation(serRes, locale);

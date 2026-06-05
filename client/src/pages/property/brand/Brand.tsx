@@ -485,53 +485,103 @@ export default function page() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {creations?.map((item: ICreation) => (
-                            <div
-                                key={item.id}
-                                className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
-                            >
-                                <img src={item.images[0]} alt={item.name} width={400} height={200} className="rounded-lg mb-3" />
+{creations?.map((item: ICreation) => (
+  <div
+    key={item.id}
+    className={`border rounded-lg overflow-hidden flex flex-col transition-shadow duration-200
+      ${item.isDeleted
+        ? "border-red-300 bg-red-50 opacity-60 pointer-events-none"
+        : "hover:shadow-md"
+      }`}
+  >
+    {/* Image */}
+    <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+      {item.images?.[0] ? (
+        <img
+          src={item.images[0]}
+          alt={item.name}
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image';
+            e.currentTarget.className = 'w-full h-full object-contain bg-gray-100 p-4';
+          }}
+        />
+      ) : (
+        <div className={`w-full h-full flex flex-col items-center justify-center
+          ${item.isDeleted ? "bg-red-50" : "bg-gray-100"}`}>
+          <svg className={`w-12 h-12 mb-2 ${item.isDeleted ? "text-red-300" : "text-gray-400"}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p className={`text-sm ${item.isDeleted ? "text-red-300" : "text-gray-400"}`}>
+            {t('Common.noImage')}
+          </p>
+        </div>
+      )}
 
-                                <div className="flex justify-between items-start mb-3">
-                                    <h3 className="font-semibold text-lg text-gray-900 truncate">
-                                        {item._translations ? item._translations.name : item.name}
-                                    </h3>
-                                </div>
+      {/* Deleted badge */}
+      {item.isDeleted && (
+        <span className="absolute top-2 right-2 flex items-center gap-1 bg-red-700 text-red-100
+          text-xs font-medium px-2.5 py-1 rounded-full">
+          <Trash2 className="w-3 h-3" />
+          {t('Common.deleted') ?? 'Deleted'}
+        </span>
+      )}
 
-                                <div className="mt-4 flex space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className={`${item.type === "property" ? item.property?.isDraft ? "flex-1" : "hidden" : "flex-1"}`}
-                                        onClick={() => {
-                                            item.type != "property" ?
-                                                navigate(`/app/property/${currentTab}/${item.id}`) :
-                                                navigate(`/property/${item.property?.id}`)
-                                        }}
-                                    >
-                                        {t('Common.viewDetails')}
-                                    </Button>
-                                    {
-                                        item.type == "property" && (
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
+      {/* Diagonal stripe overlay */}
+      {item.isDeleted && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(185,28,28,0.06) 6px, rgba(185,28,28,0.06) 12px)"
+          }}
+        />
+      )}
+    </div>
 
-                                                onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
-                                            >
-                                                <Settings className="h-4 w-4" />
-                                                {!item.property?.isDraft &&
+    {/* Body */}
+    <div className="p-4 flex-1 flex flex-col gap-3">
+      <h3 className={`font-semibold text-lg line-clamp-2
+        ${item.isDeleted ? "text-red-800 line-through decoration-red-300" : "text-gray-900"}`}>
+        {item._translations ? item._translations.name : item.name}
+      </h3>
 
-                                                    <span className="ml-2">{!item.property?.isDraft && t('Common.completeSetup')}</span>
-                                                }
+      <div className="mt-auto flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={item.isDeleted}
+          className={`${item.type === "property" ? item.property?.isDraft ? "flex-1" : "hidden" : "flex-1"}
+            ${item.isDeleted ? "border-red-200 text-red-400 cursor-not-allowed" : ""}`}
+          onClick={() => {
+            item.type !== "property"
+              ? navigate(`/app/property/${currentTab}/${item.id}`)
+              : navigate(`/property/${item.property?.id}`)
+          }}
+        >
+          {t('Common.viewDetails')}
+        </Button>
 
-                                            </Button>
-                                        )
-                                    }
-                                </div>
-                            </div>
-                        ))}
+        {item.type === "property" && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={item.isDeleted}
+            className={`${!item.property?.isDraft ? "flex-1" : ""}
+              ${item.isDeleted ? "border-red-200 text-red-400 cursor-not-allowed" : ""}`}
+            onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
+          >
+            <Settings className="h-4 w-4" />
+            {!item.property?.isDraft && (
+              <span className="ml-2">{t('Common.completeSetup')}</span>
+            )}
+          </Button>
+        )}
+      </div>
+    </div>
+  </div>
+))}
                     </div>
                 )}
             </div>

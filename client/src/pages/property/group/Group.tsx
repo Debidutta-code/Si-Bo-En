@@ -76,6 +76,7 @@ export default function page() {
       id: "",
       createdAt: "",
       isActive: true,
+      isDeleted: false,
       name: "",
       superGroupName: "",
       users: [],
@@ -273,7 +274,7 @@ export default function page() {
       <BackButton />
 
       {/* Group Details Section */}
-      <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden">
+      <div className={`bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden ${creations.groupData.isDeleted ? "shadow-red-500" : ""}`}>
         {/* Hero Image Slider Section */}
         {creations.groupData.images?.length > 0 && (
           <div className="w-full">
@@ -682,7 +683,7 @@ export default function page() {
             {currentData?.map((item: ICreation) => (
               <div
                 key={item.id}
-                className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 flex flex-col"
+                className={`border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 flex flex-col ${item.isDeleted ? "opacity-50" : ""}`}
               >
                 {/* Image with fixed aspect ratio container */}
                 <div className="relative w-full h-48 mb-3 overflow-hidden rounded-lg">
