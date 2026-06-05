@@ -122,7 +122,8 @@ export class NewReservationService {
         propertyDetails: IPropertyDetailsFromMiddleware,
         countryCode: CurrencyCode,
         deviceType: DeviceType,
-        loyaltyToken?:string
+        loyaltyToken?: string,
+        customerId?: string
     ): Promise<IApiResponse> {
         try {
             const {
@@ -277,7 +278,7 @@ export class NewReservationService {
                     agencyId: agencyId || null,
                     platforms: platforms || 'web',
                     paymentMethod: paymentMethods,
-                    customerId: payload.customerId,
+                    customerId: customerId?customerId:null,
                 });
             if (promoCode && promoCodeDetails) {
                 this.reservationRepository.createReservationPromoCode({

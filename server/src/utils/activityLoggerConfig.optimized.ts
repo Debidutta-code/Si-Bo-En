@@ -288,7 +288,7 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
 
     // ==================== RESERVATION ====================
     {
-        pattern: /\/api\/v1\/reservation$/,
+        pattern: /\/api\/v1\/reservations$/,
         method: 'POST',
         config: {
             action: ActivityAction.CREATE,

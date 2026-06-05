@@ -121,6 +121,10 @@ export interface IPopularAddon {
     addonName: string,
     revenue: number;
     bookingCount: number;
+    _translations?: {
+        name: string;
+        description?: string;
+    };
 }
 
 export interface IAddonAnalytics {

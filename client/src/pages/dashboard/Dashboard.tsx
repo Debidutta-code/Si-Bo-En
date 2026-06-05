@@ -339,8 +339,6 @@ export default function Dashboard() {
         <RevenueStats data={analyticsData.revenue}
           currencyCode={analyticsData.currencyCode} />
 
-        {/* Guest Analytics */}
-        {/* <GuestStats data={analyticsData.guest} /> */}
 
         {/* Additional Stats */}
         <AdditionalStats

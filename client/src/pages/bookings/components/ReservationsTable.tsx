@@ -207,19 +207,29 @@ export default function ReservationsTable({
   // ─── Formatting ────────────────────────────────────────────────────────────
 
   const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
-  };
+  try {
+    const date = new Date(dateString);
 
-  const formatStatusLabel = (status: string) =>
-    status?.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const months = [
+      t("Months.january"),
+      t("Months.february"),
+      t("Months.march"),
+      t("Months.april"),
+      t("Months.may"),
+      t("Months.june"),
+      t("Months.july"),
+      t("Months.august"),
+      t("Months.september"),
+      t("Months.october"),
+      t("Months.november"),
+      t("Months.december"),
+    ];
+
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  } catch {
+    return dateString;
+  }
+};
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, string> = {
@@ -232,7 +242,7 @@ export default function ReservationsTable({
     };
     return (
       <span className={`inline-flex px-1 py-0 text-[10px] font-medium rounded  ${variants[status] || "bg-muted text-muted-foreground"}`}>
-        {formatStatusLabel(status)}
+        {t(`BookingStatus.${status}`)}
       </span>
     );
   };
@@ -290,6 +300,7 @@ export default function ReservationsTable({
                     <span>{getNoOfRooms(reservation)}</span>
                   </div>
                 </TableCell>
+                
                 <TableCell>{formatDate(reservation.reservationStartDate)}</TableCell>
                 <TableCell>{formatDate(reservation.reservationEndDate)}</TableCell>
                 <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
