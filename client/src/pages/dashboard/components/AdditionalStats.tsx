@@ -68,7 +68,7 @@ export default function AdditionalStats({
                     >
                       <span className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">#{index + 1}</span>
-                        <span className="truncate">{addon.addonName}</span>
+                        <span className="truncate">{addon._translations?addon._translations.name:addon.addonName}</span>
                       </span>
                       <div className="text-right">
                         <div className="font-semibold">{formatCurrency(addon.revenue)}</div>

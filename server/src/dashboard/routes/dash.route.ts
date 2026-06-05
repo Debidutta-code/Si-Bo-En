@@ -2,7 +2,6 @@ import { protect } from '../../middlewares/auth.middleware';
 import { Router } from 'express';
 
 import { DashBoardController } from '../controllers';
-import { attachPropertyDetails } from '../../middlewares/property.middleware';
 
 const dashBoardController = new DashBoardController();
 

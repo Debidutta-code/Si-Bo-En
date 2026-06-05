@@ -19,7 +19,6 @@ import {
   Eye,
 } from "lucide-react";
 import type { IGuestDistribution, IReservation } from "../types";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import PrimaryGuestDetailsDialog from "./primaryGuest";
 import { useTranslation } from "react-i18next";
@@ -73,12 +72,29 @@ export default function ReservationCard({
   };
 
   const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), "MMM dd, yyyy");
-    } catch {
-      return dateString;
-    }
-  };
+  try {
+    const date = new Date(dateString);
+
+    const months = [
+      t("Months.january"),
+      t("Months.february"),
+      t("Months.march"),
+      t("Months.april"),
+      t("Months.may"),
+      t("Months.june"),
+      t("Months.july"),
+      t("Months.august"),
+      t("Months.september"),
+      t("Months.october"),
+      t("Months.november"),
+      t("Months.december"),
+    ];
+
+    return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  } catch {
+    return dateString;
+  }
+};
 
   const calculateNights = () => {
     const checkIn = new Date(reservation.reservationStartDate);
@@ -88,8 +104,8 @@ export default function ReservationCard({
     );
     return nights;
   };
-  const formatStatusLabel = (status: string) =>
-    status?.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  // const formatStatusLabel = (status: string) =>
+  //   status?.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
@@ -106,7 +122,7 @@ export default function ReservationCard({
                 className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(reservation.bookingStatus)}`}
               >
                 {getStatusIcon(reservation.bookingStatus)}
-                {formatStatusLabel(reservation.bookingStatus)}
+                {t(`BookingStatus.${reservation.bookingStatus}`)}
               </span>
             </div>
             <p className="text-sm text-gray-600">
@@ -471,7 +487,7 @@ export default function ReservationCard({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-semibold text-gray-900">
-                      {t('Bookings.reservationCard.primaryGuest')}
+                      {t('Bookings.amend.primaryGuest')}
                     </h4>
                     {reservation.bookingStatus === "checked_in" && (
                       <button
@@ -488,7 +504,7 @@ export default function ReservationCard({
                       {primary.firstName} {primary.lastName}
                     </span>
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize">
-                      {t('Bookings.reservationCard.primary')}
+                      {t('Bookings.amend.primary')}
                     </span>
                   </div>
                   {reservation.guests.length > 1 && (

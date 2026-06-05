@@ -1,4 +1,5 @@
 import { IApiResponse } from '../../../utils/return.types';
+import { AddonTranslation } from '../../models/features/addons/addon.model';
 import { PropertyTranslation } from '../../models/property/property.model';
 
 export class DashboardAnalyticsInterceptor {
@@ -19,15 +20,23 @@ export class DashboardAnalyticsInterceptor {
             }
 
             const topPerforming = analytics.topPerformingProperties;
+            const addons = analytics.addon.popularAddons;
             const result = {
                 ...data,
                 analytics: {
                     ...analytics,
                     topPerformingProperties: {
                         ...topPerforming
+                    },
+                    addon:{
+                        ...analytics.addon,
+                        popularAddons: {
+                            ...addons
+                        }
                     }
                 }
             };
+
 
             const translateList = async (list: any[]) => {
                 if (!Array.isArray(list)) return list;
@@ -39,6 +48,20 @@ export class DashboardAnalyticsInterceptor {
                     })
                 );
             };
+            const translateAddons = async (addons: any[]) => {
+                if (!Array.isArray(addons)) return addons;
+                return Promise.all(
+                    addons.map(async (item: any) => {
+                        console.log("Singular add on",item)
+                        if (!item?.addonId) return item;
+                        const translation = await AddonTranslation.getTranslated(item.addonId, locale);
+                        return translation ? { ...item, _translations: translation } : item;
+                    })
+                );
+            };
+            if (addons) {
+                result.analytics.addon.popularAddons = await translateAddons(addons);
+            }
 
             if (topPerforming.topByRevenue) {
                 result.analytics.topPerformingProperties.topByRevenue = await translateList(topPerforming.topByRevenue);
@@ -51,7 +74,6 @@ export class DashboardAnalyticsInterceptor {
             if (topPerforming.topByOccupancy) {
                 result.analytics.topPerformingProperties.topByOccupancy = await translateList(topPerforming.topByOccupancy);
             }
-
             return { ...response, data: result };
         } catch (error) {
             console.error('[DashboardAnalyticsInterceptor Error]:', error);
