@@ -60,26 +60,9 @@ import { usePropertyContextSafe } from '@/contexts/PropertyContext';
 export default function PropertyPage() {
     const { t } = useTranslation();
     const propertyCtx = usePropertyContextSafe();
-
     const { user } = useAppSelector((state) => state.user);
     const [addMemberDialogOpen, setAddMemberDialogOpen] = useState<boolean>(false)
     const { creationId } = useParams<{ creationId: string }>();
-    const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
-        channelManagerIntegrationActive: false,
-        pmsIntegrationActive: false,
-        selfAriActive: false,
-        isB2bAvailable: false,
-        isB2cAvailable: false,
-        commission: false,
-        showVideo: true,
-        timezone: "Asia/Kolkata",
-        baseCurrency: "INR",
-        isAvailableForBooking:true,
-        isAvailableForBookingEngine:true,
-        isAvailableForOTA:false,
-        isLoyaltyProgramEnabled:false,
-        isSpaModuleEnabled:false
-    })
     const [masterPartners, setMasterPartners] = useState<IMasterPartnersWProperty[]>([]);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -129,6 +112,24 @@ export default function PropertyPage() {
 
     const [propertyLanguages, setPropertyLanguages] = useState<IPropertyActiveLanguage[]>([]);
 
+    // Local propertyConfig state (propertyCtx is null here — this page lives under AuthLayout, not PropertyLayout)
+    const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
+        channelManagerIntegrationActive: false,
+        pmsIntegrationActive: false,
+        selfAriActive: false,
+        isB2bAvailable: false,
+        isB2cAvailable: false,
+        commission: false,
+        showVideo: true,
+        timezone: 'Asia/Kolkata',
+        baseCurrency: 'INR',
+        isAvailableForBooking: true,
+        isAvailableForBookingEngine: true,
+        isAvailableForOTA: false,
+        isLoyaltyProgramEnabled: false,
+        isSpaModuleEnabled: false,
+    });
+
     const refreshLanguages = async () => {
         if (!propertyDetails?.id) return;
         const response = await getPropertyLanguagesService(propertyDetails.id);
@@ -166,7 +167,6 @@ export default function PropertyPage() {
             }
             const response = await getPropertyCreationId(creationId);
             if (response.success) {
-                console.log(response.data)
                 setIsCreationCompleted(response.isPropertyCreated);
                 setCreationDetails(response.data.creationData);
                 setPropertyDetails(response.data.propertyDetails);
@@ -213,11 +213,16 @@ export default function PropertyPage() {
         }
     }
 
+    const fetchLocalPropertyConfig = async (propertyId: string) => {
+        try {
+            const response = await fetchPropertyConfigService(propertyId);
+            if (response.success && response.data) {
+                setPropertyConfig(response.data);
+            }
+        } catch { /* swallow */ }
+    };
+
     const updatePropertyConfig = async () => {
-        if (user?.role != "super_admin") {
-            toast.error(t('Toast.onlySuperAdminCanUpdate'));
-            return
-        }
         if (!propertyDetails?.id) {
             toast.error(t('Toast.propertyNotSelected'));
             return;
@@ -226,45 +231,24 @@ export default function PropertyPage() {
             setIsLoading(true);
             const response = await updatePropertyConfigService(propertyDetails.id, propertyConfig);
             if (response.success) {
-                toast.success(t('Toast.propertyConfigUpdated'))
-                fetchPropertyConfig(propertyDetails.id)
+                toast.success(t('Toast.propertyConfigUpdated'));
+                propertyCtx?.refreshPropertyConfig();
             } else {
-                toast.error(response.message || t('Toast.failedToUpdatePropertyConfig'))
+                toast.error(response.message || t('Toast.failedToUpdatePropertyConfig'));
             }
         } catch (error) {
-            toast.error(t('Toast.failedToUpdatePropertyConfig'))
+            toast.error(t('Toast.failedToUpdatePropertyConfig'));
         } finally {
             setIsLoading(false);
         }
     }
 
-    const fetchPropertyConfig = async (creationId: string) => {
-        if (user?.role != "super_admin") return;
-        if (!creationId) {
-            toast.error(t('Toast.propertyNotSelected'));
-            return;
-        }
-        try {
-            setIsLoading(true);
-            const response = await fetchPropertyConfigService(creationId);
-            if (response.success) {
-                setPropertyConfig(response.data);
-                // Push spa flag into shared context so the sidebar can read it
-                propertyCtx?.setPropertyConfig(response.data);
-            } else {
-                toast.error(response.message || t('Toast.failedToFetchPropertyConfig'))
-            }
-        } catch (error) {
-            toast.error(t('Toast.failedToFetchPropertyConfig'))
-        } finally {
-            setIsLoading(false);
-        }
-    }
 
     useEffect(() => {
         if (propertyDetails?.id) {
-            fetchPropertyConfig(propertyDetails.id);
-            refreshLanguages();
+            propertyCtx?.refreshLanguages();
+            propertyCtx?.refreshPropertyConfig();
+            fetchLocalPropertyConfig(propertyDetails.id);
         }
     }, [propertyDetails]);
 

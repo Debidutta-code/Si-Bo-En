@@ -90,7 +90,6 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
   const navigate = useNavigate();
   const propertyCtx = usePropertyContextSafe();
   const isSpaModuleEnabled = propertyCtx?.propertyConfig?.isSpaModuleEnabled ?? false;
-
   const [navigation, setNavigation] = useState<NavItem[]>(baseMainNav());
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
@@ -110,7 +109,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
     } catch { /* swallow */ }
     navigate('/');
   };
-
+ 
   // ── Build Loyalty children ─────────────────────────────────────────────────
   const loyaltyChildren = (): NavItem[] => {
     const items: NavItem[] = [

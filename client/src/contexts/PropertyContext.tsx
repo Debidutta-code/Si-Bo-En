@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { getPropertyLanguagesService } from '@/pages/property/property/services/property-language.services';
 import type { IPropertyActiveLanguage, IUPropertyConfig } from '@/pages/property/property/types';
+import { fetchPropertyConfigService } from '@/pages/property/property/services';
 
 interface PropertyContextType {
     propertyId: string | null;
@@ -10,6 +11,7 @@ interface PropertyContextType {
     refreshLanguages: () => void;
     setCreationId: React.Dispatch<React.SetStateAction<string>>;
     propertyCreationId: string;
+    refreshPropertyConfig: () => void;
     propertyConfig: IUPropertyConfig;
     setPropertyConfig: React.Dispatch<React.SetStateAction<IUPropertyConfig>>;
 }
@@ -52,9 +54,16 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     useEffect(() => {
         if (propertyId) {
-            fetchLanguages(propertyId);
+            fetchAllData(propertyId);
         }
     }, [propertyId]);
+
+    const fetchAllData = async (propertyId: string) => {
+        await Promise.all([
+            fetchLanguages(propertyId),
+            fetchPropertyConfig(propertyId)
+        ]);
+    };
 
     const fetchLanguages = async (id: string) => {
         setLoadingLanguages(true);
@@ -69,6 +78,24 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setLoadingLanguages(false);
         }
     };
+    const fetchPropertyConfig = async (id: string) => {
+        if (!id) return;
+        try {
+            const response = await fetchPropertyConfigService(id);
+            if (response.success) {
+                setPropertyConfig(response.data);
+            } else {
+            }
+        } catch (error) {
+        } finally {
+        }
+    }
+
+    const refreshPropertyConfig = () => {
+        if (propertyId) {
+            fetchPropertyConfig(propertyId);
+        }
+    }
 
     const refreshLanguages = () => {
         if (propertyId) {
@@ -77,7 +104,7 @@ export const PropertyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
 
     return (
-        <PropertyContext.Provider value={{ propertyId, languages, loadingLanguages, refreshLanguages, setCreationId, propertyCreationId, propertyConfig,setPropertyConfig }}>
+        <PropertyContext.Provider value={{ propertyId, languages, loadingLanguages, refreshLanguages, setCreationId, propertyCreationId, refreshPropertyConfig, propertyConfig, setPropertyConfig }}>
             {children}
         </PropertyContext.Provider>
     );
