@@ -89,7 +89,9 @@
     "failedToUpdateTranslation": "Failed to update translation",
     "showLess": "Show Less",
     "showMore": "Show More",
-    "update": "Update"
+    "update": "Update",
+    "recover": "Recover",
+    "deleted": "Deleted"
   },
   "AddRoomLangDialog": {
     "title": "Add Room Translation",

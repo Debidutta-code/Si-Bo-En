@@ -389,6 +389,25 @@ export default class CreationService {
             return errorResponse('Failed to delete creation', error.message);
         }
     }
+    public static async recoverCreation(creationId: string) {
+        try {
+            const isExists =
+                await CreationRepository.getSpecificCreation(creationId,true);
+            if (!isExists) {
+                return errorResponse('Creation not found');
+            }
+            const recoverResult = await CreationRepository.recoveryCreation(creationId);
+            if (!recoverResult) {
+                return errorResponse('Failed to recover creation');
+            }
+            return successResponse('Creation recovered successfully');
+        } catch (error) {
+            if(error instanceof Error){
+                throw new Error(error.message);
+            }
+            throw new Error('Failed to recover creation');
+        }
+    }
 }
 export class FetchByCreationId {
     public static async getBrandManagers(

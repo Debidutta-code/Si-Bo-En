@@ -5,7 +5,7 @@ export class UserAuthRepository {
     public static async findUserById(userId: string) {
         try {
             return await prisma.user.findUnique({
-                where: { id: userId },
+                where: { id: userId ,isDeleted:false},
                 include: {
                     creation: {
                         include: {

@@ -1,7 +1,7 @@
 // dao/CreationDao.ts
 
 import { prisma } from '../../config';
-import type { ICreation, IGetCreations, PropertyFilters } from '../types';
+import type { BaseEntity, ICreation, IGetCreations, PropertyFilters } from '../types';
 
 const toStringId = (id: string | any): string => {
     return typeof id === 'string' ? id : String(id);
@@ -77,10 +77,10 @@ export default class CreationDao {
             const node = await prisma.creation.findUnique({
                 where: { id: currentId },
                 select: {
-                    superChildren:   { select: { id: true } },
-                    groupChildren:   { select: { id: true } },
-                    brandChildren:   { select: { id: true } },
-                    regionalChildren:{ select: { id: true } },
+                    superChildren: { select: { id: true } },
+                    groupChildren: { select: { id: true } },
+                    brandChildren: { select: { id: true } },
+                    regionalChildren: { select: { id: true } },
                 },
             });
 
@@ -111,12 +111,17 @@ export default class CreationDao {
             await prisma.$transaction([
                 prisma.creation.updateMany({
                     where: { id: { in: idList } },
-                    data:  { isDeleted: true },
+                    data: { isDeleted: true },
                 }),
                 prisma.property.updateMany({
                     where: { creationId: { in: idList } },
-                    data:  { isDeleted: true },
+                    data: { isDeleted: true },
                 }),
+                prisma.user.updateMany({
+                    where: { creationId: { in: idList } },
+                    data: { isDeleted: true, creationId: null },
+                }),
+
             ]);
 
             return { deletedCreationCount: idList.length };
@@ -124,7 +129,20 @@ export default class CreationDao {
             throw new Error(`Failed to mark as deleted: ${error.message}`);
         }
     }
-
+    public static async recoveryCreation(creationId: string): Promise<BaseEntity | null> {
+        try {
+            return await prisma.creation.update({
+                where: { id: creationId },
+                data: {
+                    isDeleted: false
+                },
+            });
+        } catch (error: any) {
+            throw new Error(
+                `Failed to recover creation: ${error.message}`
+            );
+        }
+    }
     public static async getAll(
         type: 'group' | 'property' | 'brand' | 'super' | 'regional',
         isActive: boolean
@@ -285,7 +303,7 @@ export default class CreationDao {
                             images: true,
                             type: true,
                             property: true,
-                                                        isDeleted: true,
+                            isDeleted: true,
 
                         },
                     },
@@ -307,6 +325,7 @@ export default class CreationDao {
             );
         }
     }
+
 }
 
 export class ManageCreationUser {
@@ -431,10 +450,6 @@ export class ManageCreationUser {
         return this.removeUserFromLevel(creationId, userId, 'level4Users');
     }
 }
-
-// ================================
-// Get Creation Details by User ID
-// ================================
 
 export class CreationDetailsByUserId {
     public static async getGroupManagersGroup(groupManagerId: string) {
@@ -595,9 +610,6 @@ export class CreationDetailsByUserId {
     }
 }
 
-// ================================
-// Get Creation Details by Creation ID
-// ================================
 
 export class CreationDetailsByCreationId {
     public static async getGroupManagersGroup(groupId: string) {
@@ -724,9 +736,6 @@ export class CreationDetailsByCreationId {
     }
 }
 
-// ================================
-// Add Creation to Creation (Hierarchy)
-// ================================
 
 export class AddCreationToCreation {
     public static async addToSuper(superId: string, groupId: string) {

@@ -303,6 +303,12 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
                     ? `Reservation created for ${req.body?.guestName || 'guest'}`
                     : `Failed to create reservation`;
             },
+            processBody(body, contentType) {
+                if (body?.data?.reservationId) {
+                    return body.data;
+                }
+                return body;
+            },
             tags: ['booking', 'reservation-creation'],
         },
     },
@@ -342,59 +348,7 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
     },
 
     // ==================== PMS FRONT-OFFICE RESERVATIONS ====================
-    {
-        pattern: /\/api\/v1\/pms\/front-office\/reservations$/,
-        method: 'POST',
-        config: {
-            action: ActivityAction.CREATE,
-            entity: ActivityEntity.RESERVATION,
-            getEntityId: (req, resBody) =>
-                resBody?.data?.id || resBody?.data?.reservationId || 'unknown',
-            getEntityName: (req, resBody) =>
-                resBody?.data?.reservationCode || resBody?.data?.guestName,
-            getDescription: (req, resBody, statusCode) => {
-                const isSuccess = statusCode! >= 200 && statusCode! < 300;
-                return isSuccess
-                    ? `PMS Reservation created for ${req.body?.data?.guestDetails?.firstName || 'guest'}`
-                    : `Failed to create PMS reservation`;
-            },
-            tags: ['pms', 'front-office', 'reservation-creation'],
-        },
-    },
-    {
-        pattern: /\/api\/v1\/pms\/front-office\/reservations\/update\/[^/]+$/,
-        method: 'PATCH',
-        config: createCRUDConfig(
-            ActivityEntity.RESERVATION,
-            'reservationCode'
-        )[1],
-    },
-    {
-        pattern: /\/api\/v1\/pms\/front-office\/reservations\/cancel\/[^/]+$/,
-        method: 'PUT',
-        config: createSimpleConfig(
-            ActivityAction.CANCEL,
-            ActivityEntity.RESERVATION,
-            success =>
-                success
-                    ? 'PMS Reservation cancelled successfully'
-                    : 'Failed to cancel PMS reservation',
-            ['pms', 'front-office', 'cancellation']
-        ),
-    },
-    {
-        pattern: /\/api\/v1\/pms\/front-office\/reservations\/no-show\/[^/]+$/,
-        method: 'PATCH',
-        config: createSimpleConfig(
-            ActivityAction.UPDATE,
-            ActivityEntity.RESERVATION,
-            success =>
-                success
-                    ? 'PMS Reservation marked as no-show'
-                    : 'Failed to mark PMS reservation as no-show',
-            ['pms', 'front-office', 'no-show']
-        ),
-    },
+
 
     {
         pattern: /\/api\/v1\/booking-engine\/reservation\/[^/]+\/checkin$/,

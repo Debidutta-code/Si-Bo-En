@@ -89,7 +89,11 @@
     "promotionTranslations": "प्रचार अनुवाद",
     "showLess": "कम दिखाएँ",
     "showMore": "और दिखाएँ",
-    "update": "अपडेट करें"
+    "update": "अपडेट करें",
+      "recover": "पुनर्स्थापित करें",
+        "deleted": "हटाया गया"
+
+
   },
   "BookingStatus": {
     "confirmed": "पुष्टि की गई",

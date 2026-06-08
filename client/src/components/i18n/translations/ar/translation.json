@@ -89,7 +89,11 @@
     "promotionTranslations": "ترجمات العروض",
     "showLess": "عرض أقل",
     "showMore": "عرض المزيد",
-    "update": "تحديث"
+    "update": "تحديث",
+      "recover": "استعادة",
+        "deleted": "محذوف"
+
+
   },
   "AddRoomLangDialog": {
     "title": "إضافة ترجمة الغرفة",

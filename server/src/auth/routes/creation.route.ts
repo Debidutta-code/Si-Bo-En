@@ -29,7 +29,12 @@ creationRoute
     .route('/remove/:id')
     .delete(
         protect,
-        restrictTo('super_admin'),
         CreationController.deleteCreation
+    );
+creationRoute
+    .route('/recover/:id')
+    .put(
+        protect,
+        CreationController.recoverCreationController
     );
 export default creationRoute;

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useActivityLogs, formatActivityLog, getActionColor, getSeverityColor, getEntityIcon } from './services/logs.services';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,17 +21,22 @@ import type { IActivityLog } from './interfaces';
 
 export default function LogsPage() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [search, setSearch] = useState('');
   const [selectedLog, setSelectedLog] = useState<IActivityLog | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  useEffect(() => {
+    const queryPage = searchParams.get('page');
+    if (queryPage) setPage(Number(queryPage));
+  }, []);
+
   const { data, isLoading, isError, error, refetch } = useActivityLogs(
     { page, limit },
     true
   );
-
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && data?.data && newPage <= data.data.totalPages) {
       setPage(newPage);

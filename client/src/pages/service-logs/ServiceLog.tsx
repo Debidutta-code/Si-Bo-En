@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useServiceLogs,
@@ -32,6 +32,7 @@ import {
   Search, AlertCircle, Eye, Trash2, BarChart3,
   CheckCircle2, XCircle,
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 // ─── Level badge ─────────────────────────────────────────────────────────────
 
@@ -269,6 +270,7 @@ export default function ServiceLog() {
   const [search, setSearch] = useState('');
   const [selectedLog, setSelectedLog] = useState<IServiceLog | null>(null);
   const [showErrorSummary, setShowErrorSummary] = useState(false);
+  const [searchParams] = useSearchParams();
 
   const { data, isLoading, isError, error, refetch } = useServiceLogs(params, true);
   const { mutate: deleteLog } = useDeleteServiceLog();
@@ -288,6 +290,10 @@ export default function ServiceLog() {
       log.level?.toLowerCase().includes(q)
     );
   });
+  useEffect(() => {
+    const queryPage = searchParams.get('page');
+    if (queryPage) setPage(Number(queryPage));
+  }, []);
 
   const setPage = (p: number) => setParams((prev) => ({ ...prev, page: p }));
   const setLimit = (l: string) => setParams((prev) => ({ ...prev, limit: parseInt(l), page: 1 }));

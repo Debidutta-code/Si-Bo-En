@@ -117,3 +117,19 @@ export async function deleteCreation(id:string) {
         }
     }
 }
+export async function recoverCreation(id:string) {
+    try {
+        const response = await axiosInstance.put(`/create/recover/${id}`)
+        return response.data;
+
+    } catch (error: any) {
+        if (!error?.response?.data?.success) {
+            return error.response.data
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            }
+        }
+    }
+}

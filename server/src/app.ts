@@ -24,9 +24,9 @@ app.use(
 );
 
 
-app.use(globalActivityLogger);
 app.use(express.static('public'));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.set('trust proxy', true);
+app.use(globalActivityLogger);
