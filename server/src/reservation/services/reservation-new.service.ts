@@ -183,16 +183,19 @@ export class NewReservationService {
                 primaryGuestId = newGuest.id;
             }
 
-            const [bookingCode, 
-                 rateplan, propertyConfig] =
+            const [bookingCode, rateplan, propertyConfig, roomDetails] =
                 await Promise.all([
-                    await this.generateBookingCode(propertyCode),
-                    await this.ariManupulationRepo.getRatePlanName(
+                    this.generateBookingCode(propertyCode),
+                    this.ariManupulationRepo.getRatePlanName(
                         ratePlanCode,
                         propertyDetails.id
                     ),
-                    await this.ariManupulationRepo.getPropertyConfig(
+                    this.ariManupulationRepo.getPropertyConfig(
                         propertyDetails.id
+                    ),
+                    this.ariManupulationRepo.getRoomByRoomTypeCode(
+                        propertyDetails.id,
+                        roomTypeCode
                     ),
                 ]);
             if (!propertyConfig)
@@ -229,10 +232,14 @@ export class NewReservationService {
                     paidAmount = finalPrice.currentChargeableAmount;
                 }
             }
+            const integrationPayload = {
+                ...payload,
+                roomDescription: roomDetails?.description ?? '',
+            };
             if (activeIntegration) {
-                console.log("activeIntegration1",activeIntegration)
+                console.log("activeIntegration1", activeIntegration)
                 const result = await IntegrationDispatcher.pushCommit(
-                    payload,
+                    integrationPayload,
                     propertyDetails.id,
                     countryCode,
                     bookingCode,
@@ -278,7 +285,7 @@ export class NewReservationService {
                     agencyId: agencyId || null,
                     platforms: platforms || 'web',
                     paymentMethod: paymentMethods,
-                    customerId: customerId?customerId:null,
+                    customerId: customerId ? customerId : null,
                 });
             if (promoCode && promoCodeDetails) {
                 this.reservationRepository.createReservationPromoCode({
@@ -838,7 +845,11 @@ export class NewReservationService {
                     'Cannot change rate plan for existing reservation'
                 );
             }
-
+            const roomDetails =
+                await this.ariManupulationRepo.getRoomByRoomTypeCode(
+                    existingReservation.propertyId,
+                    existingReservation.roomTypeCode
+                );
             const startDate = new Date(updatePayload.checkInDate);
             const endDate = new Date(updatePayload.checkOutDate);
             const oldStartDate = existingReservation.reservationStartDate;
@@ -956,7 +967,8 @@ export class NewReservationService {
                         amount: newAmount,
                         finalPrice: updatePayload.finalPrice,
                         rooms: updatePayload.rooms,
-                        requestedRooms: updatePayload.requestedRooms
+                        requestedRooms: updatePayload.requestedRooms,
+                        roomDescription: roomDetails?.description ?? '',
                     },
                     existingReservation.propertyId,
                     { name: activeIntegrationU?.name ?? 'Rate Tiger', type: activeIntegrationTypeU, integrationId: '' }
@@ -1300,7 +1312,11 @@ export class NewReservationService {
             if (!reservation) {
                 return errorResponse('Reservation not found');
             }
-
+            const roomDetails =
+                await this.ariManupulationRepo.getRoomByRoomTypeCode(
+                    reservation.propertyId,
+                    reservation.roomTypeCode
+                );
             const reservationDates = this.generateDateRange(
                 reservation.reservationStartDate,
                 reservation.reservationEndDate
@@ -1389,10 +1405,11 @@ export class NewReservationService {
                     }
                 )
                 : null;
-             if (activeIntegrationTypeD) {
+            if (activeIntegrationTypeD) {
                 const result = await IntegrationDispatcher.pushCancel(
                     reservation as any,
                     reservation.propertyId,
+                    roomDetails?.description||"",
                     { name: activeIntegrationD?.name ?? 'Rate Tiger', type: activeIntegrationTypeD, integrationId: '' }
                 );
                 if (!result.success) {

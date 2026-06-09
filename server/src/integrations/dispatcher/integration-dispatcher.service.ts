@@ -124,6 +124,7 @@ export class IntegrationDispatcher {
     public static async pushCancel(
         existingReservation: ExistingReservation,
         propertyId: string,
+        roomDescription:string,
         activeIntegration: ActiveIntegrationInfo
     ): Promise<{ success: boolean; message: string }> {
         try {
@@ -149,7 +150,7 @@ export class IntegrationDispatcher {
                 if (!smConfig) {
                     return { success: false, message: 'Site Minder config not found' };
                 }
-                const smPayload = IntegrationDispatcher.buildSMPayloadFromExisting(existingReservation);
+                const smPayload = IntegrationDispatcher.buildSMPayloadFromExisting(existingReservation , roomDescription);
                 return SiteMinderReservationService.pushCancel(
                     smPayload,
                     existingReservation.bookingCode,
@@ -202,6 +203,7 @@ export class IntegrationDispatcher {
             currencyCode: existing.currencyCode as any,
             finalPrice: update.finalPrice,
             paymentMethod: existing.paymentMethod,
+            roomDescription: update.roomDescription ?? '',
             guestDetails: Array.isArray(existing.guests) ? existing.guests : [],
             guests: {
                 adults: (update as any).rooms?.reduce((s: number, r: any) => s + r.adults, 0) ?? existing.finalPrice?.guests?.adults ?? 1,
@@ -288,7 +290,8 @@ export class IntegrationDispatcher {
     }
 
     private static buildSMPayloadFromExisting(
-        existing: ExistingReservation
+        existing: ExistingReservation,
+        description?:string,
     ): ICReservationS {
         const finalPrice = IntegrationDispatcher.normalizeFinalPriceFromDB(existing);
         return {
@@ -303,6 +306,7 @@ export class IntegrationDispatcher {
             bookingUserPhone: existing.bookingUserPhone ?? '',
             currencyCode: existing.currencyCode as any,
             paymentMethod: existing.paymentMethod,
+            roomDescription: description ?? '',
             guestDetails: Array.isArray(existing.guests) ? existing.guests : [],
             guests: { adults: 1, children: 0, rooms: 1, roomsArray: [] },
             numberOfRooms: 1,

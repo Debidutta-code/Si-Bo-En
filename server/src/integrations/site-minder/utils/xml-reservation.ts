@@ -84,6 +84,7 @@ export class SiteMinderReservationXmlBuilder {
         username: string,
         password: string
     ): string {
+        console.log(params)
         const echoToken = uuidv4();
         const timeStamp = new Date().toISOString().replace(/\.\d{3}Z$/, '+00:00');
 
@@ -126,14 +127,17 @@ export class SiteMinderReservationXmlBuilder {
                     RoomType: {
                         '@_RoomTypeCode': rs.roomTypeCode,
                         RoomDescription: {
-                            '@_Name': rs.roomTypeName, // actual room name, not code
+                            '@_Name': rs.roomTypeName,
+                            ...(rs.roomDescription && {
+                                '#text': rs.roomDescription,
+                            }),
                         },
                     },
                 },
                 RatePlans: {
                     RatePlan: {
                         '@_RatePlanCode': rs.ratePlanCode,
-                        RatePlanDescription: rs.ratePlanName, // actual plan name, not code
+                        RatePlanDescription: rs.ratePlanName,
                     },
                 },
                 RoomRates: {
@@ -160,6 +164,7 @@ export class SiteMinderReservationXmlBuilder {
                 },
                 BasicPropertyInfo: {
                     '@_HotelCode': params.hotelCode,
+                    '@_HotelName': params.hotelName,
                 },
                 // Link each room stay to its corresponding ResGuest
                 ResGuestRPHs: {

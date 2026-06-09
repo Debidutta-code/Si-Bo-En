@@ -823,12 +823,12 @@ export class ReservationRepository {
                             propertyContact: true,
                             description: true,
                             image: true,
-                            propertyAddress:true,
-                            propertyConfigs:{
-                                 select:{
+                            propertyAddress: true,
+                            propertyConfigs: {
+                                select: {
                                     isSpaModuleEnabled: true,
                                     isLoyaltyProgramEnabled: true
-                                 }
+                                }
                             }
                         },
 
@@ -1411,6 +1411,23 @@ export class AriManupulationRepo {
                 )
                 : new Error('Failed to fetch active integration');
         }
+    }
+    public async getRoomByRoomTypeCode(
+        propertyId: string,
+        roomTypeCode: string
+    ) {
+        return prisma.room.findFirst({
+            where: {
+                propertyId,
+                roomType: roomTypeCode,
+                isDeleted: false,
+            },
+            select: {
+                roomName: true,
+                description: true,
+                roomType: true,
+            },
+        });
     }
 }
 export class GuestRepository {

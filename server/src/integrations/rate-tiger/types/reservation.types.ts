@@ -335,4 +335,5 @@ export interface RTUpdatePayload {
         childAges: number[];
     }>;
     requestedRooms?: number;
+    roomDescription?: string;
 }

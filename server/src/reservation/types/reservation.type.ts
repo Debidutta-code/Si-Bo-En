@@ -408,6 +408,7 @@ export interface ICReservationS {
     agentId?: string;
     ngeniusOrderRef?: string;
     customerId: string | null;
+    roomDescription?: string | null;
 }
 
 export interface IBankDetails {

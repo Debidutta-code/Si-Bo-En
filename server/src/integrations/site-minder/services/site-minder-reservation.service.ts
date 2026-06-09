@@ -85,20 +85,7 @@ export class SiteMinderReservationService {
         }
     }
 
-    // ── Build RoomStays ───────────────────────────────────────────────────────
-    //
-    // Each RoomStay covers one room.
-    // Totals include room rate + proportional tax only.
-    // Addons are reservation-level services — NOT included in RoomStay totals.
-    //
-    // Per-night Rate amounts:
-    //   AmountBeforeTax = discounted nightly rate
-    //                   = rawNightRate - (rawNightRate / allRoomsRawTotal) × decreaseDiscounts
-    //   AmountAfterTax  = AmountBeforeTax + proportional tax for that night
-    //
-    // RoomStay Total:
-    //   BeforeTax = sum of discounted nightly rates for this room
-    //   AfterTax  = BeforeTax + proportional tax for this room
+   
 
     private static async buildRoomStays(payload: ICReservationS): Promise<SMRoomStay[]> {
         const { finalPrice, currencyCode } = payload;
@@ -106,47 +93,34 @@ export class SiteMinderReservationService {
 
         const checkIn = toDateString(payload.reservationStartDate);
         const checkOut = toDateString(payload.reservationEndDate);
-
-        // ── Discount-only total (decrease + loyalty + promoCode) ──────────────
-        // These are already deducted in amountBeforeTax.
-        // We redistribute them proportionally per night / per room for Rate amounts.
+        const roomDescription = payload.roomDescription ||"";
         const totalDecreaseDiscount =
             (finalPrice.totalPromotionAmount ?? 0) +
             (finalPrice.loyalityDiscount ?? 0) +
             (finalPrice.promoCodeDiscount ?? 0);
 
-        // Raw room total across all rooms (from dailyPriceBrakeDown)
         const allRoomsRawTotal = finalPrice.dailyPriceBrakeDown.reduce(
             (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0),
             0
         );
-
-        // Total tax
         const totalTax = finalPrice.taxedAmount ?? 0;
 
-        // ── Helper: get daily breakdown for a specific room number ────────────
         const getDaysForRoom = (roomNumber: number) => {
             const days = finalPrice.dailyPriceBrakeDown.filter(
                 (d: any) => String(d.roomNumber) === String(roomNumber)
             );
-            // If no room-specific breakdown, spread evenly across all days
             return days.length > 0 ? days : finalPrice.dailyPriceBrakeDown;
         };
 
-        // ── Helper: build SMRateDay[] for a room ──────────────────────────────
         const buildRates = (roomNumber: number): SMRateDay[] => {
             const days = getDaysForRoom(roomNumber);
             return days.map((day: any) => {
                 const rawRate: number = day.totalAmount ?? day.baseChargesAmount ?? 0;
-
-                // Proportional discount for this night
                 const discountShare =
                     allRoomsRawTotal > 0
                         ? (rawRate / allRoomsRawTotal) * totalDecreaseDiscount
                         : 0;
                 const discountedBase = rawRate - discountShare;
-
-                // Proportional tax for this night
                 const taxShare =
                     allRoomsRawTotal > 0
                         ? (rawRate / allRoomsRawTotal) * totalTax
@@ -226,9 +200,10 @@ export class SiteMinderReservationService {
                 const totals = buildRoomTotals(roomNumber);
                 return {
                     roomTypeCode: payload.roomTypeCode,
-                    roomTypeName: payload.roomName,       // actual name e.g. "Double Room"
+                    roomTypeName: payload.roomName,
+                    roomDescription: payload.roomDescription ||"",
                     ratePlanCode: payload.ratePlanCode,
-                    ratePlanName: ratePlanName,   // TODO: pass ratePlanName if available
+                    ratePlanName: ratePlanName,
                     roomRates: {
                         roomTypeCode: payload.roomTypeCode,
                         ratePlanCode: payload.ratePlanCode,
@@ -256,6 +231,7 @@ export class SiteMinderReservationService {
                 roomTypeName: payload.roomName,
                 ratePlanCode: payload.ratePlanCode,
                 ratePlanName: ratePlanName,
+                roomDescription,
                 roomRates: {
                     roomTypeCode: payload.roomTypeCode,
                     ratePlanCode: payload.ratePlanCode,
@@ -275,23 +251,7 @@ export class SiteMinderReservationService {
         ];
     }
 
-    // ── Build Services ────────────────────────────────────────────────────────
-    //
-    // All services are sent at reservation level (no ServiceRPH room link).
-    //
-    // Addon grouping rules:
-    //   • Same addonId + consecutive dates → merge into one Service (date range)
-    //   • Same addonId + non-consecutive dates → separate Service nodes
-    //   • Different addonId → separate Service nodes
-    //
-    // payLater promotions (restrictionType = 'payLater'):
-    //   • Sent as Service with no TimeSpan
-    //   • NOT included in ResGlobalInfo Total (already in latterpayableAmount)
-    //
-    // ServiceInventoryCode mapping:
-    //   We use 'OTHER' for generic addons since SM accepts custom codes.
-    //   Known codes: EXTRA_BED, MEAL, PARKING — map by name if recognisable.
-
+    
     private static buildServices(payload: ICReservationS): SMService[] {
         const services: SMService[] = [];
         const currencyCode = payload.currencyCode;
@@ -470,6 +430,7 @@ export class SiteMinderReservationService {
 
         return {
             hotelCode: siteMinderHotelCode,
+            hotelName:payload.hotelName,
             bookingCode,
             resStatus,
             createDateTime,
@@ -641,7 +602,7 @@ export class SiteMinderReservationService {
                 channelCode,
                 channelName,
                 originalCreateDateTime,
-                isoTimestamp()  // lastModifyDateTime = now
+                isoTimestamp() 
             );
 
             const validationError = SiteMinderReservationValidation.validate(params);

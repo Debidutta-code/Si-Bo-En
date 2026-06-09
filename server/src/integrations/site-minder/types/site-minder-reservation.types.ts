@@ -24,14 +24,14 @@ export interface SMRoomRate {
 
 export interface SMRoomStay {
     roomTypeCode: string;
-    roomTypeName: string;    // actual human-readable name e.g. "Double Room"
+    roomTypeName: string;
     ratePlanCode: string;
-    ratePlanName: string;    // actual human-readable name e.g. "Best Available Rate"
+    ratePlanName: string;
     roomRates: SMRoomRate;
+    roomDescription?: string;
     guestCounts: SMGuestCount[];
-    checkIn: string;         // YYYY-MM-DD
-    checkOut: string;        // YYYY-MM-DD
-    // Room-only totals (no addon amounts — addons are reservation-level)
+    checkIn: string;
+    checkOut: string;
     totalAmountBeforeTax: string;
     totalAmountAfterTax: string;
     currencyCode: string;
@@ -87,6 +87,8 @@ export interface SMReservationPushParams {
 
     channelCode: string;
     channelName: string;
+    hotelName: string;
+    roomDetails?:string;
 
     roomStays: SMRoomStay[];
     primaryGuest: SMGuestProfile;
