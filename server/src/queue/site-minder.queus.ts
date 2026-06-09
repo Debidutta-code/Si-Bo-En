@@ -1,22 +1,16 @@
-// queues/site-minder.queue.ts
-
 import { Queue, Worker, Job } from 'bullmq';
-import { ServiceLogger } from '../logs/services/service-log.service';
 import { SiteMinderDao } from '../integrations/site-minder/dao/site-minder.dao';
 import { config } from '../config';
 import { SiteMinderFailureAlertService } from '../integrations/site-minder/services/site-minder-failure-alert.service';
+import { CurrencyCode } from '../tax-system/interfaces/tourist-tax.type';
 
-const logger = new ServiceLogger('SiteMinderQueue');
 
-// ─── Job Payload Types ────────────────────────────────────────────────────────
-
-// One job = one specific day for one availability message
 export interface SiteMinderAvailDayJobData {
     type: 'availability';
     hotelCode: string;
     propertyCode: string;
     echoToken: string;
-    date: string; // ISO date string e.g. "2026-06-05"
+    date: string; 
     roomTypeCode: string;
     ratePlanCode: string;
     bookingLimit?: number;
@@ -25,7 +19,19 @@ export interface SiteMinderAvailDayJobData {
     enqueuedAt: number;
 }
 
-// One job = one specific day for one rates message
+export interface SiteMinderRateJobRateDetail {
+    currencyCode: CurrencyCode;
+    baseByGuestAmounts: Array<{
+        numberOfGuests: number;
+        ageQualifyingCode: '10' | '8';
+        amountBeforeTax: number;
+    }>;
+    additionalGuestAmounts: Array<{
+        ageQualifyingCode: '8';
+        amount: number;
+    }>;
+}
+
 export interface SiteMinderRateDayJobData {
     type: 'rates';
     hotelCode: string;
@@ -37,7 +43,7 @@ export interface SiteMinderRateDayJobData {
     ratePlanCode: string;
     ratePlanName: string;
     roomTypeName: string;
-    rates: any;
+    rates: SiteMinderRateJobRateDetail;
     enqueuedAt: number;
 }
 
@@ -352,45 +358,70 @@ export class SiteMinderQueue {
     }): Promise<void> {
         const { hotelCode, propertyCode, echoToken, availStatusMessages } = params;
 
-        const jobs: Promise<any>[] = [];
+        const mergedJobsMap = new Map<string, SiteMinderAvailDayJobData>();
 
         for (const message of availStatusMessages) {
             const dates = expandDateRange(message.start, message.end);
 
             for (const date of dates) {
-                const jobData: SiteMinderAvailDayJobData = {
-                    type: 'availability',
-                    hotelCode,
-                    propertyCode,
-                    echoToken,
-                    date,
-                    roomTypeCode: message.invTypeCode,
-                    ratePlanCode: message.ratePlanCode,
-                    bookingLimit: message.bookingLimit,
-                    lengthsOfStay: message.lengthsOfStay,
-                    restrictionStatuses: message.restrictionStatuses,
-                    enqueuedAt: Date.now(),
-                };
+                const key = `${message.invTypeCode}_${message.ratePlanCode}_${date}`;
+                const existing = mergedJobsMap.get(key);
 
-                jobs.push(
-                    this.ariQueue.add(
-                        // Unique job name per hotel+room+ratePlan+date prevents duplicates
-                        `avail-${hotelCode}-${message.invTypeCode}-${message.ratePlanCode}-${date}`,
-                        jobData,
-                        {
-                            attempts: MAX_ATTEMPTS,
-                            backoff: { type: 'exponential', delay: BACKOFF_DELAY_MS },
-                            removeOnComplete: true,
-                            removeOnFail: false,
-                        }
-                    )
-                );
+                if (existing) {
+                    if (message.bookingLimit !== undefined) {
+                        existing.bookingLimit = message.bookingLimit;
+                    }
+                    if (message.lengthsOfStay && message.lengthsOfStay.length > 0) {
+                        existing.lengthsOfStay = [
+                            ...(existing.lengthsOfStay || []),
+                            ...message.lengthsOfStay,
+                        ];
+                    }
+                    if (message.restrictionStatuses && message.restrictionStatuses.length > 0) {
+                        existing.restrictionStatuses = [
+                            ...(existing.restrictionStatuses || []),
+                            ...message.restrictionStatuses,
+                        ];
+                    }
+                } else {
+                    mergedJobsMap.set(key, {
+                        type: 'availability',
+                        hotelCode,
+                        propertyCode,
+                        echoToken,
+                        date,
+                        roomTypeCode: message.invTypeCode,
+                        ratePlanCode: message.ratePlanCode,
+                        bookingLimit: message.bookingLimit,
+                        lengthsOfStay: message.lengthsOfStay ? [...message.lengthsOfStay] : undefined,
+                        restrictionStatuses: message.restrictionStatuses ? [...message.restrictionStatuses] : undefined,
+                        enqueuedAt: Date.now(),
+                    });
+                }
             }
+        }
+
+        const jobs: Promise<any>[] = [];
+
+        for (const jobData of mergedJobsMap.values()) {
+            jobs.push(
+                this.ariQueue.add(
+                    // Unique job name per hotel+room+ratePlan+date prevents duplicates
+                    `avail-${hotelCode}-${jobData.roomTypeCode}-${jobData.ratePlanCode}-${jobData.date}`,
+                    jobData,
+                    {
+                        attempts: MAX_ATTEMPTS,
+                        backoff: { type: 'exponential', delay: BACKOFF_DELAY_MS },
+                        removeOnComplete: true,
+                        removeOnFail: false,
+                    }
+                )
+            );
         }
 
         await Promise.all(jobs);
         console.log(
-            `📥 Availability: enqueued ${jobs.length} day-level jobs — hotelCode: ${hotelCode}`
+            `📥 Availability: enqueued ${jobs.length} merged day-level jobs — hotelCode: ${hotelCode}`
         );
     }
 
@@ -407,18 +438,19 @@ export class SiteMinderQueue {
             ratePlanCode: string;
             ratePlanName: string;
             roomTypeName: string;
-            rates: any;
+            rates: SiteMinderRateJobRateDetail;
         }>;
     }): Promise<void> {
         const { hotelCode, propertyCode, propertyId, echoToken, rateAmountMessages } = params;
 
-        const jobs: Promise<any>[] = [];
+        const mergedJobsMap = new Map<string, SiteMinderRateDayJobData>();
 
         for (const message of rateAmountMessages) {
             const dates = expandDateRange(message.start, message.end);
 
             for (const date of dates) {
-                const jobData: SiteMinderRateDayJobData = {
+                const key = `${message.roomTypeCode}_${message.ratePlanCode}_${date}`;
+                mergedJobsMap.set(key, {
                     type: 'rates',
                     hotelCode,
                     propertyCode,
@@ -431,27 +463,31 @@ export class SiteMinderQueue {
                     roomTypeName: message.roomTypeName,
                     rates: message.rates,
                     enqueuedAt: Date.now(),
-                };
-
-                jobs.push(
-                    this.ariQueue.add(
-                        // Unique job name per hotel+room+ratePlan+date prevents duplicates
-                        `rate-${hotelCode}-${message.roomTypeCode}-${message.ratePlanCode}-${date}`,
-                        jobData,
-                        {
-                            attempts: MAX_ATTEMPTS,
-                            backoff: { type: 'exponential', delay: BACKOFF_DELAY_MS },
-                            removeOnComplete: true,
-                            removeOnFail: false,
-                        }
-                    )
-                );
+                });
             }
+        }
+
+        const jobs: Promise<any>[] = [];
+
+        for (const jobData of mergedJobsMap.values()) {
+            jobs.push(
+                this.ariQueue.add(
+                    // Unique job name per hotel+room+ratePlan+date prevents duplicates
+                    `rate-${hotelCode}-${jobData.roomTypeCode}-${jobData.ratePlanCode}-${jobData.date}`,
+                    jobData,
+                    {
+                        attempts: MAX_ATTEMPTS,
+                        backoff: { type: 'exponential', delay: BACKOFF_DELAY_MS },
+                        removeOnComplete: true,
+                        removeOnFail: false,
+                    }
+                )
+            );
         }
 
         await Promise.all(jobs);
         console.log(
-            `📥 Rates: enqueued ${jobs.length} day-level jobs — hotelCode: ${hotelCode}`
+            `📥 Rates: enqueued ${jobs.length} merged day-level jobs — hotelCode: ${hotelCode}`
         );
     }
 
@@ -478,3 +514,12 @@ export class SiteMinderQueue {
         console.log('✅ SiteMinder queues and workers closed');
     }
 }
+
+export const siteMinderQueue = new SiteMinderQueue({
+    host: config.redisHost,
+    port: Number(config.redisPort),
+    password: config.redisPassword,
+    maxRetriesPerRequest: null,
+    connectTimeout: 10_000,
+    retryStrategy: (times: number) => Math.min(times * 500, 5_000),
+});

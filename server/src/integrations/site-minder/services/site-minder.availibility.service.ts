@@ -1,6 +1,7 @@
 import { SiteMinderDao } from '../dao/site-minder.dao';
 import { SiteMinderHotelAvailNotifRQ, SiteMinderProcessResult } from '../types/site-minder.types';
 import { ServiceLogger, LogBuilder } from '../../../logs/services/service-log.service';
+import { siteMinderQueue } from '../../../queue/site-minder.queus';
 
 const logger = new ServiceLogger('SiteMinderARI');
 
@@ -14,7 +15,6 @@ export class SiteMinderAvailabilityService {
         const { hotelCode, availStatusMessages } = payload;
 
         try {
-            // ── Repo: getProperty ─────────────────────────────────────────────
             let property: any;
             const t0 = Date.now();
             try {
@@ -52,129 +52,53 @@ export class SiteMinderAvailabilityService {
 
             for (const message of availStatusMessages) {
                 const {
-                    start, end,
                     invTypeCode: roomTypeCode,
                     ratePlanCode,
-                    bookingLimit,
-                    lengthsOfStay,
-                    restrictionStatuses,
                 } = message;
+
                 const exists = await SiteMinderDao.ratePlanExists(ratePlanCode, propertyCode);
                 if (!exists) {
+                    log.pushMessage(`Rate plan ${ratePlanCode} not found`, 'error');
                     return {
                         success: false,
                         errors: [{ type: 12, code: 249, text: 'Rate code not found for this hotel' }],
                     };
                 }
+
                 const roomExists = await SiteMinderDao.roomTypeExists(roomTypeCode, propertyCode);
                 if (!roomExists) {
+                    log.pushMessage(`Room type ${roomTypeCode} not found`, 'error');
                     return {
                         success: false,
                         errors: [{ type: 12, code: 402, text: 'Room type code not found for this hotel' }],
                     };
                 }
-                let minLos: number | undefined;
-                let maxLos: number | undefined;
-
-                if (lengthsOfStay && lengthsOfStay.length > 0) {
-                    for (const los of lengthsOfStay) {
-                        if (los.minMaxMessageType === 'SetMinLOS' || los.minMaxMessageType === 'SetForwardMinStay')
-                            minLos = parseInt(los.time) || 1;
-                        if (los.minMaxMessageType === 'SetMaxLOS' || los.minMaxMessageType === 'SetForwardMaxStay')
-                            maxLos = los.time ? parseInt(los.time) : 0;
-                    }
-                }
-
-                let isSaleStopped: boolean | undefined;
-                let isClosedToArrival: boolean | undefined;
-                let isClosedToDeparture: boolean | undefined;
-
-                if (restrictionStatuses && restrictionStatuses.length > 0) {
-                    for (const r of restrictionStatuses) {
-                        if (!r.restriction || r.restriction === 'Master') isSaleStopped = r.status === 'Close';
-                        if (r.restriction === 'Arrival') isClosedToArrival = r.status === 'Close';
-                        if (r.restriction === 'Departure') isClosedToDeparture = r.status === 'Close';
-                    }
-                }
-
-                log.pushMessage(
-                    `Upserting availability: roomType=${roomTypeCode} ratePlan=${ratePlanCode ?? 'N/A'} ${start} → ${end}`,
-                    'info',
-                    { roomTypeCode, ratePlanCode, start, end, bookingLimit, isSaleStopped, isClosedToArrival, isClosedToDeparture, minLos, maxLos }
-                );
-
-                const startDate = new Date(start);
-                const endDate = new Date(end);
-                const currentDate = new Date(startDate);
-
-                // ── Repo: upsertInventoryAndRestrictions (per day) ────────────
-                while (currentDate <= endDate) {
-                    const t1 = Date.now();
-                    const upsertInput = {
-                        propertyCode, roomTypeCode,
-                        ratePlanCode: ratePlanCode ?? '',
-                        date: new Date(currentDate),
-                        bookingLimit, isSaleStopped, isClosedToArrival, isClosedToDeparture,
-                    };
-                    try {
-                        await SiteMinderDao.upsertInventoryAndRestrictions(upsertInput);
-                        log.addRepoCall({
-                            repoName: 'SiteMinderDao',
-                            method: 'upsertInventoryAndRestrictions',
-                            input: upsertInput,
-                            response: { upserted: true },
-                            success: true,
-                            durationMs: Date.now() - t1,
-                        });
-                    } catch (err: any) {
-                        log.addRepoCall({
-                            repoName: 'SiteMinderDao',
-                            method: 'upsertInventoryAndRestrictions',
-                            input: upsertInput,
-                            success: false,
-                            durationMs: Date.now() - t1,
-                            error: { message: err?.message },
-                        });
-                        throw err;
-                    }
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
-
-                // ── Repo: upsertLengthOfStay ──────────────────────────────────
-                if ((minLos !== undefined || maxLos !== undefined) && ratePlanCode) {
-                    const t2 = Date.now();
-                    const losInput = { propertyCode, ratePlanCode, startDate, endDate, minLos, maxLos };
-                    try {
-                        await SiteMinderDao.upsertLengthOfStay(losInput);
-                        log.addRepoCall({
-                            repoName: 'SiteMinderDao',
-                            method: 'upsertLengthOfStay',
-                            input: losInput,
-                            response: { upserted: true },
-                            success: true,
-                            durationMs: Date.now() - t2,
-                        });
-                    } catch (err: any) {
-                        log.addRepoCall({
-                            repoName: 'SiteMinderDao',
-                            method: 'upsertLengthOfStay',
-                            input: losInput,
-                            success: false,
-                            durationMs: Date.now() - t2,
-                            error: { message: err?.message },
-                        });
-                        throw err;
-                    }
-                }
             }
 
+            // ── Enqueue Availability Jobs in Background ──────────────────────
+            await siteMinderQueue.enqueueAvailabilityMessages({
+                hotelCode,
+                propertyCode,
+                echoToken: payload.echoToken,
+                availStatusMessages: availStatusMessages.map((m) => ({
+                    start: m.start,
+                    end: m.end,
+                    invTypeCode: m.invTypeCode,
+                    ratePlanCode: m.ratePlanCode,
+                    bookingLimit: m.bookingLimit,
+                    lengthsOfStay: m.lengthsOfStay,
+                    restrictionStatuses: m.restrictionStatuses,
+                })),
+            });
+
+            log.pushMessage('Availability accepted and enqueued successfully', 'info');
             return { success: true };
 
         } catch (error: any) {
             log.setError(error);
             return {
                 success: false,
-                errors: [{ type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` }],
+                errors: [{ type: 6, code: 392, text: error.message || 'Internal error' }],
             };
         }
     }

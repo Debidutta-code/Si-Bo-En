@@ -3,6 +3,7 @@ import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 import { SiteMinderDao } from '../dao/site-minder.dao';
 import { SiteMinderRateAmountNotifRQ, SiteMinderProcessResult } from '../types/site-minder.types';
 import { ServiceLogger, LogBuilder } from '../../../logs/services/service-log.service';
+import { siteMinderQueue, SiteMinderRateJobRateDetail } from '../../../queue/site-minder.queus';
 
 const logger = new ServiceLogger('SiteMinderARI');
 
@@ -78,6 +79,16 @@ export class SiteMinderRatesService {
             log.pushMessage(`Property found: ${property.propertyCode}`, 'info');
             const { propertyId, propertyCode } = property;
 
+            const readyMessages: Array<{
+                start: string;
+                end: string;
+                roomTypeCode: string;
+                ratePlanCode: string;
+                ratePlanName: string;
+                roomTypeName: string;
+                rates: SiteMinderRateJobRateDetail;
+            }> = [];
+
             for (const message of rateAmountMessages) {
                 const { statusApplicationControl, rates } = message;
                 const { start, end, invTypeCode: roomTypeCode, ratePlanCode } = statusApplicationControl;
@@ -149,8 +160,8 @@ export class SiteMinderRatesService {
                         errors: [{ type: 12, code: 402, text: 'Room type code not found for this hotel' }],
                     };
                 }
-                const maxOccupancy = await SiteMinderDao.getRoomMaxAdults(roomTypeCode, propertyCode);
 
+                const maxOccupancy = await SiteMinderDao.getRoomMaxAdults(roomTypeCode, propertyCode);
                 if (maxOccupancy === null || maxOccupancy === undefined) {
                     log.pushMessage(`Max occupancy not configured for room ${roomTypeCode}`, 'error');
                     return {
@@ -169,6 +180,7 @@ export class SiteMinderRatesService {
                         errors: [{ type: 12, code: 397, text: `Invalid number of adults: expecting ${maxOccupancy}` }],
                     };
                 }
+
                 const t3 = Date.now();
                 const taxRules = await SiteMinderDao.getActiveTaxRulesForRatePlan(ratePlanCode, propertyCode);
                 log.addRepoCall({
@@ -208,57 +220,38 @@ export class SiteMinderRatesService {
                     ? [{ ageQualifyingCode: '8' as const, amount: convertedChildAmount }]
                     : [];
 
-                log.pushMessage(
-                    `Upserting rates: roomType=${roomTypeCode} ratePlan=${ratePlanCode} ${start} → ${end}`,
-                    'info',
-                    { roomTypeCode, ratePlanCode, start, end, baseCurrency, finalBaseAmounts, childBaseAmounts }
-                );
-
-                // ── Repo: upsertCharge (per day) ──────────────────────────────
-                const startDate = new Date(start);
-                const endDate = new Date(end);
-                const currentDate = new Date(startDate);
-
-                while (currentDate <= endDate) {
-                    const t4 = Date.now();
-                    const upsertInput = {
-                        propertyCode, roomTypeCode, ratePlanCode, ratePlanName,
-                        roomTypeName, date: new Date(currentDate), currencyCode: baseCurrency,
+                readyMessages.push({
+                    start,
+                    end,
+                    roomTypeCode,
+                    ratePlanCode,
+                    ratePlanName,
+                    roomTypeName,
+                    rates: {
+                        currencyCode: baseCurrency,
                         baseByGuestAmounts: [...finalBaseAmounts, ...childBaseAmounts],
                         additionalGuestAmounts: childAdditionalAmounts,
-                    };
-                    try {
-                        await SiteMinderDao.upsertCharge(upsertInput);
-                        log.addRepoCall({
-                            repoName: 'SiteMinderDao',
-                            method: 'upsertCharge',
-                            input: upsertInput,
-                            response: { upserted: true },
-                            success: true,
-                            durationMs: Date.now() - t4,
-                        });
-                    } catch (err: any) {
-                        log.addRepoCall({
-                            repoName: 'SiteMinderDao',
-                            method: 'upsertCharge',
-                            input: upsertInput,
-                            success: false,
-                            durationMs: Date.now() - t4,
-                            error: { message: err?.message },
-                        });
-                        throw err;
-                    }
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
+                    },
+                });
             }
 
+            // ── Enqueue Rates Jobs in Background ──────────────────────────────
+            await siteMinderQueue.enqueueRatesMessages({
+                hotelCode,
+                propertyCode,
+                propertyId,
+                echoToken: payload.echoToken,
+                rateAmountMessages: readyMessages,
+            });
+
+            log.pushMessage('Rates accepted and enqueued successfully', 'info');
             return { success: true };
 
         } catch (error: any) {
             log.setError(error);
             return {
                 success: false,
-                errors: [{ type: 6, code: 392, text: `Hotel not found for HotelCode=${hotelCode}` }],
+                errors: [{ type: 6, code: 392, text: error.message || 'Internal error' }],
             };
         }
     }
