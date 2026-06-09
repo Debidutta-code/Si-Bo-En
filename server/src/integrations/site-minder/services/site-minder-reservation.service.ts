@@ -58,6 +58,8 @@ export class SiteMinderReservationService {
         smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
+            console.log("Reservation url : ", smEndpoint);
+            console.log("Reservation xml : ", xml);
             const response = await axios.post(smEndpoint, xml, {
                 headers: {
                     'Content-Type': 'text/xml; charset=utf-8',
@@ -69,6 +71,7 @@ export class SiteMinderReservationService {
                 response.data,
                 bookingCode
             );
+            console.log("Reservation response : ", result);
             return { ...result, rawResponse: response.data };  // ← attach raw
         } catch (error: any) {
             if (error?.response?.data) {
