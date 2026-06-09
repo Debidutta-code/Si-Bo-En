@@ -8,7 +8,7 @@ export class SpaEmailService {
         userName: string;
         userEmail: string;
         bookingId: string;
-        managerEmails: string[];        // ← was managerEmail: string | null
+        managerEmails: string[];        
         slots: {
             spaName: string;
             date: string;

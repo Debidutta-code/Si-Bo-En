@@ -25,15 +25,13 @@ interface Props {
   onClose: () => void;
   onUpdate: () => void;
 }
-const extractGuestDistribution = (
-  bookingData: any,
-): { adults: number; children: number; childAges: number[] }[] => {
-  const dailyBreakdown =
-    bookingData.priceBreakdowns?.[0]?.dailyBreakdown ||
-    bookingData.finalPrice?.dailyPriceBrakeDown ||
-    bookingData.finalPrice?.dailyBreakdown ||
-    [];
-
+const extractGuestDistribution = (bookingData: any) => {
+    const dailyBreakdown =
+        bookingData.PricingBrakeDown?.DailyPriceBrakeDown ||
+        bookingData.priceBreakdowns?.[0]?.dailyBreakdown ||
+        bookingData.finalPrice?.dailyPriceBrakeDown ||
+        bookingData.finalPrice?.dailyBreakdown ||
+        [];
   if (!dailyBreakdown.length)
     return [{ adults: 1, children: 0, childAges: [] }];
 
@@ -107,14 +105,17 @@ const parseDate = (date: any): string => {
  * Only send user-applied promotions — auto-applied ones (e.g. MLOS) are
  * recalculated server-side and should not be included.
  */
-const buildPromotions = (
-  bookingData: any,
-): { id: string; promotionType: string }[] => {
-  const promotionBreakdown: any[] =
-    bookingData.finalPrice?.promotionBrakeDown ?? [];
-  return promotionBreakdown
-    .filter((p: any) => p.type === "user-applied" && p.id)
-    .map((p: any) => ({ id: p.id as string, promotionType: "normal" }));
+const buildPromotions = (bookingData: any): { id: string; promotionType: string }[] => {
+    const promotionBreakdown: any[] =
+        bookingData.PricingBrakeDown?.promotionBrakeDown ??  // ← capital P
+        bookingData.finalPrice?.promotionBrakeDown ?? [];
+    
+    return promotionBreakdown
+        .filter((p: any) => p.type === "user_applied" && p.restrictionType !== "payLater" && p.id) // ← underscore, exclude payLater
+        .map((p: any) => ({
+            id: p.id as string,
+            promotionType: p.promotionType === "mlos" ? "mlos" : "normal", // ← preserve mlos type
+        }));
 };
 
 

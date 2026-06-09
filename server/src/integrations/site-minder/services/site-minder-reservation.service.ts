@@ -51,12 +51,7 @@ function nextDateString(dateStr: string): string {
     return toDateString(d);
 }
 
-// ─── SiteMinderReservationService ─────────────────────────────────────────────
-
 export class SiteMinderReservationService {
-
-    // ── HTTP push ─────────────────────────────────────────────────────────────
-
     private static async pushToSiteMinder(
         xml: string,
         bookingCode: string,
@@ -447,17 +442,12 @@ export class SiteMinderReservationService {
         totalBeforeTax: string;
         totalAfterTax: string;
     } {
+        const beforeTax = (payload.finalPrice.amountBeforeTax ?? 0) + (payload.finalPrice.latterpayableAmount ?? 0);
         return {
-            totalBeforeTax: fmt(payload.finalPrice.amountBeforeTax ?? 0),
-            totalAfterTax: fmt(
-                payload.finalPrice.currentChargeableAmount ??
-                (payload.finalPrice.amountBeforeTax ?? 0) +
-                (payload.finalPrice.taxedAmount ?? 0)
-            ),
+            totalBeforeTax: fmt(beforeTax),
+            totalAfterTax: fmt(payload.finalPrice.totalAmount ?? 0),
         };
     }
-
-    // ── Shared params builder (used by Commit, Modify, Cancel) ───────────────
 
     private static async buildParams(
         payload: ICReservationS,
@@ -513,6 +503,7 @@ export class SiteMinderReservationService {
         channelName: string,
         smEndpoint: string
     ): Promise<SMReservationResult> {
+        console.log('payload', JSON.stringify(payload, null, 2));
         try {
             const params = await SiteMinderReservationService.buildParams(
                 payload,

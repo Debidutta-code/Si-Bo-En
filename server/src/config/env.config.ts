@@ -85,5 +85,8 @@ const config = {
     awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     awsBucketName: process.env.AWS_BUCKET_NAME!,
     bookingengineUrl: process.env.BOOKING_ENGINE_URL,
+    alertReceipeints: process.env.ALERT_RECIPEINTS
+        ? process.env.ALERT_RECIPEINTS.split(',').map(e => e.trim()).filter(Boolean)
+        : ['no-reply@revchilldirect.com'],
 };
 export default config;

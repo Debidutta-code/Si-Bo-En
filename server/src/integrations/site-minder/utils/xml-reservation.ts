@@ -207,22 +207,22 @@ export class SiteMinderReservationXmlBuilder {
                                 PersonName: {
                                     ...(isPrimary &&
                                         primaryGuest.salutation && {
-                                            NamePrefix: primaryGuest.salutation,
-                                        }),
+                                        NamePrefix: primaryGuest.salutation,
+                                    }),
                                     GivenName: firstName,
                                     Surname: lastName,
                                 },
                                 // Phone + email only on the primary guest
                                 ...(isPrimary &&
                                     primaryGuest.phone && {
-                                        Telephone: {
-                                            '@_PhoneNumber': primaryGuest.phone,
-                                        },
-                                    }),
+                                    Telephone: {
+                                        '@_PhoneNumber': primaryGuest.phone,
+                                    },
+                                }),
                                 ...(isPrimary &&
                                     primaryGuest.email && {
-                                        Email: primaryGuest.email,
-                                    }),
+                                    Email: primaryGuest.email,
+                                }),
                             },
                         },
                     },
@@ -252,12 +252,10 @@ export class SiteMinderReservationXmlBuilder {
                 '@_Quantity': '1',       // always 1 per SM docs
                 Price: {
                     Base: {
-                        '@_AmountBeforeTax': baseAmt,
-                        '@_AmountAfterTax': baseAmt,
+                        '@_AmountAfterTax': totalAmt,
                         '@_CurrencyCode': currency,
                     },
                     Total: {
-                        '@_AmountBeforeTax': totalAmt,
                         '@_AmountAfterTax': totalAmt,
                         '@_CurrencyCode': currency,
                     },
@@ -268,16 +266,16 @@ export class SiteMinderReservationXmlBuilder {
                 // payLater services (e.g. tourism charge) have no TimeSpan
                 ...(!svc.isPayLater &&
                     svc.startDate && {
-                        ServiceDetails: {
-                            TimeSpan: {
-                                '@_Start': toDateString(svc.startDate),
-                                // End = same as Start for single-night; range end for multi
-                                '@_End': svc.endDate
-                                    ? toDateString(svc.endDate)
-                                    : toDateString(svc.startDate),
-                            },
+                    ServiceDetails: {
+                        TimeSpan: {
+                            '@_Start': toDateString(svc.startDate),
+                            // End = same as Start for single-night; range end for multi
+                            '@_End': svc.endDate
+                                ? toDateString(svc.endDate)
+                                : toDateString(svc.startDate),
                         },
-                    }),
+                    },
+                }),
             };
         });
 
@@ -290,14 +288,8 @@ export class SiteMinderReservationXmlBuilder {
         const discountComments = (params.discounts ?? [])
             .filter((d: SMDiscount) => d.amount > 0)
             .map((d: SMDiscount) => ({
-                Text: `${d.name}: -${fmt(d.amount)} ${d.currencyCode}`,
+                Text: `${d.name}: ${fmt(d.amount)} ${params.currencyCode}`,
             }));
-
-        // ── ResGlobalInfo Total ───────────────────────────────────────────────
-        //
-        // AmountBeforeTax = amountBeforeTax  (rooms + addons - all decrease discounts)
-        // AmountAfterTax  = currentChargeableAmount  (beforeTax + tax, no payLater)
-        // payLater amounts are separate Services — NOT added here.
 
         const globalBeforeTax = parseFloat(params.totalAmountBeforeTax ?? '0');
         const globalAfterTax = parseFloat(params.totalAmountAfterTax);
@@ -314,23 +306,16 @@ export class SiteMinderReservationXmlBuilder {
                 },
             },
         };
-
-        // ── DepositPayments — only for PREPAY (online paid) ───────────────────
-        //
-        // PAY_AT_HOTEL: omit entirely (no Guarantee, no DepositPayments).
-        // PREPAY: send DepositPayments with currentChargeableAmount (= totalAmountAfterTax).
-        // We don't have card details (handled by payment gateway), so no PaymentCard.
-
         const depositPayments =
             params.paymentMethod === 'PREPAY'
                 ? {
-                      GuaranteePayment: {
-                          AmountPercent: {
-                              '@_Amount': fmt(globalAfterTax),
-                              '@_CurrencyCode': params.currencyCode,
-                          },
-                      },
-                  }
+                    GuaranteePayment: {
+                        AmountPercent: {
+                            '@_Amount': fmt(globalAfterTax),
+                            '@_CurrencyCode': params.currencyCode,
+                        },
+                    },
+                }
                 : null;
 
         // ── Customer profile in ResGlobalInfo ────────────────────────────────
@@ -511,7 +496,7 @@ export class SiteMinderReservationXmlBuilder {
                 const siteMinderResId =
                     rs?.HotelReservations?.HotelReservation?.ResGlobalInfo
                         ?.HotelReservationIDs?.HotelReservationID?.[
-                        '@_ResID_Value'
+                    '@_ResID_Value'
                     ];
                 return {
                     success: true,

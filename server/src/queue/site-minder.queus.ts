@@ -4,6 +4,7 @@ import { Queue, Worker, Job } from 'bullmq';
 import { ServiceLogger } from '../logs/services/service-log.service';
 import { SiteMinderDao } from '../integrations/site-minder/dao/site-minder.dao';
 import { config } from '../config';
+import { SiteMinderFailureAlertService } from '../integrations/site-minder/services/site-minder-failure-alert.service';
 
 const logger = new ServiceLogger('SiteMinderQueue');
 
@@ -159,7 +160,6 @@ export class SiteMinderQueue {
         }
     }
 
-    // ─── Availability Day Processor ───────────────────────────────────────────
 
     private async processAvailDayJob(data: SiteMinderAvailDayJobData): Promise<void> {
         const {
@@ -322,28 +322,20 @@ export class SiteMinderQueue {
     ): Promise<void> {
         const record = {
             originalJobId: job?.data?.originalJobId,
-            hotelCode: job?.data?.data?.hotelCode,
-            type: job?.data?.data?.type,
-            date: job?.data?.data?.date,
-            roomTypeCode: (job?.data?.data as any)?.roomTypeCode,
-            ratePlanCode: (job?.data?.data as any)?.ratePlanCode,
+            data: job?.data?.data as SiteMinderDayJobData,
             reason: err.message,
+            attemptsMade: job?.data?.attemptsMade ?? 0,
             failedAt: new Date().toISOString(),
         };
+
         console.error(
             '🚨 PERMANENT SITEMINDER FAILURE — manual intervention required:',
             JSON.stringify(record, null, 2)
         );
-        // TODO: persist to DB or send alert
+
+        await SiteMinderFailureAlertService.sendPermanentFailureAlert(record);
     }
 
-    // ─── Public: Enqueue Availability (per day) ───────────────────────────────
-
-    /**
-     * Splits availStatusMessages into one job per day per message.
-     * e.g. 1 message with Start="2026-06-06" End="2026-06-09" → 4 jobs
-     * 80 messages across 6 months → potentially hundreds of day-level jobs
-     */
     public async enqueueAvailabilityMessages(params: {
         hotelCode: string;
         propertyCode: string;
@@ -402,12 +394,7 @@ export class SiteMinderQueue {
         );
     }
 
-    // ─── Public: Enqueue Rates (per day) ─────────────────────────────────────
 
-    /**
-     * Splits rateAmountMessages into one job per day per message.
-     * e.g. 1 message with Start="2026-06-06" End="2026-06-09" → 4 jobs
-     */
     public async enqueueRatesMessages(params: {
         hotelCode: string;
         propertyCode: string;

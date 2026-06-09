@@ -106,7 +106,7 @@ export class IntegrationDispatcher {
                 return SiteMinderReservationService.pushModify(
                     smPayload,
                     existingReservation.bookingCode,
-                    existingReservation.bookedAt.toISOString(),
+                    existingReservation.bookedAt.toISOString().replace(/\.\d{3}Z$/, '+00:00'),
                     smConfig.siteMinderPropertyCode,
                     smConfig.channelCode,
                     smConfig.channelName,
@@ -153,7 +153,7 @@ export class IntegrationDispatcher {
                 return SiteMinderReservationService.pushCancel(
                     smPayload,
                     existingReservation.bookingCode,
-                    existingReservation.bookedAt.toISOString(),
+                    existingReservation.bookedAt.toISOString().replace(/\.\d{3}Z$/, '+00:00'),
                     smConfig.siteMinderPropertyCode,
                     smConfig.channelCode,
                     smConfig.channelName,
