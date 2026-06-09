@@ -1,6 +1,7 @@
 model PromotionBrakeDown {
   id                 String                   @id @default(uuid())
   pricingBrakedownId String                   @map("pricing_breakdown_id")
+  promotionId        String?                 @map("promotion_id")
   promotionType      ReservationPromotionType @default(normal) @map("promotion_type")
   name               String                   @map("name")
   discountType       DiscountType             @map("discount_type")

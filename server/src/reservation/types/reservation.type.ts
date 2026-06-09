@@ -442,13 +442,7 @@ export interface IRoomArray {
     children: number;
     childAges: number[];
 }
-// export interface IGuestDetails {
-//   type: "adult" | "child" | "infant";
-//   firstName: string;
-//   lastName: string;
-//   dateOfBirth: string;
-//   salutation?: string;
-// }
+
 export interface ISelectedAddons {
     addonCode: string;
     addonId: string;
@@ -516,6 +510,7 @@ export interface IPromotionBrakeDown {
     id: string;
     name: string;
     promotionType: ReservationPromotionType;
+    promotionId?: string | null;
     restrictionType: PromotionrestrictionType;
     type: PromotionBrakeDownType;
     currencyCode: CurrencyCode | null;

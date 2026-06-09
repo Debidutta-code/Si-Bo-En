@@ -239,7 +239,6 @@ export class SiteMinderController {
                 return res.status(200).send(xml);
             }
 
-            // ── Availability Push ─────────────────────────────────────────────
             if (parsed.type === 'availability' && parsed.availPayload) {
                 const { availPayload } = parsed;
 
@@ -316,7 +315,6 @@ export class SiteMinderController {
                 return res.status(200).send(xml);
             }
 
-            // ── Unknown type ──────────────────────────────────────────────────
             const xml = SiteMinderXmlParser.buildGenericError('roomsRates', '', 'Unknown or unsupported OTA message type');
             log.pushMessage('Unknown or unsupported OTA message type', 'error').setMeta({ responseXml: xml }).save();
             return res.status(200).send(xml);

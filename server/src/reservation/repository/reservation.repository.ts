@@ -1064,7 +1064,6 @@ export class PriceBrakeDownRepo {
 
                 const pricingId = pricingBreakdown.id;
 
-                // 2. Create DailyPriceBrakeDown records
                 if (dailyBreakdowns.length > 0) {
                     await tx.dailyPriceBrakeDown.createMany({
                         data: dailyBreakdowns.map((d: any) => ({
@@ -1112,7 +1111,6 @@ export class PriceBrakeDownRepo {
                     });
                 }
 
-                // 5. Create PromotionBrakeDown records
                 if (promotionBreakdowns.length > 0) {
                     await tx.promotionBrakeDown.createMany({
                         data: promotionBreakdowns
@@ -1120,6 +1118,7 @@ export class PriceBrakeDownRepo {
                             .map((p: any) => ({
                                 pricingBrakedownId: pricingId,
                                 promotionType: p.promotionType || 'normal',
+                                promotionId: p.id,
                                 name: p.name,
                                 discountType: p.discountType || 'percentage',
                                 discountValue: p.discountValue || 0,
@@ -1239,6 +1238,7 @@ export class PriceBrakeDownRepo {
                             .map((p: any) => ({
                                 pricingBrakedownId: pricingId,
                                 promotionType: p.promotionType || 'normal',
+                                promotionId: p.id,
                                 name: p.name,
                                 discountType: p.discountType || 'percentage',
                                 discountValue: p.discountValue || 0,

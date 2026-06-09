@@ -100,11 +100,6 @@ const parseDate = (date: any): string => {
   return "";
 };
 
-/**
- * Build promotions payload from finalPrice.promotionBrakeDown.
- * Only send user-applied promotions — auto-applied ones (e.g. MLOS) are
- * recalculated server-side and should not be included.
- */
 const buildPromotions = (bookingData: any): { id: string; promotionType: string }[] => {
     const promotionBreakdown: any[] =
         bookingData.PricingBrakeDown?.promotionBrakeDown ??  // ← capital P
@@ -113,7 +108,7 @@ const buildPromotions = (bookingData: any): { id: string; promotionType: string 
     return promotionBreakdown
         .filter((p: any) => p.type === "user_applied" && p.restrictionType !== "payLater" && p.id) // ← underscore, exclude payLater
         .map((p: any) => ({
-            id: p.id as string,
+            id: p.promotionId as string,
             promotionType: p.promotionType === "mlos" ? "mlos" : "normal", // ← preserve mlos type
         }));
 };

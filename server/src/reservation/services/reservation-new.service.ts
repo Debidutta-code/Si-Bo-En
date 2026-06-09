@@ -1110,6 +1110,7 @@ export class NewReservationService {
                 loyalityDiscount:
                     updatePayload.finalPrice.loyalityDiscount || 0,
                 totalSpa: existingReservation.PricingBrakeDown?.totalSpa || 0,
+
             };
 
             await this.priceBrakeDownRepo.replacePricingBreakdown(
@@ -1119,8 +1120,9 @@ export class NewReservationService {
                 updatePayload.finalPrice.dailyPriceBrakeDown || [],
                 updatePayload.finalPrice.taxBrakeDown || [],
                 updatePayload.finalPrice.addonBrakeDowns || [],
-                updatePayload.finalPrice.promotionBrakeDown || []
-            );
+                (updatePayload.finalPrice.promotionBrakeDown || []).filter(
+                    (p: any) => p.restrictionType !== 'payLater'
+                ));
 
             if (
                 updatePayload.agencyId &&
@@ -1409,7 +1411,7 @@ export class NewReservationService {
                 const result = await IntegrationDispatcher.pushCancel(
                     reservation as any,
                     reservation.propertyId,
-                    roomDetails?.description||"",
+                    roomDetails?.description || "",
                     { name: activeIntegrationD?.name ?? 'Rate Tiger', type: activeIntegrationTypeD, integrationId: '' }
                 );
                 if (!result.success) {
