@@ -7,7 +7,8 @@ import { errorResponse } from '../../utils/return';
 import { InventoryServices } from '../services';
 import { getPropertyCode } from '../utils';
 import { ICharges } from '../types';
-
+import { ServiceLogger } from '../../logs/services/service-log.service';
+const logger = new ServiceLogger('InventoryController');
 class InventoryController {
     inventoryServices: InventoryServices;
     constructor() {
@@ -120,73 +121,88 @@ class InventoryController {
                 .json(errorResponse('Internal Server Error', error?.message));
         }
     }
-    public async mapRatePlans(req: PropertyCustomRequest, res: Response) {
-        try {
-            const {
-                ratePlanCode,
-                ratePlanName,
-                roomTypeCode,
-                roomTypeName,
-                baseByGuestAmounts,
-                additionalGuestAmounts,
-                currencyCode,
-                startDate,
-                endDate,
-            } = req.body;
-            if(!req.property){
-                return res.status(500).json(errorResponse('Property configuration not found'));
-            }
-            const propertyId = req.property.id;
-            const propertyCode = req.property.propertyCode;
-            if(!req.property.propertyConfig?.selfAriActive) {
-                return res.status(400).json(errorResponse('Self ARI is not active for this property'));
-            }
-            if (!propertyCode) {
-                return res
-                    .status(400)
-                    .json(
-                        errorResponse(
-                            'Property Not Found',
-                            'property code is not available'
-                        )
-                    );
-            }
-            if (
-                !roomTypeCode ||
-                !ratePlanCode ||
-                !baseByGuestAmounts ||
-                !additionalGuestAmounts ||
-                !ratePlanName ||
-                !roomTypeName ||
-                !currencyCode ||
-                !startDate ||
-                !endDate
-            ) {
-                return res
-                    .status(400)
-                    .json(errorResponse('All fields are required'));
-            }
-            const serRes = await this.inventoryServices.mapRatePlanService(
-                propertyId,
-                propertyCode,
-                roomTypeName,
-                roomTypeCode,
-                ratePlanName,
-                ratePlanCode,
-                baseByGuestAmounts,
-                additionalGuestAmounts,
-                currencyCode,
-                startDate,
-                endDate
-            );
-            const resStatus = serRes?.success ? 200 : 400;
-            return res.status(resStatus).json(serRes);
-        } catch (error: any) {
-            return res
-                .status(500)
-                .json(errorResponse('Internal Server Error', error?.message));
+   public async mapRatePlans(req: PropertyCustomRequest, res: Response) {
+       const log = logger.start('mapRatePlans', req.headers['x-request-id'] as string);
+
+    log.setIncoming({
+        body: req.body,
+        propertyId: req.property?.id,
+        propertyCode: req.property?.propertyCode,
+    });
+
+    try {
+        const {
+            ratePlanCode,
+            ratePlanName,
+            roomTypeCode,
+            roomTypeName,
+            baseByGuestAmounts,
+            additionalGuestAmounts,
+            currencyCode,
+            startDate,
+            endDate,
+        } = req.body;
+
+        if (!req.property) {
+            const res_ = errorResponse('Property configuration not found');
+            log.pushMessage('Property configuration not found', 'warn').setServiceResponse(res_).save();
+            return res.status(500).json(res_);
         }
+
+        const propertyId = req.property.id;
+        const propertyCode = req.property.propertyCode;
+
+        if (!req.property.propertyConfig?.selfAriActive) {
+            const res_ = errorResponse('Self ARI is not active for this property');
+            log.pushMessage('Self ARI not active', 'warn', { propertyCode }).setServiceResponse(res_).save();
+            return res.status(400).json(res_);
+        }
+
+        if (!propertyCode) {
+            const res_ = errorResponse('Property Not Found', 'property code is not available');
+            log.pushMessage('Property code missing', 'warn').setServiceResponse(res_).save();
+            return res.status(400).json(res_);
+        }
+
+        if (
+            !roomTypeCode || !ratePlanCode || !baseByGuestAmounts ||
+            !additionalGuestAmounts || !ratePlanName || !roomTypeName ||
+            !currencyCode || !startDate || !endDate
+        ) {
+            const res_ = errorResponse('All fields are required');
+            log.pushMessage('Validation failed — missing required fields', 'warn', {
+                missing: { roomTypeCode, ratePlanCode, ratePlanName, roomTypeName, currencyCode, startDate, endDate }
+            }).setServiceResponse(res_).save();
+            return res.status(400).json(res_);
+        }
+
+        log.pushMessage('Validation passed, calling mapRatePlanService', 'info', {
+            propertyId, propertyCode, roomTypeCode, ratePlanCode,
+        });
+
+        const serRes = await this.inventoryServices.mapRatePlanService(
+            propertyId,
+            propertyCode,
+            roomTypeName,
+            roomTypeCode,
+            ratePlanName,
+            ratePlanCode,
+            baseByGuestAmounts,
+            additionalGuestAmounts,
+            currencyCode,
+            startDate,
+            endDate,
+            log  // 👈 pass it down
+        );
+
+        log.setServiceResponse(serRes).save();
+        return res.status(serRes?.success ? 200 : 400).json(serRes);
+
+    } catch (error: any) {
+        log.setError(error).save();
+        return res.status(500).json(errorResponse('Internal Server Error', error?.message));
     }
+}
     public async getRoomAvailibility(
         req: PropertyCustomRequest,
         res: Response

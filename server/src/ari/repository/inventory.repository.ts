@@ -1,4 +1,5 @@
 import { prisma } from '../../config';
+import { LogBuilder } from '../../logs/services/service-log.service';
 import { toUTC } from '../../utils';
 import type {
     ICreateInventoryRepo,
@@ -80,20 +81,20 @@ class InventoryRepository {
         }
     }
 
-    public async getRoom(propertyId: string, roomType: string) {
-        try {
-            const room = await prisma.room.findFirst({
-                where: {
-                    propertyId,
-                    roomType,
-                },
-            });
-            return room;
-        } catch (error: any) {
-            console.error('❌ getRoom error:', error);
-            throw new Error(error?.message);
-        }
-    }
+    // public async getRoom(propertyId: string, roomType: string) {
+    //     try {
+    //         const room = await prisma.room.findFirst({
+    //             where: {
+    //                 propertyId,
+    //                 roomType,
+    //             },
+    //         });
+    //         return room;
+    //     } catch (error: any) {
+    //         console.error('❌ getRoom error:', error);
+    //         throw new Error(error?.message);
+    //     }
+    // }
 
     public async getAllRoomTypeDao(propertyId: string) {
         try {
@@ -140,191 +141,191 @@ class InventoryRepository {
         }
     }
 
-    public async mapRatePlans(payload: ICharges[]) {
-        try {
-            if (!payload || payload.length === 0) {
-                throw new Error('No charge data provided');
-            }
+    // public async mapRatePlans(payload: ICharges[]) {
+    //     try {
+    //         if (!payload || payload.length === 0) {
+    //             throw new Error('No charge data provided');
+    //         }
 
-            // ── Step 1: Upsert all charges in parallel ────────────────────────────
-            const upsertedCharges = await Promise.all(
-                payload.map(chargeData => {
-                    const {
-                        propertyCode,
-                        ratePlanCode,
-                        ratePlanName,
-                        roomTypeCode,
-                        roomTypeName,
-                        currencyCode,
-                        date,
-                    } = chargeData;
+    //         // ── Step 1: Upsert all charges in parallel ────────────────────────────
+    //         const upsertedCharges = await Promise.all(
+    //             payload.map(chargeData => {
+    //                 const {
+    //                     propertyCode,
+    //                     ratePlanCode,
+    //                     ratePlanName,
+    //                     roomTypeCode,
+    //                     roomTypeName,
+    //                     currencyCode,
+    //                     date,
+    //                 } = chargeData;
 
-                    return prisma.charge.upsert({
-                        where: {
-                            propertyCode_roomTypeCode_ratePlanCode_date: {
-                                propertyCode,
-                                roomTypeCode,
-                                ratePlanCode,
-                                date: new Date(date.toString()),
-                            },
-                        },
-                        create: {
-                            propertyCode,
-                            ratePlanCode,
-                            ratePlanName,
-                            roomTypeCode,
-                            roomTypeName,
-                            currencyCode: currencyCode.toUpperCase() as any,
-                            date: new Date(date.toString()),
-                        },
-                        update: {
-                            ratePlanName,
-                            roomTypeName,
-                            currencyCode: currencyCode.toUpperCase() as any,
-                        },
-                        select: {
-                            id: true,
-                            propertyCode: true,
-                            ratePlanCode: true,
-                            roomTypeCode: true,
-                            date: true,
-                        },
-                    });
-                })
-            );
+    //                 return prisma.charge.upsert({
+    //                     where: {
+    //                         propertyCode_roomTypeCode_ratePlanCode_date: {
+    //                             propertyCode,
+    //                             roomTypeCode,
+    //                             ratePlanCode,
+    //                             date: new Date(date.toString()),
+    //                         },
+    //                     },
+    //                     create: {
+    //                         propertyCode,
+    //                         ratePlanCode,
+    //                         ratePlanName,
+    //                         roomTypeCode,
+    //                         roomTypeName,
+    //                         currencyCode: currencyCode.toUpperCase() as any,
+    //                         date: new Date(date.toString()),
+    //                     },
+    //                     update: {
+    //                         ratePlanName,
+    //                         roomTypeName,
+    //                         currencyCode: currencyCode.toUpperCase() as any,
+    //                     },
+    //                     select: {
+    //                         id: true,
+    //                         propertyCode: true,
+    //                         ratePlanCode: true,
+    //                         roomTypeCode: true,
+    //                         date: true,
+    //                     },
+    //                 });
+    //             })
+    //         );
 
-            // ── Step 2: Delete old nested records in bulk ─────────────────────────
-            const chargeIds = upsertedCharges.map(c => c.id);
+    //         // ── Step 2: Delete old nested records in bulk ─────────────────────────
+    //         const chargeIds = upsertedCharges.map(c => c.id);
 
-            await Promise.all([
-                prisma.chargeBaseByGuest.deleteMany({
-                    where: { chargeId: { in: chargeIds } },
-                }),
-                prisma.chargeAdditionalGuest.deleteMany({
-                    where: { chargeId: { in: chargeIds } },
-                }),
-            ]);
+    //         await Promise.all([
+    //             prisma.chargeBaseByGuest.deleteMany({
+    //                 where: { chargeId: { in: chargeIds } },
+    //             }),
+    //             prisma.chargeAdditionalGuest.deleteMany({
+    //                 where: { chargeId: { in: chargeIds } },
+    //             }),
+    //         ]);
 
-            // ── Step 3: Re-insert all nested records in bulk ──────────────────────
-            const baseGuestData = upsertedCharges.flatMap((charge, i) =>
-                payload[i].baseGuestAmounts.map(bg => ({
-                    chargeId: charge.id,
-                    numberOfGuests: bg.noOfGuests,
-                    amountBeforeTax: Number(bg.amount),
-                    ageQualifyingCode: bg.ageQualifyingCode,
-                }))
-            );
+    //         // ── Step 3: Re-insert all nested records in bulk ──────────────────────
+    //         const baseGuestData = upsertedCharges.flatMap((charge, i) =>
+    //             payload[i].baseGuestAmounts.map(bg => ({
+    //                 chargeId: charge.id,
+    //                 numberOfGuests: bg.noOfGuests,
+    //                 amountBeforeTax: Number(bg.amount),
+    //                 ageQualifyingCode: bg.ageQualifyingCode,
+    //             }))
+    //         );
 
-            const additionalGuestData = upsertedCharges.flatMap((charge, i) =>
-                payload[i].additionalGuestAmounts.map(ag => ({
-                    chargeId: charge.id,
-                    ageQualifyingCode: ag.ageCode,
-                    amount: ag.amount,
-                }))
-            );
+    //         const additionalGuestData = upsertedCharges.flatMap((charge, i) =>
+    //             payload[i].additionalGuestAmounts.map(ag => ({
+    //                 chargeId: charge.id,
+    //                 ageQualifyingCode: ag.ageCode,
+    //                 amount: ag.amount,
+    //             }))
+    //         );
 
-            await Promise.all([
-                prisma.chargeBaseByGuest.createMany({ data: baseGuestData }),
-                prisma.chargeAdditionalGuest.createMany({
-                    data: additionalGuestData,
-                }),
-            ]);
+    //         await Promise.all([
+    //             prisma.chargeBaseByGuest.createMany({ data: baseGuestData }),
+    //             prisma.chargeAdditionalGuest.createMany({
+    //                 data: additionalGuestData,
+    //             }),
+    //         ]);
 
-            // ── Step 4: Update inventory ratePlans array ──────────────────────────
-            if (payload.length > 0) {
-                const { propertyCode, roomTypeCode, ratePlanCode } = payload[0];
+    //         // ── Step 4: Update inventory ratePlans array ──────────────────────────
+    //         if (payload.length > 0) {
+    //             const { propertyCode, roomTypeCode, ratePlanCode } = payload[0];
 
-                const inventories = await prisma.inventory.findMany({
-                    where: { propertyCode, roomTypeCode },
-                });
+    //             const inventories = await prisma.inventory.findMany({
+    //                 where: { propertyCode, roomTypeCode },
+    //             });
 
-                const inventoryUpdates = inventories
-                    .filter(inv => !inv.ratePlans.includes(ratePlanCode))
-                    .map(inv =>
-                        prisma.inventory.update({
-                            where: { id: inv.id },
-                            data: { ratePlans: { push: ratePlanCode } },
-                        })
-                    );
+    //             const inventoryUpdates = inventories
+    //                 .filter(inv => !inv.ratePlans.includes(ratePlanCode))
+    //                 .map(inv =>
+    //                     prisma.inventory.update({
+    //                         where: { id: inv.id },
+    //                         data: { ratePlans: { push: ratePlanCode } },
+    //                     })
+    //                 );
 
-                if (inventoryUpdates.length > 0) {
-                    await Promise.all(inventoryUpdates);
-                }
-            }
+    //             if (inventoryUpdates.length > 0) {
+    //                 await Promise.all(inventoryUpdates);
+    //             }
+    //         }
 
-            return {
-                success: true,
-                message: `Added/Updated ${upsertedCharges.length} charge records and updated rate plans for rooms`,
-                recordsCreated: upsertedCharges.length,
-            };
-        } catch (error: any) {
-            console.error('Error mapping rate plans:', error);
-            throw new Error(error.message);
-        }
-    }
+    //         return {
+    //             success: true,
+    //             message: `Added/Updated ${upsertedCharges.length} charge records and updated rate plans for rooms`,
+    //             recordsCreated: upsertedCharges.length,
+    //         };
+    //     } catch (error: any) {
+    //         console.error('Error mapping rate plans:', error);
+    //         throw new Error(error.message);
+    //     }
+    // }
 
-    public async checkInventoryAvailability(
-        propertyCode: string,
-        roomTypeCode: string,
-        startDate: string,
-        endDate: string
-    ) {
-        try {
-            // Generate all dates in the range as ISO strings for comparison
-            const allDateStrings: string[] = [];
-            const start = new Date(startDate);
-            const end = new Date(endDate);
+    // public async checkInventoryAvailability(
+    //     propertyCode: string,
+    //     roomTypeCode: string,
+    //     startDate: string,
+    //     endDate: string
+    // ) {
+    //     try {
+    //         // Generate all dates in the range as ISO strings for comparison
+    //         const allDateStrings: string[] = [];
+    //         const start = new Date(startDate);
+    //         const end = new Date(endDate);
 
-            for (
-                let d = new Date(start.getTime());
-                d.getTime() <= end.getTime();
-                d.setDate(d.getDate() + 1)
-            ) {
-                allDateStrings.push(d.toISOString().split('T')[0]);
-            }
+    //         for (
+    //             let d = new Date(start.getTime());
+    //             d.getTime() <= end.getTime();
+    //             d.setDate(d.getDate() + 1)
+    //         ) {
+    //             allDateStrings.push(d.toISOString().split('T')[0]);
+    //         }
 
-            // Fetch inventory for the date range with availability > 0
-            const inventories = await prisma.inventory.findMany({
-                where: {
-                    propertyCode,
-                    roomTypeCode,
-                    availability: {
-                        gt: 0, // Only dates with availability > 0
-                    },
-                },
-                select: {
-                    date: true,
-                    availability: true,
-                },
-            });
+    //         // Fetch inventory for the date range with availability > 0
+    //         const inventories = await prisma.inventory.findMany({
+    //             where: {
+    //                 propertyCode,
+    //                 roomTypeCode,
+    //                 availability: {
+    //                     gt: 0, // Only dates with availability > 0
+    //                 },
+    //             },
+    //             select: {
+    //                 date: true,
+    //                 availability: true,
+    //             },
+    //         });
 
-            // Get dates that have inventory with availability > 0 (as ISO strings)
-            const availableDateStrings = inventories.map(
-                inv => inv.date.toISOString().split('T')[0]
-            );
+    //         // Get dates that have inventory with availability > 0 (as ISO strings)
+    //         const availableDateStrings = inventories.map(
+    //             inv => inv.date.toISOString().split('T')[0]
+    //         );
 
-            // Find missing dates (dates without inventory or with 0 availability)
-            const missingDateStrings = allDateStrings.filter(
-                dateStr => !availableDateStrings.includes(dateStr)
-            );
+    //         // Find missing dates (dates without inventory or with 0 availability)
+    //         const missingDateStrings = allDateStrings.filter(
+    //             dateStr => !availableDateStrings.includes(dateStr)
+    //         );
 
-            // Convert back to Date objects for return
-            const availableDates = [...new Set(availableDateStrings)].map(
-                ds => new Date(ds)
-            );
-            const missingDates = missingDateStrings.map(ds => new Date(ds));
+    //         // Convert back to Date objects for return
+    //         const availableDates = [...new Set(availableDateStrings)].map(
+    //             ds => new Date(ds)
+    //         );
+    //         const missingDates = missingDateStrings.map(ds => new Date(ds));
 
-            return {
-                availableDates,
-                missingDates,
-                totalDates: allDateStrings.length,
-                availableCount: availableDates.length,
-                missingCount: missingDates.length,
-            };
-        } catch (error) {
-            throw new Error('Error checking inventory availability');
-        }
-    }
+    //         return {
+    //             availableDates,
+    //             missingDates,
+    //             totalDates: allDateStrings.length,
+    //             availableCount: availableDates.length,
+    //             missingCount: missingDates.length,
+    //         };
+    //     } catch (error) {
+    //         throw new Error('Error checking inventory availability');
+    //     }
+    // }
 
     public async getRoomAvailability(
         propertyCode: string,
@@ -343,6 +344,198 @@ class InventoryRepository {
             });
             return inventories;
         } catch (error: any) {
+            throw new Error(error.message);
+        }
+    }
+
+    public async getRoom(propertyId: string, roomType: string, log?: LogBuilder) {
+        const t = Date.now();
+        try {
+            const room = await prisma.room.findFirst({ where: { propertyId, roomType } });
+
+            log?.addRepoCall({
+                repoName: 'InventoryRepository',
+                method: 'getRoom',
+                input: { propertyId, roomType },
+                response: room ? { found: true } : { found: false },
+                success: true,
+                durationMs: Date.now() - t,
+            });
+
+            return room;
+        } catch (error: any) {
+            log?.addRepoCall({
+                repoName: 'InventoryRepository',
+                method: 'getRoom',
+                input: { propertyId, roomType },
+                success: false,
+                error: { message: error.message },  // 👈 object, not string
+                durationMs: Date.now() - t,
+            });
+            console.error('❌ getRoom error:', error);
+            throw new Error(error?.message);
+        }
+    }
+
+    public async checkInventoryAvailability(
+        propertyCode: string,
+        roomTypeCode: string,
+        startDate: string,
+        endDate: string,
+        log?: LogBuilder  // 👈
+    ) {
+        const t = Date.now();
+        try {
+            const allDateStrings: string[] = [];
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+
+            for (
+                let d = new Date(start.getTime());
+                d.getTime() <= end.getTime();
+                d.setDate(d.getDate() + 1)
+            ) {
+                allDateStrings.push(d.toISOString().split('T')[0]);
+            }
+
+            const inventories = await prisma.inventory.findMany({
+                where: { propertyCode, roomTypeCode, availability: { gt: 0 } },
+                select: { date: true, availability: true },
+            });
+
+            const availableDateStrings = inventories.map(inv => inv.date.toISOString().split('T')[0]);
+            const missingDateStrings = allDateStrings.filter(d => !availableDateStrings.includes(d));
+            const availableDates = [...new Set(availableDateStrings)].map(ds => new Date(ds));
+            const missingDates = missingDateStrings.map(ds => new Date(ds));
+
+            const result = {
+                availableDates,
+                missingDates,
+                totalDates: allDateStrings.length,
+                availableCount: availableDates.length,
+                missingCount: missingDates.length,
+            };
+
+            log?.addRepoCall({
+                repoName: 'InventoryRepository',
+                method: 'checkInventoryAvailability',
+                input: { propertyCode, roomTypeCode, startDate, endDate },
+                response: { totalDates: result.totalDates, availableCount: result.availableCount, missingCount: result.missingCount },
+                success: true,
+                durationMs: Date.now() - t,
+            });
+
+            return result;
+        } catch (error) {
+            log?.addRepoCall({
+                repoName: 'InventoryRepository',
+                method: 'checkInventoryAvailability',
+                input: { propertyCode, roomTypeCode, startDate, endDate },
+                success: false,
+                error: { message: 'Error checking inventory availability' },
+                durationMs: Date.now() - t,
+            });
+            throw new Error('Error checking inventory availability');
+        }
+    }
+
+    public async mapRatePlans(payload: ICharges[], log?: LogBuilder) {  // 👈
+        const t = Date.now();
+        try {
+            if (!payload || payload.length === 0) throw new Error('No charge data provided');
+
+            // ── Step 1: Upsert charges ────────────────────────────────────────────
+            const upsertedCharges = await Promise.all(
+                payload.map(chargeData => {
+                    const { propertyCode, ratePlanCode, ratePlanName, roomTypeCode, roomTypeName, currencyCode, date } = chargeData;
+                    return prisma.charge.upsert({
+                        where: {
+                            propertyCode_roomTypeCode_ratePlanCode_date: {
+                                propertyCode, roomTypeCode, ratePlanCode,
+                                date: new Date(date.toString()),
+                            },
+                        },
+                        create: {
+                            propertyCode, ratePlanCode, ratePlanName, roomTypeCode, roomTypeName,
+                            currencyCode: currencyCode.toUpperCase() as any,
+                            date: new Date(date.toString()),
+                        },
+                        update: {
+                            ratePlanName, roomTypeName,
+                            currencyCode: currencyCode.toUpperCase() as any,
+                        },
+                        select: { id: true, propertyCode: true, ratePlanCode: true, roomTypeCode: true, date: true },
+                    });
+                })
+            );
+
+            // ── Step 2: Delete old nested records ─────────────────────────────────
+            const chargeIds = upsertedCharges.map(c => c.id);
+            await Promise.all([
+                prisma.chargeBaseByGuest.deleteMany({ where: { chargeId: { in: chargeIds } } }),
+                prisma.chargeAdditionalGuest.deleteMany({ where: { chargeId: { in: chargeIds } } }),
+            ]);
+
+            // ── Step 3: Re-insert nested records ──────────────────────────────────
+            const baseGuestData = upsertedCharges.flatMap((charge, i) =>
+                payload[i].baseGuestAmounts.map(bg => ({
+                    chargeId: charge.id,
+                    numberOfGuests: bg.noOfGuests,
+                    amountBeforeTax: Number(bg.amount),
+                    ageQualifyingCode: bg.ageQualifyingCode,
+                }))
+            );
+            const additionalGuestData = upsertedCharges.flatMap((charge, i) =>
+                payload[i].additionalGuestAmounts.map(ag => ({
+                    chargeId: charge.id,
+                    ageQualifyingCode: ag.ageCode,
+                    amount: ag.amount,
+                }))
+            );
+            await Promise.all([
+                prisma.chargeBaseByGuest.createMany({ data: baseGuestData }),
+                prisma.chargeAdditionalGuest.createMany({ data: additionalGuestData }),
+            ]);
+
+            // ── Step 4: Update inventory ratePlans array ──────────────────────────
+            if (payload.length > 0) {
+                const { propertyCode, roomTypeCode, ratePlanCode } = payload[0];
+                const inventories = await prisma.inventory.findMany({ where: { propertyCode, roomTypeCode } });
+                const inventoryUpdates = inventories
+                    .filter(inv => !inv.ratePlans.includes(ratePlanCode))
+                    .map(inv => prisma.inventory.update({
+                        where: { id: inv.id },
+                        data: { ratePlans: { push: ratePlanCode } },
+                    }));
+                if (inventoryUpdates.length > 0) await Promise.all(inventoryUpdates);
+            }
+
+            const result = {
+                success: true,
+                message: `Added/Updated ${upsertedCharges.length} charge records and updated rate plans for rooms`,
+                recordsCreated: upsertedCharges.length,
+            };
+
+            log?.addRepoCall({
+                repoName: 'InventoryRepository',
+                method: 'mapRatePlans',
+                input: { recordCount: payload.length, propertyCode: payload[0]?.propertyCode, roomTypeCode: payload[0]?.roomTypeCode, ratePlanCode: payload[0]?.ratePlanCode },
+                response: { recordsCreated: result.recordsCreated },
+                success: true,
+                durationMs: Date.now() - t,
+            });
+
+            return result;
+        } catch (error: any) {
+            log?.addRepoCall({
+                repoName: 'InventoryRepository',
+                method: 'mapRatePlans',
+                input: { recordCount: payload.length },
+                success: false,
+                error: { message: error.message },
+                durationMs: Date.now() - t,
+            });
+            console.error('Error mapping rate plans:', error);
             throw new Error(error.message);
         }
     }
