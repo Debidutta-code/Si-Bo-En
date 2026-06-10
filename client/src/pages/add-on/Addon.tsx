@@ -768,8 +768,8 @@ export default function AddOns() {
   const convertText = (txt: string): string => {
     return txt
       .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
+      .map((word,index) => index != 0 ? (word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) : (word))
+      .join("");
   };
 
   // Filter add-ons
@@ -1103,7 +1103,7 @@ export default function AddOns() {
                             {addOn.isActive ? t("Addon.active") : t("Addon.inactive")}
                           </Badge>
                           <Badge variant="outline">
-                            {convertText(addOn.postingRhythm)}
+                            {t(`Addon.dialog.postingRhythm.${convertText(addOn.postingRhythm)}`)}
                           </Badge>
                         </div>
                         <div className="pt-2 border-t">

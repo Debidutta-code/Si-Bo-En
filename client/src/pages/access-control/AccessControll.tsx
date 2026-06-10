@@ -22,7 +22,7 @@ import { capitalizeFirstLetter } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
 
 export default function AccessControlPage() {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const [roles, setRoles] = useState<IAccess[]>([]);
   const [selectedRole, setSelectedRole] = useState<IAccess | null>(null);
@@ -61,7 +61,7 @@ export default function AccessControlPage() {
       setSelectedRole(data?.data || null);
     } catch (err) {
       console.error('Failed to fetch role details', err);
-        toast.error(t('Toast.couldNotLoadRoleDetails'));
+      toast.error(t('Toast.couldNotLoadRoleDetails'));
     } finally {
       setLoading(false);
     }
@@ -217,7 +217,7 @@ export default function AccessControlPage() {
                 <Shield className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-               <h1 className="text-xl font-bold text-foreground">{t('AccessControl.title')}</h1>
+                <h1 className="text-xl font-bold text-foreground">{t('AccessControl.title')}</h1>
                 <p className="text-muted-foreground text-sm mt-1">
                   {t('AccessControl.subtitle')}
                 </p>
@@ -377,7 +377,7 @@ export default function AccessControlPage() {
                     {roles.map((role) => (
                       <SelectItem key={role.role} value={role.role}>
                         <div className="flex items-center justify-between w-full">
-                          <span className="font-medium">{capitalizeFirstLetter(role.role.replaceAll('_', ' '))}</span>
+                          <span className="font-medium">{t(`Roles.${role.role.split("_").map((word, index) => index != 0 ? capitalizeFirstLetter(word) : word).join("")}`)}</span>
 
                         </div>
                       </SelectItem>
@@ -402,10 +402,12 @@ export default function AccessControlPage() {
                   </div>
                   <div>
                     <CardTitle className="text-xl font-bold text-foreground">
-                      {capitalizeFirstLetter(selectedRole.role.replaceAll('_', ' '))}
+                      {/* {(selectedRole.role)} */}
+                      <span className="font-medium">{t(`Roles.${selectedRole.role.split("_").map((word, index) => index != 0 ? capitalizeFirstLetter(word) : word).join("")}`)}</span>
+
                     </CardTitle>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                      
+
                       <Badge
                         variant={selectedRole.isActive ? 'default' : 'secondary'}
                         className="flex items-center text-xs"

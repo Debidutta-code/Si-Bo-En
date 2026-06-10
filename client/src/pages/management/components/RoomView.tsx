@@ -217,7 +217,7 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         entityId={translationEntityId}
                         title={t("Common.addTranslation")}
                         fields={[
-                            { key: "viewName", label: t("Management.roomViewsTitle"), placeholder: "e.g., Vista al mar" }
+                            { key: "viewName", label: t("Management.roomViewsTitle"), placeholder: t("Management.RoomView.placeholder") }
                         ]}
                         onSave={async (id, locale, data) => {
                             return await upsertMasterRoomViewTranslationService(id, { [locale]: data });
@@ -227,7 +227,7 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         open={checkTranslationsOpen}
                         onOpenChange={setCheckTranslationsOpen}
                         entityId={translationEntityId}
-                        title={t("Common.checkTranslation", { ns: "translation", defaultValue: "Room View Translations" })}
+                        title={t("Common.checkTranslation")}
                         displayFields={[
                             { key: "viewName", label: t("Management.roomViewsTitle") }
                         ]}
@@ -241,9 +241,9 @@ export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProp
                         entityId={translationEntityId!}
                         locale={editingLocale}
                         initialData={editingData}
-                        title={t("Common.editTranslation", { ns: "translation", defaultValue: "Edit Room View Translation" })}
+                        title={t("Common.editTranslation")}
                         fields={[
-                            { key: "viewName", label: t("Management.roomViewsTitle"), placeholder: "e.g., Vista al mar" }
+                            { key: "viewName", label: t("Management.roomViewsTitle"), placeholder: t("Management.RoomView.placeholder") }
                         ]}
                         onSave={async (id, locale, data) => upsertMasterRoomViewTranslationService(id, { [locale]: data })}
                     />

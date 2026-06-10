@@ -58,6 +58,7 @@
     "addPromotion": "Add Promotion Translation",
     "promotionName": "Promotion Name",
     "editTranslation": "Edit Promotion Translation",
+    "promotionTranslations": "Promotion Translations",
     "createAll": "Create All",
     "day": "Day",
     "week": "Week",
@@ -79,13 +80,18 @@
     "creating": "Creating...",
     "saving": "Saving...",
     "loadingTranslations": "Loading translations...",
-"noTranslationsFound": "No translations found.",
-"pleaseSelectLanguage": "Please select a language",
-"pleaseFillOneField": "Please fill in at least one field",
-"translationSaved": "Translation saved successfully!",
-"failedToSaveTranslation": "Failed to save translation",
-"translationUpdated": "Translation updated successfully!",
-"failedToUpdateTranslation": "Failed to update translation"
+    "noTranslationsFound": "No translations found.",
+    "pleaseSelectLanguage": "Please select a language",
+    "pleaseFillOneField": "Please fill in at least one field",
+    "translationSaved": "Translation saved successfully!",
+    "failedToSaveTranslation": "Failed to save translation",
+    "translationUpdated": "Translation updated successfully!",
+    "failedToUpdateTranslation": "Failed to update translation",
+    "showLess": "Show Less",
+    "showMore": "Show More",
+    "update": "Update",
+    "recover": "Recover",
+    "deleted": "Deleted"
   },
   "AddRoomLangDialog": {
     "title": "Add Room Translation",
@@ -103,7 +109,7 @@
       "saveSuccess": "Room translation added successfully!",
       "saveFailed": "Failed to add translation."
     }
-  },   
+  },
   "BookingStatus": {
     "confirmed": "Confirmed",
     "cancelled": "Cancelled",
@@ -145,8 +151,6 @@
     "october": "October",
     "november": "November",
     "december": "December"
-    
-
   },
   "Sidebar": {
     "dashboard": "Dashboard",
@@ -599,7 +603,16 @@
     "englishLanguage": "English",
     "editTranslationTitle": "Edit Property Translation",
     "translationFieldName": "Property Name",
-    "translationFieldNamePlaceholder": "e.g., Hotel Sol"
+    "translationFieldNamePlaceholder": "e.g., Hotel Sol",
+    "editPropertyDetailTranslation": "Edit Property Detail Translation",
+    "description": "Property Description",
+    "descriptionPlaceholder": "Describe your property's unique features...",
+    "namePlaceholder": "e.g., Hotel Sol",
+    "detailTranslation": "Property Details Translations",
+    "name": "Name",
+    "videoTour": "Video Tour",
+    "noMediaTitel": "Showcase Your Property",
+    "noMediaDecs": "Upload stunning photos and an engaging video tour to make your property stand out and attract more bookings"
   },
   "PropertySuper": {
     "title": "Hotels & Properties",
@@ -845,13 +858,46 @@
     "createConfiguration": "Create Configuration",
     "configurationActive": "Configuration Active",
     "configurationActiveDescription": "You already have a booking engine configuration. You can update it anytime to match your brand.",
-    "updateConfiguration": "Update Configuration"
+    "updateConfiguration": "Update Configuration",
+    "failedToFetchConfiguration": "Failed to fetch configuration",
+    "configurationUpdatedSuccessfully": "Configuration updated successfully!",
+    "configurationCreatedSuccessfully": "Configuration created successfully!",
+    "failedToSaveConfigurationMsg": "Failed to save configuration",
+    "errorOccurredWhileSaving": "An error occurred while saving",
+    "hotelWebsiteUrl": "Hotel Website URL",
+    "pasteUrlHere": "Paste url here",
+    "colorConfiguration": "Color Configuration",
+    "primaryColor": "Primary Color",
+    "secondaryColor": "Secondary Color",
+    "tertiaryColor": "Tertiary Color",
+    "buttonTextColor": "Button Text Color",
+    "images": "Images",
+    "logo": "Logo",
+    "noLogo": "No logo",
+    "uploadLogo": "Upload Logo",
+    "saving": "Saving...",
+    "livePreview": "Live Preview",
+    "livePreviewSubtitle": "See how your booking engine will look",
+    "bookYourStay": "Book Your Stay",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out",
+    "selectDate": "Select date",
+    "guests": "Guests",
+    "twoAdults": "2 Adults",
+    "searchAvailability": "Search Availability",
+    "viewRooms": "View Rooms",
+    "specialOffers": "Special Offers",
+    "feature": "Feature {{number}}"
   },
   "Roles": {
     "hotelManager": "Hotel Manager",
     "staff": "Staff",
     "revenueManager": "Revenue Manager",
-    "spaManager": "Spa Manager"
+    "spaManager": "Spa Manager",
+    "superAdmin": "Super Admin",
+    "regionalAdmin": "Regional Admin",
+    "groupManager": "Group Manager",
+    "brandManager": "Brand Manager"
   },
   "Booking": {
     "title": "Bookings",
@@ -2097,8 +2143,7 @@
       "placeholder": "e.g., Número de teléfono",
       "checkTranslations": "Loyalty Field Translations",
       "editTranslation": "Edit Loyalty Field Translation",
-          "noTranslationsFound": "No translations found."   
-
+      "noTranslationsFound": "No translations found."
     }
   },
   "Loyalty": {
@@ -2399,6 +2444,9 @@
       "loading": "Loading loyalty programs...",
       "failedFetch": "Failed to fetch loyalty programs"
     }
+  },
+  "LoyaltyLevel": {
+    "noOfReservations": "Number of Reservations"
   },
   "Agency": {
     "title": "Agencies",
@@ -2785,7 +2833,13 @@
     "delete": "Delete",
     "addTranslation": "Add Promo Code Translation",
     "transName": "Promo Name",
-    "transDecs": "Description"
+    "transDecs": "Description",
+    "editTranslation": "Edit Promo Code Translation",
+    "translations": "Promo Code Translations",
+    "placeholder": {
+      "name": "e.g. Oferta de Verano",
+      "description": "Enter translated description..."
+    }
   },
   "Addon": {
     "loadingAddonsData": "Loading add-ons data...",
@@ -3204,30 +3258,8 @@
     "noAvailableRatePlans": "No rate plans available",
     "noRatePlanAdded": "No rate plan added"
   },
-  "TaxGroupDialog": {
-    "createTitle": "Create Tax Group",
-    "editTitle": "Edit Tax Group",
-    "createDesc": "Create a group to combine multiple tax rules",
-    "editDesc": "Update the tax group details and rules",
-    "taxGroupName": "Tax Group Name *",
-    "taxGroupNamePlaceholder": "e.g., Standard Taxes, Luxury Taxes",
-    "activeStatus": "Active Status",
-    "activeStatusDesc": "Enable this tax group for rate plans",
-    "selectedTaxRules": "Selected Tax Rules ({{count}})",
-    "selectTaxRules": "Select Tax Rules",
-    "selectTaxRulesDesc": "Choose which tax rules to include in this group",
-    "noTaxRulesAvailable": "No tax rules available.",
-    "createTaxRulesFirst": "Create tax rules first to add them to groups.",
-    "roomRate": "Room Rate",
-    "totalAmount": "Total Amount",
-    "priority": "Priority",
-    "cancel": "Cancel",
-    "saving": "Saving...",
-    "create": "Create",
-    "update": "Update"
-  },
   "TouristTaxDialog": {
-    "createTitle": "Create Additional Charge",
+    "createTitle": "Additional Charge",
     "editTitle": "Edit Additional Charge",
     "createDesc": "Create a new tourist tax for your property",
     "editDesc": "Update the tourist tax details",
@@ -3482,6 +3514,8 @@
       "promotionNameHint": "This is just for you - users won't be able to see it",
       "autoApply": "Auto Apply",
       "autoAppliedDescription": "This promotion is currently auto applied to the reservation",
+      "notAutoAppliedDescription": "This promotion is currently not auto applied to the reservation",
+
       "activeStatus": "Active Status",
       "activeDescription": "This promotion is currently active",
       "inactiveDescription": "This promotion is currently inactive",
@@ -3737,6 +3771,7 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "deleting": "Deleting...",
+    "to": "to",
     "form": {
       "save": "Save",
       "create": "Create",
@@ -4676,6 +4711,7 @@
   },
   "AddPropertyAddressLangDialog": {
     "title": "Add Address Translation",
+    "edit": "Edit Address Translation",
     "form": {
       "languageLabel": "Language",
       "languagePlaceholder": "Select Language",
@@ -4686,6 +4722,15 @@
       "country": "Country",
       "location": "Location",
       "landmark": "Landmark"
+    },
+    "formEx": {
+      "addressLine1": "e.g. Calle 123",
+      "addressLine2": "e.g. Apt. 4B",
+      "city": "e.g. Madrid",
+      "state": "e.g. Comunidad de Madrid",
+      "country": "e.g. España",
+      "location": "e.g. Plaza Mayor",
+      "landmark": "e.g. El Corte Inglés"
     },
     "buttons": {
       "cancel": "Cancel",
@@ -4718,7 +4763,6 @@
       "deleteFailed": "Failed to delete translation"
     }
   },
-  
   "SpaManagement": {
     "categories": "Spa Categories",
     "addCategory": "Add Category",
@@ -5250,6 +5294,412 @@
     "commissionType": {
       "percentage": "Percentage",
       "fixedAmount": "Fixed Amount"
+    }
+  },
+  "UpdatePropertyAddress": {
+    "loader": {
+      "updating": "Updating the property details"
+    },
+    "form": {
+      "addressLine1": "Address Line 1 *",
+      "addressLine2": "Address Line 2",
+      "country": "Country *",
+      "state": "State *",
+      "city": "City *",
+      "areaLocation": "Area/Location *",
+      "landmark": "Landmark",
+      "pinCode": "PIN Code *",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "googleMapsLink": "Google Maps Link"
+    },
+    "placeholder": {
+      "addressLine1": "Street number and name",
+      "addressLine2": "Apartment, building, etc.",
+      "country": "Search or type country...",
+      "state": "Search or type state...",
+      "city": "Search or type city...",
+      "location": "e.g., Badi Chopar",
+      "landmark": "Near City Palace",
+      "mapLink": "https://maps.google.com/?q=26.9124,75.7873"
+    },
+    "coordinates": {
+      "sectionTitle": "Location Coordinates",
+      "autoLocation": "Auto Location",
+      "autoFetch": "Auto Fetch Location",
+      "fetching": "Fetching...",
+      "useMapLink": "Use Map Link",
+      "manualEntry": "Manual Entry",
+      "latitude": "Latitude:",
+      "longitude": "Longitude:"
+    },
+    "toast": {
+      "geolocationNotSupported": "Geolocation is not supported by your browser",
+      "enableLocationPermission": "Please enable location permissions in your browser"
+    },
+    "status": {
+      "fetchingLocation": "Fetching your location...",
+      "geolocationNotSupported": "Geolocation not supported",
+      "locationPermissionDenied": "Location permission denied",
+      "coordsExtracted": "Coordinates extracted: ({{lat}}, {{lng}})",
+      "extractionFailed": "Could not extract coordinates from this link",
+      "locationFetched": "Location fetched: ({{lat}}, {{lng}})"
+    }
+  },
+  "UpdateRooms": {
+    "loader": {
+      "loading": "Loading Room Details"
+    },
+    "toast": {
+      "roomViewsLoadFailed": "Failed to load room views for the dropdown.",
+      "roomViewsFetchFailed": "Could not fetch room views."
+    },
+    "sections": {
+      "basicInfo": "Basic Information",
+      "specifications": "Room Specifications",
+      "occupancy": "Occupancy Details",
+      "images": "Room Images *"
+    },
+    "form": {
+      "roomName": "Room Name *",
+      "roomCode": "Room Code *",
+      "totalRooms": "Total Rooms of This Type *",
+      "roomAvailability": "Room Availability",
+      "roomDescription": "Room Description *",
+      "priority": "Priority",
+      "roomView": "Room View",
+      "floor": "Floor",
+      "smokingPolicy": "Smoking Policy",
+      "roomSize": "Room Size",
+      "sizeUnit": "Size Unit",
+      "numberOfBedrooms": "No.of Bedrooms",
+      "numberOfLivingRooms": "No.of Living Rooms",
+      "numberOfExtraBeds": "No.of Extra Beds",
+      "maxOccupancy": "Max Occupancy *",
+      "maxAdults": "Max Adults",
+      "maxChildren": "Max Children"
+    },
+    "placeholder": {
+      "roomName": "e.g., Deluxe King Suite",
+      "roomCode": "e.g., DKS",
+      "totalRooms": "e.g., 10",
+      "description": "Describe the room's features, view, and what makes it special.",
+      "priority": "e.g., 1,2,3",
+      "selectView": "Select view",
+      "floor": "e.g., 8",
+      "selectPolicy": "Select policy",
+      "roomSize": "e.g., 350",
+      "bedrooms": "e.g., 350",
+      "livingRooms": "e.g., 350",
+      "extraBeds": "e.g., 350",
+      "maxOccupancy": "e.g., 3",
+      "maxAdults": "e.g., 2",
+      "maxChildren": "e.g., 1"
+    },
+    "availability": {
+      "available": "This room type is available for booking.",
+      "unavailable": "This room type is currently unavailable."
+    },
+    "smokingOptions": {
+      "nonSmoking": "Non-Smoking",
+      "smokingAllowed": "Smoking Allowed",
+      "designatedArea": "Designated Area"
+    },
+    "sizeUnitOptions": {
+      "sqft": "Square Feet (sqft)",
+      "sqm": "Square Meters (sqm)"
+    },
+    "images": {
+      "subtitle": "Showcase your room with stunning photos",
+      "addEditImages": "Add or Edit Images",
+      "altText": "Room image {{index}}"
+    },
+    "characters": "characters"
+  },
+  "SelectPaymentIntegration": {
+    "title": "Select Payment Integration",
+    "description": "Choose your preferred payment gateway for processing transactions.",
+    "gatewayProvider": "Payment Gateway Provider",
+    "pgId": "PG Id:",
+    "pgIdPlaceholder": "Enter PG Id",
+    "warnings": "Please select one payment integration to enable online payments."
+  },
+  "TaxGroupDialog": {
+    "title": {
+      "create": "Create Tax Group",
+      "edit": "Edit Tax Group"
+    },
+    "description": {
+      "create": "Create a group to combine multiple tax rules",
+      "edit": "Update the tax group details and rules"
+    },
+    "form": {
+      "name": "Tax Group Name *",
+      "namePlaceholder": "e.g., Standard Taxes, Luxury Taxes",
+      "activeStatus": "Active Status",
+      "activeStatusHint": "Enable this tax group for rate plans",
+      "selectedRules": "Selected Tax Rules ({{count}})",
+      "selectRules": "Select Tax Rules",
+      "selectRulesHint": "Choose which tax rules to include in this group",
+      "priority": "Priority: {{value}}",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "create": "Create",
+      "update": "Update"
+    },
+    "applicableOn": {
+      "roomRate": "Room Rate",
+      "totalAmount": "Total Amount"
+    },
+    "empty": {
+      "noRules": "No tax rules available.",
+      "createFirst": "Create tax rules first to add them to groups."
+    }
+  },
+  "TaxRuleDialog": {
+    "addedToGroup": "Applied to Groups:",
+    "title": {
+      "create": "Create Tax Rule",
+      "edit": "Edit Tax Rule"
+    },
+    "description": {
+      "create": "Create a new tax rule for your property",
+      "edit": "Update the tax rule details"
+    },
+    "form": {
+      "name": "Tax Rule Name *",
+      "namePlaceholder": "e.g., GST, Service Tax, VAT",
+      "taxType": "Tax Type *",
+      "valuePercent": "Value (%) *",
+      "valueAmount": "Amount *",
+      "currencyCode": "Currency Code",
+      "applicableOn": "Applicable On *",
+      "priority": "Priority (0-5) *",
+      "priorityHint": "Higher priority taxes are calculated first",
+      "description": "Description",
+      "descriptionPlaceholder": "Add any additional details about this tax rule...",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "create": "Create",
+      "update": "Update"
+    },
+    "taxTypes": {
+      "percentage": "Percentage (%)",
+      "fixed": "Fixed Amount"
+    },
+    "applicableOn": {
+      "roomRate": "Room Rate",
+      "totalAmount": "Total Amount"
+    }
+  },
+  "TaxRuleTranslation": {
+    "addTitel": "Add Tax Rule Translation",
+    "checkTitel": "Tax Rule Translations",
+    "editTitel": "Edit Tax Rule Translation",
+    "fields": {
+      "name": "Rule Name",
+      "description": "Description"
+    },
+    "placeholder": {
+      "name": "Enter rule name",
+      "description": "Enter description"
+    }
+  },
+  "TaxGroupTranslation": {
+    "addTitel": "Add Tax Group Translation",
+    "checkTitel": "Tax Group Translations",
+    "editTitel": "Edit Tax Group Translation",
+    "fields": {
+      "name": "Group Name"
+    },
+    "placeholder": {
+      "name": "Enter group name"
+    }
+  },
+  "TouristTaxTranslation": {
+    "addTitel": "Add Additional Charge Translation",
+    "checkTitel": "Additional Charge Translations",
+    "editTitel": "Edit Additional Charge Translation",
+    "fields": {
+      "name": "Charge Name"
+    },
+    "placeholder": {
+      "name": "Enter charge name"
+    }
+  },
+  "Days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "Months": {
+    "january": "January",
+    "february": "February",
+    "march": "March",
+    "april": "April",
+    "may": "May",
+    "june": "June",
+    "july": "July",
+    "august": "August",
+    "september": "September",
+    "october": "October",
+    "november": "November",
+    "december": "December"
+  },
+  "ApiLogs": {
+    "title": "Activity Logs",
+    "subtitle": "Track all system activities and changes",
+    "refresh": "Refresh",
+    "totalLogs": "Total Logs",
+    "pagesTotal": "{{count}} pages total",
+    "currentPage": "Current Page",
+    "showingLogs": "Showing {{count}} logs",
+    "perPage": "Per Page",
+    "adjustBelow": "Adjust in controls below",
+    "activityTimeline": "Activity Timeline",
+    "recentActivities": "Recent system activities and changes",
+    "searchPlaceholder": "Search logs...",
+    "loadingLogs": "Loading logs...",
+    "failedToLoad": "Failed to Load Logs",
+    "errorFetching": "An error occurred while fetching logs",
+    "tryAgain": "Try Again",
+    "noLogsFound": "No Logs Found",
+    "noLogsYet": "No activity logs available yet",
+    "tryAdjustingSearch": "Try adjusting your search criteria",
+    "previous": "Previous",
+    "next": "Next",
+    "unknown": "Unknown",
+    "showing": "Showing {{from}} to {{to}} of {{total}} logs",
+    "columns": {
+      "timestamp": "Timestamp",
+      "action": "Action",
+      "entity": "Entity",
+      "description": "Description",
+      "performedBy": "Performed By",
+      "ipAddress": "IP Address",
+      "device": "Device",
+      "severity": "Severity",
+      "details": "Details"
+    },
+    "dialog": {
+      "title": "Activity Log Details",
+      "description": "Detailed information about this activity log entry",
+      "basicInfo": "Basic Information",
+      "action": "Action:",
+      "entity": "Entity:",
+      "entityId": "Entity ID:",
+      "entityName": "Entity Name:",
+      "timestamp": "Timestamp:",
+      "severity": "Severity:",
+      "shortMessage": "Short Message:",
+      "userDetails": "User Details",
+      "name": "Name:",
+      "email": "Email:",
+      "userId": "User ID:",
+      "role": "Role:",
+      "level": "Level:",
+      "propertyContext": "Property Context",
+      "propertyName": "Property Name:",
+      "propertyCode": "Property Code:",
+      "propertyId": "Property ID:",
+      "deviceNetwork": "Device & Network Information",
+      "ipAddress": "IP Address:",
+      "deviceType": "Device Type:",
+      "browser": "Browser:",
+      "os": "Operating System:",
+      "country": "Country:",
+      "city": "City:",
+      "timezone": "Timezone:",
+      "userAgent": "User Agent:",
+      "sessionId": "Session ID:",
+      "requestId": "Request ID:",
+      "executionTime": "Execution Time:",
+      "apiContext": "API Context",
+      "requestUrl": "Request URL:",
+      "apiStatus": "API Status:",
+      "requestPayload": "Request Payload",
+      "stateChanges": "State Changes",
+      "oldValue": "Old Value:",
+      "newValue": "New Value:",
+      "errorDetails": "Error Details",
+      "errorCode": "Error Code:",
+      "errorMessage": "Error Message:",
+      "stackTrace": "Stack Trace:",
+      "recoverable": "Recoverable:",
+      "yes": "Yes",
+      "no": "No",
+      "relatedEntities": "Related Entities",
+      "type": "Type:",
+      "id": "ID:",
+      "entityNameLabel": "Name:",
+      "tags": "Tags"
+    }
+  },
+  "ServiceLog": {
+    "title": "Service Logs",
+    "subtitle": "Internal service call traces, messages, and repo interactions",
+    "errorSummaryBtn": "Error Summary",
+    "refresh": "Refresh",
+    "stats": {
+      "totalLogs": "Total Logs",
+      "currentPage": "Current Page",
+      "totalPages": "Total Pages",
+      "perPage": "Per Page"
+    },
+    "card": {
+      "title": "Service Trace Log",
+      "description": "All recorded service calls, ordered by newest first"
+    },
+    "searchPlaceholder": "Search service, method…",
+    "allLevels": "All levels",
+    "loadingLogs": "Loading logs…",
+    "failedToLoad": "Failed to load logs",
+    "errorFetching": "An error occurred while fetching service logs",
+    "tryAgain": "Try Again",
+    "noLogsFound": "No Logs Found",
+    "noLogsYet": "No service logs recorded yet.",
+    "tryAdjusting": "Try adjusting your search or filters.",
+    "columns": {
+      "timestamp": "Timestamp",
+      "level": "Level",
+      "service": "Service",
+      "method": "Method",
+      "repos": "Repos",
+      "msgs": "Msgs",
+      "actions": "Actions"
+    },
+    "showing": "Showing {{from}}–{{to}} of {{total}} logs",
+    "previous": "Previous",
+    "next": "Next",
+    "repoCalls": {
+      "noRecords": "No repo calls recorded.",
+      "repo": "Repo",
+      "method": "Method",
+      "inputSent": "Input sent",
+      "responseReceived": "Response received",
+      "duration": "Duration",
+      "status": "Status"
+    },
+    "dialog": {
+      "at": "at",
+      "requestId": "requestId:",
+      "incomingData": "Incoming Data",
+      "repositoryCalls": "Repository Calls",
+      "messages": "Messages",
+      "serviceResponse": "Service Response",
+      "meta": "Meta",
+      "error": "Error",
+      "code": "Code:"
+    },
+    "errorSummaryPanel": {
+      "title": "Error Summary",
+      "loading": "Loading…",
+      "noErrors": "🎉 No errors recorded.",
+      "errors": "errors"
     }
   }
 }

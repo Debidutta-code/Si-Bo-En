@@ -152,7 +152,6 @@ const map = doc.translations as unknown as Record<string, IMasterPropertyTypeLoc
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );};
 masterPropertyTypeTranslationSchema.statics.getAllTranslations = async function (id) {
@@ -236,7 +235,6 @@ masterAmenityTranslationSchema.statics.getTranslated = async function (id, local
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };
@@ -319,7 +317,6 @@ const map = doc.translations as unknown as Record<string, IMasterRoomViewLocaleB
 
   return (
     map[locale] ??
-    Object.values(map)[0] ??
     null
   );
 };

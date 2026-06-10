@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,7 @@ export default function TaxGroupDialog({
     availableTaxRules,
     selectedRuleIds = [],
 }: TaxGroupDialogProps) {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState<ICTaxGroup>({
         name: "",
         isActive: true,
@@ -108,22 +110,22 @@ export default function TaxGroupDialog({
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">
-                        {mode === "create" ? "Create Tax Group" : "Edit Tax Group"}
+                        {mode === "create" ? t("TaxGroupDialog.title.create") : t("TaxGroupDialog.title.edit")}
                     </DialogTitle>
                     <DialogDescription>
                         {mode === "create"
-                            ? "Create a group to combine multiple tax rules"
-                            : "Update the tax group details and rules"}
+                            ? t("TaxGroupDialog.description.create")
+                            : t("TaxGroupDialog.description.edit")}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
                     {/* Tax Group Name */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">Tax Group Name *</Label>
+                        <Label htmlFor="name">{t("TaxGroupDialog.form.name")}</Label>
                         <Input
                             id="name"
-                            placeholder="e.g., Standard Taxes, Luxury Taxes"
+                            placeholder={t("TaxGroupDialog.form.namePlaceholder")}
                             value={formData.name}
                             onChange={(e) =>
                                 setFormData({ ...formData, name: e.target.value })
@@ -135,10 +137,10 @@ export default function TaxGroupDialog({
                     <div className="flex items-center justify-between space-x-2 py-2 border-y">
                         <div className="space-y-0.5">
                             <Label htmlFor="isActive" className="cursor-pointer">
-                                Active Status
+                                {t("TaxGroupDialog.form.activeStatus")}
                             </Label>
                             <p className="text-xs text-gray-500">
-                                Enable this tax group for rate plans
+                                {t("TaxGroupDialog.form.activeStatusHint")}
                             </p>
                         </div>
                         <Switch
@@ -153,7 +155,7 @@ export default function TaxGroupDialog({
                     {/* Selected Rules Summary */}
                     {selectedRules.length > 0 && (
                         <div className="space-y-2">
-                            <Label>Selected Tax Rules ({selectedRules.length})</Label>
+                            <Label>{t("TaxGroupDialog.form.selectedRules", { count: selectedRules.length })}</Label>
                             <div className="flex flex-wrap gap-2">
                                 {selectedRules.map((rule) => (
                                     <Badge key={rule.id} variant="secondary">
@@ -166,15 +168,15 @@ export default function TaxGroupDialog({
 
                     {/* Tax Rules Selection */}
                     <div className="space-y-2">
-                        <Label>Select Tax Rules</Label>
+                        <Label>{t("TaxGroupDialog.form.selectRules")}</Label>
                         <p className="text-xs text-gray-500 mb-2">
-                            Choose which tax rules to include in this group
+                            {t("TaxGroupDialog.form.selectRulesHint")}
                         </p>
                         
                         {availableTaxRules.length === 0 ? (
                             <div className="text-center py-8 text-gray-500">
-                                <p>No tax rules available.</p>
-                                <p className="text-sm">Create tax rules first to add them to groups.</p>
+                                <p>{t("TaxGroupDialog.empty.noRules")}</p>
+                                <p className="text-sm">{t("TaxGroupDialog.empty.createFirst")}</p>
                             </div>
                         ) : (
                             <ScrollArea className="h-64 rounded-md border p-4">
@@ -205,11 +207,11 @@ export default function TaxGroupDialog({
                                                     <span>•</span>
                                                     <span>
                                                         {rule.applicableOn === "room_rate"
-                                                            ? "Room Rate"
-                                                            : "Total Amount"}
+                                                            ? t("TaxGroupDialog.applicableOn.roomRate")
+                                                            : t("TaxGroupDialog.applicableOn.totalAmount")}
                                                     </span>
                                                     <span>•</span>
-                                                    <span>Priority: {rule.priority}</span>
+                                                    <span>{t("TaxGroupDialog.form.priority", { value: rule.priority })}</span>
                                                   
                                                 </div>
                                                 {rule.description && (
@@ -228,13 +230,13 @@ export default function TaxGroupDialog({
 
                 <DialogFooter>
                     <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
-                        Cancel
+                        {t("TaxGroupDialog.form.cancel")}
                     </Button>
                     <Button
                         onClick={handleSave}
                         disabled={isSubmitting || !formData.name.trim()}
                     >
-                        {isSubmitting ? "Saving..." : mode === "create" ? "Create" : "Update"}
+                        {isSubmitting ? t("TaxGroupDialog.form.saving") : mode === "create" ? t("TaxGroupDialog.form.create") : t("TaxGroupDialog.form.update")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

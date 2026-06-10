@@ -253,7 +253,6 @@ export default class CreationService {
     }
     public static async getPropertyByRole(
         requestUserLevel: number,
-        creationId: string
     ) {
         try {
             let creations: any[];
@@ -261,16 +260,6 @@ export default class CreationService {
                 case 4:
                     creations = await CreationRepository.getCreationsByRole();
                     break;
-                // case 3:
-                //     creations = await CreationRepository.getCreationsByRole({
-                //         groupId: creationId,
-                //     });
-                //     break;
-                // case 2:
-                //     creations = await CreationRepository.getCreationsByRole({
-                //         brandId: creationId,
-                //     });
-                //     break;
                 default:
                     creations = [];
                     break;
@@ -284,10 +273,10 @@ export default class CreationService {
             return errorResponse('Failed to get properties', error.message);
         }
     }
-    public static async getSpecificCreation(creationId: string) {
+    public static async getSpecificCreation(creationId: string,includeDeleted:boolean) {
         try {
             const creation =
-                await CreationRepository.getSpecificCreation(creationId);
+                await CreationRepository.getSpecificCreation(creationId,includeDeleted);
             if (!creation) {
                 return errorResponse('Creation Not found');
             } else {
@@ -398,6 +387,25 @@ export default class CreationService {
             return successResponse('Creation deleted successfully');
         } catch (error: any) {
             return errorResponse('Failed to delete creation', error.message);
+        }
+    }
+    public static async recoverCreation(creationId: string) {
+        try {
+            const isExists =
+                await CreationRepository.getSpecificCreation(creationId,true);
+            if (!isExists) {
+                return errorResponse('Creation not found');
+            }
+            const recoverResult = await CreationRepository.recoveryCreation(creationId);
+            if (!recoverResult) {
+                return errorResponse('Failed to recover creation');
+            }
+            return successResponse('Creation recovered successfully');
+        } catch (error) {
+            if(error instanceof Error){
+                throw new Error(error.message);
+            }
+            throw new Error('Failed to recover creation');
         }
     }
 }

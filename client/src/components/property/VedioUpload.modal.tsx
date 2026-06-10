@@ -3,6 +3,7 @@ import { X, Video, } from 'lucide-react';
 import axios from "axios";
 import createAxiosInstance from '../axiosInstance';
 import { useTranslation } from "react-i18next";
+import { Button } from '../ui/button';
 
 const uploadToS3 = async (
   file: File,
@@ -289,14 +290,15 @@ const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
 
         {/* Footer */}
         <div className="p-6 border-t flex justify-end gap-4">
-          <button onClick={handleClose}>{t("VideoUpload.cancel")}</button>
-          <button
+          <Button onClick={handleClose} variant={"terciary"}>{t("VideoUpload.cancel")}</Button>
+          <Button
+            variant={"default"}
             onClick={handleUpload}
             disabled={!selectedFile || isUploading}
           >
             {t("VideoUpload.upload")}
 
-          </button>
+          </Button>
         </div>
 
       </div>

@@ -87,6 +87,11 @@ export class SpaRepository {
             return await prisma.spa.findMany({
                 where: {
                     propertyId: propertyId,
+                    Property: {
+                        propertyConfigs: {
+                            isSpaModuleEnabled: true
+                        }
+                    }
                 },
                 include: {
                     Category: true,
@@ -137,6 +142,9 @@ export class SpaRepository {
                     isInclusive: false,
                     Property: {
                         propertyCode: propertyCode,
+                        propertyConfigs:{
+                            isSpaModuleEnabled: true
+                        }
                     },
                 },
                 include: {
@@ -191,6 +199,11 @@ export class SpaRepository {
                 where: {
                     propertyId,
                     isActive: true,
+                    Property:{
+                        propertyConfigs:{
+                            isSpaModuleEnabled:true
+                        }
+                    }
                 },
                 include: {
                     Category: true,
@@ -253,6 +266,11 @@ export class SpaRepository {
             return await prisma.reservation.findUnique({
                 where: {
                     bookingCode: bookingCode,
+                    property:{
+                        propertyConfigs:{
+                            isSpaModuleEnabled:true
+                        }
+                    }
                 },
                 select: {
                     id: true,
@@ -495,7 +513,7 @@ export class SpaRepository {
     public async getSpaBookingById(bookingId: string) {
         try {
             return await prisma.spaBooking.findUnique({
-                where: { id: bookingId },
+                where: { id: bookingId},
             });
         } catch (error) {
             throw new Error('Error occur while fetching spa booking');
@@ -505,7 +523,11 @@ export class SpaRepository {
     public async getSpaWithProperty(spaId: string) {
         try {
             return await prisma.spa.findUnique({
-                where: { id: spaId },
+                where: { id: spaId, Property: {
+                    propertyConfigs: {
+                        isSpaModuleEnabled: true
+                    }
+                } },
                 include: {
                     AssignedSpas: {
                         include: {

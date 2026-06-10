@@ -250,15 +250,12 @@ export default function PromoCodePage() {
     };
 
     const formatDate = (date: Date | string) => {
-        return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        const dateStr = typeof date === 'string' ? date : date.toISOString();
+        const [y, m, d] = dateStr.split('T')[0].split('-').map(Number);
+        const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+        return `${t(`Months.${monthKeys[m - 1]}`)} ${d}, ${y}`;
     };
 
-    // const isPromoCodeActive = (promoCode: IRPromoCode) => {
-    //     const now = new Date();
-    //     const validFrom = new Date(promoCode.validFrom);
-    //     const validTo = new Date(promoCode.validTo);
-    //     return promoCode.isActive && now >= validFrom && now <= validTo;
-    // };
     if (loading.isLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
@@ -560,7 +557,7 @@ export default function PromoCodePage() {
                                                         }
                                                     }}
                                                 />
-                                                <Label htmlFor={`rt-${roomType.id}`}>{roomType._translations?roomType._translations.roomName:roomType.roomName}</Label>
+                                                <Label htmlFor={`rt-${roomType.id}`}>{roomType._translations ? roomType._translations.roomName : roomType.roomName}</Label>
                                             </div>
                                         ))}
                                     </div>
@@ -774,8 +771,8 @@ export default function PromoCodePage() {
                         entityId={translationEntityId}
                         title={t('PromoCode.addTranslation')}
                         fields={[
-                            { key: "name", label: t('PromoCode.transName'), placeholder: "e.g. Oferta de Verano" },
-                            { key: "description", label: t('PromoCode.transDecs'), placeholder: "Enter translated description..." }
+                            { key: "name", label: t('PromoCode.transName'), placeholder: t('PromoCode.placeholder.name') },
+                            { key: "description", label: t('PromoCode.transDecs'), placeholder: t('PromoCode.placeholder.description') }
                         ]}
                         onSave={async (id, locale, data) => {
                             return await upsertPromoCodeTranslationService(id, { [locale]: data });
@@ -786,7 +783,7 @@ export default function PromoCodePage() {
                         open={checkTranslationsOpen}
                         onOpenChange={setCheckTranslationsOpen}
                         entityId={translationEntityId}
-                        title="Promo Code Translations"
+                        title={t('PromoCode.translations')}
                         displayFields={[
                             { key: "name", label: t('PromoCode.transName') },
                             { key: "description", label: t('PromoCode.transDecs') }
@@ -801,10 +798,10 @@ export default function PromoCodePage() {
                         entityId={translationEntityId!}
                         locale={editingLocale}
                         initialData={editingData}
-                        title="Edit Promo Code Translation"
+                        title={t('PromoCode.editTranslation')}
                         fields={[
-                            { key: "name", label: t('PromoCode.transName'), placeholder: "e.g. Oferta de Verano" },
-                            { key: "description", label: t('PromoCode.transDecs'), placeholder: "Enter translated description..." }
+                            { key: "name", label: t('PromoCode.transName'), placeholder: t('PromoCode.placeholder.name') },
+                            { key: "description", label: t('PromoCode.transDecs'), placeholder: t('PromoCode.placeholder.description') }
                         ]}
                         onSave={async (id, locale, data) => upsertPromoCodeTranslationService(id, { [locale]: data })}
                     />

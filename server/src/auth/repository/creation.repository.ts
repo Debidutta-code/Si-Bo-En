@@ -1,7 +1,7 @@
 // dao/CreationDao.ts
 
 import { prisma } from '../../config';
-import type { ICreation, IGetCreations, PropertyFilters } from '../types';
+import type { BaseEntity, ICreation, IGetCreations, PropertyFilters } from '../types';
 
 const toStringId = (id: string | any): string => {
     return typeof id === 'string' ? id : String(id);
@@ -64,16 +64,85 @@ export default class CreationDao {
         }
     }
 
+    private static async collectAllDescendantIds(rootId: string): Promise<Set<string>> {
+        const visited = new Set<string>();
+        const queue: string[] = [rootId];
+
+        while (queue.length > 0) {
+            const currentId = queue.shift()!;
+            if (visited.has(currentId)) continue;
+            visited.add(currentId);
+
+            // Fetch all child relations in one query
+            const node = await prisma.creation.findUnique({
+                where: { id: currentId },
+                select: {
+                    superChildren: { select: { id: true } },
+                    groupChildren: { select: { id: true } },
+                    brandChildren: { select: { id: true } },
+                    regionalChildren: { select: { id: true } },
+                },
+            });
+
+            if (!node) continue;
+
+            const childIds = [
+                ...node.superChildren,
+                ...node.groupChildren,
+                ...node.brandChildren,
+                ...node.regionalChildren,
+            ].map(c => c.id);
+
+            for (const childId of childIds) {
+                if (!visited.has(childId)) {
+                    queue.push(childId);
+                }
+            }
+        }
+
+        return visited;
+    }
+
     public static async delete(creationId: string) {
         try {
-            return await prisma.creation.delete({
-                where: { id: creationId },
-            });
+            const allIds = await this.collectAllDescendantIds(creationId);
+            const idList = Array.from(allIds);
+
+            await prisma.$transaction([
+                prisma.creation.updateMany({
+                    where: { id: { in: idList } },
+                    data: { isDeleted: true },
+                }),
+                prisma.property.updateMany({
+                    where: { creationId: { in: idList } },
+                    data: { isDeleted: true },
+                }),
+                prisma.user.updateMany({
+                    where: { creationId: { in: idList } },
+                    data: { isDeleted: true, creationId: null },
+                }),
+
+            ]);
+
+            return { deletedCreationCount: idList.length };
         } catch (error: any) {
             throw new Error(`Failed to mark as deleted: ${error.message}`);
         }
     }
-
+    public static async recoveryCreation(creationId: string): Promise<BaseEntity | null> {
+        try {
+            return await prisma.creation.update({
+                where: { id: creationId },
+                data: {
+                    isDeleted: false
+                },
+            });
+        } catch (error: any) {
+            throw new Error(
+                `Failed to recover creation: ${error.message}`
+            );
+        }
+    }
     public static async getAll(
         type: 'group' | 'property' | 'brand' | 'super' | 'regional',
         isActive: boolean
@@ -111,7 +180,9 @@ export default class CreationDao {
     public static async getCreationsByRole(): Promise<any[]> {
         try {
             return await prisma.creation.findMany({
-                where: {},
+                where: {type:{
+                    notIn:["super"]
+                }},
                 orderBy: { createdAt: 'desc' },
                 include: {
                     users: {
@@ -170,11 +241,16 @@ export default class CreationDao {
     }
 
     public static async getSpecificCreation(
-        creationId: string
+        creationId: string,
+        isDeleted: boolean = false
     ): Promise<IGetCreations | null> {
         try {
+            let whereCondition: any = { id: creationId };
+            if (!isDeleted) {
+                whereCondition.isDeleted = false;
+            }
             return await prisma.creation.findUnique({
-                where: { id: creationId },
+                where: whereCondition,
                 include: {
                     users: {
                         select: {
@@ -200,6 +276,7 @@ export default class CreationDao {
                             name: true,
                             images: true,
                             type: true,
+                            isDeleted: true,
                         },
                     },
                     brand: {
@@ -208,6 +285,7 @@ export default class CreationDao {
                             name: true,
                             images: true,
                             type: true,
+                            isDeleted: true,
                         },
                     },
                     brandChildren: {
@@ -217,6 +295,7 @@ export default class CreationDao {
                             images: true,
                             type: true,
                             property: true,
+                            isDeleted: true,
                         },
                     },
                     groupChildren: {
@@ -226,6 +305,8 @@ export default class CreationDao {
                             images: true,
                             type: true,
                             property: true,
+                            isDeleted: true,
+
                         },
                     },
                     regionalChildren: {
@@ -235,6 +316,7 @@ export default class CreationDao {
                             images: true,
                             type: true,
                             property: true,
+                            isDeleted: true,
                         },
                     },
                 },
@@ -245,6 +327,7 @@ export default class CreationDao {
             );
         }
     }
+
 }
 
 export class ManageCreationUser {
@@ -369,10 +452,6 @@ export class ManageCreationUser {
         return this.removeUserFromLevel(creationId, userId, 'level4Users');
     }
 }
-
-// ================================
-// Get Creation Details by User ID
-// ================================
 
 export class CreationDetailsByUserId {
     public static async getGroupManagersGroup(groupManagerId: string) {
@@ -533,9 +612,6 @@ export class CreationDetailsByUserId {
     }
 }
 
-// ================================
-// Get Creation Details by Creation ID
-// ================================
 
 export class CreationDetailsByCreationId {
     public static async getGroupManagersGroup(groupId: string) {
@@ -662,9 +738,6 @@ export class CreationDetailsByCreationId {
     }
 }
 
-// ================================
-// Add Creation to Creation (Hierarchy)
-// ================================
 
 export class AddCreationToCreation {
     public static async addToSuper(superId: string, groupId: string) {

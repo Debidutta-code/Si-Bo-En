@@ -110,7 +110,13 @@ export default function MappingsTable({
                                         {mappings.map((mapping) => (
                                             <TableRow key={mapping.id} className="hover:bg-gray-50">
                                                 <TableCell className="font-medium">
-                                                    {mapping.date ? format(new Date(mapping.date), "MMM dd, yyyy") : "N/A"}
+                                                    {mapping.date
+                                                        ? (() => {
+                                                            const [y, m, d] = mapping.date.split('T')[0].split('-').map(Number);
+                                                            const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+                                                            return `${t(`Months.${monthKeys[m - 1]}`)} ${String(d).padStart(2, '0')}, ${y}`;
+                                                        })()
+                                                        : "N/A"}
                                                 </TableCell>
                                                 <TableCell>
                                                     {(() => {
@@ -163,14 +169,14 @@ export default function MappingsTable({
                                                                 className="cursor-pointer"
                                                             >
                                                                 <Edit className="w-4 h-4 mr-2" />
-                                                                Update
+                                                                {t("Common.update")}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem
                                                                 onClick={() => setViewPriceDetails(mapping)}
                                                                 className="cursor-pointer"
                                                             >
                                                                 <Eye className="w-4 h-4 mr-2" />
-                                                                View Details
+                                                                {t("Common.viewDetails")}
                                                             </DropdownMenuItem>
                                                             <DropdownMenuSeparator />
                                                             <DropdownMenuItem
@@ -178,7 +184,7 @@ export default function MappingsTable({
                                                                 className="cursor-pointer text-red-600 focus:text-red-600"
                                                             >
                                                                 <Trash2 className="w-4 h-4 mr-2" />
-                                                                Delete
+                                                                {t("Common.delete")}
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
@@ -234,7 +240,11 @@ export default function MappingsTable({
                                 <div>
                                     <p className="text-sm text-gray-500">{t("MapRatePlan.priceDetails.date")}</p>
                                     <p className="font-semibold">
-                                        {format(new Date(viewPriceDetails.date), "MMM dd, yyyy")}
+                                        {(() => {
+                                            const d = new Date(viewPriceDetails.date);
+                                            const month = t(`Months.${format(d, "MMMM").toLowerCase()}`);
+                                            return `${month} ${format(d, "dd, yyyy")}`;
+                                        })()}
                                     </p>
                                 </div>
                                 <div>

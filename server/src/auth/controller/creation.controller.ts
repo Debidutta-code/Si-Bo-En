@@ -155,7 +155,6 @@ export default class CreationController {
             // Call the service without page and limit
             let serRes = await CreationService.getPropertyByRole(
                 requestUserLevel,
-                creationId
             );
 
             const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
@@ -174,8 +173,9 @@ export default class CreationController {
     }
     public static async getSpecificCreation(req: CustomRequest, res: Response) {
         try {
+            const includeDeleted = req.user?.level === 4 ? true : false;
             const id = req.params.creationId;
-            let serRes = await CreationService.getSpecificCreation(id);
+            let serRes = await CreationService.getSpecificCreation(id, includeDeleted);
 
             const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             serRes = await CreationInterceptor.interceptGetSpecificCreation(serRes, locale);
@@ -185,6 +185,25 @@ export default class CreationController {
             return res
                 .status(500)
                 .json(errorResponse('Internal server error', error?.message));
+        }
+    }
+    public static async recoverCreationController(
+        req: CustomRequest,
+        res: Response
+    ) {
+        try {
+            const { id } = req.params;
+            const serRes = await CreationService.recoverCreation(id);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error) {
+            if(error instanceof Error){
+                return res
+                .status(500)
+                .json(errorResponse('Internal server error', error?.message));
+            }
+            return res
+                .status(500)
+                .json(errorResponse('Internal server error', 'Failed to recover creation'));
         }
     }
 }

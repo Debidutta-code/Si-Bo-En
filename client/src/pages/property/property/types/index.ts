@@ -13,3 +13,4 @@ IrequiredFieldsForMasterIntegration
 }
 
 export * from "./active-language.types";
+export * from "./transfer.type";

@@ -23,7 +23,7 @@ interface CategoriesTabProps {
 }
 
 export default function CategoriesTab({ categories, setCategories }: CategoriesTabProps) {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState<boolean>(false);
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
@@ -102,7 +102,7 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsCategoryDialogOpen(false)}>                  {t('Common.cancel')}
-</Button>
+                </Button>
                 <Button onClick={handleCreateCategory}>{t('Common.create')}</Button>
               </DialogFooter>
             </DialogContent>
@@ -117,9 +117,9 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">{category._translations?.categoryName || category.categoryName}</CardTitle>
-<CardDescription className="mt-1">
-  {category._translations?.categoryDescription || category.categoryDescription}
-</CardDescription>                  </div>
+                    <CardDescription className="mt-1">
+                      {category._translations?.categoryDescription || category.categoryDescription}
+                    </CardDescription>                  </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -186,8 +186,8 @@ export default function CategoriesTab({ categories, setCategories }: CategoriesT
             initialData={editingData}
             title={t("Management.Category.editTranslation")}
             fields={[
-              { key: "categoryName", label: t("Management.Category.name") , placeholder: "e.g., Lujo" },
-              { key: "categoryDescription", label:t("Management.Category.description"), placeholder: "Describe this category" },
+              { key: "categoryName", label: t("Management.Category.name"), placeholder: t("Management.Category.namePlaceholder") },
+              { key: "categoryDescription", label: t("Management.Category.description"), placeholder: t("Management.Category.descriptionPlaceholder") },
             ]}
             onSave={async (id, locale, data) => upsertMasterPropertyCategoryTranslationService(id, { [locale]: data })}
           />

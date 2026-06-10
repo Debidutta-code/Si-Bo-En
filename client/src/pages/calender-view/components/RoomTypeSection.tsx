@@ -101,7 +101,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   <input
                     type="number"
                     min="0"
-                    placeholder="Bulk"
+                    placeholder={t('CalendarView.roomTypeSection.bulk')}
+
                     className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     onChange={(e) => {
                       if (e.target.value) {
@@ -250,7 +251,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   <input
                     type="number"
                     min="0"
-                    placeholder="Bulk"
+                    placeholder={t('CalendarView.roomTypeSection.bulk')}
+
                     className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                     onChange={(e) => {
                       if (e.target.value) {
@@ -326,11 +328,11 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   onMouseLeave={onMouseLeave}
                   className="w-32 flex-shrink-0 flex flex-col items-center justify-center py-2 border-r border-gray-300"
                 >
-                  <div className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                    {day.dayOfWeek}
+                  <div className="text-xs font-medium text-gray-600 tracking-wide">
+                    {t(`SpaCalendar.weekDays.${day.dayOfWeek.toLowerCase()}`)}
                   </div>
                   <div className="text-xs font-semibold text-gray-900 mt-0.5">
-                    {day.month.slice(0, 3)} {day.date}
+                    {t(`Months.${day.month.toLowerCase()}`)} {day.date}
                   </div>
                 </div>
               ))}
@@ -391,8 +393,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         )
                       }
                       className={`w-14 h-7 text-center text-sm font-bold rounded border ${hasChanges
-                          ? "border-orange-400 bg-orange-50"
-                          : "border-transparent"
+                        ? "border-orange-400 bg-orange-50"
+                        : "border-transparent"
                         } focus:outline-none focus:ring-2 focus:ring-blue-400 hover:border-gray-300 transition-colors`}
                     />
                     {edit && (
@@ -488,8 +490,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                             )
                           }
                           className={`${effectiveValue
-                              ? "data-[state=checked]:bg-red-500"
-                              : "data-[state=unchecked]:bg-gray-300"
+                            ? "data-[state=checked]:bg-red-500"
+                            : "data-[state=unchecked]:bg-gray-300"
                             } scale-50`}
                         />
                       </div>
@@ -531,8 +533,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                             )
                           }
                           className={`${effectiveValue
-                              ? "data-[state=checked]:bg-red-500"
-                              : "data-[state=unchecked]:bg-gray-300"
+                            ? "data-[state=checked]:bg-red-500"
+                            : "data-[state=unchecked]:bg-gray-300"
                             } scale-50`}
                         />
                       </div>

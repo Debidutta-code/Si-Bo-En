@@ -16,10 +16,12 @@ import {
 import type { BookingEngineConfig, BookingEngineData } from './interface';
 import Loader from '@/components/Loader/Loader';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function BookingEngineConfigPage() {
   const params = useParams();
   const propertyId = params?.propertyId as string;
+  const { t } = useTranslation();
 
   const [isLoading, setIsLoading] = React.useState(true);
   const [existingConfig, setExistingConfig] = React.useState<BookingEngineData | null>(null);
@@ -45,7 +47,7 @@ export default function BookingEngineConfigPage() {
         setShowForm(false);
       }
     } catch (err) {
-      setError('Failed to fetch configuration');
+      setError(t('BookingEngine.failedToFetchConfiguration'));
     } finally {
       setIsLoading(false);
     }
@@ -63,22 +65,22 @@ export default function BookingEngineConfigPage() {
       if (result.success) {
         toast.success(
           existingConfig
-            ? 'Configuration updated successfully!'
-            : 'Configuration created successfully!'
+            ? t('BookingEngine.configurationUpdatedSuccessfully')
+            : t('BookingEngine.configurationCreatedSuccessfully')
         );
         await fetchConfig(); // Refresh to get latest data
       } else {
-        toast.error(result.message || 'Failed to save configuration');
+        toast.error(result.message || t('BookingEngine.failedToSaveConfigurationMsg'));
       }
     } catch (err) {
-      toast.error('An error occurred while saving');
+      toast.error(t('BookingEngine.errorOccurredWhileSaving'));
     }
   };
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader text="Loading configuration..." />
+        <Loader text={t('BookingEngine.loadingConfiguration')} />
       </div>
     );
   }
@@ -100,10 +102,10 @@ export default function BookingEngineConfigPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Booking Engine Configuration
+            {t('BookingEngine.title')}
           </h1>
           <p className="text-gray-600">
-            Customize the appearance of your booking engine
+            {t('BookingEngine.subtitle')}
           </p>
         </div>
 
@@ -115,17 +117,17 @@ export default function BookingEngineConfigPage() {
                 <AlertCircle className="h-10 w-10 text-gray-400" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                No Configuration Found
+                {t('BookingEngine.noConfigurationFound')}
               </h2>
               <p className="text-gray-600 mb-6">
-                You haven't configured your booking engine yet. Create a configuration to customize your booking experience.
+                {t('BookingEngine.noConfigurationDescription')}
               </p>
               <Button
                 onClick={() => setShowForm(true)}
                 size="lg"
                 className="bg-black text-white hover:bg-gray-800"
               >
-                Create Configuration
+                {t('BookingEngine.createConfiguration')}
               </Button>
             </div>
           </Card>
@@ -151,17 +153,17 @@ export default function BookingEngineConfigPage() {
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Configuration Active
+                {t('BookingEngine.configurationActive')}
               </h2>
               <p className="text-gray-600 mb-6">
-                You already have a booking engine configuration. You can update it anytime to match your brand.
+                {t('BookingEngine.configurationActiveDescription')}
               </p>
               <Button
                 onClick={() => setShowForm(true)}
                 size="lg"
                 className="bg-black text-white hover:bg-gray-800"
               >
-                Update Configuration
+                {t('BookingEngine.updateConfiguration')}
               </Button>
             </div>
           </Card>

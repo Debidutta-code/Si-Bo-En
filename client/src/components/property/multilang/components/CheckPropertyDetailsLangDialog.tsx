@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/Loader/Loader";
 import { Trash2 } from "lucide-react";
-
+import { useTranslation } from "react-i18next";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -18,7 +18,7 @@ interface Props {
 export default function CheckPropertyDetailsLangDialog({ open, onOpenChange, propertyId, onEdit }: Props) {
   const [translations, setTranslations] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
-
+const { t } = useTranslation();
   const fetchTranslations = async () => {
     setLoading(true);
     const res = await getAllPropertyTranslationsService(propertyId);
@@ -51,16 +51,16 @@ export default function CheckPropertyDetailsLangDialog({ open, onOpenChange, pro
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[80vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>Property Details Translations</DialogTitle></DialogHeader>
-        {loading ? <div className="flex justify-center py-8"><Loader text="Fetching translations..." /></div> : (
+        <DialogHeader><DialogTitle>{t('Property.detailTranslation')}</DialogTitle></DialogHeader>
+        {loading ? <div className="flex justify-center py-8"><Loader text={t('Common.loadingTranslations')} /></div> : (
           <div className="space-y-4 py-4">
-            {Object.entries(translations).length === 0 ? <p className="text-center text-gray-500">No translations found.</p> : (
+            {Object.entries(translations).length === 0 ? <p className="text-center text-gray-500">{t('Common.noTranslationsFound')}</p> : (
               Object.entries(translations).map(([locale, data]) => (
                 <div key={locale} className="flex justify-between items-start border p-4 rounded-md shadow-sm gap-3">
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-gray-800">{getLangName(locale)}</h4>
-                    <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Name:</span> {data.propertyName}</p>
-                    <p className="text-sm text-gray-600"><span className="font-medium">Desc:</span> {data.description?.substring(0, 50)}...</p>
+                    <p className="text-sm text-gray-600 mt-1"><span className="font-medium">{t('Common.name')}:</span> {data.propertyName}</p>
+                    <p className="text-sm text-gray-600"><span className="font-medium">{t('Common.description')}:</span> {data.description?.substring(0, 50)}...</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {onEdit && (

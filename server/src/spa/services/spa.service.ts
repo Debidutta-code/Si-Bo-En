@@ -272,7 +272,6 @@ export class SpaService {
         try {
             const cancelledBooking =
                 await this.spaRepository.getSpaBookingById(bookingId);
-            // CANCEL BOOKING
             const result = await this.spaRepository.cancelSpaBooking(
                 bookingId,
                 customerId,

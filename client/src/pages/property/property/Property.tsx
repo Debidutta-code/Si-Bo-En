@@ -39,6 +39,7 @@ import IntegrationDialog from './components/IntegrationDialog';
 import PropertyConfigDialog from './components/PropertyConfigDialog';
 import ViewIntegrationDetailsDialog from './components/ViewIntegrationDetailsDialog';
 import ManageIntegrationFieldsDialog from './components/ManageIntegrationFieldsDialog';
+import PropertyTransferDialog from './components/PropertyTransferDialog';
 import { Award, FileText, LayoutDashboard, Shield, Users as UsersIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { capitalizeFirstLetter } from '@/lib/utils';
@@ -55,29 +56,14 @@ import { EditTranslationDialog } from "@/pages/management/components/multilang/M
 import { upsertCreationTranslationService } from "../service/creation-lang.service";
 
 import { useTranslation } from 'react-i18next';
+import { usePropertyContextSafe } from '@/contexts/PropertyContext';
 
 export default function PropertyPage() {
     const { t } = useTranslation();
-
+    const propertyCtx = usePropertyContextSafe();
     const { user } = useAppSelector((state) => state.user);
     const [addMemberDialogOpen, setAddMemberDialogOpen] = useState<boolean>(false)
     const { creationId } = useParams<{ creationId: string }>();
-    const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
-        channelManagerIntegrationActive: false,
-        pmsIntegrationActive: false,
-        selfAriActive: false,
-        isB2bAvailable: false,
-        isB2cAvailable: false,
-        commission: false,
-        showVideo: true,
-        timezone: "Asia/Kolkata",
-        baseCurrency: "INR",
-        isAvailableForBooking:true,
-        isAvailableForBookingEngine:true,
-        isAvailableForOTA:false,
-        isLoyaltyProgramEnabled:false,
-        isSpaModuleEnabled:false
-    })
     const [masterPartners, setMasterPartners] = useState<IMasterPartnersWProperty[]>([]);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -118,6 +104,7 @@ export default function PropertyPage() {
     const [isPropertyConfigDialogOpen, setIsPropertyConfigDialogOpen] = useState(false);
     const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
     const [isManageFieldsDialogOpen, setIsManageFieldsDialogOpen] = useState(false);
+    const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
     const [updatePropertyDetails, setUpdatePropertyDetails] = useState<IUpdateCreation>({
         id: creationDetails.id,
         name: creationDetails.name,
@@ -126,6 +113,24 @@ export default function PropertyPage() {
     });
 
     const [propertyLanguages, setPropertyLanguages] = useState<IPropertyActiveLanguage[]>([]);
+
+    // Local propertyConfig state (propertyCtx is null here — this page lives under AuthLayout, not PropertyLayout)
+    const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
+        channelManagerIntegrationActive: false,
+        pmsIntegrationActive: false,
+        selfAriActive: false,
+        isB2bAvailable: false,
+        isB2cAvailable: false,
+        commission: false,
+        showVideo: true,
+        timezone: 'Asia/Kolkata',
+        baseCurrency: 'INR',
+        isAvailableForBooking: true,
+        isAvailableForBookingEngine: true,
+        isAvailableForOTA: false,
+        isLoyaltyProgramEnabled: false,
+        isSpaModuleEnabled: false,
+    });
 
     const refreshLanguages = async () => {
         if (!propertyDetails?.id) return;
@@ -164,7 +169,6 @@ export default function PropertyPage() {
             }
             const response = await getPropertyCreationId(creationId);
             if (response.success) {
-                console.log(response.data)
                 setIsCreationCompleted(response.isPropertyCreated);
                 setCreationDetails(response.data.creationData);
                 setPropertyDetails(response.data.propertyDetails);
@@ -211,11 +215,16 @@ export default function PropertyPage() {
         }
     }
 
+    const fetchLocalPropertyConfig = async (propertyId: string) => {
+        try {
+            const response = await fetchPropertyConfigService(propertyId);
+            if (response.success && response.data) {
+                setPropertyConfig(response.data);
+            }
+        } catch { /* swallow */ }
+    };
+
     const updatePropertyConfig = async () => {
-        if (user?.role != "super_admin") {
-            toast.error(t('Toast.onlySuperAdminCanUpdate'));
-            return
-        }
         if (!propertyDetails?.id) {
             toast.error(t('Toast.propertyNotSelected'));
             return;
@@ -224,53 +233,32 @@ export default function PropertyPage() {
             setIsLoading(true);
             const response = await updatePropertyConfigService(propertyDetails.id, propertyConfig);
             if (response.success) {
-                toast.success(t('Toast.propertyConfigUpdated'))
-                fetchPropertyConfig(propertyDetails.id)
+                toast.success(t('Toast.propertyConfigUpdated'));
+                propertyCtx?.refreshPropertyConfig();
             } else {
-                toast.error(response.message || t('Toast.failedToUpdatePropertyConfig'))
+                toast.error(response.message || t('Toast.failedToUpdatePropertyConfig'));
             }
         } catch (error) {
-            toast.error(t('Toast.failedToUpdatePropertyConfig'))
+            toast.error(t('Toast.failedToUpdatePropertyConfig'));
         } finally {
             setIsLoading(false);
         }
     }
 
-    const fetchPropertyConfig = async (creationId: string) => {
-        if (user?.role != "super_admin") return;
-        if (!creationId) {
-            toast.error(t('Toast.propertyNotSelected'));
-            return;
-        }
-        try {
-            setIsLoading(true);
-            const response = await fetchPropertyConfigService(creationId);
-            if (response.success) {
-                setPropertyConfig(response.data);
-            } else {
-                toast.error(response.message || t('Toast.failedToFetchPropertyConfig'))
-            }
-        } catch (error) {
-            toast.error(t('Toast.failedToFetchPropertyConfig'))
-        } finally {
-            setIsLoading(false);
-        }
-    }
 
     useEffect(() => {
         if (propertyDetails?.id) {
-            fetchPropertyConfig(propertyDetails.id);
-            refreshLanguages();
+            propertyCtx?.refreshLanguages();
+            propertyCtx?.refreshPropertyConfig();
+            fetchLocalPropertyConfig(propertyDetails.id);
         }
     }, [propertyDetails]);
 
 
     const handleCreateProperty = () => {
-        if (!propertyDetails?.id) {
-            navigate(`/property/create?creationId=${creationId}`);
-        } else {
-            navigate(`/property/create?propertyId=${propertyDetails?.id}`);
-        }
+        // Open the transfer / import dialog first.
+        // The dialog handles both the "skip" (normal flow) and "proceed" (transfer) paths.
+        setIsTransferDialogOpen(true);
     };
 
     const handleEditProperty = () => {
@@ -571,7 +559,7 @@ export default function PropertyPage() {
                                 </p>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isDrafted
                                     ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                                    : 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200'
+                                    : 'bg-ye    llow-100 text-yellow-700 ring-1 ring-yellow-200'
                                     }`}>
                                     {isDrafted ? t('Property.activeStatus') : t('Property.setupRequiredStatus')}
                                 </span>
@@ -625,7 +613,6 @@ export default function PropertyPage() {
                                 </Button>
                             </DropdownMenuItem>
 
-                            {(user?.role === "super_admin" || user?.role === "regional_admin") && propertyDetails?.id && (
                                 <DropdownMenuItem
                                     onSelect={(e) => {
                                         e.preventDefault();
@@ -637,7 +624,6 @@ export default function PropertyPage() {
                                         <Settings className='h-4 w-4 mr-2' /> {t('Property.propertyConfig')}
                                     </Button>
                                 </DropdownMenuItem>
-                            )}
 
                             <Dialog onOpenChange={setAddMemberDialogOpen} open={addMemberDialogOpen}>
                                 <DialogTrigger asChild>
@@ -872,7 +858,7 @@ export default function PropertyPage() {
                                     <p className="text-xs text-gray-500">{user.email}</p>
                                 </div>
                                 <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 whitespace-nowrap ml-2">
-                                    {capitalizeFirstLetter(user.role.replaceAll("_", " "))}
+                                          <span className="font-medium">{t(`Roles.${user.role.split("_").map((word, index) => index != 0 ? capitalizeFirstLetter(word) : word).join("")}`)}</span>
                                 </span>
                             </div>
                         ))}
@@ -1000,7 +986,7 @@ export default function PropertyPage() {
             {/* ──────────────────────────────────────────────────────────── */}
 
             {/* Loyalty Configuration Section */}
-            {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') && (
+            {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') &&  propertyConfig.isLoyaltyProgramEnabled && (
                 <div className="bg-white p-6 rounded-lg shadow">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">{t('Sidebar.loyaltyConfiguration')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1049,6 +1035,14 @@ export default function PropertyPage() {
                     </div>
                 </div>
             )}
+
+            {/* Property Transfer / Recovery Dialog */}
+            <PropertyTransferDialog
+                open={isTransferDialogOpen}
+                onOpenChange={setIsTransferDialogOpen}
+                creationId={creationId!}
+                propertyId={propertyDetails?.id}
+            />
 
             {/* Integration Dialog */}
             <IntegrationDialog

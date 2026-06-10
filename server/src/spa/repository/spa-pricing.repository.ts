@@ -21,7 +21,7 @@ export class SpaPricingRepository {
     public async deleteSpaPricing(spaSlotId: string): Promise<ISpaPricing> {
         try {
             return await prisma.spaPricing.delete({
-                where: { spaSlotId: spaSlotId },
+                where: { spaSlotId: spaSlotId, },
             });
         } catch (error) {
             throw new Error('Error while deleting spa slot pricing');

@@ -4,6 +4,7 @@ import { SpaController } from '../controller';
 import { Router } from 'express';
 import { spaSlotRouter } from './spa-slots.route';
 import { userSpaRouter } from './spa-user.route';
+import { attachPropertyDetails } from '../../middlewares/property.middleware';
 
 const spaRouter = Router();
 const spaController = new SpaController();
@@ -11,14 +12,26 @@ const spaController = new SpaController();
 spaRouter.use('/slots', spaSlotRouter);
 spaRouter.use('/users', userSpaRouter);
 
-spaRouter.route('/').post(protect, spaController.createSpa.bind(spaController));
+spaRouter.route('/').post(protect, attachPropertyDetails({
+    identifierType:"id",
+    key:"propertyId",
+    source:"body"
+}),spaController.createSpa.bind(spaController));
 
 spaRouter
     .route('/property/:propertyId')
-    .get(spaController.getSpaForProperty.bind(spaController));
+    .get(attachPropertyDetails({
+    identifierType:"id",
+    key:"propertyId",
+    source:"params"
+}),spaController.getSpaForProperty.bind(spaController));
 spaRouter
     .route('/property/code/:propertyCode')
-    .get(spaController.getSpaForPropertyCode.bind(spaController));
+    .get(attachPropertyDetails({
+    identifierType:"code",
+    key:"propertyCode",
+    source:"params"
+}),spaController.getSpaForPropertyCode.bind(spaController));
 spaRouter
     .route('/:id')
     .put(protect, spaController.updateSpa.bind(spaController))

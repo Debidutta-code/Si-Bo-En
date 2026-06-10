@@ -24,7 +24,7 @@ import { currencies } from '@/components/currency-code/cuurency';
 import { useTranslation } from "react-i18next";
 
 export default function Dashboard() {
-    const { t } = useTranslation();
+  const { t } = useTranslation();
 
   const { user } = useAppSelector((state) => state.user);
   const [loader, setLoader] = useState<ILoader>({
@@ -53,11 +53,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (allProperties.length > 0 || !selectedProperty.id) {
-      if(!comparisonType)return
+      if (!comparisonType) return
       fetchStatistics(selectedCurrency, selectedProperty?.id, selectedProperty?.code, selectedProperty?.name,);
       fetchAnalytics(selectedCurrency, selectedProperty?.id, selectedProperty?.code, selectedProperty?.name,)
     }
-  }, [comparisonType,selectedCurrency]);
+  }, [comparisonType, selectedCurrency]);
 
   const handlePropertyChange = (propertyId: string) => {
     if (propertyId === "all") {
@@ -77,11 +77,9 @@ export default function Dashboard() {
   };
 
   const fetchStatistics = async (selectedCurrency: CurrencyCode, propertyId?: string, propertyCode?: string, propertyName?: string) => {
-    // console.log(selectedCurrency)
     if (!selectedCurrency) return
     try {
       setError(null);
-      // console.log(selectedCurrency)
       const response = await fetchStatisticsComparisonService(
         comparisonType,
         selectedDate.toISOString(),
@@ -283,7 +281,7 @@ export default function Dashboard() {
               >
                 <SelectTrigger className="w-[200px]">
                   <Building2 className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder={t('Dashboard.selectAll')}/>
+                  <SelectValue placeholder={t('Dashboard.selectAll')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('Dashboard.selectAll')}</SelectItem>
@@ -325,7 +323,7 @@ export default function Dashboard() {
               variant={"terciary"}
             >
               <RefreshCw className='h-3 mr-2 w-3' />
-             {t('Common.refresh')}
+              {t('Common.refresh')}
             </Button>
           </div>
         </div>
@@ -341,8 +339,6 @@ export default function Dashboard() {
         <RevenueStats data={analyticsData.revenue}
           currencyCode={analyticsData.currencyCode} />
 
-        {/* Guest Analytics */}
-        {/* <GuestStats data={analyticsData.guest} /> */}
 
         {/* Additional Stats */}
         <AdditionalStats

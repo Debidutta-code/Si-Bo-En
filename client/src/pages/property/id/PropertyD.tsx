@@ -96,7 +96,6 @@ export default function PropertyDetailsPage() {
       const response = await getPropertyDetails(propertyId);
       if (response.data) {
         const data = response.data;
-        console.log("Data", data)
         setPropertyDetails({
           propertyName: data.propertyName,
           propertyEmail: data.propertyEmail,
@@ -148,7 +147,6 @@ export default function PropertyDetailsPage() {
       const response = await addPropertyVideo(propertyId, videoUrl, thumbnailUrl);
 
       if (response.success) {
-        // console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
         toast.success('Video uploaded and saved successfully!');
         await fetchPropertyDetails(propertyId);
       } else {

@@ -82,37 +82,37 @@ export default function AddPropertyAddressLangDialog({ open, onOpenChange, prope
 
           <div className="space-y-2 col-span-2">
             <Label>{t("AddPropertyAddressLangDialog.form.addressLine1")}</Label>
-            <Input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} />
+            <Input value={addressLine1} onChange={(e) => setAddressLine1(e.target.value)} placeholder={t("AddPropertyAddressLangDialog.formEx.addressLine1")} />
           </div>
 
           <div className="space-y-2 col-span-2">
             <Label>{t("AddPropertyAddressLangDialog.form.addressLine2")}</Label>
-            <Input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} />
+            <Input value={addressLine2} onChange={(e) => setAddressLine2(e.target.value)} placeholder={t("AddPropertyAddressLangDialog.formEx.addressLine2")} />
           </div>
 
           <div className="space-y-2">
             <Label>{t("AddPropertyAddressLangDialog.form.city")}</Label>
-            <Input value={city} onChange={(e) => setCity(e.target.value)} />
+            <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder={t("AddPropertyAddressLangDialog.formEx.city")} />
           </div>
 
           <div className="space-y-2">
             <Label>{t("AddPropertyAddressLangDialog.form.state")}</Label>
-            <Input value={state} onChange={(e) => setState(e.target.value)} />
+            <Input value={state} onChange={(e) => setState(e.target.value)} placeholder={t("AddPropertyAddressLangDialog.formEx.state")} />
           </div>
 
           <div className="space-y-2">
             <Label>{t("AddPropertyAddressLangDialog.form.country")}</Label>
-            <Input value={country} onChange={(e) => setCountry(e.target.value)} />
+            <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder={t("AddPropertyAddressLangDialog.formEx.country")} />
           </div>
 
           <div className="space-y-2">
             <Label>{t("AddPropertyAddressLangDialog.form.location")}</Label>
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} />
+            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t("AddPropertyAddressLangDialog.formEx.location")} />
           </div>
 
           <div className="space-y-2 col-span-2">
             <Label>{t("AddPropertyAddressLangDialog.form.landmark")}</Label>
-            <Input value={landmark} onChange={(e) => setLandmark(e.target.value)} />
+            <Input value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder={t("AddPropertyAddressLangDialog.formEx.landmark")} />
           </div>
         </div>
 

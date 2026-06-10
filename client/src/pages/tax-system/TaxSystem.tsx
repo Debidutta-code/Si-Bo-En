@@ -76,7 +76,6 @@ import {
     PlusCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import { TaxRuleDialog, TaxGroupDialog, TouristTaxDialog } from "./components";
 import { fetchRoomTypesService } from "../inventory/services";
 import type { RoomTypes } from "../inventory/types";
@@ -972,7 +971,7 @@ export default function TaxSystem() {
                                                 )}
                                                 {getGroupsForRule(rule.id).length > 0 && (
                                                     <div className="space-y-1">
-                                                        <p className="text-xs font-medium text-gray-700">Applied to Groups:</p>
+                                                        <p className="text-xs font-medium text-gray-700">{t("TaxRuleDialog.addedToGroup")}</p>
                                                         <div className="flex gap-1 flex-wrap">
                                                             {getGroupsForRule(rule.id).map((group) => (
                                                                 <Badge
@@ -1072,12 +1071,12 @@ export default function TaxSystem() {
                                                         {group.isActive ? (
                                                             <span className="flex items-center gap-1 text-green-600">
                                                                 <CheckCircle className="w-3 h-3" />
-                                                                {t("TaxSystem.active")}
+                                                                {t("Common.active")}
                                                             </span>
                                                         ) : (
                                                             <span className="flex items-center gap-1 text-gray-400">
                                                                 <XCircle className="w-3 h-3" />
-                                                                {t("TaxSystem.inactive")}
+                                                                {t("Common.inactive")}
                                                             </span>
                                                         )}
                                                     </CardDescription>
@@ -1199,12 +1198,12 @@ export default function TaxSystem() {
                                                 <Badge
                                                     variant={group.isActive ? "default" : "secondary"}
                                                 >
-                                                    {group.isActive ? t("TaxSystem.active") : t("TaxSystem.inactive")}
+                                                    {group.isActive ? t("Common.active") : t("Common.inactive")}
                                                 </Badge>
                                                 {group.taxGroupRules && group.taxGroupRules.length > 0 && (
                                                     <div className="space-y-1">
                                                         <p className="text-xs font-medium text-gray-700">
-                                                            Tax Rules ({group.taxGroupRules.length}):
+                                                            {t("TaxSystem.taxRules")} ({group.taxGroupRules.length}):
                                                         </p>
                                                         <div className="flex gap-1 flex-wrap max-h-20 overflow-y-auto">
                                                             {group.taxGroupRules.map((gr) => (
@@ -1223,7 +1222,7 @@ export default function TaxSystem() {
                                                 {group.ratePlans && group.ratePlans.length > 0 && (
                                                     <div className="space-y-1">
                                                         <p className="text-xs font-medium text-gray-700">
-                                                            Rate Plans ({group.ratePlans.length}):
+                                                            {t("GeoRatePlanForm.ratePlansLabel")} ({group.ratePlans.length}):
                                                         </p>
                                                         <div className="flex gap-1 flex-wrap max-h-20 overflow-y-auto">
                                                             {group.ratePlans.map((ratePlan) => (
@@ -1239,11 +1238,7 @@ export default function TaxSystem() {
                                                         </div>
                                                     </div>
                                                 )}
-                                                <div className="pt-2 border-t text-xs text-gray-500">
-                                                    <p>
-                                                        Created: {format(new Date(group.createdAt), "PP")}
-                                                    </p>
-                                                </div>
+                                                
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -1398,11 +1393,7 @@ export default function TaxSystem() {
                                                             : "Flat Discount"}
                                                     </Badge>
                                                 </div>
-                                                <div className="pt-2 border-t text-xs text-gray-500">
-                                                    <p>
-                                                        Created: {format(new Date(charge.createdAt), "PP")}
-                                                    </p>
-                                                </div>
+                                                
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -1575,10 +1566,10 @@ export default function TaxSystem() {
                             open={translationDialog.openAdd}
                             onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
                             entityId={translationDialog.entityId}
-                            title="Add Tax Rule Translation"
+                            title={t("TaxRuleTranslation.addTitel")}
                             fields={[
-                                { key: "name", label: "Rule Name", placeholder: "e.g. Impuesto..." },
-                                { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                                { key: "name", label: t("TaxRuleTranslation.fields.name"), placeholder: t("TaxRuleTranslation.placeholder.name") },
+                                { key: "description", label: t("TaxRuleTranslation.fields.description"), placeholder: t("TaxRuleTranslation.placeholder.description") }
                             ]}
                             onSave={async (id, locale, data) => {
                                 return await upsertTaxRuleTranslation(id, { [locale]: data });
@@ -1589,10 +1580,10 @@ export default function TaxSystem() {
                             open={translationDialog.openCheck}
                             onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
                             entityId={translationDialog.entityId}
-                            title="Tax Rule Translations"
+                            title={t("TaxRuleTranslation.checkTitel")}
                             displayFields={[
-                                { key: "name", label: "Name" },
-                                { key: "description", label: "Description" }
+                                { key: "name", label: t("TaxRuleTranslation.fields.name") },
+                                { key: "description", label: t("TaxRuleTranslation.fields.description") }
                             ]}
                             onFetch={getAllTaxRuleTranslations}
                             onDelete={deleteTaxRuleTranslationLocale}
@@ -1604,10 +1595,10 @@ export default function TaxSystem() {
                             entityId={translationDialog.entityId!}
                             locale={translationDialog.editingLocale}
                             initialData={translationDialog.editingData}
-                            title="Edit Tax Rule Translation"
+                            title={t("TaxRuleTranslation.editTitel")}
                             fields={[
-                                { key: "name", label: "Rule Name", placeholder: "e.g. Impuesto..." },
-                                { key: "description", label: "Description", placeholder: "Enter translated description..." }
+                                { key: "name", label: t("TaxRuleTranslation.fields.name"), placeholder: t("TaxRuleTranslation.placeholder.name") },
+                                { key: "description", label: t("TaxRuleTranslation.fields.description"), placeholder: t("TaxRuleTranslation.placeholder.description") }
                             ]}
                             onSave={async (id, locale, data) => upsertTaxRuleTranslation(id, { [locale]: data })}
                         />
@@ -1619,9 +1610,9 @@ export default function TaxSystem() {
                             open={translationDialog.openAdd}
                             onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
                             entityId={translationDialog.entityId}
-                            title="Add Tax Group Translation"
+                            title={t("TaxGroupTranslation.addTitel")}
                             fields={[
-                                { key: "name", label: "Group Name", placeholder: "e.g. Grupo de Impuestos..." }
+                                { key: "name", label: t("TaxGroupTranslation.fields.name"), placeholder: t("TaxGroupTranslation.placeholder.name") }
                             ]}
                             onSave={async (id, locale, data) => {
                                 return await upsertTaxGroupTranslation(id, { [locale]: data });
@@ -1631,9 +1622,9 @@ export default function TaxSystem() {
                             open={translationDialog.openCheck}
                             onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
                             entityId={translationDialog.entityId}
-                            title="Tax Group Translations"
+                            title={t("TaxGroupTranslation.checkTitel")}
                             displayFields={[
-                                { key: "name", label: "Name" }
+                                { key: "name", label: t("TaxGroupTranslation.fields.name") }
                             ]}
                             onFetch={getAllTaxGroupTranslations}
                             onDelete={deleteTaxGroupTranslationLocale}
@@ -1645,9 +1636,9 @@ export default function TaxSystem() {
                             entityId={translationDialog.entityId!}
                             locale={translationDialog.editingLocale}
                             initialData={translationDialog.editingData}
-                            title="Edit Tax Group Translation"
+                            title={t("TaxGroupTranslation.editTitel")}
                             fields={[
-                                { key: "name", label: "Group Name", placeholder: "e.g. Grupo de Impuestos..." }
+                                { key: "name", label: t("TaxGroupTranslation.fields.name"), placeholder: t("TaxGroupTranslation.placeholder.name") }
                             ]}
                             onSave={async (id, locale, data) => upsertTaxGroupTranslation(id, { [locale]: data })}
                         />
@@ -1659,9 +1650,9 @@ export default function TaxSystem() {
                             open={translationDialog.openAdd}
                             onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openAdd: open }))}
                             entityId={translationDialog.entityId}
-                            title="Add Additional Charge Translation"
+                            title={t("TouristTaxTranslation.addTitel")}
                             fields={[
-                                { key: "name", label: "Charge Name", placeholder: "e.g. Cargo Adicional..." }
+                                { key: "name", label: t("TouristTaxTranslation.fields.name"), placeholder: t("TouristTaxTranslation.placeholder.name") }
                             ]}
                             onSave={async (id, locale, data) => {
                                 return await upsertTouristTaxTranslation(id, { [locale]: data });
@@ -1671,9 +1662,9 @@ export default function TaxSystem() {
                             open={translationDialog.openCheck}
                             onOpenChange={(open) => setTranslationDialog(prev => ({ ...prev, openCheck: open }))}
                             entityId={translationDialog.entityId}
-                            title="Additional Charge Translations"
+                            title={t("TouristTaxTranslation.checkTitel")}
                             displayFields={[
-                                { key: "name", label: "Name" }
+                                { key: "name", label: t("TouristTaxTranslation.fields.name") }
                             ]}
                             onFetch={getAllTouristTaxTranslations}
                             onDelete={deleteTouristTaxTranslationLocale}
@@ -1685,9 +1676,9 @@ export default function TaxSystem() {
                             entityId={translationDialog.entityId!}
                             locale={translationDialog.editingLocale}
                             initialData={translationDialog.editingData}
-                            title="Edit Additional Charge Translation"
+                            title={t("TouristTaxTranslation.editTitel")}
                             fields={[
-                                { key: "name", label: "Charge Name", placeholder: "e.g. Cargo Adicional..." }
+                                { key: "name", label: t("TouristTaxTranslation.fields.name"), placeholder: t("TouristTaxTranslation.placeholder.name") }
                             ]}
                             onSave={async (id, locale, data) => upsertTouristTaxTranslation(id, { [locale]: data })}
                         />

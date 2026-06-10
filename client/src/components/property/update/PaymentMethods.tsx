@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import type { IPaymentIntegration } from '@/pages/management/types';
 import { getPaymentIntegrationsService } from '@/pages/management/services/management.services';
-
+import { useTranslation } from 'react-i18next';
 interface PaymentMethodSelection {
   integrationId: string;
   propertyPaymentIntegrationId?: string;
@@ -25,6 +25,7 @@ export default function PaymentMethodsUi({
   propertyId: string;
   onSelectionChange: (selection: PaymentMethodSelection | null) => void;
 }) {
+  const { t } = useTranslation();
   const [paymentIntegrations, setPaymentIntegrations] = useState<IPaymentIntegration[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(paymentMethodId);
@@ -118,10 +119,10 @@ export default function PaymentMethodsUi({
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h4 className="font-semibold text-lg text-gray-900">
-                      Select Payment Integration
+                      {t('SelectPaymentIntegration.title')}
                     </h4>
                     <p className="text-sm text-gray-600 mt-1">
-                      Choose one payment provider to enable online payments
+                      {t('SelectPaymentIntegration.description')}
                     </p>
                   </div>
                   {loading && <Loader2 className="w-5 h-5 animate-spin text-blue-600" />}
@@ -166,12 +167,12 @@ export default function PaymentMethodsUi({
                                     {formatPaymentIntegrationName(integration.name)}
                                     {isChecked && (
                                       <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
-                                        Active
+                                        {t("Common.active")}
                                       </span>
                                     )}
                                   </div>
                                   <div className="text-xs text-gray-500 mt-0.5">
-                                    Payment Gateway Provider
+                                    {t('SelectPaymentIntegration.gatewayProvider')}
                                   </div>
                                 </label>
 
@@ -179,30 +180,30 @@ export default function PaymentMethodsUi({
                                 <div className="mt-3">
                                   {hasExistingIntegration ? (
                                     <div className="flex items-center gap-2">
-                                      <span className="text-xs text-gray-600">PG ID:</span>
+                                      <span className="text-xs text-gray-600">{t('SelectPaymentIntegration.pgId')}</span>
                                       <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
                                         {propertyIntegration.outletId}
                                       </span>
                                       {propertyIntegration.isActive ? (
                                         <span className="text-xs text-green-600 flex items-center gap-1">
                                           <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                          Active
+                                          {t("Common.active")}
                                         </span>
                                       ) : (
                                         <span className="text-xs text-gray-500 flex items-center gap-1">
                                           <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-                                          Inactive
+                                          {t("Common.inactive")}
                                         </span>
                                       )}
                                     </div>
                                   ) : (
                                     <div className="space-y-1">
                                       <label className="text-xs text-gray-600">
-                                        PG Id (Required for integration)
+                                        {t('SelectPaymentIntegration.pgId')}
                                       </label>
                                       <Input
                                         type="text"
-                                        placeholder="Enter PG Id"
+                                        placeholder={t('SelectPaymentIntegration.pgIdPlaceholder')}
                                         value={currentOutletId}
                                         onChange={(e) => handleOutletIdChange(integration.id, e.target.value)}
                                         className="h-8 text-sm"
@@ -229,7 +230,7 @@ export default function PaymentMethodsUi({
                 {!selectedIntegration && (
                   <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-sm text-yellow-700 font-medium">
-                      Please select one payment integration to enable online payments
+                      {t('SelectPaymentIntegration.warnings')}
                     </p>
                   </div>
                 )}

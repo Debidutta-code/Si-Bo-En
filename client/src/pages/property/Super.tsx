@@ -1,5 +1,5 @@
 
-import { getCreation } from "./service/creation-filter.service"
+import { getCreation, recoverCreationService } from "./service/creation-filter.service"
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
@@ -37,18 +37,18 @@ export default function HotelsPage() {
           properties: [],
           regionals: []
         });
-        if(response.data.groups.length > 0){
+        if (response.data.groups.length > 0) {
           setCurrentTab("group");
-          
+
         }
-        else if(response.data.brands.length > 0 ){
+        else if (response.data.brands.length > 0) {
           setCurrentTab("brand");
           return
         }
-        else if(response.data.properties.length > 0){
+        else if (response.data.properties.length > 0) {
           setCurrentTab("property");
           return
-      }
+        }
       } else {
         toast.error(response.message || t('Toast.failedToFetchProperties'));
       }
@@ -64,6 +64,24 @@ export default function HotelsPage() {
     fetchProperties();
   }, []);
 
+  const recoverCreation = async (id: string) => {
+    try {
+      setIsLoading(true)
+      const response = await recoverCreationService(id);
+      if (response.success) {
+        toast.success(response.message || t('Toast.recoveredSuccessfully'));
+        fetchProperties();
+      } else {
+        toast.error(response.message || t('Toast.failedToRecover'));
+      }
+    } catch (error) {
+      console.error('Error recovering creation:', error);
+      toast.error(t('Toast.failedToRecover'));
+    } finally {
+      setIsLoading(false)
+    }
+  };
+  
   const getCurrentData = (): ICreation[] => {
     switch (currentTab) {
       case "group":
@@ -125,7 +143,7 @@ export default function HotelsPage() {
       </div>
 
       <div className="flex space-x-2 border-b">
-        {(["regional","group", "brand", "property"] as const).map((tab) => (
+        {(["regional", "group", "brand", "property"] as const).map((tab) => (
 
           <Button
             key={tab}
@@ -167,80 +185,121 @@ export default function HotelsPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentData.map((item: ICreation) => (
-              <div
-                key={item.id}
-                className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 flex flex-col"
+          <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 $`}>
+{currentData.map((item: ICreation) => (
+  <div
+    key={item.id}
+    className={`border rounded-lg overflow-hidden flex flex-col transition-shadow duration-200
+      ${item.isDeleted
+        ? "border-red-300 bg-red-50 opacity-70"
+        : "hover:shadow-md"
+      }`}
+  >
+    {/* Image container */}
+    <div className="relative w-full h-48 overflow-hidden bg-gray-100">
+      {item.images?.[0] ? (
+        <img
+          src={item.images[0]}
+          alt={item.name}
+          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image';
+            e.currentTarget.className = 'w-full h-full object-contain bg-gray-100 p-4';
+          }}
+        />
+      ) : (
+        <div className={`w-full h-full flex flex-col items-center justify-center
+          ${item.isDeleted ? "bg-red-50" : "bg-gray-100"}`}>
+          <svg className={`w-12 h-12 mb-2 ${item.isDeleted ? "text-red-300" : "text-gray-400"}`}
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1}
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          <p className={`text-sm ${item.isDeleted ? "text-red-300" : "text-gray-400"}`}>
+            {t('Common.noImage')}
+          </p>
+        </div>
+      )}
+
+      {/* Deleted badge */}
+      {item.isDeleted && (
+        <span className="absolute top-2 right-2 flex items-center gap-1 bg-red-700 text-red-100
+          text-xs font-medium px-2.5 py-1 rounded-full">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m2-3h6a1 1 0 011 1v1H8V5a1 1 0 011-1z" />
+          </svg>
+          {t('Common.deleted') ?? 'Deleted'}
+        </span>
+      )}
+
+      {/* Diagonal stripe overlay */}
+      {item.isDeleted && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(185,28,28,0.06) 6px, rgba(185,28,28,0.06) 12px)"
+          }}
+        />
+      )}
+    </div>
+
+    {/* Card body */}
+    <div className="p-4 flex-1 flex flex-col gap-3">
+      <h3 className={`font-semibold text-lg line-clamp-2
+        ${item.isDeleted ? "text-red-800 line-through decoration-red-300" : "text-gray-900"}`}>
+        {item._translations ? item._translations.name : item.name}
+      </h3>
+
+      {/* Actions */}
+      <div className="mt-auto flex gap-2">
+        {item.isDeleted ? (
+          <Button
+            variant="default"
+            size="sm"
+            className="flex-1 bg-red-700 hover:bg-red-800 text-white"
+            onClick={() => recoverCreation(item.id)}
+          >
+            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {t('Common.recover')}
+          </Button>
+        ) : (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className={`${item.type === "property" ? item.property?.isDraft ? "flex-1" : "hidden" : "flex-1"}`}
+              onClick={() => {
+                item.type !== "property"
+                  ? navigate(`/app/property/${currentTab}/${item.id}`)
+                  : navigate(`/property/${item.propertyId}`)
+              }}
+            >
+              {t('Common.viewDetails')}
+            </Button>
+
+            {item.type === "property" && (
+              <Button
+                variant="outline"
+                size="sm"
+                className={`${!item.property?.isDraft ? "flex-1" : ""}`}
+                onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
               >
-                {/* Fixed image container with consistent aspect ratio */}
-                <div className="relative w-full h-48 mb-3 overflow-hidden rounded-lg bg-gray-100">
-                  {item.images?.[0] ? (
-                    <img
-                      src={item.images[0]}
-                      alt={item.name}
-                      className="w-full h-full object-cover rounded-lg hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        // Fallback for broken images
-                        e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image';
-                        e.currentTarget.className = 'w-full h-full object-contain rounded-lg bg-gray-100 p-4';
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
-                      <div className="text-center text-gray-400">
-                        <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <p className="text-sm">{t('Common.noImage')}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
-                      {item._translations?item._translations.name:item.name}
-                    </h3>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="mt-4 flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={`${item.type === "property" ? item.property?.isDraft ? "flex-1" : "hidden" : "flex-1"}`}
-                    onClick={() => {
-                      item.type != "property" ?
-                        navigate(`/app/property/${currentTab}/${item.id}`) :
-                        navigate(`/property/${item.propertyId}`)
-                    }}
-                  >
-                    {t('Common.viewDetails')}
-                  </Button>
-                  {
-                    item.type == "property" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
-
-                        onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        {!item.property?.isDraft &&
-
-                        <span className="ml-2">{!item.property?.isDraft && t('Common.completeSetup')}</span>
-                        }
-                        
-                      </Button>
-                    )
-                  }
-                </div>
-              </div>
-            ))}
+                <Settings className="h-4 w-4" />
+                {!item.property?.isDraft && (
+                  <span className="ml-2">{t('Common.completeSetup')}</span>
+                )}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  </div>
+))}
           </div>
         )}
       </div>

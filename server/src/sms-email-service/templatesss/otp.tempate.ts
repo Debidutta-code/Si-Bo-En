@@ -1,4 +1,4 @@
-export const generateLoyaltyOTPEmailTemplate = (
+export const generateOTPEmailTemplate = (
     otp: string,
     purpose: string,
     email?: string

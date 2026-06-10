@@ -1,5 +1,5 @@
 
-import { getCreationsByRole, getCreationId, getUnMappedUsers, updateCreation, deleteCreation } from "../api/api";
+import { getCreationsByRole, getCreationId, getUnMappedUsers, updateCreation, deleteCreation, recoverCreation } from "../api/api";
 import type { ICreation } from "../types/types";
 export async function getCreation() {
     try {
@@ -45,6 +45,7 @@ export async function getGroupCreationId(id: string) {
             superGroupName: data.super.name,
             createdAt: data.createdAt,
             isActive: data.isActive,
+            isDeleted: data.isDeleted,
             images: data.images || [],
             _translations: data._translations
         }
@@ -263,6 +264,23 @@ export const deleteCreationService = async (id: string) => {
         return {
             success: false,
             message: "Failed to delete creation"
+        }
+    }
+}
+export const recoverCreationService = async (id: string) => {
+    try {
+        if (!id) {
+            return {
+                success: false,
+                message: "Select a creation to recover"
+            }
+        }
+        const response = await recoverCreation(id)
+        return response
+    } catch (error) {
+        return {
+            success: false,
+            message: "Failed to recover creation"
         }
     }
 }

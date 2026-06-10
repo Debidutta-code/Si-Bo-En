@@ -92,6 +92,7 @@ export interface ICreation {
         id: string;
         isDraft: boolean;
     },
+    isDeleted: boolean;
     _translations?: {
         name: string
     }
@@ -116,6 +117,7 @@ export interface IGroupCreations {
         superGroupName: string;
         createdAt: string;
         isActive: boolean;
+        isDeleted: boolean;
         images: string[];
         _translations?: {
             name: string

@@ -94,14 +94,14 @@ export class SiteMinderDao {
         });
         return !!rp;
     }
- public static async roomTypeExists(
+    public static async roomTypeExists(
         roomTypeCode: string,
         propertyCode: string
     ): Promise<boolean> {
         const rt = await prisma.room.findFirst({
             where: {
-                roomType:roomTypeCode,
-                property:{propertyCode}
+                roomType: roomTypeCode,
+                property: { propertyCode }
             },
             select: { id: true },
         });
@@ -310,11 +310,18 @@ export class SiteMinderDao {
                 ...(isClosedToArrival !== undefined && { isClosedToArrival }),
                 ...(isClosedToDeparture !== undefined && { isClosedToDeparture }),
             };
-
+            const [ratePlanName, roomTypeName] = await Promise.all([
+                SiteMinderDao.getRatePlanName(ratePlanCode),
+                SiteMinderDao.getRoomTypeName(roomTypeCode, propertyCode),
+            ]);
             if (existingCharge) {
-                await prisma.charge.update({
+             await prisma.charge.update({
                     where: { id: existingCharge.id },
-                    data: restrictionData,
+                    data: {
+                        ...restrictionData,
+                        ratePlanName: ratePlanName ?? ratePlanCode,
+                        roomTypeName: roomTypeName ?? roomTypeCode,
+                    },
                 });
             } else {
                 await prisma.charge.create({
@@ -322,8 +329,8 @@ export class SiteMinderDao {
                         propertyCode,
                         roomTypeCode,
                         ratePlanCode,
-                        ratePlanName: ratePlanCode,
-                        roomTypeName: roomTypeCode,
+                        ratePlanName: ratePlanName ?? ratePlanCode,
+                        roomTypeName: roomTypeName ?? roomTypeCode,
                         date,
                         ...restrictionData,
                     },

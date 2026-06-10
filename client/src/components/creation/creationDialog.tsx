@@ -149,7 +149,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                         </label>
                         <Input
                             id="entity-name"
-                            placeholder={t("CreateEntity.namePlaceholder", { type: newGBP.type })}
+                            placeholder={t("CreateEntity.namePlaceholder", { type: t(`CreateEntity.types.${newGBP.type}`) })}
                             value={newGBP.name}
                             onChange={(e) => setNewGBP({ ...newGBP, name: e.target.value })}
                             className="mt-1"
@@ -266,7 +266,8 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                     >
                         {isLoading.isLoading
                             ? t("CreateEntity.creating")
-                            : t("CreateEntity.createButton", { type: capitalizeFirstLetter(newGBP.type) })}
+                            : t("CreateEntity.button", { name: t(`CreateEntity.types.${newGBP.type}`) })
+}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

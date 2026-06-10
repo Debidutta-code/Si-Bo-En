@@ -374,10 +374,10 @@ _translations:data._translations
             entityId={propertyId}
             locale={editingLocale}
             initialData={editingData}
-            title="Edit Property Details Translation"
+            title={t('Property.editPropertyDetailTranslation')}
             fields={[
-              { key: "propertyName", label: "Property Name", placeholder: "e.g. Hotel Sol" },
-              { key: "description", label: "Description", placeholder: "Enter translated description..." },
+              { key: "propertyName", label: t('Property.translationFieldName'), placeholder: t('Property.namePlaceholder') },
+              { key: "description", label: t('Property.description'), placeholder: t('Property.descriptionPlaceholder') },
             ]}
             onSave={async (id, locale, data) => upsertPropertyTranslationService(id, { [locale]: data })}
           />

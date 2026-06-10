@@ -59,7 +59,7 @@ export default function PropertyPage() {
 
   const { filters } = useSearch();
   const { hasActiveFilters, activeFilterCount } = useSearchSummary();
- const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {
       if (filters.searchQuery) {

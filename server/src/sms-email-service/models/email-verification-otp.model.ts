@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 interface IEmailVerificationOTP extends mongoose.Document {
     email: string;
     otp: string;
-    purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset';
+    purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset'| 'property_recovery'|'property_transfer';
     expiresAt: Date;
     isUsed: boolean;
     attempts: number;
@@ -26,7 +26,7 @@ const emailVerificationOTPSchema = new mongoose.Schema<IEmailVerificationOTP>(
         },
         purpose: {
             type: String,
-            enum: ['email_verification', 'password_reset', 'login', 'customer_reset'],
+            enum: ['email_verification', 'password_reset', 'login', 'customer_reset', 'property_recovery', 'property_transfer'],
             required: true,
         },
         expiresAt: {

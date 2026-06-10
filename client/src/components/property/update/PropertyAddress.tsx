@@ -27,6 +27,7 @@ import type { IPropertyAddress } from "./types/types";
 import Loader from "@/components/Loader/Loader";
 import { useGeolocated } from "react-geolocated";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 // Zod Validation Schema
 const propertyAddressSchema = z.object({
@@ -55,6 +56,7 @@ export default function UpdatePropertyAddress({
   setAddress: React.Dispatch<React.SetStateAction<IPropertyAddress>>;
   isLoading: boolean;
 }) {
+  const { t } = useTranslation("");
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [countries, setCountries] = useState<ICountry[]>([]);
   const [states, setStates] = useState<IState[]>([]);
@@ -204,11 +206,11 @@ export default function UpdatePropertyAddress({
         }));
         setExtractionStatus("success");
         setExtractionMessage(
-          `Coordinates extracted: (${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)})`,
+          t("UpdatePropertyAddress.status.coordsExtracted", { lat: coords.lat.toFixed(6), lng: coords.lng.toFixed(6) }),
         );
       } else {
         setExtractionStatus("error");
-        setExtractionMessage("Could not extract coordinates from this link");
+        setExtractionMessage(t("UpdatePropertyAddress.status.extractionFailed"));
         setAddress((prev) => ({ ...prev, latitude: "", longitude: "" }));
       }
     } else if (coordinateMethod === "link" && !mapLink.trim()) {
@@ -229,22 +231,22 @@ export default function UpdatePropertyAddress({
   };
   const handleAutoFetchLocation = () => {
     if (!isGeolocationAvailable) {
-      toast.error("Geolocation is not supported by your browser");
+      toast.error(t("UpdatePropertyAddress.toast.geolocationNotSupported"));
       setExtractionStatus("error");
-      setExtractionMessage("Geolocation not supported");
+      setExtractionMessage(t("UpdatePropertyAddress.status.geolocationNotSupported"));
       return;
     }
 
     if (!isGeolocationEnabled) {
-      toast.error("Please enable location permissions in your browser");
+      toast.error(t("UpdatePropertyAddress.toast.enableLocationPermission"));
       setExtractionStatus("error");
-      setExtractionMessage("Location permission denied");
+      setExtractionMessage(t("UpdatePropertyAddress.status.locationPermissionDenied"));
       return;
     }
 
     setIsFetchingLocation(true);
     setExtractionStatus("idle");
-    setExtractionMessage("Fetching your location...");
+    setExtractionMessage(t("UpdatePropertyAddress.status.fetchingLocation"));
 
     // Trigger geolocation
     getPosition();
@@ -261,7 +263,7 @@ export default function UpdatePropertyAddress({
 
       setExtractionStatus("success");
       setExtractionMessage(
-        `Location fetched: (${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)})`,
+        t("UpdatePropertyAddress.status.locationFetched", { lat: coords.latitude.toFixed(6), lng: coords.longitude.toFixed(6) }),
       );
       setIsFetchingLocation(false);
     }
@@ -292,7 +294,7 @@ export default function UpdatePropertyAddress({
     }
   };
   if (isLoading) {
-    return <Loader text="Updating the property details" />;
+    return <Loader text={t("UpdatePropertyAddress.loader.updating")} />;
   }
   return (
     <div className="max-h-[80vh] overflow-y-auto px-2 py-1">
@@ -304,7 +306,7 @@ export default function UpdatePropertyAddress({
               htmlFor="addressLine1"
               className="flex items-center gap-2 text-sm font-semibold text-black mb-2"
             >
-              <Home className="w-4 h-4" /> Address Line 1 *
+              <Home className="w-4 h-4" /> {t("UpdatePropertyAddress.form.addressLine1")}
             </Label>
             <Input
               id="addressLine1"
@@ -312,7 +314,7 @@ export default function UpdatePropertyAddress({
               onChange={(e) =>
                 handleFieldChange("addressLine1", e.target.value)
               }
-              placeholder="Street number and name"
+              placeholder={t("UpdatePropertyAddress.placeholder.addressLine1")}
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
                 errors?.addressLine1 && "border-red-500 focus:border-red-600",
@@ -331,7 +333,7 @@ export default function UpdatePropertyAddress({
               htmlFor="addressLine2"
               className="flex items-center gap-2 text-sm font-semibold text-black mb-2"
             >
-              <Home className="w-4 h-4" /> Address Line 2
+              <Home className="w-4 h-4" /> {t("UpdatePropertyAddress.form.addressLine2")}
             </Label>
             <Input
               id="addressLine2"
@@ -339,7 +341,7 @@ export default function UpdatePropertyAddress({
               onChange={(e) =>
                 handleFieldChange("addressLine2", e.target.value)
               }
-              placeholder="Apartment, building, etc."
+              placeholder={t("UpdatePropertyAddress.placeholder.addressLine2")}
               className="h-10 border-gray-300 focus:border-black"
             />
           </div>
@@ -355,14 +357,14 @@ export default function UpdatePropertyAddress({
               htmlFor="country"
               className="flex items-center gap-2 text-sm font-semibold text-black mb-2"
             >
-              <Globe className="w-4 h-4" /> Country *
+              <Globe className="w-4 h-4" /> {t("UpdatePropertyAddress.form.country")}
             </Label>
             <Input
               id="country"
               list="country-list"
               value={address.country}
               onChange={(e) => handleFieldChange("country", e.target.value)}
-              placeholder="Search or type country..."
+              placeholder={t("UpdatePropertyAddress.placeholder.country")}
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
                 errors?.country && "border-red-500 focus:border-red-600",
@@ -387,7 +389,7 @@ export default function UpdatePropertyAddress({
               htmlFor="state"
               className="flex items-center gap-2 text-sm font-semibold text-black mb-2"
             >
-              <MapPin className="w-4 h-4" /> State *
+              <MapPin className="w-4 h-4" /> {t("UpdatePropertyAddress.form.state")}
             </Label>
             <Input
               id="state"
@@ -395,7 +397,7 @@ export default function UpdatePropertyAddress({
               value={address.state}
               onChange={(e) => handleFieldChange("state", e.target.value)}
               disabled={!resolvedCountry || states.length === 0}
-              placeholder="Search or type state..."
+              placeholder={t("UpdatePropertyAddress.placeholder.state")}
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
                 errors?.state && "border-red-500 focus:border-red-600",
@@ -420,7 +422,7 @@ export default function UpdatePropertyAddress({
               htmlFor="city"
               className="flex items-center gap-2 text-sm font-semibold text-black mb-2"
             >
-              <Home className="w-4 h-4" /> City *
+              <Home className="w-4 h-4" /> {t("UpdatePropertyAddress.form.city")}
             </Label>
             <Input
               id="city"
@@ -428,7 +430,7 @@ export default function UpdatePropertyAddress({
               value={address.city}
               onChange={(e) => handleFieldChange("city", e.target.value)}
               disabled={!resolvedState || cities.length === 0}
-              placeholder="Search or type city..."
+              placeholder={t("UpdatePropertyAddress.placeholder.city")}
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
                 errors?.city && "border-red-500 focus:border-red-600",
@@ -453,13 +455,13 @@ export default function UpdatePropertyAddress({
               htmlFor="location"
               className="flex items-center gap-2 text-sm font-semibold text-black mb-2"
             >
-              <Navigation className="w-4 h-4" /> Area/Location *
+              <Navigation className="w-4 h-4" /> {t("UpdatePropertyAddress.form.areaLocation")}
             </Label>
             <Input
               id="location"
               value={address.location}
               onChange={(e) => handleFieldChange("location", e.target.value)}
-              placeholder="e.g., Badi Chopar"
+              placeholder={t("UpdatePropertyAddress.placeholder.location")}
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
                 errors?.location && "border-red-500 focus:border-red-600",
@@ -479,13 +481,13 @@ export default function UpdatePropertyAddress({
               htmlFor="landmark"
               className="flex items-center gap-2 text-sm font-semibold text-black mb-2"
             >
-              <Landmark className="w-4 h-4" /> Landmark
+              <Landmark className="w-4 h-4" /> {t("UpdatePropertyAddress.form.landmark")}
             </Label>
             <Input
               id="landmark"
               value={address.landmark}
               onChange={(e) => handleFieldChange("landmark", e.target.value)}
-              placeholder="Near City Palace"
+              placeholder={t("UpdatePropertyAddress.placeholder.landmark")}
               className="h-10 border-gray-300 focus:border-black"
             />
           </div>
@@ -496,7 +498,7 @@ export default function UpdatePropertyAddress({
               htmlFor="zipCode"
               className="flex items-center gap-2 text-sm font-semibold text-black mb-2"
             >
-              <Hash className="w-4 h-4" /> PIN Code *
+              <Hash className="w-4 h-4" /> {t("UpdatePropertyAddress.form.pinCode")}
             </Label>
             <Input
               id="zipCode"
@@ -528,7 +530,7 @@ export default function UpdatePropertyAddress({
         <div className="flex items-center gap-2 mb-4">
           <Map className="w-5 h-5 text-black" />
           <h3 className="text-lg font-semibold text-black">
-            Location Coordinates
+            {t("UpdatePropertyAddress.coordinates.sectionTitle")}
           </h3>
         </div>
 
@@ -549,7 +551,7 @@ export default function UpdatePropertyAddress({
           >
             <Navigation className="w-5 h-5" />
             <span className="font-medium">
-              {isFetchingLocation ? "Fetching..." : "Auto Fetch Location"}
+              {isFetchingLocation ? t("UpdatePropertyAddress.coordinates.fetching") : t("UpdatePropertyAddress.coordinates.autoFetch")}
             </span>
           </Button>
           <Button
@@ -564,7 +566,7 @@ export default function UpdatePropertyAddress({
             onClick={() => handleMethodChange("link")}
           >
             <LinkIcon className="w-4 h-4" />
-            Use Map Link
+            {t("UpdatePropertyAddress.coordinates.useMapLink")}
           </Button>
           <Button
             type="button"
@@ -578,13 +580,13 @@ export default function UpdatePropertyAddress({
             onClick={() => handleMethodChange("manual")}
           >
             <Crosshair className="w-4 h-4" />
-            Manual Entry
+            {t("UpdatePropertyAddress.coordinates.manualEntry")}
           </Button>
         </div>
         {coordinateMethod === "auto" && (
           <div className="bg-green-50 border-2 border-green-200 p-6 rounded-lg space-y-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
-              <Navigation className="w-4 h-4" /> Auto Location
+              <Navigation className="w-4 h-4" /> {t("UpdatePropertyAddress.coordinates.autoLocation")}
             </div>
             {extractionStatus !== "idle" && (
               <div
@@ -606,10 +608,10 @@ export default function UpdatePropertyAddress({
             {address.latitude && address.longitude && (
               <div className="bg-white border border-green-300 p-4 rounded-lg">
                 <p className="text-sm text-gray-700">
-                  <strong>Latitude:</strong> {address.latitude}
+                  <strong>{t("UpdatePropertyAddress.coordinates.latitude")}</strong> {address.latitude}
                 </p>
                 <p className="text-sm text-gray-700 mt-2">
-                  <strong>Longitude:</strong> {address.longitude}
+                  <strong>{t("UpdatePropertyAddress.coordinates.longitude")}</strong> {address.longitude}
                 </p>
               </div>
             )}
@@ -658,7 +660,7 @@ export default function UpdatePropertyAddress({
                   htmlFor="latitude"
                   className="flex items-center gap-2 text-sm font-semibold text-black mb-1"
                 >
-                  <Navigation className="w-4 h-4" /> Latitude
+                  <Navigation className="w-4 h-4" /> {t("UpdatePropertyAddress.form.latitude")}
                 </Label>
                 <Input
                   id="latitude"
@@ -686,7 +688,7 @@ export default function UpdatePropertyAddress({
                   htmlFor="longitude"
                   className="flex items-center gap-2 text-sm font-semibold text-black mb-1"
                 >
-                  <Navigation className="w-4 h-4" /> Longitude
+                  <Navigation className="w-4 h-4" /> {t("UpdatePropertyAddress.form.longitude")}
                 </Label>
                 <Input
                   id="longitude"

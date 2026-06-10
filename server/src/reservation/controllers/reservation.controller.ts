@@ -1,12 +1,11 @@
 import { errorResponse } from '../../utils/return';
 import { Response, Request } from 'express';
-import { CustomRequest, PropertyRequest } from '../../utils';
+import { CustomRequest, decodeToken } from '../../utils';
 import { NewReservationService } from '../services';
 import { ICReservationS, IGuestCheckInDetails } from '../types';
 import { getDeviceInfo, getGeoLocationDetails } from '../../utils';
-import { decodeToken } from '../../utils/jwtHelper';
-import { config } from '../../config';
 import { ReservationInterceptor } from '../../multi-language/interceptors/reservation/reservation.interceptor';
+import { config } from '../../config';
 
 export class ReservationController {
     private reservationService: NewReservationService;
@@ -16,7 +15,7 @@ export class ReservationController {
     }
 
     public async createReservation(
-        req: PropertyRequest,
+        req: CustomRequest,
         res: Response
     ): Promise<Response> {
         try {
@@ -85,6 +84,16 @@ export class ReservationController {
                     .status(400)
                     .json(errorResponse('Property details is required'));
             }
+            const customerToken = req.cookies?.customerToken;
+            let customerId = null;
+            if(customerToken){
+                const decoded = await decodeToken(customerToken, config.customerJWTSecret!);
+                if (decoded) {
+                    customerId = decoded.id;
+                }
+
+            }
+
             const geoLocation = await getGeoLocationDetails(req);
             const countryCode = geoLocation?.country;
             const { deviceType } = getDeviceInfo(req);
@@ -94,7 +103,8 @@ export class ReservationController {
                 PropertyDetails,
                 countryCode,
                 deviceType,
-                loyaltyToken
+                loyaltyToken,
+                customerId
             );
 
             return res.status(serviceRes.success ? 200 : 400).json(serviceRes);

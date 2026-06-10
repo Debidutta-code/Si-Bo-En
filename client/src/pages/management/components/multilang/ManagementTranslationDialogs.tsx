@@ -158,7 +158,7 @@ const {t}=useTranslation();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title} — {languageName}</DialogTitle>
         </DialogHeader>
@@ -233,7 +233,7 @@ export function CheckTranslationsDialog({ open, onOpenChange, entityId, title, d
       toast.error(res.message || "Failed to delete");
     }
   };
-
+const {t}=useTranslation();
   const getLangName = (code: string) => languages.find((l) => l.code === code)?.name || code;
 
   return (
@@ -241,9 +241,9 @@ export function CheckTranslationsDialog({ open, onOpenChange, entityId, title, d
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
         <div className="space-y-3 py-2">
-          {loading && <p className="text-center text-gray-500 py-4">Loading translations...</p>}
+          {loading && <p className="text-center text-gray-500 py-4">{t("Common.loadingTranslations")}</p>}
           {!loading && Object.keys(translations).length === 0 && (
-            <p className="text-center text-gray-500 py-4">No translations found.</p>
+            <p className="text-center text-gray-500 py-4">{t("Common.noTranslationsFound")}</p>
           )}
           {!loading && Object.entries(translations).map(([locale, data]) => (
             <div key={locale} className="flex justify-between items-start border rounded-lg p-3 gap-3">

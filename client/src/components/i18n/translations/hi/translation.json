@@ -79,13 +79,21 @@
     "creating": "बनाया जा रहा है...",
     "saving": "सहेजा जा रहा है...",
     "loadingTranslations": "अनुवाद लोड हो रहे हैं...",
-"noTranslationsFound": "कोई अनुवाद नहीं मिला।",
-"pleaseSelectLanguage": "कृपया एक भाषा चुनें",
-"pleaseFillOneField": "कृपया कम से कम एक फ़ील्ड भरें",
-"translationSaved": "अनुवाद सफलतापूर्वक सहेजा गया!",
-"failedToSaveTranslation": "अनुवाद सहेजने में विफल",
-"translationUpdated": "अनुवाद सफलतापूर्वक अपडेट हुआ!",
-"failedToUpdateTranslation": "अनुवाद अपडेट करने में विफल"
+    "noTranslationsFound": "कोई अनुवाद नहीं मिला।",
+    "pleaseSelectLanguage": "कृपया एक भाषा चुनें",
+    "pleaseFillOneField": "कृपया कम से कम एक फ़ील्ड भरें",
+    "translationSaved": "अनुवाद सफलतापूर्वक सहेजा गया!",
+    "failedToSaveTranslation": "अनुवाद सहेजने में विफल",
+    "translationUpdated": "अनुवाद सफलतापूर्वक अपडेट हुआ!",
+    "failedToUpdateTranslation": "अनुवाद अपडेट करने में विफल",
+    "promotionTranslations": "प्रचार अनुवाद",
+    "showLess": "कम दिखाएँ",
+    "showMore": "और दिखाएँ",
+    "update": "अपडेट करें",
+      "recover": "पुनर्स्थापित करें",
+        "deleted": "हटाया गया"
+
+
   },
   "BookingStatus": {
     "confirmed": "पुष्टि की गई",
@@ -196,7 +204,7 @@
         "realTimeAnalytics": "वास्तविक समय विश्लेषण और अंतर्दृष्टि",
         "multiProperty": "बहु-संपत्ति प्रबंधन"
       },
-      "footer": "© {{year}} रेवचिल। सर्वाधिकार सुरक्षित।"
+      "footer": "© {{year}} Revchill. सर्वाधिकार सुरक्षित।"
     },
     "forgotPassword": {
       "title": "पासवर्ड भूल गए",
@@ -564,7 +572,15 @@
     "englishLanguage": "अंग्रेज़ी",
     "editTranslationTitle": "प्रॉपर्टी अनुवाद संपादित करें",
     "translationFieldName": "प्रॉपर्टी नाम",
-    "translationFieldNamePlaceholder": "उदाहरण: Hotel Sol"
+    "translationFieldNamePlaceholder": "उदाहरण: होटल सोल",
+    "editPropertyDetailTranslation": "प्रॉपर्टी विवरण अनुवाद संपादित करें",
+    "description": "प्रॉपर्टी विवरण",
+    "descriptionPlaceholder": "अपनी प्रॉपर्टी की विशेषताओं का वर्णन करें...",
+    "namePlaceholder": "उदाहरण: होटल सोल",
+    "detailTranslation": "प्रॉपर्टी विवरण अनुवाद",
+    "videoTour": "वीडियो टूर",
+    "noMediaTitel": "अपनी प्रॉपर्टी को प्रदर्शित करें",
+    "noMediaDecs": "अपनी प्रॉपर्टी को आकर्षक बनाने और अधिक बुकिंग प्राप्त करने के लिए शानदार फ़ोटो और एक आकर्षक वीडियो टूर अपलोड करें"
   },
   "PropertySuper": {
     "title": "होटल और संपत्तियाँ",
@@ -801,13 +817,46 @@
     "createConfiguration": "विन्यास बनाएं",
     "configurationActive": "विन्यास सक्रिय",
     "configurationActiveDescription": "आपके पास पहले से ही एक बुकिंग इंजन विन्यास है। आप इसे कभी भी अपने ब्रांड से मेल खाने के लिए अपडेट कर सकते हैं।",
-    "updateConfiguration": "विन्यास अपडेट करें"
+    "updateConfiguration": "विन्यास अपडेट करें",
+    "failedToFetchConfiguration": "विन्यास लाने में विफल",
+    "configurationUpdatedSuccessfully": "विन्यास सफलतापूर्वक अपडेट हो गया!",
+    "configurationCreatedSuccessfully": "विन्यास सफलतापूर्वक बनाया गया!",
+    "failedToSaveConfigurationMsg": "विन्यास सहेजने में विफल",
+    "errorOccurredWhileSaving": "सहेजते समय एक त्रुटि हुई",
+    "hotelWebsiteUrl": "होटल वेबसाइट यूआरएल",
+    "pasteUrlHere": "यहाँ यूआरएल पेस्ट करें",
+    "colorConfiguration": "रंग विन्यास",
+    "primaryColor": "प्राथमिक रंग",
+    "secondaryColor": "द्वितीयक रंग",
+    "tertiaryColor": "तृतीयक रंग",
+    "buttonTextColor": "बटन टेक्स्ट रंग",
+    "images": "छवियाँ",
+    "logo": "लोगो",
+    "noLogo": "कोई लोगो नहीं",
+    "uploadLogo": "लोगो अपलोड करें",
+    "saving": "सहेजा जा रहा है...",
+    "livePreview": "लाइव पूर्वावलोकन",
+    "livePreviewSubtitle": "देखें कि आपका बुकिंग इंजन कैसा दिखेगा",
+    "bookYourStay": "अपना प्रवास बुक करें",
+    "checkIn": "चेक-इन",
+    "checkOut": "चेक-आउट",
+    "selectDate": "तारीख चुनें",
+    "guests": "अतिथि",
+    "twoAdults": "2 वयस्क",
+    "searchAvailability": "उपलब्धता खोजें",
+    "viewRooms": "कमरे देखें",
+    "specialOffers": "विशेष ऑफर",
+    "feature": "सुविधा {{number}}"
   },
   "Roles": {
     "hotelManager": "होटल प्रबंधक",
     "staff": "स्टाफ",
     "revenueManager": "राजस्व प्रबंधक",
-    "spaManager": "स्पा प्रबंधक"
+    "spaManager": "स्पा प्रबंधक",
+    "superAdmin": "सुपर एडमिन",
+    "regionalAdmin": "क्षेत्रीय प्रशासक",
+    "groupManager": "समूह प्रबंधक",
+    "brandManager": "ब्रांड प्रबंधक"
   },
   "Booking": {
     "title": "बुकिंग",
@@ -2052,7 +2101,7 @@
       "placeholder": "उदाहरण: Número de teléfono",
       "checkTranslations": "लॉयल्टी फ़ील्ड अनुवाद",
       "editTranslation": "लॉयल्टी फ़ील्ड अनुवाद संपादित करें",
-      "noTranslationsFound": "कोई अनुवाद नहीं मिला।" 
+      "noTranslationsFound": "कोई अनुवाद नहीं मिला।"
     }
   },
   "Loyalty": {
@@ -2353,6 +2402,9 @@
       "loading": "लॉयल्टी कार्यक्रम लोड हो रहे हैं...",
       "failedFetch": "लॉयल्टी कार्यक्रम लाने में विफल"
     }
+  },
+  "LoyaltyLevel": {
+    "noOfReservations": "आरक्षणों की संख्या"
   },
   "Agency": {
     "title": "एजेंसियाँ",
@@ -2754,7 +2806,13 @@
     "delete": "हटाएं",
     "addTranslation": "प्रोमो कोड अनुवाद जोड़ें",
     "transName": "प्रोमो नाम",
-    "transDecs": "विवरण"
+    "transDecs": "विवरण",
+    "editTranslation": "प्रोमो कोड अनुवाद संपादित करें",
+    "translations": "प्रोमो कोड अनुवाद",
+    "placeholder": {
+      "name": "उदाहरण: ग्रीष्मकालीन ऑफ़र",
+      "description": "अनुवादित विवरण दर्ज करें..."
+    }
   },
   "Addon": {
     "loadingAddonsData": "ऐड-ऑन डेटा लोड हो रहा है...",
@@ -3167,32 +3225,14 @@
     "cancel": "रद्द करें",
     "saving": "सहेजा जा रहा है...",
     "create": "बनाएं",
-    "update": "अपडेट करें"
-  },
-  "TaxGroupDialog": {
-    "createTitle": "कर समूह बनाएं",
-    "editTitle": "कर समूह संपादित करें",
-    "createDesc": "कई कर नियमों को संयोजित करने के लिए एक समूह बनाएं",
-    "editDesc": "कर समूह विवरण और नियम अपडेट करें",
-    "taxGroupName": "कर समूह का नाम *",
-    "taxGroupNamePlaceholder": "जैसे, मानक कर, विलासिता कर",
-    "activeStatus": "सक्रिय स्थिति",
-    "activeStatusDesc": "दर योजनाओं के लिए इस कर समूह को सक्षम करें",
-    "selectedTaxRules": "चयनित कर नियम ({{count}})",
-    "selectTaxRules": "कर नियम चुनें",
-    "selectTaxRulesDesc": "इस समूह में शामिल करने के लिए कर नियम चुनें",
-    "noTaxRulesAvailable": "कोई कर नियम उपलब्ध नहीं।",
-    "createTaxRulesFirst": "समूहों में जोड़ने के लिए पहले कर नियम बनाएं।",
-    "roomRate": "कमरे की दर",
-    "totalAmount": "कुल राशि",
-    "priority": "प्राथमिकता",
-    "cancel": "रद्द करें",
-    "saving": "सहेजा जा रहा है...",
-    "create": "बनाएं",
-    "update": "अपडेट करें"
+    "update": "अपडेट करें",
+    "addRatePlan": "रेट प्लान जोड़ें",
+    "removeRatePlan": "रेट प्लान हटाएँ",
+    "noAvailableRatePlans": "कोई रेट प्लान उपलब्ध नहीं है",
+    "noRatePlanAdded": "कोई रेट प्लान नहीं जोड़ा गया है"
   },
   "TouristTaxDialog": {
-    "createTitle": "अतिरिक्त शुल्क बनाएं",
+    "createTitle": "अतिरिक्त शुल्क",
     "editTitle": "अतिरिक्त शुल्क संपादित करें",
     "createDesc": "अपनी संपत्ति के लिए एक नया पर्यटक कर बनाएं",
     "editDesc": "पर्यटक कर विवरण अपडेट करें",
@@ -3447,6 +3487,7 @@
       "promotionNameHint": "यह केवल आपके लिए है - उपयोगकर्ता इसे नहीं देख पाएंगे",
       "autoApply": "स्वतः लागू करें",
       "autoAppliedDescription": "यह प्रचार वर्तमान में आरक्षण पर स्वतः लागू होता है",
+        "notAutoAppliedDescription": "यह प्रमोशन वर्तमान में आरक्षण पर स्वचालित रूप से लागू नहीं है।",
       "activeStatus": "सक्रिय स्थिति",
       "activeDescription": "यह प्रचार वर्तमान में सक्रिय है",
       "inactiveDescription": "यह प्रचार वर्तमान में निष्क्रिय है",
@@ -3702,6 +3743,7 @@
     "cancel": "रद्द करें",
     "delete": "हटाएं",
     "deleting": "हटाया जा रहा है...",
+    "to": "से",
     "form": {
       "save": "सहेजें",
       "create": "बनाएं",
@@ -4636,6 +4678,7 @@
   },
   "AddPropertyAddressLangDialog": {
     "title": "पता अनुवाद जोड़ें",
+    "edit": "पता अनुवाद संपादित करें",
     "form": {
       "languageLabel": "भाषा",
       "languagePlaceholder": "भाषा चुनें",
@@ -4646,6 +4689,15 @@
       "country": "देश",
       "location": "स्थान",
       "landmark": "लैंडमार्क"
+    },
+    "formEx": {
+      "addressLine1": "उदाहरण: 123 मुख्य सड़क",
+      "addressLine2": "उदाहरण: फ्लैट 4B",
+      "city": "उदाहरण: मुंबई",
+      "state": "उदाहरण: महाराष्ट्र",
+      "country": "उदाहरण: भारत",
+      "location": "उदाहरण: गेटवे ऑफ इंडिया",
+      "landmark": "उदाहरण: ताज होटल"
     },
     "buttons": {
       "cancel": "रद्द करें",
@@ -5227,5 +5279,332 @@
       "percentage": "प्रतिशत",
       "fixedAmount": "निश्चित राशि"
     }
+  },
+  "UpdatePropertyAddress": {
+    "loader": {
+      "updating": "प्रॉपर्टी विवरण अपडेट हो रहे हैं"
+    },
+    "form": {
+      "addressLine1": "पता पंक्ति 1 *",
+      "addressLine2": "पता पंक्ति 2",
+      "country": "देश *",
+      "state": "राज्य *",
+      "city": "शहर *",
+      "areaLocation": "क्षेत्र/स्थान *",
+      "landmark": "लैंडमार्क",
+      "pinCode": "पिन कोड *",
+      "latitude": "अक्षांश",
+      "longitude": "देशांतर",
+      "googleMapsLink": "Google मैप्स लिंक"
+    },
+    "placeholder": {
+      "addressLine1": "सड़क नंबर और नाम",
+      "addressLine2": "अपार्टमेंट, बिल्डिंग, आदि",
+      "country": "देश खोजें या टाइप करें...",
+      "state": "राज्य खोजें या टाइप करें...",
+      "city": "शहर खोजें या टाइप करें...",
+      "location": "जैसे, बाड़ी चोप़र",
+      "landmark": "सिटी पैलेस के पास",
+      "mapLink": "https://maps.google.com/?q=26.9124,75.7873"
+    },
+    "coordinates": {
+      "sectionTitle": "स्थान निर्देशांक",
+      "autoLocation": "स्वचालित स्थान",
+      "autoFetch": "स्वचालित स्थान प्राप्त करें",
+      "fetching": "प्राप्त हो रहा है...",
+      "useMapLink": "मैप लिंक उपयोग करें",
+      "manualEntry": "मानवीय प्रविष्टि",
+      "latitude": "अक्षांश:",
+      "longitude": "देशांतर:"
+    },
+    "toast": {
+      "geolocationNotSupported": "आपके ब्राउज़र द्वारा भौगोलिक स्थान समर्थित नहीं है",
+      "enableLocationPermission": "कृपया अपने ब्राउज़र में स्थान अनुमतियाँ सक्षम करें"
+    },
+    "status": {
+      "fetchingLocation": "आपका स्थान प्राप्त हो रहा है...",
+      "geolocationNotSupported": "भौगोलिक स्थान समर्थित नहीं है",
+      "locationPermissionDenied": "स्थान अनुमति अस्वीकार की गई",
+      "coordsExtracted": "निर्देशांक निकाले गए: ({{lat}}, {{lng}})",
+      "extractionFailed": "इस लिंक से निर्देशांक निकालना संभव नहीं हो सका",
+      "locationFetched": "स्थान मिला: ({{lat}}, {{lng}})"
+    }
+  },
+  "UpdateRooms": {
+    "loader": {
+      "loading": "कमरे का विवरण लोड हो रहा है"
+    },
+    "toast": {
+      "roomViewsLoadFailed": "ड्रॉपडाउन के लिए कमरे के दृश्य लोड करने में विफल.",
+      "roomViewsFetchFailed": "कमरे के दृश्य प्राप्त नहीं हो सके."
+    },
+    "sections": {
+      "basicInfo": "बुनियादी जानकारी",
+      "specifications": "कमरे की विशेषताएँ",
+      "occupancy": "अधिभोग विवरण",
+      "images": "कमरे की छवियाँ *"
+    },
+    "form": {
+      "roomName": "कमरे का नाम *",
+      "roomCode": "कमरे का कोड *",
+      "totalRooms": "इस प्रकार के कुल कमरे *",
+      "roomAvailability": "कमरे की उपलब्धता",
+      "roomDescription": "कमरे का विवरण *",
+      "priority": "प्राथमिकता",
+      "roomView": "कमरे का दृश्य",
+      "floor": "मंज़िल",
+      "smokingPolicy": "धूम्रपान नीति",
+      "roomSize": "कमरे का आकार",
+      "sizeUnit": "आकार इकाई",
+      "numberOfBedrooms": "शयनकक्षों की संख्या",
+      "numberOfLivingRooms": "बैठक कक्षों की संख्या",
+      "numberOfExtraBeds": "अतिरिक्त बिस्तरों की संख्या",
+      "maxOccupancy": "अधिकतम अधिभोग *",
+      "maxAdults": "अधिकतम वयस्क",
+      "maxChildren": "अधिकतम बच्चे"
+    },
+    "placeholder": {
+      "roomName": "जैसे, डीलक्स किंग सूट",
+      "roomCode": "जैसे, DKS",
+      "totalRooms": "जैसे, 10",
+      "description": "कमरे की विशेषताएँ, दृश्य और विशेषता का विवरण दें.",
+      "priority": "जैसे, 1,2,3",
+      "selectView": "दृश्य चुनें",
+      "floor": "जैसे, 8",
+      "selectPolicy": "नीति चुनें",
+      "roomSize": "जैसे, 350",
+      "bedrooms": "जैसे, 350",
+      "livingRooms": "जैसे, 350",
+      "extraBeds": "जैसे, 350",
+      "maxOccupancy": "जैसे, 3",
+      "maxAdults": "जैसे, 2",
+      "maxChildren": "जैसे, 1"
+    },
+    "availability": {
+      "available": "यह कमरा प्रकार बुकिंग के लिए उपलब्ध है.",
+      "unavailable": "यह कमरा प्रकार वर्तमान में उपलब्ध नहीं है."
+    },
+    "smokingOptions": {
+      "nonSmoking": "धूम्रपान निषिद्ध",
+      "smokingAllowed": "धूम्रपान अनुमत",
+      "designatedArea": "निर्धारित क्षेत्र"
+    },
+    "sizeUnitOptions": {
+      "sqft": "वर्ग फ़ुट (sqft)",
+      "sqm": "वर्ग मीटर (sqm)"
+    },
+    "images": {
+      "subtitle": "अपने कमरे को शानदार तस्वीरों से प्रदर्शित करें",
+      "addEditImages": "छवियाँ जोड़ें या संपादित करें",
+      "altText": "कमरे की छवि {{index}}"
+    },
+    "characters": "अक्षर"
+  },
+  "SelectPaymentIntegration": {
+    "title": "पेमेंट इंटीग्रेशन चुनें",
+    "description": "लेन-देन को प्रोसेस करने के लिए अपना पसंदीदा पेमेंट गेटवे चुनें।",
+    "gatewayProvider": "पेमेंट गेटवे प्रदाता",
+    "pgId": "PG आईडी:",
+    "pgIdPlaceholder": "PG आईडी दर्ज करें",
+    "warnings": "ऑनलाइन भुगतान सक्षम करने के लिए कृपया एक पेमेंट इंटीग्रेशन चुनें।"
+  },
+  "TaxGroupDialog": {
+    "title": {
+      "create": "टैक्स ग्रुप बनाएं",
+      "edit": "टैक्स ग्रुप संपादित करें"
+    },
+    "description": {
+      "create": "कई टैक्स नियमों को एक साथ जोड़ने के लिए एक ग्रुप बनाएं",
+      "edit": "टैक्स ग्रुप विवरण और नियम अपडेट करें"
+    },
+    "form": {
+      "name": "टैक्स ग्रुप का नाम *",
+      "namePlaceholder": "जैसे, मानक टैक्स, लग्ज़री टैक्स",
+      "activeStatus": "सक्रिय स्थिति",
+      "activeStatusHint": "इस टैक्स ग्रुप को दर योजनाओं के लिए सक्षम करें",
+      "selectedRules": "चुने गए टैक्स नियम ({{count}})",
+      "selectRules": "टैक्स नियम चुनें",
+      "selectRulesHint": "इस ग्रुप में शामिल करने के लिए टैक्स नियम चुनें",
+      "priority": "प्राथमिकता: {{value}}",
+      "cancel": "रद्द करें",
+      "saving": "सहेजा जा रहा है...",
+      "create": "बनाएं",
+      "update": "अपडेट करें"
+    },
+    "applicableOn": {
+      "roomRate": "कमरे की दर",
+      "totalAmount": "कुल राशि"
+    },
+    "empty": {
+      "noRules": "कोई टैक्स नियम उपलब्ध नहीं है।",
+      "createFirst": "ग्रुप में जोड़ने के लिए पहले टैक्स नियम बनाएं।"
+    }
+  },
+  "TaxRuleDialog": {
+    "title": {
+      "create": "टैक्स नियम बनाएं",
+      "edit": "टैक्स नियम संपादित करें"
+    },
+    "addedToGroup": "समूहों पर लागू:",
+    "description": {
+      "create": "अपनी संपत्ति के लिए एक नया टैक्स नियम बनाएं",
+      "edit": "टैक्स नियम विवरण अपडेट करें"
+    },
+    "form": {
+      "name": "टैक्स नियम का नाम *",
+      "namePlaceholder": "जैसे, जीएसटी, सेवा कर, वैट",
+      "taxType": "टैक्स प्रकार *",
+      "valuePercent": "मूल्य (%) *",
+      "valueAmount": "राशि *",
+      "currencyCode": "मुद्रा कोड",
+      "applicableOn": "लागू होता है *",
+      "priority": "प्राथमिकता (0-5) *",
+      "priorityHint": "उच्च प्राथमिकता वाले टैक्स पहले गणना किए जाते हैं",
+      "description": "विवरण",
+      "descriptionPlaceholder": "इस टैक्स नियम के बारे में कोई अतिरिक्त जानकारी जोड़ें...",
+      "cancel": "रद्द करें",
+      "saving": "सहेजा जा रहा है...",
+      "create": "बनाएं",
+      "update": "अपडेट करें"
+    },
+    "taxTypes": {
+      "percentage": "प्रतिशत (%)",
+      "fixed": "निश्चित राशि"
+    },
+    "applicableOn": {
+      "roomRate": "कमरे की दर",
+      "totalAmount": "कुल राशि"
+    }
+  },
+  "TaxRuleTranslation": {
+    "addTitel": "कर नियम अनुवाद जोड़ें",
+    "checkTitel": "कर नियम अनुवाद",
+    "editTitel": "कर नियम अनुवाद संपादित करें",
+    "fields": {
+      "name": "नियम का नाम",
+      "description": "विवरण"
+    },
+    "placeholder": {
+      "name": "नियम का नाम दर्ज करें",
+      "description": "विवरण दर्ज करें"
+    }
+  },
+  "TaxGroupTranslation": {
+    "addTitel": "कर समूह अनुवाद जोड़ें",
+    "checkTitel": "कर समूह अनुवाद",
+    "editTitel": "कर समूह अनुवाद संपादित करें",
+    "fields": {
+      "name": "समूह का नाम"
+    },
+    "placeholder": {
+      "name": "समूह का नाम दर्ज करें"
+    }
+  },
+  "TouristTaxTranslation": {
+    "addTitel": "अतिरिक्त शुल्क अनुवाद जोड़ें",
+    "checkTitel": "अतिरिक्त शुल्क अनुवाद",
+    "editTitel": "अतिरिक्त शुल्क अनुवाद संपादित करें",
+    "fields": {
+      "name": "शुल्क का नाम"
+    },
+    "placeholder": {
+      "name": "शुल्क का नाम दर्ज करें"
+    }
+  },
+  "Days": {
+    "monday": "सोमवार",
+    "tuesday": "मंगलवार",
+    "wednesday": "बुधवार",
+    "thursday": "गुरुवार",
+    "friday": "शुक्रवार",
+    "saturday": "शनिवार",
+    "sunday": "रविवार"
+  },
+  "Months": {
+    "january": "जनवरी",
+    "february": "फरवरी",
+    "march": "मार्च",
+    "april": "अप्रैल",
+    "may": "मई",
+    "june": "जून",
+    "july": "जुलाई",
+    "august": "अगस्त",
+    "september": "सितंबर",
+    "october": "अक्टूबर",
+    "november": "नवंबर",
+    "december": "दिसंबर"
+  },
+  "ApiLogs": {
+    "title": "गतिविधि लॉग्स",
+    "subtitle": "सभी सिस्टम गतिविधियों और परिवर्तनों को ट्रैक करें",
+    "refresh": "रीफ्रेश करें",
+    "totalLogs": "कुल लॉग्स",
+    "pagesTotal": "कुल {{count}} पृष्ठ",
+    "currentPage": "वर्तमान पृष्ठ",
+    "showingLogs": "{{count}} लॉग्स दिखाए जा रहे हैं",
+    "perPage": "प्रति पृष्ठ",
+    "adjustBelow": "नीचे दिए गए नियंत्रणों में समायोजित करें",
+    "activityTimeline": "गतिविधि टाइमलाइन",
+    "recentActivities": "हाल की सिस्टम गतिविधियाँ और परिवर्तन",
+    "searchPlaceholder": "लॉग्स खोजें...",
+    "loadingLogs": "लॉग्स लोड हो रहे हैं...",
+    "failedToLoad": "लॉग्स लोड करने में विफल",
+    "errorFetching": "लॉग्स प्राप्त करते समय एक त्रुटि हुई",
+    "tryAgain": "पुनः प्रयास करें",
+    "noLogsFound": "कोई लॉग नहीं मिला",
+    "noLogsYet": "अभी तक कोई गतिविधि लॉग उपलब्ध नहीं है",
+    "tryAdjustingSearch": "अपना खोज मानदंड बदलकर देखें",
+    "previous": "पिछला",
+    "next": "अगला",
+    "unknown": "अज्ञात",
+    "showing": "{{total}} में से {{from}} से {{to}} लॉग दिखाए जा रहे हैं",
+    "columns": {
+      "timestamp": "समय",
+      "action": "कार्रवाई",
+      "entity": "इकाई",
+      "description": "विवरण",
+      "performedBy": "द्वारा किया गया",
+      "ipAddress": "आईपी पता",
+      "device": "डिवाइस",
+      "severity": "गंभीरता",
+      "details": "विवरण"
+    }
+  },
+  "ServiceLog": {
+    "title": "सेवा लॉग्स",
+    "subtitle": "आंतरिक सेवा कॉल ट्रेस, संदेश और रिपॉज़िटरी इंटरैक्शन",
+    "errorSummaryBtn": "त्रुटि सारांश",
+    "refresh": "रीफ्रेश करें",
+    "stats": {
+      "totalLogs": "कुल लॉग्स",
+      "currentPage": "वर्तमान पृष्ठ",
+      "totalPages": "कुल पृष्ठ",
+      "perPage": "प्रति पृष्ठ"
+    },
+    "card": {
+      "title": "सेवा ट्रेस लॉग",
+      "description": "सभी रिकॉर्ड की गई सेवा कॉल्स, नवीनतम पहले"
+    },
+    "searchPlaceholder": "सेवा, मेथड खोजें…",
+    "allLevels": "सभी स्तर",
+    "loadingLogs": "लॉग्स लोड हो रहे हैं…",
+    "failedToLoad": "लॉग्स लोड करने में विफल",
+    "errorFetching": "सेवा लॉग्स प्राप्त करते समय एक त्रुटि हुई",
+    "tryAgain": "पुनः प्रयास करें",
+    "noLogsFound": "कोई लॉग नहीं मिला",
+    "noLogsYet": "अभी तक कोई सेवा लॉग रिकॉर्ड नहीं किया गया है।",
+    "tryAdjusting": "अपनी खोज या फ़िल्टर बदलकर देखें।",
+    "columns": {
+      "timestamp": "समय",
+      "level": "स्तर",
+      "service": "सेवा",
+      "method": "मेथड",
+      "repos": "रिपॉज़",
+      "msgs": "संदेश",
+      "actions": "कार्रवाइयाँ"
+    },
+    "showing": "{{total}} में से {{from}}–{{to}} लॉग दिखाए जा रहे हैं",
+    "previous": "पिछला",
+    "next": "अगला"
   }
 }

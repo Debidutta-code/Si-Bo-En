@@ -278,14 +278,14 @@ export default function AddPropertyToLoyalty({
                         }}
                       >
                         <PenTool className="w-4 h-4 mr-2" />
-                        Update
+                        {t("Common.update")}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                         onClick={() => setDeletePropertyId(property.propertyId)}
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Remove
+                        {t("Common.delete")}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -410,7 +410,7 @@ export default function AddPropertyToLoyalty({
                       htmlFor={`edit-status-${editingProperty.id}`}
                       className="flex-1 cursor-pointer"
                     >
-                      {editingProperty.isActive ? "Active" : "Inactive"}
+                      {editingProperty.isActive ? t("Common.active") : t("Common.inactive")}
                     </Label>
                     <Switch
                       id={`edit-status-${editingProperty.id}`}
@@ -425,7 +425,7 @@ export default function AddPropertyToLoyalty({
                   </div>
                 </div>
                 <div>
-                  <Label>Loyalty Image</Label>
+                  <Label>{t("PropertyLoyalties.addProperty.dialog.loyaltyImage")}</Label>
                   <div className="mt-2 flex items-center justify-between border rounded-md p-3">
                     <div className="flex items-center gap-3">
                       {editingProperty.loyalityConfigLogo ? (
@@ -439,14 +439,14 @@ export default function AddPropertyToLoyalty({
                       ) : (
                         <div className="h-12 w-12 rounded bg-muted flex items-center justify-center">
                           <span className="text-xs text-muted-foreground">
-                            None
+                            {t("PropertyLoyalties.addProperty.dialog.none")}
                           </span>
                         </div>
                       )}
                       <span className="text-sm font-medium">
                         {editingProperty.loyalityConfigLogo
-                          ? "Logo uploaded"
-                          : "Upload a logo"}
+                          ? t("PropertyLoyalties.addProperty.dialog.logoUploaded")
+                          : t("PropertyLoyalties.addProperty.dialog.uploadLogo")}
                       </span>
                     </div>
                     <Button
@@ -455,7 +455,7 @@ export default function AddPropertyToLoyalty({
                       size="sm"
                       onClick={() => setIsUpdateImageModalOpen(true)}
                     >
-                      {editingProperty.loyalityConfigLogo ? "Change" : "Upload"}
+                      {editingProperty.loyalityConfigLogo ? t("PropertyLoyalties.addProperty.dialog.cancel"):  t("PropertyLoyalties.addProperty.dialog.upload")}
                     </Button>
                   </div>
                 </div>
@@ -467,7 +467,7 @@ export default function AddPropertyToLoyalty({
               variant="outline"
               onClick={() => setIsUpdateDialogOpen(false)}
             >
-              Cancel
+              {t("Common.cancel")}
             </Button>
             <Button
               onClick={handleUpdateProperty}

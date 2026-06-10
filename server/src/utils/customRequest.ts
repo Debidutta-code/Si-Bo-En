@@ -1,14 +1,15 @@
 import e, { Request as ExpressRequest } from 'express';
 import { Role } from './jwtHelper';
 import { IUserRolesAndAccess } from '../access-control/types/access.types';
+import { IPropertyConfig } from '../property-management/types/property-config.type';
 export interface PropertyRequest extends ExpressRequest {
     property?: {
         id: string;
         propertyName: string;
         propertyCode: string;
         creationId: string;
-        timezone?: string;
-        currencyCode?: string;
+        propertyConfig:IPropertyConfig|null
+
     };
 }
 export interface PropertyCustomRequest extends PropertyRequest {
@@ -18,6 +19,7 @@ export interface PropertyCustomRequest extends PropertyRequest {
         role?: Role;
         level?: number;
         creationId: string;
+        propertyConfig:IPropertyConfig|null
     };
     jwt?: string;
     permission?: IUserRolesAndAccess;
@@ -43,6 +45,8 @@ export interface CustomRequest extends ExpressRequest {
         creationId: string;
         timezone?: string;
         currencyCode?: string;
+        propertyConfig:IPropertyConfig|null
+
     };
 }
 

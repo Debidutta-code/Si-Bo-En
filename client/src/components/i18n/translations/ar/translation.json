@@ -85,7 +85,15 @@
     "translationSaved": "تم حفظ الترجمة بنجاح!",
     "failedToSaveTranslation": "فشل حفظ الترجمة",
     "translationUpdated": "تم تحديث الترجمة بنجاح!",
-    "failedToUpdateTranslation": "فشل تحديث الترجمة"
+    "failedToUpdateTranslation": "فشل تحديث الترجمة",
+    "promotionTranslations": "ترجمات العروض",
+    "showLess": "عرض أقل",
+    "showMore": "عرض المزيد",
+    "update": "تحديث",
+      "recover": "استعادة",
+        "deleted": "محذوف"
+
+
   },
   "AddRoomLangDialog": {
     "title": "إضافة ترجمة الغرفة",
@@ -597,7 +605,15 @@
     "englishLanguage": "الإنجليزية",
     "editTranslationTitle": "تعديل ترجمة العقار",
     "translationFieldName": "اسم العقار",
-    "translationFieldNamePlaceholder": "مثال: فندق الشمس"
+    "translationFieldNamePlaceholder": "مثال: فندق سول",
+    "editPropertyDetailTranslation": "تعديل ترجمة تفاصيل العقار",
+    "description": "وصف العقار",
+    "descriptionPlaceholder": "صف المميزات الفريدة لعقارك...",
+    "namePlaceholder": "مثال: فندق سول",
+    "detailTranslation": "ترجمات تفاصيل العقار",
+    "videoTour": "جولة فيديو",
+    "noMediaTitel": "اعرض عقارك بأفضل صورة",
+    "noMediaDecs": "قم بتحميل صور رائعة وجولة فيديو جذابة لجعل عقارك مميزًا وجذب المزيد من الحجوزات"
   },
   "PropertySuper": {
     "title": "الفنادق والعقارات",
@@ -843,13 +859,46 @@
     "createConfiguration": "إنشاء تكوين",
     "configurationActive": "التكوين نشط",
     "configurationActiveDescription": "لديك بالفعل تكوين لمحرك الحجز. يمكنك تحديثه في أي وقت ليتناسب مع علامتك التجارية.",
-    "updateConfiguration": "تحديث التكوين"
+    "updateConfiguration": "تحديث التكوين",
+    "failedToFetchConfiguration": "فشل جلب التكوين",
+    "configurationUpdatedSuccessfully": "تم تحديث التكوين بنجاح!",
+    "configurationCreatedSuccessfully": "تم إنشاء التكوين بنجاح!",
+    "failedToSaveConfigurationMsg": "فشل حفظ التكوين",
+    "errorOccurredWhileSaving": "حدث خطأ أثناء الحفظ",
+    "hotelWebsiteUrl": "رابط موقع الفندق",
+    "pasteUrlHere": "الصق الرابط هنا",
+    "colorConfiguration": "تكوين الألوان",
+    "primaryColor": "اللون الأساسي",
+    "secondaryColor": "اللون الثانوي",
+    "tertiaryColor": "اللون الثالث",
+    "buttonTextColor": "لون نص الزر",
+    "images": "الصور",
+    "logo": "الشعار",
+    "noLogo": "لا يوجد شعار",
+    "uploadLogo": "تحميل الشعار",
+    "saving": "جارٍ الحفظ...",
+    "livePreview": "معاينة مباشرة",
+    "livePreviewSubtitle": "شاهد كيف سيبدو محرك الحجز الخاص بك",
+    "bookYourStay": "احجز إقامتك",
+    "checkIn": "تسجيل الوصول",
+    "checkOut": "تسجيل المغادرة",
+    "selectDate": "اختر تاريخاً",
+    "guests": "الضيوف",
+    "twoAdults": "بالغان",
+    "searchAvailability": "ابحث عن التوفر",
+    "viewRooms": "عرض الغرف",
+    "specialOffers": "عروض خاصة",
+    "feature": "ميزة {{number}}"
   },
   "Roles": {
     "hotelManager": "مدير الفندق",
     "staff": "موظف",
     "revenueManager": "مدير الإيرادات",
-    "spaManager": "مدير المنتجع الصحي"
+    "spaManager": "مدير السبا",
+    "superAdmin": "المسؤول العام",
+    "regionalAdmin": "المسؤول الإقليمي",
+    "groupManager": "مدير المجموعة",
+    "brandManager": "مدير العلامة التجارية"
   },
   "Booking": {
     "title": "الحجوزات",
@@ -2397,6 +2446,9 @@
       "failedFetch": "فشل جلب برامج الولاء"
     }
   },
+  "LoyaltyLevel": {
+    "noOfReservations": "عدد الحجوزات"
+  },
   "Agency": {
     "title": "الوكالات",
     "subtitle": "إدارة وكالات السفر والشركاء من الشركات",
@@ -2603,7 +2655,22 @@
     "videoSavedSuccessfully": "تم تحميل الفيديو وحفظه بنجاح!",
     "failedToSaveVideo": "فشل حفظ الفيديو",
     "videoDeletedSuccessfully": "تم حذف الفيديو بنجاح!",
-    "failedToDeleteVideo": "فشل حذف الفيديو"
+    "failedToDeleteVideo": "فشل حذف الفيديو",
+      "upload360Text": "قم بتحميل صورة بانورامية 360° أو قدم رابطًا لعارض 360° خارجي.",
+  "viewLink": "رابط عرض 360°",
+  "orUploadImage": "أو قم بتحميل صورة",
+  "upload360Image": "تحميل صورة 360°",
+  "add360ViewFor": "إضافة عرض 360° لـ {{name}}",
+  "upload360Description": "قم بتحميل صورة بانورامية 360° أو قدم رابطًا لعارض 360° خارجي.",
+  "view360Link": "رابط عرض 360°",
+  "view360Placeholder": "https://example.com/360-view.jpg",
+  "enter360ViewerUrl": "أدخل رابط صورة 360° أو عارض بانورامي",
+  "previewLink": "معاينة الرابط",
+  "pleaseProvide360Link": "يرجى تقديم رابط عرض 360° أو تحميل صورة.",
+  "view360Updated": "تم تحديث عرض 360° بنجاح!",
+  "failedToUpdate360View": "فشل تحديث عرض 360°",
+  "saving": "جارٍ الحفظ..."
+
   },
   "BankDetails": {
     "title": "التفاصيل المصرفية والدفع",
@@ -2782,7 +2849,13 @@
     "delete": "حذف",
     "addTranslation": "إضافة ترجمة رمز العرض",
     "transName": "اسم العرض",
-    "transDecs": "الوصف"
+    "transDecs": "الوصف",
+    "editTranslation": "تعديل ترجمة رمز العرض الترويجي",
+    "translations": "ترجمات رموز العروض الترويجية",
+    "placeholder": {
+      "name": "مثال: عرض الصيف",
+      "description": "أدخل الوصف المترجم..."
+    }
   },
   "Addon": {
     "loadingAddonsData": "جارٍ تحميل بيانات الخدمات الإضافية...",
@@ -3201,28 +3274,6 @@
     "noAvailableRatePlans": "لا توجد خطط أسعار متاحة",
     "noRatePlanAdded": "لم تتم إضافة خطة أسعار"
   },
-  "TaxGroupDialog": {
-    "createTitle": "إنشاء مجموعة ضريبية",
-    "editTitle": "تعديل المجموعة الضريبية",
-    "createDesc": "إنشاء مجموعة لدمج قواعد ضريبية متعددة",
-    "editDesc": "تحديث تفاصيل المجموعة الضريبية والقواعد",
-    "taxGroupName": "اسم المجموعة الضريبية *",
-    "taxGroupNamePlaceholder": "مثال: الضرائب القياسية، الضرائب الفاخرة",
-    "activeStatus": "الحالة النشطة",
-    "activeStatusDesc": "تمكين هذه المجموعة الضريبية لخطط الأسعار",
-    "selectedTaxRules": "القواعد الضريبية المحددة ({{count}})",
-    "selectTaxRules": "اختر القواعد الضريبية",
-    "selectTaxRulesDesc": "اختر القواعد الضريبية التي تريد تضمينها في هذه المجموعة",
-    "noTaxRulesAvailable": "لا توجد قواعد ضريبية متاحة.",
-    "createTaxRulesFirst": "قم بإنشاء قواعد ضريبية أولاً لإضافتها إلى المجموعات.",
-    "roomRate": "سعر الغرفة",
-    "totalAmount": "المبلغ الإجمالي",
-    "priority": "الأولوية",
-    "cancel": "إلغاء",
-    "saving": "جارٍ الحفظ...",
-    "create": "إنشاء",
-    "update": "تحديث"
-  },
   "TouristTaxDialog": {
     "createTitle": "إنشاء رسوم إضافية",
     "editTitle": "تعديل الرسوم الإضافية",
@@ -3479,6 +3530,7 @@
       "promotionNameHint": "هذا لك فقط - لن يتمكن المستخدمون من رؤيته",
       "autoApply": "تطبيق تلقائي",
       "autoAppliedDescription": "يتم تطبيق هذا العرض الترويجي تلقائياً على الحجز",
+        "notAutoAppliedDescription": "هذا العرض الترويجي غير مطبق تلقائيًا على الحجز حاليًا.",
       "activeStatus": "الحالة النشطة",
       "activeDescription": "هذا العرض الترويجي نشط حالياً",
       "inactiveDescription": "هذا العرض الترويجي غير نشط حالياً",
@@ -3734,6 +3786,7 @@
     "cancel": "إلغاء",
     "delete": "حذف",
     "deleting": "جارٍ الحذف...",
+    "to": "إلى",
     "form": {
       "save": "حفظ",
       "create": "إنشاء",
@@ -4673,6 +4726,7 @@
   },
   "AddPropertyAddressLangDialog": {
     "title": "إضافة ترجمة العنوان",
+    "edit": "تعديل ترجمة العنوان",
     "form": {
       "languageLabel": "اللغة",
       "languagePlaceholder": "اختر اللغة",
@@ -4683,6 +4737,15 @@
       "country": "الدولة",
       "location": "الموقع",
       "landmark": "معلم بارز"
+    },
+    "formEx": {
+      "addressLine1": "مثال: شارع 123",
+      "addressLine2": "مثال: شقة 4B",
+      "city": "مثال: مدريد",
+      "state": "مثال: منطقة مدريد",
+      "country": "مثال: إسبانيا",
+      "location": "مثال: بلازا مايور",
+      "landmark": "مثال: إل كورتي إنغليس"
     },
     "buttons": {
       "cancel": "إلغاء",
@@ -5247,5 +5310,321 @@
       "percentage": "نسبة مئوية",
       "fixedAmount": "مبلغ ثابت"
     }
+  },
+  "UpdatePropertyAddress": {
+    "loader": {
+      "updating": "جارٍ تحديث تفاصيل العقار"
+    },
+    "form": {
+      "addressLine1": "سطر العنوان 1 *",
+      "addressLine2": "سطر العنوان 2",
+      "country": "الدولة *",
+      "state": "الولاية *",
+      "city": "المدينة *",
+      "areaLocation": "المنطقة/الموقع *",
+      "landmark": "معلم بارز",
+      "pinCode": "الرمز البريدي *",
+      "latitude": "خط العرض",
+      "longitude": "خط الطول",
+      "googleMapsLink": "رابط خرائط Google"
+    },
+    "placeholder": {
+      "addressLine1": "رقم الشارع والاسم",
+      "addressLine2": "الشقة، المبنى، إلخ.",
+      "country": "ابحث أو اكتب الدولة...",
+      "state": "ابحث أو اكتب الولاية...",
+      "city": "ابحث أو اكتب المدينة...",
+      "location": "مثال: بادي شوبار",
+      "landmark": "بالقرب من قصر المدينة",
+      "mapLink": "https://maps.google.com/?q=26.9124,75.7873"
+    },
+    "coordinates": {
+      "sectionTitle": "إحداثيات الموقع",
+      "autoLocation": "الموقع التلقائي",
+      "autoFetch": "جلب الموقع تلقائياً",
+      "fetching": "جارٍ الجلب...",
+      "useMapLink": "استخدام رابط الخريطة",
+      "manualEntry": "الإدخال اليدوي",
+      "latitude": "خط العرض:",
+      "longitude": "خط الطول:"
+    },
+    "toast": {
+      "geolocationNotSupported": "تحديد الموقع الجغرافي غير مدعوم من متصفحك",
+      "enableLocationPermission": "يرجى تمكين أذونات الموقع في متصفحك"
+    },
+    "status": {
+      "fetchingLocation": "جارٍ جلب موقعك...",
+      "geolocationNotSupported": "تحديد الموقع الجغرافي غير مدعوم",
+      "locationPermissionDenied": "تم رفض إذن الموقع",
+      "coordsExtracted": "تم استخراج الإحداثيات: ({{lat}}, {{lng}})",
+      "extractionFailed": "تعذّر استخراج الإحداثيات من هذا الرابط",
+      "locationFetched": "تم جلب الموقع: ({{lat}}, {{lng}})"
+    }
+  },
+  "UpdateRooms": {
+    "loader": {
+      "loading": "جارٍ تحميل تفاصيل الغرفة"
+    },
+    "toast": {
+      "roomViewsLoadFailed": "فشل تحميل مشاهد الغرفة للقائمة المنسدلة.",
+      "roomViewsFetchFailed": "تعذّر جلب مشاهد الغرفة."
+    },
+    "sections": {
+      "basicInfo": "المعلومات الأساسية",
+      "specifications": "مواصفات الغرفة",
+      "occupancy": "تفاصيل الإشغال",
+      "images": "صور الغرفة *"
+    },
+    "form": {
+      "roomName": "اسم الغرفة *",
+      "roomCode": "رمز الغرفة *",
+      "totalRooms": "إجمالي الغرف من هذا النوع *",
+      "roomAvailability": "توفر الغرفة",
+      "roomDescription": "وصف الغرفة *",
+      "priority": "الأولوية",
+      "roomView": "إطلالة الغرفة",
+      "floor": "الطابق",
+      "smokingPolicy": "سياسة التدخين",
+      "roomSize": "حجم الغرفة",
+      "sizeUnit": "وحدة الحجم",
+      "numberOfBedrooms": "عدد غرف النوم",
+      "numberOfLivingRooms": "عدد غرف الجلوس",
+      "numberOfExtraBeds": "عدد الأسرّة الإضافية",
+      "maxOccupancy": "الحد الأقصى للإشغال *",
+      "maxAdults": "الحد الأقصى للبالغين",
+      "maxChildren": "الحد الأقصى للأطفال"
+    },
+    "placeholder": {
+      "roomName": "مثال: جناح ديلكس كينج",
+      "roomCode": "مثال: DKS",
+      "totalRooms": "مثال: 10",
+      "description": "صف ميزات الغرفة وإطلالتها وما يجعلها مميزة.",
+      "priority": "مثال: 1,2,3",
+      "selectView": "اختر الإطلالة",
+      "floor": "مثال: 8",
+      "selectPolicy": "اختر السياسة",
+      "roomSize": "مثال: 350",
+      "bedrooms": "مثال: 350",
+      "livingRooms": "مثال: 350",
+      "extraBeds": "مثال: 350",
+      "maxOccupancy": "مثال: 3",
+      "maxAdults": "مثال: 2",
+      "maxChildren": "مثال: 1"
+    },
+    "availability": {
+      "available": "نوع الغرفة هذا متاح للحجز.",
+      "unavailable": "نوع الغرفة هذا غير متاح حالياً."
+    },
+    "smokingOptions": {
+      "nonSmoking": "غير مدخّنين",
+      "smokingAllowed": "التدخين مسموح",
+      "designatedArea": "منطقة مخصصة"
+    },
+    "sizeUnitOptions": {
+      "sqft": "قدم مربع (sqft)",
+      "sqm": "متر مربع (sqm)"
+    },
+    "images": {
+      "subtitle": "اعرض غرفتك بصور رائعة",
+      "addEditImages": "إضافة الصور أو تحريرها",
+      "altText": "صورة الغرفة {{index}}"
+    },
+    "characters": "حرفاً"
+  },
+  "SelectPaymentIntegration": {
+    "title": "اختر تكامل الدفع",
+    "description": "اختر بوابة الدفع المفضلة لديك لمعالجة المعاملات.",
+    "gatewayProvider": "مزود بوابة الدفع",
+    "pgId": "معرّف بوابة الدفع:",
+    "pgIdPlaceholder": "أدخل معرّف بوابة الدفع",
+    "warnings": "يرجى اختيار تكامل دفع واحد لتمكين المدفوعات عبر الإنترنت."
+  },
+  "TaxGroupDialog": {
+    "title": {
+      "create": "إنشاء مجموعة ضريبية",
+      "edit": "تعديل مجموعة ضريبية"
+    },
+    "description": {
+      "create": "أنشئ مجموعة لدمج قواعد ضريبية متعددة",
+      "edit": "تحديث تفاصيل وقواعد المجموعة الضريبية"
+    },
+    "form": {
+      "name": "اسم المجموعة الضريبية *",
+      "namePlaceholder": "مثال: الضرائب القياسية، ضرائب الفاخرة",
+      "activeStatus": "حالة التفعيل",
+      "activeStatusHint": "تفعيل هذه المجموعة الضريبية لخطط الأسعار",
+      "selectedRules": "القواعد الضريبية المحددة ({{count}})",
+      "selectRules": "اختر القواعد الضريبية",
+      "selectRulesHint": "اختر القواعد الضريبية التي تريد تضمينها في هذه المجموعة",
+      "priority": "الأولوية: {{value}}",
+      "cancel": "إلغاء",
+      "saving": "جارٍ الحفظ...",
+      "create": "إنشاء",
+      "update": "تحديث"
+    },
+    "applicableOn": {
+      "roomRate": "سعر الغرفة",
+      "totalAmount": "المبلغ الإجمالي"
+    },
+    "empty": {
+      "noRules": "لا توجد قواعد ضريبية متاحة.",
+      "createFirst": "أنشئ قواعد ضريبية أولاً لإضافتها إلى المجموعات."
+    }
+  },
+  "TaxRuleDialog": {
+    "title": {
+      "create": "إنشاء قاعدة ضريبية",
+      "edit": "تعديل قاعدة ضريبية"
+    },
+    "addedToGroup": "مُطبّق على المجموعات:",
+    "description": {
+      "create": "إنشاء قاعدة ضريبية جديدة لعقارك",
+      "edit": "تحديث تفاصيل القاعدة الضريبية"
+    },
+    "form": {
+      "name": "اسم القاعدة الضريبية *",
+      "namePlaceholder": "مثال: ضريبة القيمة المضافة، ضريبة الخدمة",
+      "taxType": "نوع الضريبة *",
+      "valuePercent": "القيمة (%) *",
+      "valueAmount": "المبلغ *",
+      "currencyCode": "رمز العملة",
+      "applicableOn": "تُطبَّق على *",
+      "priority": "الأولوية (0-5) *",
+      "priorityHint": "يتم احتساب الضرائب ذات الأولوية الأعلى أولاً",
+      "description": "الوصف",
+      "descriptionPlaceholder": "أضف أي تفاصيل إضافية حول هذه القاعدة الضريبية...",
+      "cancel": "إلغاء",
+      "saving": "جارٍ الحفظ...",
+      "create": "إنشاء",
+      "update": "تحديث"
+    },
+    "taxTypes": {
+      "percentage": "نسبة مئوية (%)",
+      "fixed": "مبلغ ثابت"
+    },
+    "applicableOn": {
+      "roomRate": "سعر الغرفة",
+      "totalAmount": "المبلغ الإجمالي"
+    }
+  },
+  "TaxRuleTranslation": {
+    "addTitel": "إضافة ترجمة قاعدة الضريبة",
+    "checkTitel": "ترجمات قواعد الضريبة",
+    "editTitel": "تعديل ترجمة قاعدة الضريبة",
+    "fields": {
+      "name": "اسم القاعدة",
+      "description": "الوصف"
+    },
+    "placeholder": {
+      "name": "أدخل اسم القاعدة",
+      "description": "أدخل الوصف"
+    }
+  },
+  "TaxGroupTranslation": {
+    "addTitel": "إضافة ترجمة مجموعة الضريبة",
+    "checkTitel": "ترجمات مجموعات الضرائب",
+    "editTitel": "تعديل ترجمة مجموعة الضريبة",
+    "fields": {
+      "name": "اسم المجموعة"
+    },
+    "placeholder": {
+      "name": "أدخل اسم المجموعة"
+    }
+  },
+  "TouristTaxTranslation": {
+    "addTitel": "إضافة ترجمة الرسوم الإضافية",
+    "checkTitel": "ترجمات الرسوم الإضافية",
+    "editTitel": "تعديل ترجمة الرسوم الإضافية",
+    "fields": {
+      "name": "اسم الرسوم"
+    },
+    "placeholder": {
+      "name": "أدخل اسم الرسوم"
+    }
+  },
+  "Days": {
+    "monday": "الاثنين",
+    "tuesday": "الثلاثاء",
+    "wednesday": "الأربعاء",
+    "thursday": "الخميس",
+    "friday": "الجمعة",
+    "saturday": "السبت",
+    "sunday": "الأحد"
+  },
+  "Months": {
+    "january": "يناير",
+    "february": "فبراير",
+    "march": "مارس",
+    "april": "أبريل",
+    "may": "مايو",
+    "june": "يونيو",
+    "july": "يوليو",
+    "august": "أغسطس",
+    "september": "سبتمبر",
+    "october": "أكتوبر",
+    "november": "نوفمبر",
+    "december": "ديسمبر"
+  },
+  "ApiLogs": {
+    "title": "سجلات النشاط",
+    "subtitle": "تتبع جميع أنشطة النظام والتغييرات",
+    "refresh": "تحديث",
+    "totalLogs": "إجمالي السجلات",
+    "pagesTotal": "إجمالي {{count}} صفحة",
+    "currentPage": "الصفحة الحالية",
+    "showingLogs": "عرض {{count}} سجل",
+    "perPage": "لكل صفحة",
+    "adjustBelow": "قم بالتعديل من عناصر التحكم أدناه",
+    "activityTimeline": "الجدول الزمني للنشاط",
+    "recentActivities": "آخر أنشطة وتغييرات النظام",
+    "searchPlaceholder": "ابحث في السجلات...",
+    "loadingLogs": "جارٍ تحميل السجلات...",
+    "failedToLoad": "فشل تحميل السجلات",
+    "errorFetching": "حدث خطأ أثناء جلب السجلات",
+    "tryAgain": "حاول مرة أخرى",
+    "noLogsFound": "لم يتم العثور على سجلات",
+    "noLogsYet": "لا توجد سجلات نشاط متاحة بعد",
+    "tryAdjustingSearch": "حاول تعديل معايير البحث",
+    "previous": "السابق",
+    "next": "التالي",
+    "unknown": "غير معروف",
+    "showing": "عرض {{from}} إلى {{to}} من أصل {{total}} سجل"
+  },
+  "ServiceLog": {
+    "title": "سجلات الخدمة",
+    "subtitle": "تتبعات استدعاءات الخدمات الداخلية والرسائل وتفاعلات المستودعات",
+    "errorSummaryBtn": "ملخص الأخطاء",
+    "refresh": "تحديث",
+    "stats": {
+      "totalLogs": "إجمالي السجلات",
+      "currentPage": "الصفحة الحالية",
+      "totalPages": "إجمالي الصفحات",
+      "perPage": "لكل صفحة"
+    },
+    "card": {
+      "title": "سجل تتبع الخدمة",
+      "description": "جميع استدعاءات الخدمة المسجلة، الأحدث أولاً"
+    },
+    "searchPlaceholder": "ابحث عن الخدمة أو الطريقة…",
+    "allLevels": "جميع المستويات",
+    "loadingLogs": "جارٍ تحميل السجلات…",
+    "failedToLoad": "فشل تحميل السجلات",
+    "errorFetching": "حدث خطأ أثناء جلب سجلات الخدمة",
+    "tryAgain": "حاول مرة أخرى",
+    "noLogsFound": "لم يتم العثور على سجلات",
+    "noLogsYet": "لم يتم تسجيل أي سجلات خدمة بعد.",
+    "tryAdjusting": "حاول تعديل البحث أو عوامل التصفية.",
+    "columns": {
+      "timestamp": "الوقت",
+      "level": "المستوى",
+      "service": "الخدمة",
+      "method": "الطريقة",
+      "repos": "المستودعات",
+      "msgs": "الرسائل",
+      "actions": "الإجراءات"
+    },
+    "showing": "عرض {{from}}–{{to}} من أصل {{total}} سجل",
+    "previous": "السابق",
+    "next": "التالي"
   }
 }

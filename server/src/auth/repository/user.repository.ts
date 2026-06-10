@@ -5,7 +5,7 @@ export class UserAuthRepository {
     public static async findUserById(userId: string) {
         try {
             return await prisma.user.findUnique({
-                where: { id: userId },
+                where: { id: userId, isDeleted: false },
                 include: {
                     creation: {
                         include: {
@@ -122,12 +122,10 @@ export class UserAuthRepository {
 
 export class Users {
     public static async getAllUsers(
-        isDrafted: boolean = false
     ): Promise<IRUsers[]> {
         try {
             return await prisma.user.findMany({
                 where: {
-                    isDrafted: isDrafted,
                 },
                 select: {
                     firstName: true,
@@ -212,6 +210,7 @@ export class Users {
             return await prisma.user.findMany({
                 where: {
                     creationId: creationId,
+                    isDeleted: false
                 },
                 select: {
                     firstName: true,
@@ -352,6 +351,7 @@ export class UtilsRepository {
             return await prisma.user.findMany({
                 where: {
                     creationId: { in: creationIds },
+                    isDeleted: false
                 },
                 select: {
                     firstName: true,

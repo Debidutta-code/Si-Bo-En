@@ -516,7 +516,7 @@ export default function LoyaltyLevels() {
 
             <div className="space-y-2">
               <Label htmlFor="no-of-reservations">
-                Number of Reservations{" "}
+                {t("LoyaltyLevel.noOfReservations")}
                 <span className="text-muted-foreground font-normal text-xs">
                   (0–100)
                 </span>
@@ -537,9 +537,7 @@ export default function LoyaltyLevels() {
                   placeholder="e.g. 10"
                   className="pr-8"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
-                  reservations
-                </span>
+                
               </div>
             </div>
           </div>

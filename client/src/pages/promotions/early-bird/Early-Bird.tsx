@@ -33,9 +33,9 @@ import type { ILoader } from '@/pages/dashboard/interface';
 import BackButton from '@/components/shared/BackButton';
 import { AddTranslationDialog, CheckTranslationsDialog, EditTranslationDialog } from '@/pages/management/components/multilang/ManagementTranslationDialogs';
 import {
-  upsertPromotionTranslationService,
-  getAllPromotionTranslationsService,
-  deletePromotionTranslationLocaleService,
+    upsertPromotionTranslationService,
+    getAllPromotionTranslationsService,
+    deletePromotionTranslationLocaleService,
 } from '../multilanguage/service/promotion.service';
 import { usePropertyContext } from '@/contexts/PropertyContext';
 import { languages } from '@/components/language/language';
@@ -61,77 +61,77 @@ export const EarlyBirdPromotionList: React.FC = () => {
     const [editTranslationOpen, setEditTranslationOpen] = useState(false);
     const [editingLocale, setEditingLocale] = useState<string>("");
     const [editingData, setEditingData] = useState<Record<string, any>>({});
-        const { languages: propertyLanguages } = usePropertyContext();
-        const availableLanguages = propertyLanguages && propertyLanguages.length > 0
-            ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
-            : languages;
+    const { languages: propertyLanguages } = usePropertyContext();
+    const availableLanguages = propertyLanguages && propertyLanguages.length > 0
+        ? languages.filter((l) => propertyLanguages.some((pl) => pl.language === l.code))
+        : languages;
 
     useEffect(() => {
         loadData();
     }, [propertyId]);
 
     const loadData = async () => {
-    setIsLoading({isLoading: true, message: t('EarlyBird.loadingPromotions')});
-    try {
-        if (!propertyId) {
-            return;
-        }
+        setIsLoading({ isLoading: true, message: t('EarlyBird.loadingPromotions') });
+        try {
+            if (!propertyId) {
+                return;
+            }
 
-        const [promotionsResponse, plansResponse, roomsResponse] = await Promise.all([
-            getEarlyBirdPromotionsByPropertyService(propertyId),
-            fetchRatePlansService(propertyId),
-            fetchRoomTypesService(propertyId)
-        ]);
+            const [promotionsResponse, plansResponse, roomsResponse] = await Promise.all([
+                getEarlyBirdPromotionsByPropertyService(propertyId),
+                fetchRatePlansService(propertyId),
+                fetchRoomTypesService(propertyId)
+            ]);
 
-        if (promotionsResponse.success) {
-            // Group promotions by id and construct roomRatePlans array
-            const promotionsMap = new Map<string, EarlyBirdPromotionWithRatePlan>();
-            
-            (promotionsResponse.data || []).forEach((promo: any) => {
-                if (!promotionsMap.has(promo.id)) {
-                    // First occurrence of this promotion
-                    promotionsMap.set(promo.id, {
-                        ...promo,
-                        applicableDays: convertBackendToApplicableDays(promo),
-                        roomRatePlans: [],
-                        
-                    });
-                }
-                
-                // Add room-rateplan pair to the array
-                const promotion = promotionsMap.get(promo.id)!;
-                if (promo.roomId && promo.ratePlanId) {
-                    promotion.roomRatePlans!.push({
-                        roomId: promo.roomId,
-                        roomType: promo.roomType || undefined,
-                        ratePlanId: promo.ratePlanId,
-                        ratePlanCode: promo.ratePlanCode
-                    });
-                }
+            if (promotionsResponse.success) {
+                // Group promotions by id and construct roomRatePlans array
+                const promotionsMap = new Map<string, EarlyBirdPromotionWithRatePlan>();
+
+                (promotionsResponse.data || []).forEach((promo: any) => {
+                    if (!promotionsMap.has(promo.id)) {
+                        // First occurrence of this promotion
+                        promotionsMap.set(promo.id, {
+                            ...promo,
+                            applicableDays: convertBackendToApplicableDays(promo),
+                            roomRatePlans: [],
+
+                        });
+                    }
+
+                    // Add room-rateplan pair to the array
+                    const promotion = promotionsMap.get(promo.id)!;
+                    if (promo.roomId && promo.ratePlanId) {
+                        promotion.roomRatePlans!.push({
+                            roomId: promo.roomId,
+                            roomType: promo.roomType || undefined,
+                            ratePlanId: promo.ratePlanId,
+                            ratePlanCode: promo.ratePlanCode
+                        });
+                    }
+                });
+
+                setPromotions(Array.from(promotionsMap.values()));
+            }
+            if (plansResponse.success) {
+                setRatePlans(plansResponse.data || []);
+            }
+            if (roomsResponse.success) {
+                setRoomTypes(roomsResponse.data || []);
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+            toast.error(t('EarlyBird.failedToLoadPromotions'));
+        } finally {
+            setIsLoading({
+                isLoading: false,
+                message: ''
             });
-            
-            setPromotions(Array.from(promotionsMap.values()));
         }
-        if (plansResponse.success) {
-            setRatePlans(plansResponse.data || []);
-        }
-        if (roomsResponse.success) {
-            setRoomTypes(roomsResponse.data || []);
-        }
-    } catch (error) {
-        console.error('Error loading data:', error);
-        toast.error(t('EarlyBird.failedToLoadPromotions'));
-    } finally {
-        setIsLoading({
-            isLoading:false,
-            message:''
-        });
-    }
-};
+    };
 
     const handleCreate = async (payload: CreateEarlyBirdPromotion) => {
         setIsLoading({
-            isLoading:true,
+            isLoading: true,
             message: t('EarlyBird.creatingPromotion')
         });
         try {
@@ -147,8 +147,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
             toast.error(t('EarlyBird.errorCreatingPromotion'));
         } finally {
             setIsLoading({
-                isLoading:false,
-                message:''
+                isLoading: false,
+                message: ''
             });
         }
     };
@@ -157,7 +157,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
         if (!editData) return;
 
         setIsLoading({
-            isLoading:true,
+            isLoading: true,
             message: t('EarlyBird.updatingPromotion')
         });
         try {
@@ -194,8 +194,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
             toast.error(t('EarlyBird.errorUpdatingPromotion'));
         } finally {
             setIsLoading({
-                isLoading:false,
-                message:''
+                isLoading: false,
+                message: ''
             });
         }
     };
@@ -209,7 +209,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
         if (!promotionToDelete) return;
 
         setIsLoading({
-            isLoading:true,
+            isLoading: true,
             message: t('EarlyBird.deletingPromotion')
         });
         try {
@@ -224,8 +224,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
             toast.error(t('EarlyBird.errorDeletingPromotion'));
         } finally {
             setIsLoading({
-                isLoading:false,
-                message:''
+                isLoading: false,
+                message: ''
             });
             setDeleteDialogOpen(false);
             setPromotionToDelete(null);
@@ -243,22 +243,16 @@ export const EarlyBirdPromotionList: React.FC = () => {
     };
 
     const formatDate = (date: string | null | undefined) => {
-        if (!date) return t('EarlyBird.notAvailable');
-        return new Date(date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
+    if (!date) return 'N/A';
+    const d = new Date(date);
+    const month = t(`Months.${d.toLocaleString('en-US', { month: 'long' }).toLowerCase()}`);
+    return `${month} ${d.getDate()}, ${d.getFullYear()}`;
+  };
 
     const getActiveDays = (days: any) => {
-        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         return Object.entries(days)
             .filter(([_, isActive]) => isActive)
-            .map(([day]) => {
-                const index = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].indexOf(day.toLowerCase());
-                return dayNames[index];
-            })
+            .map(([day]) => t(`Days.${day.toLowerCase()}`))
             .join(', ');
     };
 
@@ -296,7 +290,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
 
     return (
         <div className="space-y-4">
-            <BackButton/>
+            <BackButton />
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold text-foreground">{t('EarlyBird.earlyBirdPromotions')}</h2>
@@ -387,13 +381,13 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                                 ? ' text-success '
                                                 : ' text-destructive'
                                                 }`}>
-                                                {promotion.isAutoApplied ? <Check className='h-4 w-4'/> : <X className='h-4 w-4'/>}
+                                                {promotion.isAutoApplied ? <Check className='h-4 w-4' /> : <X className='h-4 w-4' />}
                                             </span>
                                         </TableCell>
                                         <TableCell>
                                             <span className={`px-3 py-1 rounded text-xs font-medium ${promotion.isActive
-                                                    ? 'bg-success/10 text-success'
-                                                    : 'bg-muted text-muted-foreground'
+                                                ? 'bg-success/10 text-success'
+                                                : 'bg-muted text-muted-foreground'
                                                 }`}>
                                                 {promotion.isActive ? t('EarlyBird.active') : t('EarlyBird.inactive')}
                                             </span>
@@ -484,8 +478,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
                         open={addTranslationOpen}
                         onOpenChange={setAddTranslationOpen}
                         entityId={translationEntityId}
-                        title="Add Promotion Translation"
-                        fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Reserva Anticipada" }]}
+                        title={t("Common.addPromotion")}
+                        fields={[{ key: "promotionName", label: (t("Common.promotionName")) }]}
                         onSave={async (id, locale, data) => {
                             return await upsertPromotionTranslationService(id, { [locale]: data });
                         }}
@@ -495,7 +489,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                         open={checkTranslationsOpen}
                         onOpenChange={setCheckTranslationsOpen}
                         entityId={translationEntityId}
-                        title="Promotion Translations"
+                        title={t("Common.promotionTranslations")}
                         displayFields={[{ key: "promotionName", label: "Name" }]}
                         onFetch={getAllPromotionTranslationsService}
                         onDelete={deletePromotionTranslationLocaleService}
@@ -507,8 +501,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
                         entityId={translationEntityId!}
                         locale={editingLocale}
                         initialData={editingData}
-                        title="Edit Promotion Translation"
-                        fields={[{ key: "promotionName", label: "Promotion Name", placeholder: "e.g. Reserva Anticipada" }]}
+                        title={t("Common.editTranslation")}
+                        fields={[{ key: "promotionName", label: (t("Common.promotionName")) }]}
                         onSave={async (id, locale, data) => upsertPromotionTranslationService(id, { [locale]: data })}
                     />
                 </>
