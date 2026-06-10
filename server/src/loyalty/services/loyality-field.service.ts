@@ -130,11 +130,11 @@ export class LoyalityFieldService {
                 await this.loyalityFieldRepository.getAllFieldsByProgramId(
                     loyaltyProgramId
                 );
-            if (!daoRes || daoRes.length === 0) {
-                return errorResponse(
-                    'No fields found for this loyalty program'
-                );
-            }
+            // if (!daoRes || daoRes.length === 0) {
+            //     return errorResponse(
+            //         'No fields found for this loyalty program'
+            //     );
+            // }
             return successResponse('Fields retrieved successfully', daoRes);
         } catch (error) {
             if (error instanceof Error) {

@@ -24,7 +24,7 @@ model SlotBooking {
   spaSlotsId String
 
   spaSlots   SpaSlots?  @relation(fields: [spaSlotsId], references: [id])
-  spa        Spa        @relation(fields: [spaId], references: [id])
+  spa        Spa        @relation(fields: [spaId], references: [id],onDelete: Cascade)
   spaBooking SpaBooking @relation(fields: [spaBookingId], references: [id])
 
   createdAt  DateTime   @default(now()) @map("created_at")

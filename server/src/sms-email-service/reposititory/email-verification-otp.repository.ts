@@ -4,7 +4,7 @@ export class EmailOTPRepository {
     async createOTP(
         email: string,
         otp: string,
-        purpose: string,
+        purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset'| 'property_recovery'| 'property_transfer',
         expiresInMinutes: number = 10
     ) {
         try {
@@ -34,7 +34,7 @@ export class EmailOTPRepository {
         }
     }
 
-    async verifyOTP(email: string, otp: string, purpose: string) {
+    async verifyOTP(email: string, otp: string, purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset'| 'property_recovery'| 'property_transfer') {
         try {
             const otpDoc = await EmailVerificationOTP.findOne({
                 email,
@@ -80,7 +80,7 @@ export class EmailOTPRepository {
         }
     }
 
-    async getOTPStatus(email: string, purpose: string) {
+    async getOTPStatus(email: string, purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset'| 'property_recovery'| 'property_transfer') {
         try {
             const otpDoc = await EmailVerificationOTP.findOne({
                 email,

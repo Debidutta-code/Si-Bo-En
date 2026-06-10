@@ -1,30 +1,15 @@
-import nodemailer from 'nodemailer';
 import { EmailOTPRepository } from '../reposititory';
 import {
     generatePasswordResetLinkTemplate,
 } from '../templatesss';
 import { config } from '../../config';
 import { emailQueue } from '../../index';
-import { generateLoyaltyOTPEmailTemplate } from '../templatesss/loyality-otp.tempate';
+import { generateOTPEmailTemplate } from '../templatesss/otp.tempate';
 
 export class EmailService {
-    // private transporter: nodemailer.Transporter;
     private otpRepository: EmailOTPRepository;
-    // private senderEmail: string;
-    // private senderName: string;
-
     constructor() {
         this.otpRepository = new EmailOTPRepository();
-        // this.senderEmail = config.senderEmail!;
-        // this.senderName = config.senderName!;
-
-        // this.transporter = nodemailer.createTransport({
-        //     service: 'gmail',
-        //     auth: {
-        //         user: config.senderEmail,
-        //         pass: config.senderEmailPassword,
-        //     },
-        // });
     }
 
     private generateOTP(): string {
@@ -34,7 +19,7 @@ export class EmailService {
     // Send OTP email
     async sendOTPEmail(
         email: string,
-        purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset'
+        purpose: 'email_verification' | 'password_reset' | 'login' | 'customer_reset' | 'property_recovery'
     ): Promise<{ success: boolean; message: string }> {
         try {
             const existingOTP = await this.otpRepository.getOTPStatus(
@@ -54,7 +39,7 @@ export class EmailService {
             // Save to database
             await this.otpRepository.createOTP(email, otp, purpose, 10);
 
-            const htmlContent = generateLoyaltyOTPEmailTemplate(
+            const htmlContent = generateOTPEmailTemplate(
                 otp,
                 purpose,
                 email
@@ -64,6 +49,7 @@ export class EmailService {
                 password_reset: 'Reset Your Password - RevChill',
                 login: 'Your Login Code - RevChill',
                 customer_reset: 'Reset Your Password - RevChill',
+                property_recovery: 'Property Recovery OTP - RevChill',
             }[purpose];
 
             await emailQueue.enqueueEmail({

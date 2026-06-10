@@ -180,7 +180,9 @@ export default class CreationDao {
     public static async getCreationsByRole(): Promise<any[]> {
         try {
             return await prisma.creation.findMany({
-                where: {},
+                where: {type:{
+                    notIn:["super"]
+                }},
                 orderBy: { createdAt: 'desc' },
                 include: {
                     users: {

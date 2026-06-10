@@ -25,3 +25,4 @@ export {
 export * from './property-integration.controller';
 export * from './propertyEmail.controller';
 export * from './active-language.controller';
+export * from './transfer.controller';

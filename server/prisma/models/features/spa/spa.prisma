@@ -19,10 +19,10 @@ model Spa {
   propertyId    String            @map("property_id")
   SlotBookings  SlotBooking[]
   SpaDates      SpaDates[]
-  Category      SpaCategory       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  User          User              @relation("SpaCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
-  Property      Property          @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-  SubCategory   SpaSubCategory    @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
+  Category      SpaCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  User          User              @relation("SpaCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  Property      Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  SubCategory   SpaSubCategory    @relation(fields: [subCategoryId], references: [id], onDelete: Cascade)
   AssignedSpas  UserAssignedSpa[] @relation("SpaToUserAssignedSpa")
 
   @@unique([name, propertyId])

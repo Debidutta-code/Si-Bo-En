@@ -39,6 +39,7 @@ import IntegrationDialog from './components/IntegrationDialog';
 import PropertyConfigDialog from './components/PropertyConfigDialog';
 import ViewIntegrationDetailsDialog from './components/ViewIntegrationDetailsDialog';
 import ManageIntegrationFieldsDialog from './components/ManageIntegrationFieldsDialog';
+import PropertyTransferDialog from './components/PropertyTransferDialog';
 import { Award, FileText, LayoutDashboard, Shield, Users as UsersIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { capitalizeFirstLetter } from '@/lib/utils';
@@ -103,6 +104,7 @@ export default function PropertyPage() {
     const [isPropertyConfigDialogOpen, setIsPropertyConfigDialogOpen] = useState(false);
     const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
     const [isManageFieldsDialogOpen, setIsManageFieldsDialogOpen] = useState(false);
+    const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
     const [updatePropertyDetails, setUpdatePropertyDetails] = useState<IUpdateCreation>({
         id: creationDetails.id,
         name: creationDetails.name,
@@ -254,11 +256,9 @@ export default function PropertyPage() {
 
 
     const handleCreateProperty = () => {
-        if (!propertyDetails?.id) {
-            navigate(`/property/create?creationId=${creationId}`);
-        } else {
-            navigate(`/property/create?propertyId=${propertyDetails?.id}`);
-        }
+        // Open the transfer / import dialog first.
+        // The dialog handles both the "skip" (normal flow) and "proceed" (transfer) paths.
+        setIsTransferDialogOpen(true);
     };
 
     const handleEditProperty = () => {
@@ -559,7 +559,7 @@ export default function PropertyPage() {
                                 </p>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isDrafted
                                     ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                                    : 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200'
+                                    : 'bg-ye    llow-100 text-yellow-700 ring-1 ring-yellow-200'
                                     }`}>
                                     {isDrafted ? t('Property.activeStatus') : t('Property.setupRequiredStatus')}
                                 </span>
@@ -1035,6 +1035,14 @@ export default function PropertyPage() {
                     </div>
                 </div>
             )}
+
+            {/* Property Transfer / Recovery Dialog */}
+            <PropertyTransferDialog
+                open={isTransferDialogOpen}
+                onOpenChange={setIsTransferDialogOpen}
+                creationId={creationId!}
+                propertyId={propertyDetails?.id}
+            />
 
             {/* Integration Dialog */}
             <IntegrationDialog

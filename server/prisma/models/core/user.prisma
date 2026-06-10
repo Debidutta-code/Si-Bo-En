@@ -21,7 +21,7 @@ model User {
   propertiesCreated Property[]        @relation("PropertyCreatedBy")
   CreatedSpas       Spa[]             @relation("SpaCreatedBy")
   UserAssignedSpa   UserAssignedSpa[] @relation("UserAssignedSpa")
-  createdBy         User?             @relation("UserCreatedBy", fields: [createdById], references: [id])
+  createdBy         User?             @relation("UserCreatedBy", fields: [createdById], references: [id],onDelete: SetNull)
   usersCreated      User[]            @relation("UserCreatedBy")
   creation          Creation?         @relation("UserCreation", fields: [creationId], references: [id])
   level0Creation    Creation?         @relation("Level0Users", fields: [level0CreationId], references: [id])

@@ -33,3 +33,4 @@ export {
 export * from './property-integration.repository';
 export * from './propertyEmails.repository';
 export * from "./active-language.repository";
+export * from "./transfer.repository";

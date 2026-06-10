@@ -20,3 +20,4 @@ export{
 }
 
 export * from "./property-language.api"
+export * from "./transfer.api";
