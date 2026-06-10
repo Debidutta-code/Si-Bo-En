@@ -3,7 +3,7 @@ import { Types } from 'mongoose';
 // Interface definitions remain the same...
 export interface IPropertyAddress {
     addressLine1: string;
-    addressLine2: string|null;
+    addressLine2: string | null;
     country: string;
     state: string;
     city: string;
@@ -73,6 +73,7 @@ export interface ICreatePropertyData {
     isDraft?: boolean;
     propertyCode?: string;
     creationId: string;
+    isDeleted: boolean;
 }
 export interface IUpdatePropertyData {
     propertyName: string;
@@ -85,4 +86,31 @@ export interface IUpdatePropertyData {
     propertyType: IPropertyType;
     propertyCategory: ICategory;
     destinationType: IDestinationType;
+}
+export interface IPropertyRecovery {
+    id: string;
+    propertyName: string;
+    propertyEmail: string;
+    propertyContact: string;
+    description?: string;
+    image: string[];
+    starRating: number | null;
+    isDraft?: boolean;
+    propertyCode: string;
+    creationId: string;
+    isDeleted: boolean;
+}
+
+export interface IPropertyRecoveryOtpValidation {
+    propertyCode: string;
+    newCreationId: string;
+    otp: string;
+}
+export interface IRecoveryCreation {
+    id: string;
+    type: 'group' | 'brand' | 'property' | 'super' | 'regional';
+    name: string;
+    isActive: boolean;
+    isDeleted: boolean;
+
 }

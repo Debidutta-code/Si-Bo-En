@@ -8,10 +8,12 @@ export class RoomBookingRepository {
         const property = await prisma.property.findUnique({
             where: { propertyCode },
             include: {
-                propertyConfigs:{
-                    select:{
+                propertyConfigs: {
+                    select: {
                         isSpaModuleEnabled: true,
-                        isLoyaltyProgramEnabled: true
+                        isLoyaltyProgramEnabled: true,
+                        showVideo: true,
+                        isB2cAvailable: true
                     }
                 },
                 propertyAddress: true,
@@ -20,7 +22,7 @@ export class RoomBookingRepository {
                     include: { amenity: true },
                 },
                 loyaltyProgramConfig: {
-                    where: { isActive: true, CreationLoyaltyConfig: { BasicLoyaltyProgram: { isActive: true } } },
+                    where: { CreationLoyaltyConfig: { BasicLoyaltyProgram: { isActive: true } } },
                     include: {
                         CreationLoyaltyConfig: {
                             include: {
@@ -57,13 +59,6 @@ export class RoomBookingRepository {
                 bookingEngineConfig: true,
             },
         });
-
-        if (property) {
-            const propertyConfigs = await prisma.propertyConfigs.findUnique({
-                where: { propertyId: property.id }
-            });
-            (property as any).propertyConfigs = propertyConfigs;
-        }
 
         return property;
     }

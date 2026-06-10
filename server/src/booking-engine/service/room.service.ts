@@ -41,9 +41,9 @@ export class RoomBookingService {
             countryCode,
         } = payload;
 
-        const property = (await RoomBookingRepository.getPropertyByCode(
+        const property = await RoomBookingRepository.getPropertyByCode(
             propertyCode
-        )) as IPropertyData | null;
+        ) as IPropertyData | null;
         if (!property || !property.isAvailable) {
             return { success: false, message: 'Property not available' };
         }
@@ -144,6 +144,7 @@ export class RoomBookingService {
                     starRating: property.starRating,
                     bookingEngineConfig: property.bookingEngineConfig,
                     address: property.propertyAddress,
+                    propertyConfigs: property.propertyConfigs
                 },
                 rooms,
                 searchCriteria: payload,

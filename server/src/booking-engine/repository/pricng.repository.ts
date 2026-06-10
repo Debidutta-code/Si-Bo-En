@@ -274,7 +274,7 @@ export class PricingRepository {
                 include: {
                     PropertyLoyalityGuests: {
                         where: {
-                            PropertyLoyalityConfig: { propertyId },
+                            PropertyLoyalityConfig: { propertyId, Property: { propertyConfigs: { isLoyaltyProgramEnabled: true } } },
                         },
                         include: {
                             PropertyLoyalityConfig: {

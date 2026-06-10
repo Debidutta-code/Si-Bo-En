@@ -1,5 +1,5 @@
 import { prisma } from '../../config';
-import type { ICRoom } from '../types';
+import type { ICRoom, IRoom } from '../types';
 
 export class RoomDao {
     public async create(roomData: ICRoom) {
@@ -30,12 +30,12 @@ export class RoomDao {
             throw new Error('Failed to create room');
         }
     }
-    public async findByRoomId(roomId: string) {
+    public async findByRoomId(roomId: string,isDeleted: boolean) {
         try {
             return await prisma.room.findUnique({
                 where: {
                     id: roomId,
-                    isDeleted: false,
+                    isDeleted: isDeleted,
                 },
                 include: {
                     property: true,
@@ -90,7 +90,7 @@ export class RoomDao {
     public async updateRoom(id: string, roomData: ICRoom) {
         try {
             const updatedRoom = await prisma.room.update({
-                where: { id },
+                where: { id, isDeleted: false },
                 data: {
                     roomName: roomData.roomName,
                     roomType: roomData.roomType,
@@ -120,8 +120,9 @@ export class RoomDao {
 
     public async delete(id: string) {
         try {
-            const deletedRoom = await prisma.room.delete({
-                where: { id },
+            const deletedRoom = await prisma.room.update({
+                where: { id, isDeleted: false },
+                data: { isDeleted: true },
             });
 
             return deletedRoom;
@@ -243,6 +244,23 @@ export class RoomDao {
             });
         } catch (error) {
             throw new Error('Failed to delete room view');
+        }
+    }
+    public async recoveryRoom(roomId:string):Promise<IRoom>{
+        try {
+            return await prisma.room.update({
+                where: { id: roomId },
+                data: { isDeleted: false },
+                include:{
+                    RoomViews:{
+                        include:{
+                            MasterRoomView:true
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            throw new Error('Failed to recovery room');
         }
     }
 }
@@ -464,4 +482,69 @@ export class RoomAmenityDao {
             throw new Error('Failed to get active amenities');
         }
     }
+}
+
+
+export class DeleteRoomRepository {
+    public async deleteRoomInventory(roomType: string, propertyCode: string): Promise<boolean> {
+        try {
+            await prisma.inventory.deleteMany({
+                where: { roomTypeCode: roomType, propertyCode, date: { gte: new Date() } },
+            });
+            return true;
+        } catch (error) {
+            throw new Error('Failed to delete room');
+        }
+    }
+    public async deleteCharges(roomType: string, propertyCode: string): Promise<boolean> {
+        try {
+            await prisma.charge.deleteMany({
+                where: { roomTypeCode: roomType, propertyCode },
+            });
+            return true;
+        } catch (error) {
+            throw new Error('Failed to delete charges');
+        }
+    }
+    public async deleteGeoRatePlan(roomType: string, propertyId: string): Promise<boolean> {
+        try {
+            await prisma.geoRatePlan.deleteMany({
+                where: { roomType: roomType, propertyId: propertyId },
+            });
+            return true;
+        } catch (error) {
+            throw new Error('Failed to delete geo rate plan');
+        }
+    }
+    public async deletePromotions(roomType: string, propertyId: string): Promise<boolean> {
+        try {
+            await prisma.promotion.deleteMany({
+                where: { roomType: roomType, propertyId: propertyId },
+            });
+            return true;
+        } catch (error) {
+            throw new Error('Failed to delete promotions');
+        }
+    }
+    public async deleteCustomizableDeals(roomType: string,propertyId:string): Promise<boolean> {
+        try {
+            await prisma.customizableDeal.deleteMany({
+                where: { roomType: roomType, propertyId: propertyId },
+            });
+            return true;
+        } catch (error) {
+            throw new Error('Failed to delete customizable deals');
+        }
+    }
+    public async deleteTouristTax(roomId: string): Promise<boolean> {
+        try {
+            await prisma.touristTaxes.deleteMany({
+                where: { roomId: roomId },
+            });
+            return true;
+        } catch (error) {
+            throw new Error('Failed to delete tourist tax');
+        }
+    }
+    
 }

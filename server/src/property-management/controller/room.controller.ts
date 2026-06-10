@@ -257,6 +257,19 @@ export class RoomController {
             return res.status(500).json(errorResponse('Internal server error'));
         }
     }
+    public async recoveryRoom(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { roomId } = req.params;
+            if (!roomId) {
+                return res.status(400).json(errorResponse('Room id not found'));
+            }
+            const response = await this.roomService.recoveryRoom(roomId);
+            const statusCode = response.success ? 200 : 400;
+            return res.status(statusCode).json(response);
+        } catch (error) {
+            return res.status(500).json(errorResponse('Internal server error'));
+        }
+    }
 }
 
 export class RoomAminityController {

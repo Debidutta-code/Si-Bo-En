@@ -39,4 +39,9 @@ propertyRoomRoute
         protect,
         checkRoleBased('canUpdateHotel'),
         roomController.add360ImageToRoom.bind(roomController)
-    );
+    )
+    .post(
+        protect,
+        checkRoleBased('canCreateHotel'),
+        roomController.recoveryRoom.bind(roomController)
+    )

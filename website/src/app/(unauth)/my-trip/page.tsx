@@ -23,6 +23,7 @@ import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this i
 import SpaBookingDialog from "@/src/components/loyalty/SpaBookingDialog";
 import { getAvailableSpasApi } from "../../(auth)/profile/api/profile.api";
 import ImageUploadModal from "@/src/components/ImageUploadModal";
+import { setBookingContext } from "@/src/store/bookingSlice";
 
 type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 
@@ -85,6 +86,7 @@ export default function MyTripPage() {
       if (!res.ok) throw new Error(data.message || "Booking not found");
       setBookingData(data.data);
       dispatch(setBookingViewData(data.data));
+      updateBookingContextFromReservation(data.data);
       await fetchAvailableSpas(bookingCode.trim());  // ← ADD THIS
     } catch (err: any) {
       toast.error(err.message || t("MyTrip.errorFetching"));
@@ -92,7 +94,19 @@ export default function MyTripPage() {
       setLoading(false);
     }
   };
+  const updateBookingContextFromReservation = (reservationData: any) => {
+    const property = reservationData?.property;
+    if (!property) return;
 
+    dispatch(setBookingContext({
+      propertyConfigs: property.propertyConfigs || null,
+      propertyAddress: property.propertyAddress || null,
+      propertyId: property.id || null,
+      hotelName: property.propertyName || reservationData.hotelName,
+      PropertyCode: reservationData.propertyCode,
+      // Preserve everything else already in Redux
+    } as any));
+  };
 
   useEffect(() => {
     if (showModal) {
@@ -113,7 +127,7 @@ export default function MyTripPage() {
     }
 
     if (!codeFromUrl) return;
-    setBookingCode(codeFromUrl); // for input field
+    setBookingCode(codeFromUrl);
     const fetchFromUrl = async () => {
       setLoading(true);
       setBookingData(null);
@@ -133,7 +147,7 @@ export default function MyTripPage() {
         if (!res.ok) throw new Error(data.message || "Booking not found");
         setBookingData(data.data);
         dispatch(setBookingViewData(data.data));
-        // Fetch available spas for this booking
+        updateBookingContextFromReservation(data.data);
         await fetchAvailableSpas(codeFromUrl.trim());
         // toast.success("Booking found!");
       } catch (err: any) {
@@ -148,273 +162,29 @@ export default function MyTripPage() {
 
   const handleDownloadPDF = async () => {
     if (!bookingData) return;
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const centerX = pageWidth / 2;
-    let y = 15;
+    const toastId = toast.loading("Generating voucher...");
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reports/booking-voucher/${bookingData.bookingCode}`,
+        { method: "GET" }
+      );
+      if (!response.ok) throw new Error("Failed to download voucher");
 
-    // === HEADER BAR ===
-    doc.setFillColor(25, 85, 150);
-    doc.rect(0, 0, pageWidth, 25, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("Booking Confirmation", centerX, 15, { align: "center" });
-    y = 35;
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `voucher-${bookingData.bookingCode}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
 
-    // === STATUS BADGE ===
-    doc.setFontSize(10);
-    let statusColor: [number, number, number] = [34, 197, 94]; // green
-    if (bookingData.bookingStatus === "cancelled") statusColor = [239, 68, 68]; // red
-    if (bookingData.bookingStatus === "modified") statusColor = [234, 179, 8]; // yellow
-    doc.setTextColor(...statusColor);
-    doc.setFont("helvetica", "bold");
-    const statusText = bookingData.bookingStatus
-      ? bookingData.bookingStatus.charAt(0).toUpperCase() + bookingData.bookingStatus.slice(1)
-      : "Unknown";
-    doc.text(`STATUS: ${statusText}`, 20, y);
-    doc.setTextColor(100);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Booking Code: ${bookingData.bookingCode.split("-")[1] || bookingCode.split("-")[1] || "N/A"}`, pageWidth - 20, y, {
-      align: "right",
-    });
-    y += 15;
-
-    const colLeftX = 20;
-    const colRightX = pageWidth / 2 + 10;
-    let yLeft = y;
-    let yRight = y;
-
-    // --- LEFT: HOTEL INFO ---
-    doc.setTextColor(25, 85, 150);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(t("MyTrip.pdf.hotelInfo"), colLeftX, yLeft);
-
-    doc.line(colLeftX, yLeft + 2, colLeftX + 70, yLeft + 2);
-    yLeft += 10;
-    doc.setTextColor(50);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const hotelName = bookingData.property?._translations?.name || bookingData.property?.name || bookingData.hotelName || "N/A";
-    doc.text(`Hotel: ${hotelName}`, colLeftX, yLeft);
-    yLeft += 6;
-    doc.text(`Property Code: ${bookingData.propertyCode || "N/A"}`, colLeftX, yLeft);
-    yLeft += 6;
-    doc.text(`Room Type: ${bookingData.roomName || "N/A"}`, colLeftX, yLeft);
-    yLeft += 6;
-    doc.text(`Rate Plan: ${bookingData.ratePlanName || "N/A"}`, colLeftX, yLeft);
-
-    // --- RIGHT: STAY DETAILS ---
-    doc.setTextColor(25, 85, 150);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(t("MyTrip.pdf.stayDetails"), colRightX, yRight);
-
-    doc.line(colRightX, yRight + 2, colRightX + 60, yRight + 2);
-    yRight += 10;
-    doc.setTextColor(50);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Check-In: ${bookingData.reservationStartDate ? new Date(bookingData.reservationStartDate).toDateString() : "N/A"}`, colRightX, yRight);
-    yRight += 6;
-    doc.text(`Check-Out: ${bookingData.reservationEndDate ? new Date(bookingData.reservationEndDate).toDateString() : "N/A"}`, colRightX, yRight);
-    yRight += 6;
-    doc.text(`Rooms: ${bookingData.finalPrice?.requestedRooms || 1}`, colRightX, yRight);
-    yRight += 6;
-    doc.text(`Nights: ${bookingData.finalPrice?.numberOfNights || 1}`, colRightX, yRight);
-
-    // Start second row
-    y = Math.max(yLeft, yRight) + 15;
-
-    // === SPLIT INTO TWO COLUMNS (GUEST INFO + PAYMENT INFO) ===
-    yLeft = y;
-    yRight = y;
-
-    // --- LEFT: GUEST INFO ---
-    doc.setTextColor(25, 85, 150);
-    doc.setFont("helvetica", "bold");
-    doc.text(t("MyTrip.pdf.guestInfo"), colLeftX, yLeft);
-
-    doc.line(colLeftX, yLeft + 2, colLeftX + 75, yLeft + 2);
-    yLeft += 10;
-    doc.setTextColor(50);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    if (bookingData.guests && bookingData.guests.length > 0) {
-      const primary = bookingData.guests.find((g: any) => g.type === "adult");
-      if (primary) {
-        const guestName = `${primary.firstName || ""} ${primary.lastName || ""}`.trim();
-        doc.text(`${guestName || "N/A"} (Primary Guest)`, colLeftX + 5, yLeft);
-        yLeft += 6;
-      }
-    } else {
-      doc.text(t("MyTrip.pdf.noGuestInfo"), colLeftX, yLeft);
-      yLeft += 6;
+      toast.dismiss(toastId);
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      toast.error(err.message || "Failed to download voucher");
     }
-    yLeft += 8;
-    doc.text(`Phone: ${bookingData.bookingUserPhone || "N/A"}`, colLeftX, yLeft);
-    yLeft += 6;
-    doc.text(`Email: ${bookingData.bookingUserEmail || "N/A"}`, colLeftX, yLeft);
-
-    // --- RIGHT: PAYMENT INFO ---
-    doc.setTextColor(25, 85, 150);
-    doc.setFont("helvetica", "bold");
-    doc.text(t("MyTrip.pdf.paymentInfo"), colRightX, yRight);
-
-    doc.line(colRightX, yRight + 2, colRightX + 80, yRight + 2);
-    yRight += 10;
-    doc.setTextColor(50);
-    doc.setFont("helvetica", "normal");
-
-    // helper for payment rows with safe property access
-    const addPaymentRow = (label: string, value: any, bold = false) => {
-      doc.setFont("helvetica", bold ? "bold" : "normal");
-      doc.text(label, colRightX, yRight);
-      // Format value safely
-      let formattedValue = "N/A";
-      if (value !== undefined && value !== null) {
-        if (typeof value === "number") {
-          formattedValue = value.toLocaleString("en-IN");
-        } else if (typeof value === "string") {
-          formattedValue = value;
-        } else if (value instanceof Date) {
-          formattedValue = value.toDateString();
-        } else {
-          formattedValue = String(value);
-        }
-      }
-      doc.text(formattedValue, pageWidth - 20, yRight, { align: "right" });
-      yRight += 6;
-    };
-
-    // Safely access all properties with fallbacks
-    const paymentMethod = bookingData.paymentMethod
-      ? bookingData.paymentMethod.replace(/_/g, " ").toLowerCase()
-      : "N/A";
-    const bookingDate = bookingData.bookedAt
-      ? new Date(bookingData.bookedAt)
-      : new Date();
-    const amount = bookingData.amount || 0;
-    const paidAmount = bookingData.paidAmount || 0;
-    const extraAmountToPay = bookingData.extraAmountToPay || 0;
-    const refundAmount = bookingData.refundAmount || 0;
-
-    addPaymentRow("Method:", paymentMethod);
-    addPaymentRow("Booking Date:", bookingDate);
-    addPaymentRow("Total Amount:", `${amount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
-    addPaymentRow("Amount Paid:", `${paidAmount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
-    addPaymentRow("Extra amount to be Paid:", `${extraAmountToPay.toFixed(2)} ${bookingData.currencyCode || "USD"}`);
-    addPaymentRow("Refundable Amount:", `${refundAmount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
-
-    // Add subtotal and tax breakdown if available
-    if (bookingData.finalPrice) {
-      yRight += 3;
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text(t("MyTrip.pdf.priceBreakdown"), colRightX, yRight);
-
-      yRight += 6;
-      addPaymentRow("Method:", paymentMethod);
-      addPaymentRow("Booking Date:", bookingDate);
-      addPaymentRow("Base Amount:", `${bookingData.currencyCode} ${bookingData.finalPrice?.amountBeforeTax?.toFixed(2) || 0}`);
-      // ✅ WITH THIS
-      if (bookingData.finalPrice?.promotionBrakeDown?.length > 0) {
-        bookingData.finalPrice.promotionBrakeDown.forEach((promo: any) => {
-          const promoName = promo._translations?.name || promo._translations?.promotionName || promo.name;
-          const isPayLater = promo.restrictionType === 'payLater';
-          const sign = isPayLater ? '+' : '-';
-          addPaymentRow(
-            `${isPayLater ? '(Pay Later)' : '(Discount)'} ${promoName}:`,
-            `${sign}${bookingData.currencyCode} ${promo.discountAmount?.toFixed(2) || 0}`
-          );
-        });
-      }
-      addPaymentRow("Net Discount:", `-${bookingData.currencyCode} ${bookingData.finalPrice?.totalPromotionAmount?.toFixed(2) || 0}`);
-      // Handle Translated Taxes
-      if (bookingData.finalPrice?.taxBrakeDown?.length > 0) {
-        bookingData.finalPrice.taxBrakeDown.forEach((tax: any) => {
-          const taxName = tax._translations?.name || tax.name;
-          addPaymentRow(
-            `${taxName}:`,
-            `${bookingData.currencyCode} ${tax.taxedAmount?.toFixed(2) || 0}`
-          );
-        });
-      } else {
-        addPaymentRow("Taxes:", `${bookingData.currencyCode} ${bookingData.finalPrice?.taxedAmount?.toFixed(2) || 0}`);
-      }
-
-      if (bookingData.finalPrice?.addonBrakeDown?.length > 0) {
-        const groupedAddons = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
-          const addonName = addon._translations?.name || addon.name;
-          if (!acc[addonName]) {
-            acc[addonName] = { ...addon, name: addonName, totalAmount: 0 };
-          }
-          acc[addonName].totalAmount += addon.totalAmount;
-          return acc;
-        }, {});
-        Object.values(groupedAddons).forEach((addon: any) => {
-          if (addon.totalAmount > 0) {
-            addPaymentRow(`Addon - ${addon.name}:`, `${bookingData.currencyCode} ${addon.totalAmount?.toFixed(2) || 0}`);
-          }
-        });
-      }
-
-      if (bookingData.finalPrice?.SpaPricingBrakeDowns?.length > 0) {
-        const groupedSpas = bookingData.finalPrice.SpaPricingBrakeDowns.reduce((acc: any, spa: any) => {
-          const spaName = spa._translations?.name || spa.name;
-          if (!acc[spaName]) {
-            acc[spaName] = { ...spa, name: spaName, totalAmount: 0 };
-          }
-          acc[spaName].totalAmount += spa.totalAmount;
-          return acc;
-        }, {});
-        Object.values(groupedSpas).forEach((spa: any) => {
-          if (spa.totalAmount > 0) {
-            addPaymentRow(`Spa - ${spa.name}:`, `${bookingData.currencyCode} ${spa.totalAmount?.toFixed(2) || 0}`);
-          }
-        });
-      }
-
-      addPaymentRow("Total Amount:", `${bookingData.currencyCode} ${bookingData.finalPrice?.totalAmount?.toFixed(2) || amount}`, true);
-
-      if (bookingData.paymentMethod === 'pay_at_hotel') {
-        addPaymentRow("Amount to Pay at Hotel:", `${bookingData.currencyCode} ${bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || 0}`, true);
-        if ((bookingData.finalPrice?.latterpayableAmount || 0) > 0) {
-          addPaymentRow("Amount to be Paid Later:", `${bookingData.currencyCode} ${bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}`);
-        }
-      } else {
-        addPaymentRow("Paid Online:", `${bookingData.currencyCode} ${bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || 0}`, true);
-        if ((bookingData.finalPrice?.latterpayableAmount || 0) > 0) {
-          addPaymentRow("Amount to be Paid Later at Hotel:", `${bookingData.currencyCode} ${bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}`);
-        }
-        if (paidAmount > 0) {
-          addPaymentRow("Paid Amount:", `${bookingData.currencyCode} ${paidAmount.toFixed(2)}`);
-        }
-      }
-
-      if (refundAmount > 0) {
-        addPaymentRow("Refundable Amount:", `${bookingData.currencyCode} ${refundAmount.toFixed(2)}`, true);
-      }
-    }
-
-    // === FOOTER ===
-    const footerY = doc.internal.pageSize.getHeight() - 15;
-    doc.setDrawColor(200);
-    doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    doc.setFont("helvetica", "normal");
-    doc.text(
-      t("MyTrip.pdf.footer"),
-      centerX,
-      footerY,
-      { align: "center" }
-    );
-
-
-    const fileName = `booking-itinerary-${bookingData.bookingCode || bookingCode || "trip"}.pdf`;
-    doc.save(fileName);
   };
 
   useEffect(() => {

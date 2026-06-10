@@ -4,15 +4,12 @@ import type { ILoader } from "../dashboard/interface";
 import {
   createLoyaltyProgramService,
   updateLoyaltyProgramService,
-  // createAdvanceLoyaltyProgramService,
-  // updateAdvanceLoyaltyProgramService,
   createCreationLoyalityService,
   getLoyalityByCreationService,
   updateCreationLoyalityService
 } from "./services";
 import type {
   ICloyaltyProgram,
-  // IAdvanceLoyaltyprogram,
   ICreationLoyality
 } from "./interfaces";
 import Loader from "@/components/Loader/Loader";
@@ -22,11 +19,10 @@ import ImageUploadModal from "@/components/property/ImageUploadModal";
 import CreateLoyaltyForm from "./components/CreateLoyaltyForm";
 import DiscountsTab from "./components/DiscountsTab";
 import BasicConfigTab from "./components/BasicConfigTab";
-// import AdvancedConfigTab from "./components/AdvancedConfigTab";
 import AddPropertyToLoyalty from "./components/AddPropertyToLoyalty";
-import { fetchPropertiesByCreationIdService } from "../dashboard/services/dash.service";
 import BackButton from "@/components/shared/BackButton";
 import { useTranslation } from "react-i18next";
+import { getAllActiveLoyalityProperties } from "./services/creation-loyality.service";
 
 interface Property {
   id: string;
@@ -77,7 +73,7 @@ export default function Loyalty() {
 
   const fetchPropertiesByCreation = async (creationId: string) => {
     try {
-      const response = await fetchPropertiesByCreationIdService(creationId);
+      const response = await getAllActiveLoyalityProperties(creationId);
       if (response.success && response.data) {
         // Map the response to match the Property interface
       

@@ -11,3 +11,4 @@ export {
     generatePasswordResetLinkTemplate,
 };
 export * from "./reservation.template"
+export * from "./property-recovery.template"

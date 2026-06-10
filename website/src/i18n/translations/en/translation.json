@@ -201,6 +201,35 @@
       "failedToFetchPrice": "Failed to fetch price. Please try again."
     }
   },
+  "RoomDetails": {
+    "roomInformation": "Room Information",
+    "description": "Description",
+    "roomType": "Room Type",
+    "roomView": "Room View",
+    "roomSize": "Room Size",
+    "bedrooms": "Bedrooms",
+    "maxOccupancy": "Max Occupancy",
+    "guests": "Guests",
+    "ratePlanInformation": "Rate Plan Information",
+    "ratePlan": "Rate Plan",
+    "currency": "Currency",
+    "includedAddons": "Included Addons",
+    "availablePromotions": "Available Promotions",
+    "amenities": "Amenities",
+    "policies": "Policies",
+    "cancellationPolicy": "Cancellation Policy",
+    "guaranteePolicy": "Guarantee Policy",
+    "depositPolicy": "Deposit Policy",
+    "seeMore": "See More",
+    "seeLess": "See Less",
+    "notAvailable": "Not Available",
+    "video": "Video",
+    "images": "Images",
+    "promotionType": "Promotion Type",
+    "discount": "Discount",
+    "addonIncluded": "Included",
+    "close": "Close"
+  },
   "Footer": {
     "defaultAddress": "Dubai, United Arab Emirates",
     "recaptcha": {
@@ -1086,33 +1115,28 @@
       "noResults": "No results found. Try a different search or category."
     }
   },
-    "ImageUploadModal": {
+  "ImageUploadModal": {
     "title": "Upload Images",
     "description": "Select images to upload.",
     "imagesSelected": "image(s) selected",
     "preview": "Preview",
-
     "dropzone": {
       "hint": "Drag & drop or click to browse"
     },
-
     "progress": {
       "uploading": "Uploading {{current}} of {{total}}..."
     },
-
     "form": {
       "cancel": "Cancel",
       "upload": "Upload {{count}}",
       "uploading": "Uploading..."
     },
-
     "error": {
       "invalidFiles": "Please select valid image files.",
       "alreadyAdded": "All selected images are already added.",
       "noFiles": "Please select at least one image.",
       "uploadFailed": "Upload failed. Please try again."
     },
-
     "toast": {
       "uploadFailed": "Failed to upload images"
     }

@@ -1,47 +1,24 @@
-import { Room } from "@/src/store/roomsSlice";
+"use client";
+
 import React, { useEffect, useState } from "react";
-
-interface baseByGuestAmts {
-  amountBeforeTax: number;
-  numberOfGuests: number;
-}
-interface Policy {
-  _id: string;
-  policyName: string;
-  type: string;
-  description: string;
-  propertyCode: string;
-  createdAt: string;
-  updatedAt: string;
-  _translations?:{
-    policyName:string;
-    description:string;
-  }
-}
-
-interface room_price {
-  baseByGuestAmts?: baseByGuestAmts[];
-  currencyCode?: string;
-  ratePlanCode?: string;
-  ratePlanName?: string;
-  _translations?:{
-    ratePlanName:string;
-    
-  }
-  policy?: {
-    depositPolicy?: Policy;
-    cancellationPolicy?: Policy;
-    guaranteePolicy?: Policy;
-  };
-}
+import {
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  Bed,
+  Eye,
+  Ruler,
+  X,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { IRoom, IRoomPrice } from "@/src/app/(unauth)/Rooms/types";
 
 interface Props {
-  room:Room;
-  selectedRatePlan?: room_price;
+  room: IRoom;
+  selectedRatePlan?: IRoomPrice;
   onClose: () => void;
 }
 
-// Reusable policy section component
 const PolicySection = ({
   title,
   content,
@@ -50,30 +27,46 @@ const PolicySection = ({
   content?: string;
 }) => {
   const [expanded, setExpanded] = useState(false);
+
   const displayText = content?.trim() || "Not Available";
   const shouldTruncate = displayText.length > 200;
-// //console.log()
+
   return (
-    <div>
-      <h4 className="font-semibold mb-1">{title}</h4>
-      <p className={`text-sm text-gray-700 ${!expanded ? "line-clamp-3" : ""}`}>
+    <div className="border rounded-lg p-4 bg-gray-50">
+      <h4 className="font-semibold text-gray-900 mb-2">
+        {title}
+      </h4>
+
+      <p
+        className={`text-sm text-gray-700 ${
+          !expanded ? "line-clamp-3" : ""
+        }`}
+      >
         {displayText}
       </p>
+
       {shouldTruncate && (
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-blue-600 text-sm mt-1"
+          className="text-blue-600 text-sm mt-2 hover:underline"
         >
-          {expanded ? "See less" : "See more"}
+          {expanded ? "See Less" : "See More"}
         </button>
       )}
     </div>
   );
 };
 
-const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
+const RoomDetails: React.FC<Props> = ({
+  room,
+  onClose,
+  selectedRatePlan,
+}) => {
+  const { t } = useTranslation();
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
+
     return () => {
       document.body.style.overflow = "auto";
     };
@@ -81,92 +74,298 @@ const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
 
   if (!room) return null;
 
-  const displayedImages = room.images?.slice(0, 3);
-  const fallbackImage =
-    "https://via.placeholder.com/300x200?text=No+Image+Available";
+  const mediaItems = [
+    ...(room.roomVideos?.url
+      ? [
+          {
+            type: "video" as const,
+            src: room.roomVideos.url,
+            thumbnail: room.roomVideos.thumbnail,
+          },
+        ]
+      : []),
+
+    ...(room.images || []).map((img) => ({
+      type: "image" as const,
+      src: img,
+    })),
+  ];
+
+  const [currentMediaIndex, setCurrentMediaIndex] =
+    useState(0);
+
+  const nextMedia = () => {
+    setCurrentMediaIndex(
+      (prev) => (prev + 1) % mediaItems.length
+    );
+  };
+
+  const prevMedia = () => {
+    setCurrentMediaIndex((prev) =>
+      prev === 0
+        ? mediaItems.length - 1
+        : prev - 1
+    );
+  };
+
+  const currentMedia =
+    mediaItems[currentMediaIndex];
 
   const policy = selectedRatePlan?.policy;
-// //console.log(selectedRatePlan)
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-y-auto px-4 py-6">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl relative shadow-lg max-h-[90vh] overflow-y-auto">
-        {/* Close Button & Title */}
-        <div className="top-0 z-10 bg-white pb-2">
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 text-gray-600 hover:text-gray-900 text-xl"
-            aria-label="Close"
-          >
-            &times;
-          </button>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            {room._translations?.roomName || room.roomName}
+    <div className="fixed inset-0 z-50 bg-black/60 flex justify-center items-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl relative">
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 bg-white rounded-full p-2 shadow-md hover:bg-gray-100"
+        >
+          <X size={18} />
+        </button>
+
+        {/* Header */}
+        <div className="p-6 border-b">
+          <h2 className="text-3xl font-bold text-gray-900">
+            {room._translations?.roomName ||
+              room.roomName}
           </h2>
+
+          <p className="text-gray-500 mt-1">
+            {room._translations?.roomType ||
+              room.roomType}
+          </p>
         </div>
 
-        {/* Room Images */}
-        {room.images && room.images.length > 0 ? (
-          <div
-            className={`grid gap-4 mb-6 ${
-              room.images.length === 1
-                ? "md:grid-cols-1"
-                : room.images.length === 2
-                ? "md:grid-cols-2"
-                : "md:grid-cols-3"
-            }`}
-          >
-            {displayedImages?.map((img, index) => (
-              <img
-                key={index}
-                src={img}
-                alt={`Room Image ${index + 1}`}
-                className="w-full h-40 sm:h-48 object-cover rounded-lg"
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="mb-6">
-            <img
-              src={fallbackImage}
-              alt="No image available"
-              className="w-full h-48 object-cover rounded-lg"
-            />
-          </div>
-        )}
+        {/* Media */}
+        <div className="relative p-6">
+          {mediaItems.length > 0 ? (
+            <div className="relative">
+              {currentMedia.type === "video" ? (
+                <video
+                  controls
+                  className="w-full h-[400px] object-cover rounded-xl"
+                  poster={currentMedia.thumbnail}
+                >
+                  <source
+                    src={currentMedia.src}
+                    type="video/mp4"
+                  />
+                </video>
+              ) : (
+                <img
+                  src={currentMedia.src}
+                  alt="Room"
+                  className="w-full h-[400px] object-cover rounded-xl"
+                />
+              )}
 
-        {/* Room Info */}
-        <div className="space-y-2 text-sm text-gray-700">
-          <p>
-            <strong>Description:</strong> {room._translations?.description || room.description}
-          </p>
-          <p>
-            <strong>Size:</strong> {room.roomSize} {room.roomUnit}
-          </p>
-          <p>
-            <strong>Max Occupancy:</strong> {room.maxOccupancy} guests
-          </p>
-          {selectedRatePlan?.ratePlanName && (
-            <p>
-              <strong>Rate Plan:</strong> {selectedRatePlan._translations?.ratePlanName || selectedRatePlan.ratePlanName}
-            </p>
+              {mediaItems.length > 1 && (
+                <>
+                  <button
+                    onClick={prevMedia}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  <button
+                    onClick={nextMedia}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 text-white rounded-full p-2"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
+            <img
+              src="https://via.placeholder.com/600x400?text=No+Image"
+              alt="No Image"
+              className="w-full h-[400px] rounded-xl object-cover"
+            />
+          )}
+
+          {/* Dots */}
+          {mediaItems.length > 1 && (
+            <div className="flex justify-center gap-2 mt-4">
+              {mediaItems.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() =>
+                    setCurrentMediaIndex(index)
+                  }
+                  className={`h-2 w-2 rounded-full ${
+                    currentMediaIndex === index
+                      ? "bg-gray-900"
+                      : "bg-gray-300"
+                  }`}
+                />
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Policy Sections */}
-        <div className="mt-4 space-y-4">
-          <PolicySection
-            title="Cancellation Policy"
-            content={policy?.cancellationPolicy?._translations?.description || policy?.cancellationPolicy?.description || "Not available" }
-          />
-          <PolicySection
-            title="Guarantee Policy"
-            content={policy?.guaranteePolicy?._translations?.description || policy?.guaranteePolicy?.description || "Not available"}
-          />
-          <PolicySection
-            title="Deposit Policy"
-            content={policy?.depositPolicy?._translations?.description || policy?.depositPolicy?.description || "Not available"}
-          />
-        </div>
+        {/* Room Information */}
+        <div className="px-6 pb-6">
+  {/* Room Information */}
+  <h3 className="text-xl font-semibold mb-3">
+    {t("RoomDetails.roomInformation")}
+  </h3>
+
+  <p className="text-gray-700 leading-relaxed mb-6">
+    {room._translations?.description || room.description}
+  </p>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+    <div className="flex items-center gap-3">
+      <Users size={18} />
+      <span>
+        {room.maxOccupancy} {t("RoomDetails.guests")}
+      </span>
+    </div>
+
+    <div className="flex items-center gap-3">
+      <Bed size={18} />
+      <span>
+        {room.numberOfBedrooms} {t("RoomDetails.bedrooms")}
+      </span>
+    </div>
+
+    <div className="flex items-center gap-3">
+      <Eye size={18} />
+      <span>
+        {room.roomView?._translations?.viewName ||
+          room.roomView?.MasterRoomView?.viewName ||
+          t("RoomDetails.notAvailable")}
+      </span>
+    </div>
+
+    <div className="flex items-center gap-3">
+      <Ruler size={18} />
+      <span>
+        {room.roomSize} {room.roomUnit}
+      </span>
+    </div>
+  </div>
+
+  {/* Amenities */}
+  {room.amenities?.length > 0 && (
+    <div className="mb-8">
+      <h3 className="text-xl font-semibold mb-3">
+        {t("RoomDetails.amenities")}
+      </h3>
+
+      <div className="flex flex-wrap gap-2">
+        {room.amenities.map((amenity) => (
+          <span
+            key={amenity.id}
+            className="px-3 py-2 bg-gray-100 rounded-lg text-sm"
+          >
+            {amenity._translations?.amenityName ||
+              amenity.amenityName}
+          </span>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {/* Rate Plan Information */}
+  {selectedRatePlan && (
+    <div className="mb-8">
+      <h3 className="text-xl font-semibold mb-3">
+        {t("RoomDetails.ratePlanInformation")}
+      </h3>
+
+      <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+        <p>
+          <strong>{t("RoomDetails.ratePlan")}:</strong>{" "}
+          {selectedRatePlan._translations?.ratePlanName ||
+            selectedRatePlan.ratePlanName}
+        </p>
+
+        <p>
+          <strong>{t("RoomDetails.currency")}:</strong>{" "}
+          {selectedRatePlan.currencyCode}
+        </p>
+
+        <p>
+          <strong>{t("RoomDetails.discount")}:</strong>{" "}
+          {selectedRatePlan.currencyCode}{" "}
+          {selectedRatePlan.totalAmount}
+        </p>
+      </div>
+    </div>
+  )}
+
+  {/* Tourist Tax */}
+  {selectedRatePlan?.touristTax && (
+    <div className="mb-8 bg-amber-50 border border-amber-200 rounded-lg p-4">
+      <h3 className="font-semibold text-amber-900 mb-2">
+        {selectedRatePlan.touristTax.name ||
+          t("RoomDetails.notAvailable")}
+      </h3>
+
+      <p className="text-amber-800">
+        {selectedRatePlan.touristTax.discountType}
+      </p>
+
+      <p className="font-bold">
+        {selectedRatePlan.touristTax.currencyCode}{" "}
+        {selectedRatePlan.touristTax.calculatedTaxAmount}
+      </p>
+    </div>
+  )}
+
+  {/* Policies */}
+  <div className="space-y-4">
+    <h3 className="text-xl font-semibold">
+      {t("RoomDetails.policies")}
+    </h3>
+
+    <PolicySection
+      title={
+        policy?.cancellationPolicy?._translations
+          ?.policyName ||
+        policy?.cancellationPolicy?.policyName ||
+        t("RoomDetails.cancellationPolicy")
+      }
+      content={
+        policy?.cancellationPolicy?._translations
+          ?.description ||
+        policy?.cancellationPolicy?.description
+      }
+    />
+
+    <PolicySection
+      title={
+        policy?.guaranteePolicy?._translations
+          ?.policyName ||
+        policy?.guaranteePolicy?.policyName ||
+        t("RoomDetails.guaranteePolicy")
+      }
+      content={
+        policy?.guaranteePolicy?._translations
+          ?.description ||
+        policy?.guaranteePolicy?.description
+      }
+    />
+
+    <PolicySection
+      title={
+        policy?.depositPolicy?._translations
+          ?.policyName ||
+        policy?.depositPolicy?.policyName ||
+        t("RoomDetails.depositPolicy")
+      }
+      content={
+        policy?.depositPolicy?._translations
+          ?.description ||
+        policy?.depositPolicy?.description
+      }
+    />
+  </div>
+</div>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import {
     getLoyalityByCreation,
     getAllCreationLoyalityWithProperty
 } from "../api";
+import { getAllProperties } from "../api/creation-loyality.api";
 
 import type { ICCreationLoyality, IUCreationLoyalty } from "../interfaces";
 
@@ -97,6 +98,16 @@ export const getAllCreationLoyalityWithPropertyService = async (creationId: stri
         const response = await getAllCreationLoyalityWithProperty(creationId);
         return response;
     } catch (error) {
-        return { success: false, message: "Failed to retrieve creation loyalty with properties." };
+            return { success: false, message: "Failed to retrieve creation loyalty with properties." };
+    }
+};
+export const getAllActiveLoyalityProperties=async(creationId:string)=>{
+    try {
+        if(!creationId || creationId.trim() === "") {
+            return { success: false, message: "Creation detail is required." };
+        }
+        return getAllProperties(creationId);
+    } catch (error) {
+        return { success: false, message: "Failed to retrieve all active loyalty properties." };
     }
 };

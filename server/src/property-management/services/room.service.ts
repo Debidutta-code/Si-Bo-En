@@ -1,20 +1,23 @@
 import { successResponse, errorResponse } from '../../utils/return';
 import { IApiResponse } from '../../utils/return.types';
-import { RoomDao, RoomAmenityDao, PropertyConfigRepo, PropertyDao } from '../repository';
+import { RoomDao, RoomAmenityDao, PropertyDao, DeleteRoomRepository } from '../repository';
 import { RatePlanRepository } from '../../ari/repository/ratePlan.repository';
 import { ICRoom } from '../types';
 import { deleteFileByUrl } from '../../utils/delete-images.utils';
+import { property } from '../../promocode/utils';
 
 export class RoomService {
     private roomDao: RoomDao;
+    private deleteRoomRepository: DeleteRoomRepository;
 
     constructor() {
         this.roomDao = new RoomDao();
+        this.deleteRoomRepository = new DeleteRoomRepository();
     }
 
     public async create(roomData: ICRoom): Promise<IApiResponse> {
         try {
-            const [roomByName, roomByCode, roomsByProperty,draftedProperty,unDraftedProperty] = await Promise.all(
+            const [roomByName, roomByCode, roomsByProperty, draftedProperty] = await Promise.all(
                 [
                     this.roomDao.findByRoomName(
                         roomData.propertyId,
@@ -28,8 +31,7 @@ export class RoomService {
                         roomData.propertyId,
                         false
                     ),
-                    PropertyDao.getPropertyById(roomData.propertyId,false),
-                    PropertyDao.getPropertyById(roomData.propertyId,true)
+                    PropertyDao.getPropertyById(roomData.propertyId, false),
 
                 ]
             );
@@ -65,7 +67,7 @@ export class RoomService {
     }
     public async findById(id: string): Promise<IApiResponse> {
         try {
-            const room = await this.roomDao.findByRoomId(id);
+            const room = await this.roomDao.findByRoomId(id,false);
             if (room) {
                 return successResponse('Room fetched successfully', room);
             } else {
@@ -81,7 +83,7 @@ export class RoomService {
 
     public async update(id: string, roomData: ICRoom): Promise<IApiResponse> {
         try {
-            const isExists = await this.roomDao.findByRoomId(id);
+            const isExists = await this.roomDao.findByRoomId(id,false);
             if (!isExists) {
                 return errorResponse('Room Does not exists');
             }
@@ -129,7 +131,10 @@ export class RoomService {
     }
     public async delete(id: string): Promise<any> {
         try {
-            const room = await this.roomDao.findByRoomId(id);
+            const room = await this.roomDao.findByRoomId(id,false);
+            if (!room) {
+                return errorResponse('Room not found');
+            }
             const propertyCode = room?.property.propertyCode;
             if (!propertyCode) {
                 return errorResponse('Property code not found');
@@ -139,6 +144,14 @@ export class RoomService {
                 propertyCode
             );
             const deletedRoom = await this.roomDao.delete(id);
+            await Promise.all([
+                this.deleteRoomRepository.deleteRoomInventory(room.roomType, propertyCode),
+                this.deleteRoomRepository.deleteCharges(room.roomType, propertyCode),
+                this.deleteRoomRepository.deleteGeoRatePlan(room.roomType, room.propertyId),
+                this.deleteRoomRepository.deletePromotions(room.roomType, room.propertyId),
+                this.deleteRoomRepository.deleteCustomizableDeals(room.roomType, room.propertyId),
+                this.deleteRoomRepository.deleteTouristTax(id),
+            ]);
             if (deletedRoom) {
                 return successResponse('Room successfully', deletedRoom);
             } else {
@@ -227,6 +240,21 @@ export class RoomService {
                 );
             }
             return errorResponse('failed to add 360 view link to room');
+        }
+    }
+    public async recoveryRoom(id:string):Promise<IApiResponse> {
+        try {
+            const isRoomDeleted=await this.roomDao.findByRoomId(id,true);
+            if(isRoomDeleted && isRoomDeleted.isDeleted){
+                const recoveredRoom = await this.roomDao.recoveryRoom(id);
+                return successResponse('Room recovered successfully', recoveredRoom);
+            }
+            return errorResponse('Room is not deleted');
+        } catch (error) {
+            if(error instanceof Error){
+                return errorResponse('Failed to recovery room',error.message);
+            }
+            return errorResponse('Failed to recovery room');
         }
     }
 }

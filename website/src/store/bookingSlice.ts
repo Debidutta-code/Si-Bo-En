@@ -13,6 +13,12 @@ interface BookingEngineConfig {
   logo: string;
   url: string;
 }
+interface PropertyConfigs {
+  isSpaModuleEnabled: boolean;
+  isLoyaltyProgramEnabled: boolean;
+  showVideo: boolean;
+  isB2cAvailable: boolean;
+}
 
 interface PropertyAddress {
   id: string;
@@ -63,25 +69,10 @@ interface PropertyDetails {
   starRating: number;
   bookingEngineConfig: BookingEngineConfig;
   address: PropertyAddress;
-  _id: string;
-  user_id: string;
-  property_name: string;
-  property_email: string;
-  property_contact: string;
-  star_rating: string;
-  property_code: string;
-  property_category: string;
-  property_type: string;
-  property_room: string[];
   image: string[];
   description: string;
   isDraft: boolean;
-  rate_plan: string[];
   brand: string | null;
-  __v: number;
-  property_address: string;
-  property_amenities: string;
-  room_Aminity: string;
 }
 export interface BookingEngineColor {
   primaryColor: string;  // Note: "colour" vs "color" - be consistent
@@ -146,6 +137,9 @@ interface BookingState {
   selectedPromotions?: any[];
   paymentMethod?: string;
   loyalityMemberEmail?: string;
+  propertyConfigs?: PropertyConfigs | null;
+  propertyAddress?: PropertyAddress | null;
+  propertyId?: string | null;
 }
 
 const initialState: BookingState = {
@@ -180,6 +174,9 @@ const initialState: BookingState = {
   bookingSource: "direct",
   paymentMethod: "pay_at_hotel",
   loyalityMemberEmail: undefined,
+  propertyConfigs: null,
+  propertyAddress: null,
+  propertyId: null,
 };
 
 const bookingSlice = createSlice({

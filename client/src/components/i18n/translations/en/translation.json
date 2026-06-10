@@ -2654,7 +2654,68 @@
     "videoSavedSuccessfully": "Video uploaded and saved successfully!",
     "failedToSaveVideo": "Failed to save video",
     "videoDeletedSuccessfully": "Video deleted successfully!",
-    "failedToDeleteVideo": "Failed to delete video"
+    "failedToDeleteVideo": "Failed to delete video",
+    "upload360Text": "Upload a 360° panoramic image or provide a link to an external 360° viewer.",
+    "viewLink": "360° View Link",
+    "orUploadImage": "Or Upload Image",
+    "upload360Image": "Upload 360° Image",
+    "add360ViewFor": "Add 360° View for {{name}}",
+    "upload360Description": "Upload a 360° panoramic image or provide a link to an external 360° viewer.",
+    "view360Link": "360° View Link",
+    "view360Placeholder": "https://example.com/360-view.jpg",
+    "enter360ViewerUrl": "Enter the URL of a 360° image or panoramic viewer",
+    "previewLink": "Preview Link",
+    "pleaseProvide360Link": "Please provide a 360° view link or upload an image.",
+    "view360Updated": "360° view updated successfully!",
+    "failedToUpdate360View": "Failed to update 360° view",
+    "saving": "Saving...",
+    "recoverRoomTitle": "Recover {{name}}?",
+    "recoverRoomDescription": "This room will be restored and made available again. This action cannot be undone.",
+    "roomRecoveredSuccessfully": "Room recovered successfully",
+    "failedToRecoverRoom": "Failed to recover room"
+  },
+  "PropertyTransferDialog": {
+    "prompt": {
+      "title": "Import Existing RevChill Property",
+      "description": "Do you want to import an existing RevChill property into this creation? If you have a property code from a previously deleted property, you can recover and link it here. Otherwise, click",
+      "descriptionSkipWord": "Skip",
+      "descriptionSuffix": "to proceed with a fresh property setup.",
+      "whatHappens": "What happens when you proceed?",
+      "step1": "You'll enter the property code of the existing property.",
+      "step2": "An OTP will be sent to the property's registered email.",
+      "step3": "After OTP verification the property will be linked to this account.",
+      "skip": "Skip",
+      "proceed": "Proceed"
+    },
+    "code": {
+      "title": "Enter Property Code",
+      "description": "Enter the unique property code of the RevChill property you want to recover. An OTP will be sent to the property's registered email address.",
+      "label": "Property Code",
+      "placeholder": "e.g. RVC-12345",
+      "back": "Back",
+      "sendingOtp": "Sending OTP…",
+      "next": "Next"
+    },
+    "otp": {
+      "title": "Verify OTP",
+      "descriptionPrefix": "An OTP has been sent to the registered email of property",
+      "descriptionSuffix": ". Enter it below to complete the transfer.",
+      "label": "One-Time Password",
+      "placeholder": "Enter OTP",
+      "didntReceive": "Didn't receive the OTP?",
+      "goBackResend": "Go back and resend",
+      "back": "Back",
+      "verifying": "Verifying…",
+      "completeTransfer": "Complete Transfer"
+    },
+    "toast": {
+      "enterPropertyCode": "Please enter the property code.",
+      "otpSentFallback": "OTP sent to the property registered email.",
+      "initFailed": "Failed to initiate transfer process.",
+      "enterOtp": "Please enter the OTP.",
+      "recoveredFallback": "Property recovered successfully!",
+      "completeFailed": "Failed to complete transfer process."
+    }
   },
   "BankDetails": {
     "title": "Bank & Payment Details",
@@ -3232,6 +3293,10 @@
     "noTaxGroupsFound": "No Tax Groups Found",
     "noTaxGroupsMatchCriteria": "No tax groups match your search criteria.",
     "getStartedTaxGroups": "Get started by creating your first tax group.",
+    "noAdditionalChargesFound": "No Additional Charges Found",
+    "getStartedAdditionalCharges": "Get started by creating your first additional charge.",
+    "searchAdditionalCharges": "Search additional charges...",
+    "addCharges": "Add Charges",
     "priority": "Priority",
     "edit": "Edit",
     "addToGroup": "Add to Group",
@@ -3515,7 +3580,6 @@
       "autoApply": "Auto Apply",
       "autoAppliedDescription": "This promotion is currently auto applied to the reservation",
       "notAutoAppliedDescription": "This promotion is currently not auto applied to the reservation",
-
       "activeStatus": "Active Status",
       "activeDescription": "This promotion is currently active",
       "inactiveDescription": "This promotion is currently inactive",

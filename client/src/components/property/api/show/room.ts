@@ -78,3 +78,12 @@ export const getRoomVideos = async (roomId: string) => {
         return error?.response.data
     }
 }
+export const recoveryRoom=async(propertyId:string,roomId:string)=>{
+    const axiosInstance=AxiosInstance()
+    try {
+        const response=await axiosInstance.post(`/property-management/property/${propertyId}/room/${roomId}`)
+        return response.data
+    } catch (error:any) {
+        return error?.response.data
+    }
+}

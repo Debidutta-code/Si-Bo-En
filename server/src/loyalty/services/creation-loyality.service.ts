@@ -1,3 +1,5 @@
+import { DashUtilsRepo } from '../../dashboard/repository';
+import { CreationType } from '../../dashboard/types';
 import { successResponse, errorResponse } from '../../utils';
 import { IApiResponse } from '../../utils';
 import {
@@ -12,10 +14,12 @@ import {
 export class CreationLoyalityService {
     private creationLoyalityRepository: creationLoyalityRepository;
     private loyaltyProgramRepository: LoyaltyProgramRepository;
+    private dashboardUtils: DashUtilsRepo;
 
     constructor() {
         this.creationLoyalityRepository = new creationLoyalityRepository();
         this.loyaltyProgramRepository = new LoyaltyProgramRepository();
+        this.dashboardUtils = new DashUtilsRepo();
     }
 
     public async createCreationLoyality(
@@ -168,32 +172,61 @@ export class CreationLoyalityService {
             return errorResponse('Failed to retrieve loyalty by creation');
         }
     }
+    public async getPropertyNamesByCreationId(creationId: string) {
+        try {
+            const creation =
+                await this.dashboardUtils.getCreationByCreationId(creationId);
 
-    // public async getAllCreationLoyalityWithProperty(
-    //     creationId: string
-    // ): Promise<IApiResponse> {
-    //     try {
-    //         const result =
-    //             await this.creationLoyalityRepository.getAllCreationLoyalityWithProperty(
-    //                 creationId
-    //             );
-    //         if (!result) {
-    //             return errorResponse('No loyalty found for this creation');
-    //         }
-    //         return successResponse(
-    //             'Successfully retrieved creation loyalty with properties',
-    //             result
-    //         );
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return errorResponse(
-    //                 'Failed to retrieve creation loyalty with properties',
-    //                 error.message
-    //             );
-    //         }
-    //         return errorResponse(
-    //             'Failed to retrieve creation loyalty with properties'
-    //         );
-    //     }
-    // }
+            if (!creation) {
+                return errorResponse('Creation not found');
+            }
+
+            let daoRes: any;
+
+            switch (creation.type) {
+                case CreationType.super:
+                    daoRes =
+                        await this.dashboardUtils.getPropertyIdsAndCodesForLevel4(
+                            creationId
+                        );
+                    break;
+                case CreationType.group:
+                    daoRes =
+                        await this.dashboardUtils.getPropertyIdsAndCodesForLevel3(
+                            creationId
+                        );
+                    break;
+                case CreationType.brand:
+                    daoRes =
+                        await this.dashboardUtils.getPropertyIdsAndCodesForLevel2(
+                            creationId
+                        );
+                    break;
+                case CreationType.property:
+                    daoRes =
+                        await this.dashboardUtils.getPropertyIdAndCodeForLevel0And1(
+                            creationId
+                        );
+                    break;
+                default:
+                    return errorResponse('Invalid creation level');
+            }
+            if (!daoRes.success) {
+                return errorResponse(
+                    daoRes.message || 'Failed to fetch properties'
+                );
+            }
+            daoRes = daoRes.data.filter((item: { id: string, code: string, isLoyaltyProgramEnabled: boolean }) => item.isLoyaltyProgramEnabled === true);
+
+            return successResponse(
+                'Properties fetched successfully',
+                daoRes
+            );
+        } catch (error) {
+            return errorResponse(
+                'Failed to fetch property names',
+                error instanceof Error ? error.message : 'Internal server error'
+            );
+        }
+    }
 }

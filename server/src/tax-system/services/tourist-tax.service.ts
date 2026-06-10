@@ -34,7 +34,7 @@ export class TouristTaxService {
             if (!property) {
                 return errorResponse('Property not found');
             }
-            const room = await this.roomDao.findByRoomId(touristTaxData.roomId);
+            const room = await this.roomDao.findByRoomId(touristTaxData.roomId,false);
 
             if (!room) {
                 return errorResponse(

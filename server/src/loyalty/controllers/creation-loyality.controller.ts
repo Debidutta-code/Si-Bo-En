@@ -6,6 +6,7 @@ import {
     IUCreationLoyalty,
 } from '../types/creation-loyality.types';
 import { LoyaltyCreationInterceptor } from '../../multi-language/interceptors/loyalty/loyalty-creation.interceptor';
+import { DashboardPropertiesInterceptor } from '../../multi-language/interceptors/dashboard/dashboard-properties.interceptor';
 
 export class CreationLoyalityController {
     private creationLoyalityService: CreationLoyalityService;
@@ -265,4 +266,49 @@ export class CreationLoyalityController {
                 );
         }
     }
+    public async getPropertyByCreationId(
+            req: CustomRequest,
+            res: Response
+        ): Promise<Response> {
+            try {
+                const creationId = req.query.creationId as string;
+    
+                if (!creationId) {
+                    return res
+                        .status(400)
+                        .json(
+                            errorResponse('creationId is required in query params')
+                        );
+                }
+    
+                const locale =
+                    (req.headers['accept-language'] as string | undefined)
+                        ?.slice(0, 2)
+                        .toLowerCase() || 'en';
+    
+                let serRes =
+                    await this.creationLoyalityService.getPropertyNamesByCreationId(
+                        creationId
+                    );
+    
+                serRes = await DashboardPropertiesInterceptor.intercept(
+                    serRes,
+                    locale
+                );
+    
+                return res.status(serRes.success ? 200 : 400).json(serRes);
+            } catch (error) {
+                if (error instanceof Error) {
+                    return res
+                        .status(500)
+                        .json(
+                            errorResponse(
+                                'Failed to fetch properties',
+                                error.message
+                            )
+                        );
+                }
+                return res.status(500).json(errorResponse('Internal Server Error'));
+            }
+        }
 }

@@ -201,6 +201,35 @@
       "failedToFetchPrice": "मूल्य लाने में विफल। कृपया पुनः प्रयास करें।"
     }
   },
+  "RoomDetails": {
+  "roomInformation": "कमरे की जानकारी",
+  "description": "विवरण",
+  "roomType": "कमरे का प्रकार",
+  "roomView": "कमरे का दृश्य",
+  "roomSize": "कमरे का आकार",
+  "bedrooms": "शयनकक्ष",
+  "maxOccupancy": "अधिकतम क्षमता",
+  "guests": "अतिथि",
+  "ratePlanInformation": "रेट प्लान जानकारी",
+  "ratePlan": "रेट प्लान",
+  "currency": "मुद्रा",
+  "includedAddons": "शामिल ऐड-ऑन",
+  "availablePromotions": "उपलब्ध ऑफ़र",
+  "amenities": "सुविधाएँ",
+  "policies": "नीतियाँ",
+  "cancellationPolicy": "रद्दीकरण नीति",
+  "guaranteePolicy": "गारंटी नीति",
+  "depositPolicy": "जमा नीति",
+  "seeMore": "और देखें",
+  "seeLess": "कम देखें",
+  "notAvailable": "उपलब्ध नहीं",
+  "video": "वीडियो",
+  "images": "चित्र",
+  "promotionType": "ऑफ़र का प्रकार",
+  "discount": "छूट",
+  "addonIncluded": "शामिल",
+  "close": "बंद करें"
+},
   "Footer": {
     "defaultAddress": "दुबई, संयुक्त अरब अमीरात",
     "recaptcha": {
