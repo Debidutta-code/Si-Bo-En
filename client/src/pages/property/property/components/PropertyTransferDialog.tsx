@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import toast from 'react-hot-toast';
 import { ArrowRight, Building2, KeyRound, MailCheck, ShieldCheck } from 'lucide-react';
 import { initTransferProcessService, completeTransferProcessService } from '../services';
+import { useTranslation } from 'react-i18next';
 
 // ── Step identifiers ─────────────────────────────────────────────────────────
 type Step = 'prompt' | 'code' | 'otp';
@@ -26,6 +27,7 @@ export default function PropertyTransferDialog({
     propertyId,
 }: PropertyTransferDialogProps) {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [step, setStep] = useState<Step>('prompt');
     const [propertyCode, setPropertyCode] = useState('');
     const [otp, setOtp] = useState('');
@@ -63,7 +65,7 @@ export default function PropertyTransferDialog({
 
     const handleInitTransfer = async () => {
         if (!propertyCode.trim()) {
-            toast.error('Please enter the property code.');
+            toast.error(t('PropertyTransferDialog.toast.enterPropertyCode'));
             return;
         }
         setIsLoading(true);
@@ -73,13 +75,13 @@ export default function PropertyTransferDialog({
                 newCreationId: creationId,
             });
             if (res?.success) {
-                toast.success(res.message || 'OTP sent to the property registered email.');
+                toast.success(res.message || t('PropertyTransferDialog.toast.otpSentFallback'));
                 setStep('otp');
             } else {
-                toast.error(res?.message || 'Failed to initiate transfer process.');
+                toast.error(res?.message || t('PropertyTransferDialog.toast.initFailed'));
             }
         } catch {
-            toast.error('Failed to initiate transfer process.');
+            toast.error(t('PropertyTransferDialog.toast.initFailed'));
         } finally {
             setIsLoading(false);
         }
@@ -87,7 +89,7 @@ export default function PropertyTransferDialog({
 
     const handleCompleteTransfer = async () => {
         if (!otp.trim()) {
-            toast.error('Please enter the OTP.');
+            toast.error(t('PropertyTransferDialog.toast.enterOtp'));
             return;
         }
         setIsLoading(true);
@@ -98,15 +100,15 @@ export default function PropertyTransferDialog({
                 otp: otp.trim(),
             });
             if (res?.success) {
-                toast.success(res.message || 'Property recovered successfully!');
+                toast.success(res.message || t('PropertyTransferDialog.toast.recoveredFallback'));
                 handleOpenChange(false);
                 const recoveredPropertyId = res.data ?? propertyId;
                 navigate(`/property/${recoveredPropertyId}`);
             } else {
-                toast.error(res?.message || 'Failed to complete transfer process.');
+                toast.error(res?.message || t('PropertyTransferDialog.toast.completeFailed'));
             }
         } catch {
-            toast.error('Failed to complete transfer process.');
+            toast.error(t('PropertyTransferDialog.toast.completeFailed'));
         } finally {
             setIsLoading(false);
         }
@@ -127,32 +129,31 @@ export default function PropertyTransferDialog({
                                     <Building2 className="h-5 w-5 text-blue-600" />
                                 </div>
                                 <DialogTitle className="text-lg font-semibold">
-                                    Import Existing RevChill Property
+                                    {t('PropertyTransferDialog.prompt.title')}
                                 </DialogTitle>
                             </div>
                             <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-                                Do you want to import an existing RevChill property into this creation? 
-                                If you have a property code from a previously deleted property, you can 
-                                recover and link it here. Otherwise, click <strong>Skip</strong> to 
-                                proceed with a fresh property setup.
+                                {t('PropertyTransferDialog.prompt.description')}{' '}
+                                <strong>{t('PropertyTransferDialog.prompt.descriptionSkipWord')}</strong>{' '}
+                                {t('PropertyTransferDialog.prompt.descriptionSuffix')}
                             </DialogDescription>
                         </DialogHeader>
 
                         <div className="my-2 rounded-lg border border-dashed border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
-                            <p className="font-medium mb-1">What happens when you proceed?</p>
+                            <p className="font-medium mb-1">{t('PropertyTransferDialog.prompt.whatHappens')}</p>
                             <ul className="space-y-1 list-disc list-inside text-blue-600">
-                                <li>You'll enter the property code of the existing property.</li>
-                                <li>An OTP will be sent to the property's registered email.</li>
-                                <li>After OTP verification the property will be linked to this account.</li>
+                                <li>{t('PropertyTransferDialog.prompt.step1')}</li>
+                                <li>{t('PropertyTransferDialog.prompt.step2')}</li>
+                                <li>{t('PropertyTransferDialog.prompt.step3')}</li>
                             </ul>
                         </div>
 
                         <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 mt-2">
                             <Button variant="outline" onClick={handleSkip} className="w-full sm:w-auto">
-                                Skip
+                                {t('PropertyTransferDialog.prompt.skip')}
                             </Button>
                             <Button onClick={() => setStep('code')} className="w-full sm:w-auto gap-2">
-                                Proceed
+                                {t('PropertyTransferDialog.prompt.proceed')}
                                 <ArrowRight className="h-4 w-4" />
                             </Button>
                         </DialogFooter>
@@ -168,21 +169,20 @@ export default function PropertyTransferDialog({
                                     <KeyRound className="h-5 w-5 text-violet-600" />
                                 </div>
                                 <DialogTitle className="text-lg font-semibold">
-                                    Enter Property Code
+                                    {t('PropertyTransferDialog.code.title')}
                                 </DialogTitle>
                             </div>
                             <DialogDescription className="text-sm text-muted-foreground">
-                                Enter the unique property code of the RevChill property you want to recover.
-                                An OTP will be sent to the property's registered email address.
+                                {t('PropertyTransferDialog.code.description')}
                             </DialogDescription>
                         </DialogHeader>
 
                         <div className="space-y-3 py-2">
                             <div className="space-y-1.5">
-                                <Label htmlFor="property-code">Property Code</Label>
+                                <Label htmlFor="property-code">{t('PropertyTransferDialog.code.label')}</Label>
                                 <Input
                                     id="property-code"
-                                    placeholder="e.g. RVC-12345"
+                                    placeholder={t('PropertyTransferDialog.code.placeholder')}
                                     value={propertyCode}
                                     onChange={(e) => setPropertyCode(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleInitTransfer()}
@@ -198,7 +198,7 @@ export default function PropertyTransferDialog({
                                 className="w-full sm:w-auto"
                                 disabled={isLoading}
                             >
-                                Back
+                                {t('PropertyTransferDialog.code.back')}
                             </Button>
                             <Button
                                 onClick={handleInitTransfer}
@@ -208,11 +208,11 @@ export default function PropertyTransferDialog({
                                 {isLoading ? (
                                     <>
                                         <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                        Sending OTP…
+                                        {t('PropertyTransferDialog.code.sendingOtp')}
                                     </>
                                 ) : (
                                     <>
-                                        Next
+                                        {t('PropertyTransferDialog.code.next')}
                                         <ArrowRight className="h-4 w-4" />
                                     </>
                                 )}
@@ -230,21 +230,21 @@ export default function PropertyTransferDialog({
                                     <MailCheck className="h-5 w-5 text-green-600" />
                                 </div>
                                 <DialogTitle className="text-lg font-semibold">
-                                    Verify OTP
+                                    {t('PropertyTransferDialog.otp.title')}
                                 </DialogTitle>
                             </div>
                             <DialogDescription className="text-sm text-muted-foreground">
-                                An OTP has been sent to the registered email of property{' '}
-                                <strong>{propertyCode}</strong>. Enter it below to complete the transfer.
+                                {t('PropertyTransferDialog.otp.descriptionPrefix')}{' '}
+                                <strong>{propertyCode}</strong>{t('PropertyTransferDialog.otp.descriptionSuffix')}
                             </DialogDescription>
                         </DialogHeader>
 
                         <div className="space-y-3 py-2">
                             <div className="space-y-1.5">
-                                <Label htmlFor="otp-input">One-Time Password</Label>
+                                <Label htmlFor="otp-input">{t('PropertyTransferDialog.otp.label')}</Label>
                                 <Input
                                     id="otp-input"
-                                    placeholder="Enter OTP"
+                                    placeholder={t('PropertyTransferDialog.otp.placeholder')}
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleCompleteTransfer()}
@@ -253,7 +253,7 @@ export default function PropertyTransferDialog({
                                 />
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                Didn't receive the OTP?{' '}
+                                {t('PropertyTransferDialog.otp.didntReceive')}{' '}
                                 <button
                                     type="button"
                                     className="text-blue-600 hover:underline disabled:opacity-50"
@@ -263,7 +263,7 @@ export default function PropertyTransferDialog({
                                     }}
                                     disabled={isLoading}
                                 >
-                                    Go back and resend
+                                    {t('PropertyTransferDialog.otp.goBackResend')}
                                 </button>
                             </p>
                         </div>
@@ -275,7 +275,7 @@ export default function PropertyTransferDialog({
                                 className="w-full sm:w-auto"
                                 disabled={isLoading}
                             >
-                                Back
+                                {t('PropertyTransferDialog.otp.back')}
                             </Button>
                             <Button
                                 onClick={handleCompleteTransfer}
@@ -285,12 +285,12 @@ export default function PropertyTransferDialog({
                                 {isLoading ? (
                                     <>
                                         <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                        Verifying…
+                                        {t('PropertyTransferDialog.otp.verifying')}
                                     </>
                                 ) : (
                                     <>
                                         <ShieldCheck className="h-4 w-4" />
-                                        Complete Transfer
+                                        {t('PropertyTransferDialog.otp.completeTransfer')}
                                     </>
                                 )}
                             </Button>

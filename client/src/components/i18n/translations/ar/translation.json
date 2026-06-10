@@ -2667,7 +2667,54 @@
     "pleaseProvide360Link": "يرجى تقديم رابط عرض 360° أو تحميل صورة.",
     "view360Updated": "تم تحديث عرض 360° بنجاح!",
     "failedToUpdate360View": "فشل تحديث عرض 360°",
-    "saving": "جارٍ الحفظ..."
+    "saving": "جارٍ الحفظ...",
+    "recoverRoomTitle": "استعادة {{name}}؟",
+    "recoverRoomDescription": "سيتم استعادة هذه الغرفة وإتاحتها مرة أخرى. لا يمكن التراجع عن هذا الإجراء.",
+    "roomRecoveredSuccessfully": "تمت استعادة الغرفة بنجاح",
+    "failedToRecoverRoom": "فشل في استعادة الغرفة"
+  },
+  "PropertyTransferDialog": {
+    "prompt": {
+      "title": "استيراد عقار RevChill موجود",
+      "description": "هل تريد استيراد عقار RevChill موجود إلى هذا الإنشاء؟ إذا كان لديك رمز عقار من عقار تم حذفه سابقًا، يمكنك استعادته وربطه هنا. بخلاف ذلك، انقر على",
+      "descriptionSkipWord": "تخطي",
+      "descriptionSuffix": "للمتابعة بإعداد عقار جديد.",
+      "whatHappens": "ماذا سيحدث عند المتابعة؟",
+      "step1": "ستقوم بإدخال رمز العقار الخاص بالعقار الحالي.",
+      "step2": "سيتم إرسال رمز OTP إلى البريد الإلكتروني المسجل للعقار.",
+      "step3": "بعد التحقق من OTP سيتم ربط العقار بهذا الحساب.",
+      "skip": "تخطي",
+      "proceed": "متابعة"
+    },
+    "code": {
+      "title": "أدخل رمز العقار",
+      "description": "أدخل رمز العقار الفريد لعقار RevChill الذي تريد استعادته. سيتم إرسال رمز OTP إلى عنوان البريد الإلكتروني المسجل للعقار.",
+      "label": "رمز العقار",
+      "placeholder": "مثال: RVC-12345",
+      "back": "رجوع",
+      "sendingOtp": "جارٍ إرسال OTP…",
+      "next": "التالي"
+    },
+    "otp": {
+      "title": "التحقق من OTP",
+      "descriptionPrefix": "تم إرسال رمز OTP إلى البريد الإلكتروني المسجل للعقار",
+      "descriptionSuffix": ". أدخله أدناه لإكمال عملية النقل.",
+      "label": "كلمة المرور لمرة واحدة",
+      "placeholder": "أدخل OTP",
+      "didntReceive": "لم تستلم رمز OTP؟",
+      "goBackResend": "ارجع وأعد الإرسال",
+      "back": "رجوع",
+      "verifying": "جارٍ التحقق…",
+      "completeTransfer": "إكمال النقل"
+    },
+    "toast": {
+      "enterPropertyCode": "يرجى إدخال رمز العقار.",
+      "otpSentFallback": "تم إرسال OTP إلى البريد الإلكتروني المسجل للعقار.",
+      "initFailed": "فشل في بدء عملية النقل.",
+      "enterOtp": "يرجى إدخال OTP.",
+      "recoveredFallback": "تمت استعادة العقار بنجاح!",
+      "completeFailed": "فشل في إكمال عملية النقل."
+    }
   },
   "BankDetails": {
     "title": "التفاصيل المصرفية والدفع",
@@ -3269,7 +3316,11 @@
     "addRatePlan": "إضافة خطة أسعار",
     "removeRatePlan": "إزالة خطة الأسعار",
     "noAvailableRatePlans": "لا توجد خطط أسعار متاحة",
-    "noRatePlanAdded": "لم تتم إضافة خطة أسعار"
+    "noRatePlanAdded": "لم تتم إضافة خطة أسعار",
+    "noAdditionalChargesFound": "لم يتم العثور على أي رسوم إضافية",
+    "getStartedAdditionalCharges": "ابدأ بإنشاء أول رسوم إضافية لك.",
+    "addCharges": "إضافة رسوم",
+    "searchAdditionalCharges": "ابحث عن الرسوم الإضافية..."
   },
   "TouristTaxDialog": {
     "createTitle": "إنشاء رسوم إضافية",
