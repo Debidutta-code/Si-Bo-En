@@ -41,10 +41,9 @@ export class RoomBookingService {
             countryCode,
         } = payload;
 
-        const property = (await RoomBookingRepository.getPropertyByCode(
+        const property = await RoomBookingRepository.getPropertyByCode(
             propertyCode
-        )) as IPropertyData | null;
-    console.log("property",property)
+        ) as IPropertyData | null;
         if (!property || !property.isAvailable) {
             return { success: false, message: 'Property not available' };
         }

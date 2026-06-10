@@ -2654,7 +2654,22 @@
     "videoSavedSuccessfully": "Video uploaded and saved successfully!",
     "failedToSaveVideo": "Failed to save video",
     "videoDeletedSuccessfully": "Video deleted successfully!",
-    "failedToDeleteVideo": "Failed to delete video"
+    "failedToDeleteVideo": "Failed to delete video",
+      "upload360Text": "Upload a 360° panoramic image or provide a link to an external 360° viewer.",
+  "viewLink": "360° View Link",
+  "orUploadImage": "Or Upload Image",
+  "upload360Image": "Upload 360° Image",
+  "add360ViewFor": "Add 360° View for {{name}}",
+  "upload360Description": "Upload a 360° panoramic image or provide a link to an external 360° viewer.",
+  "view360Link": "360° View Link",
+  "view360Placeholder": "https://example.com/360-view.jpg",
+  "enter360ViewerUrl": "Enter the URL of a 360° image or panoramic viewer",
+  "previewLink": "Preview Link",
+  "pleaseProvide360Link": "Please provide a 360° view link or upload an image.",
+  "view360Updated": "360° view updated successfully!",
+  "failedToUpdate360View": "Failed to update 360° view",
+  "saving": "Saving..."
+
   },
   "BankDetails": {
     "title": "Bank & Payment Details",

@@ -311,9 +311,10 @@ export default function Rooms({ propertyId }: PropertyId) {
 
   return (
     <div className="w-full space-y-6">
+
       {rooms.length > 0 ? (
         <div className="space-y-6">
-          {rooms.map((room) => (
+          {rooms.map((room, index) => (
             <Card
               key={room.id}
               className={`overflow-hidden transition-all ${!room.available ? "border-l-4 border-l-red-500" : ""
@@ -348,36 +349,9 @@ export default function Rooms({ propertyId }: PropertyId) {
                       <span className="text-gray-400">{t("Rooms.priority")}: {room.priority}</span>
                     </CardDescription>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {room.view360Link && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setPanoramaUrl(room.view360Link!);
-                          setPanoramaRoomName(room.roomName);
-                          setIsPanoramaViewerOpen(true);
-                        }}
-                        className="gap-2 bg-primary hover:bg-primary/90"
-                      >
-                        <Rotate3d className="w-4 h-4" />
-                        {t("Rooms.view360")}
-                      </Button>
-                    )}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9">
-                          <MoreVertical className="h-4 w-4" />
-                          <span className="sr-only">Room Actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-
-                      <DropdownMenuContent align="end" className="w-48">
-                        {/* Create Room */}
-                        <DropdownMenuItem
-                          className="p-0 focus:bg-transparent"
-                          onSelect={(e) => e.preventDefault()}
-                        >
+                  <div className="flex flex-col items-center gap-2">
+                      {
+                        index === 0 && (
                           <AlertDialog
                             open={openDialog === "create"}
                             onOpenChange={(open) => {
@@ -389,7 +363,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           >
                             <AlertDialogTrigger asChild>
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 className="w-full justify-start px-2 py-1.5 h-auto font-normal"
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -435,230 +409,266 @@ export default function Rooms({ propertyId }: PropertyId) {
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-                        </DropdownMenuItem>
-
-                        {/* Edit Room */}
-                        <DropdownMenuItem
-                          className="p-0 focus:bg-transparent"
-                          onSelect={(e) => e.preventDefault()}
+                        )
+                      }
+                    <div className="flex items-end w-full">
+                      {room.view360Link && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                            setPanoramaUrl(room.view360Link!);
+                            setPanoramaRoomName(room.roomName);
+                            setIsPanoramaViewerOpen(true);
+                          }}
+                          className="gap-2 "
                         >
-                          <AlertDialog
-                            open={openDialog === "edit"}
-                            onOpenChange={(open) => {
-                              if (!open) {
-                                setOpenDialog(null);
-                                setRoomDetails(emptyRoomDetails);
-                              }
-                            }}                          >
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                className="w-full justify-start px-2 py-1.5 h-auto font-normal"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenDialog("edit");
-                                  setRoomDetails({
-                                    roomName: room.roomName,
-                                    roomType: room.roomType,
-                                    totalRoom: room.totalRoom,
-                                    floor: room.floor,
-                                    roomSize: room.roomSize,
-                                    roomUnit: room.roomUnit,
-                                    smokingPolicy: room.smokingPolicy,
-                                    maxOccupancy: room.maxOccupancy,
-                                    maxNumberOfAdults: room.maxNumberOfAdults,
-                                    maxNumberOfChildren: room.maxNumberOfChildren,
-                                    numberOfBedrooms: room.numberOfBedrooms,
-                                    numberOfLivingRoom: room.numberOfLivingRoom,
-                                    extraBed: room.extraBed,
-                                    description: room.description,
-                                    image: room.image,
-                                    available: room.available,
-                                    view360Link: room.view360Link,
-                                    roomVideos: room.roomVideos,
-                                    priority: room.priority,
-                                    RoomViews: room.RoomViews,
-                                    _translations: room._translations
-                                  });
-                                }}
-                              >
-                                <PenTool className="h-4 w-4 mr-2" />
-                                {t("Common.edit")}
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-                              <AlertDialogHeader>
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <AlertDialogTitle className="text-xl">
-                                      {t("Rooms.updateRoomTitle", { name: room.roomName })}
-                                    </AlertDialogTitle>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                      {t("Rooms.modifyRoomDetails")}
-                                    </p>
-                                  </div>
-                                  <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
-                                    <X className="h-4 w-4" />
-                                  </AlertDialogCancel>
-                                </div>
-                                <UpdateRoom
-                                  roomDetails={roomDetails}
-                                  isLoading={loading}
-                                  updateRoomDetails={setRoomDetails}
-                                />
-                              </AlertDialogHeader>
-                              <AlertDialogFooter className="border-t pt-4">
-                                <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() =>
-                                    updateRoomQ(
-                                      propertyId,
-                                      room.id,
-                                      roomDetails,
-                                    )
-                                  }
-                                  disabled={loading}
+                          <Rotate3d className="w-4 h-4" />
+                          {t("Rooms.view360")}
+                        </Button>
+                      )}
+
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-9 w-9">
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Room Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end" className="w-48">
+                          {/* Create Room */}
+                          <DropdownMenuItem
+                            className="p-0 focus:bg-transparent"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+
+                          </DropdownMenuItem>
+
+                          {/* Edit Room */}
+                          <DropdownMenuItem
+                            className="p-0 focus:bg-transparent"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <AlertDialog
+                              open={openDialog === "edit"}
+                              onOpenChange={(open) => {
+                                if (!open) {
+                                  setOpenDialog(null);
+                                  setRoomDetails(emptyRoomDetails);
+                                }
+                              }}                          >
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start px-2 py-1.5 h-auto font-normal"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenDialog("edit");
+                                    setRoomDetails({
+                                      roomName: room.roomName,
+                                      roomType: room.roomType,
+                                      totalRoom: room.totalRoom,
+                                      floor: room.floor,
+                                      roomSize: room.roomSize,
+                                      roomUnit: room.roomUnit,
+                                      smokingPolicy: room.smokingPolicy,
+                                      maxOccupancy: room.maxOccupancy,
+                                      maxNumberOfAdults: room.maxNumberOfAdults,
+                                      maxNumberOfChildren: room.maxNumberOfChildren,
+                                      numberOfBedrooms: room.numberOfBedrooms,
+                                      numberOfLivingRoom: room.numberOfLivingRoom,
+                                      extraBed: room.extraBed,
+                                      description: room.description,
+                                      image: room.image,
+                                      available: room.available,
+                                      view360Link: room.view360Link,
+                                      roomVideos: room.roomVideos,
+                                      priority: room.priority,
+                                      RoomViews: room.RoomViews,
+                                      _translations: room._translations
+                                    });
+                                  }}
                                 >
-                                  {loading ? t("Rooms.updating") : t("Rooms.update")}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuItem>
+                                  <PenTool className="h-4 w-4 mr-2" />
+                                  {t("Common.edit")}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+                                <AlertDialogHeader>
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <AlertDialogTitle className="text-xl">
+                                        {t("Rooms.updateRoomTitle", { name: room.roomName })}
+                                      </AlertDialogTitle>
+                                      <p className="text-sm text-gray-500 mt-1">
+                                        {t("Rooms.modifyRoomDetails")}
+                                      </p>
+                                    </div>
+                                    <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
+                                      <X className="h-4 w-4" />
+                                    </AlertDialogCancel>
+                                  </div>
+                                  <UpdateRoom
+                                    roomDetails={roomDetails}
+                                    isLoading={loading}
+                                    updateRoomDetails={setRoomDetails}
+                                  />
+                                </AlertDialogHeader>
+                                <AlertDialogFooter className="border-t pt-4">
+                                  <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      updateRoomQ(
+                                        propertyId,
+                                        room.id,
+                                        roomDetails,
+                                      )
+                                    }
+                                    disabled={loading}
+                                  >
+                                    {loading ? t("Rooms.updating") : t("Rooms.update")}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </DropdownMenuItem>
 
-                        {/* Translations */}
-                        <DropdownMenuItem
-                          className="p-0 focus:bg-transparent"
-                          onSelect={(e) => {
-                            e.preventDefault();
-                            setTranslationRoomId(room.id);
-                            setAddTranslationOpen(true);
-                          }}
-                        >
-                          <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal">
-                            <Plus className="h-4 w-4 mr-2" />
-                            {t('Common.addTranslation')}
-                          </Button>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="p-0 focus:bg-transparent"
-                          onSelect={(e) => {
-                            e.preventDefault();
-                            setTranslationRoomId(room.id);
-                            setCheckTranslationsOpen(true);
-                          }}
-                        >
-                          <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal">
-                            <Languages className="h-4 w-4 mr-2" />
-                            {t('Common.checkTranslation')}
-                          </Button>
-                        </DropdownMenuItem>
-
-                        {/* Add 360° View */}
-                        <DropdownMenuItem
-                          className="p-0 focus:bg-transparent"
-                          onSelect={(e) => e.preventDefault()}
-                        >
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start px-2 py-1.5 h-auto font-normal"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelected360Room({
-                                id: room.id,
-                                name: room.roomName,
-                                view360Link: room.view360Link || "",
-                              });
-                              setIs360ViewModalOpen(true);
+                          {/* Translations */}
+                          <DropdownMenuItem
+                            className="p-0 focus:bg-transparent"
+                            onSelect={(e) => {
+                              e.preventDefault();
+                              setTranslationRoomId(room.id);
+                              setAddTranslationOpen(true);
                             }}
                           >
-                            <Rotate3d className="h-4 w-4 mr-2" />
-                            {room.view360Link ? t("Rooms.update360View") : t("Rooms.add360View")}
-                          </Button>
-                        </DropdownMenuItem>
-                        {/* Add/Update Video */}
-                        <DropdownMenuItem
-                          className="p-0 focus:bg-transparent"
-                          onSelect={(e) => e.preventDefault()}
-                        >
-                          <Button
-                            variant="ghost"
-                            className="w-full justify-start px-2 py-1.5 h-auto font-normal"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedRoomId(room.id);
-                              setSelectedRoomName(room.roomName);
-                              setIsVideoModalOpen(true);
+                            <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal">
+                              <Plus className="h-4 w-4 mr-2" />
+                              {t('Common.addTranslation')}
+                            </Button>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="p-0 focus:bg-transparent"
+                            onSelect={(e) => {
+                              e.preventDefault();
+                              setTranslationRoomId(room.id);
+                              setCheckTranslationsOpen(true);
                             }}
                           >
-                            <Video className="h-4 w-4 mr-2" />
-                            {room.roomVideos?.url ? t("Rooms.updateVideo") : t("Rooms.addVideo")}
-                          </Button>
-                        </DropdownMenuItem>
+                            <Button variant="ghost" className="w-full justify-start px-2 py-1.5 h-auto font-normal">
+                              <Languages className="h-4 w-4 mr-2" />
+                              {t('Common.checkTranslation')}
+                            </Button>
+                          </DropdownMenuItem>
 
-                        {/* Delete Video */}
-
-                        {room.roomVideos?.url && (
+                          {/* Add 360° View */}
                           <DropdownMenuItem
                             className="p-0 focus:bg-transparent"
                             onSelect={(e) => e.preventDefault()}
                           >
                             <Button
                               variant="ghost"
-                              className="w-full justify-start px-2 py-1.5 h-auto font-normal text-red-600 hover:text-red-700 hover:bg-red-50"
+                              className="w-full justify-start px-2 py-1.5 h-auto font-normal"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedRoomId(room.id); // Store room ID for deletion
-                                setIsDeleteDialogOpen(true); // Open confirmation dialog
+                                setSelected360Room({
+                                  id: room.id,
+                                  name: room.roomName,
+                                  view360Link: room.view360Link || "",
+                                });
+                                setIs360ViewModalOpen(true);
                               }}
                             >
-                              <Trash className="h-4 w-4 mr-2" />
-                              {t("Rooms.removeVideo")}
+                              <Rotate3d className="h-4 w-4 mr-2" />
+                              {room.view360Link ? t("Rooms.update360View") : t("Rooms.add360View")}
                             </Button>
                           </DropdownMenuItem>
-                        )}
-                        {/* Delete Room */}
-                        <DropdownMenuItem
-                          className="p-0 focus:bg-transparent"
-                          onSelect={(e) => e.preventDefault()}
-                        >
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
+                          {/* Add/Update Video */}
+                          <DropdownMenuItem
+                            className="p-0 focus:bg-transparent"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start px-2 py-1.5 h-auto font-normal"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedRoomId(room.id);
+                                setSelectedRoomName(room.roomName);
+                                setIsVideoModalOpen(true);
+                              }}
+                            >
+                              <Video className="h-4 w-4 mr-2" />
+                              {room.roomVideos?.url ? t("Rooms.updateVideo") : t("Rooms.addVideo")}
+                            </Button>
+                          </DropdownMenuItem>
+
+                          {/* Delete Video */}
+
+                          {room.roomVideos?.url && (
+                            <DropdownMenuItem
+                              className="p-0 focus:bg-transparent"
+                              onSelect={(e) => e.preventDefault()}
+                            >
                               <Button
                                 variant="ghost"
                                 className="w-full justify-start px-2 py-1.5 h-auto font-normal text-red-600 hover:text-red-700 hover:bg-red-50"
-                                onClick={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedRoomId(room.id); // Store room ID for deletion
+                                  setIsDeleteDialogOpen(true); // Open confirmation dialog
+                                }}
                               >
                                 <Trash className="h-4 w-4 mr-2" />
-                                {t("Rooms.deleteRoom")}
+                                {t("Rooms.removeVideo")}
                               </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  {t("Rooms.deleteRoomTitle", { name: room.roomName })}
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  {t("Rooms.deleteRoomDescription")}
-
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() =>
-                                    handleDelete(propertyId, room.id)
-                                  }
-                                  className="bg-red-600 hover:bg-red-700"
+                            </DropdownMenuItem>
+                          )}
+                          {/* Delete Room */}
+                          <DropdownMenuItem
+                            className="p-0 focus:bg-transparent"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start px-2 py-1.5 h-auto font-normal text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={(e) => e.stopPropagation()}
                                 >
+                                  <Trash className="h-4 w-4 mr-2" />
                                   {t("Rooms.deleteRoom")}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    {t("Rooms.deleteRoomTitle", { name: room.roomName })}
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    {t("Rooms.deleteRoomDescription")}
+
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>{t("Rooms.cancel")}</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      handleDelete(propertyId, room.id)
+                                    }
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    {t("Rooms.deleteRoom")}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -681,7 +691,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                       <label className="text-xs font-medium text-gray-500  tracking-wide mb-2 block">
                         {t("Rooms.description")}
                       </label>
-                      <PropertyDetailsDialog description={room._translations?room._translations.description:room.description} />
+                      <PropertyDetailsDialog description={room._translations ? room._translations.description : room.description} />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -1000,24 +1010,22 @@ export default function Rooms({ propertyId }: PropertyId) {
       )}
 
       {/* Panorama Viewer Dialog */}
-      <Dialog
-        open={isPanoramaViewerOpen}
-        onOpenChange={setIsPanoramaViewerOpen}
-      >
-        <DialogContent className="max-w-[95vw] max-h-[95vh] h-[95vh] p-0">
-          <DialogHeader className="p-6 pb-4 border-b flex-shrink-0">
-            <DialogTitle className="text-xl">
-              {t("Rooms.panoramaViewer", { name: panoramaRoomName })}
-            </DialogTitle>
-            <DialogDescription className="text-sm">
-              {t("Rooms.dragToLookAround")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex-1 px-6 pb-6 min-h-0">
-            {panoramaUrl && <PanoramaViewer imageUrl={panoramaUrl} />}
-          </div>
-        </DialogContent>
-      </Dialog>
+<Dialog open={isPanoramaViewerOpen} onOpenChange={setIsPanoramaViewerOpen}>
+  <DialogContent className="max-w-[95vw] max-h-[95vh] h-[95vh] p-0 flex flex-col">
+    <DialogHeader className="p-6 pb-4 border-b flex-shrink-0">
+      <DialogTitle className="text-xl">
+        {t("Rooms.panoramaViewer", { name: panoramaRoomName })}
+      </DialogTitle>
+      <DialogDescription className="text-sm">
+        {t("Rooms.dragToLookAround")}
+      </DialogDescription>
+    </DialogHeader>
+
+    <div className="flex-1 min-h-0">  {/* removed px-6 pb-6 padding — it breaks height calc */}
+      {panoramaUrl && <PanoramaViewer imageUrl={panoramaUrl} />}
+    </div>
+  </DialogContent>
+</Dialog>
       {/* Video Upload Modal */}
       <VideoUploadModal
         isOpen={isVideoModalOpen}
@@ -1059,10 +1067,10 @@ export default function Rooms({ propertyId }: PropertyId) {
       {translationRoomId && (
         <>
           <AddRoomLangDialog
-           open={addTranslationOpen}
+            open={addTranslationOpen}
             onOpenChange={setAddTranslationOpen}
-             roomId={translationRoomId}
-              />
+            roomId={translationRoomId}
+          />
           <CheckRoomLangDialog
             open={checkTranslationsOpen}
             onOpenChange={setCheckTranslationsOpen}

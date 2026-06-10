@@ -90,10 +90,8 @@
     "showLess": "عرض أقل",
     "showMore": "عرض المزيد",
     "update": "تحديث",
-      "recover": "استعادة",
-        "deleted": "محذوف"
-
-
+    "recover": "استعادة",
+    "deleted": "محذوف"
   },
   "AddRoomLangDialog": {
     "title": "إضافة ترجمة الغرفة",
@@ -2656,21 +2654,20 @@
     "failedToSaveVideo": "فشل حفظ الفيديو",
     "videoDeletedSuccessfully": "تم حذف الفيديو بنجاح!",
     "failedToDeleteVideo": "فشل حذف الفيديو",
-      "upload360Text": "قم بتحميل صورة بانورامية 360° أو قدم رابطًا لعارض 360° خارجي.",
-  "viewLink": "رابط عرض 360°",
-  "orUploadImage": "أو قم بتحميل صورة",
-  "upload360Image": "تحميل صورة 360°",
-  "add360ViewFor": "إضافة عرض 360° لـ {{name}}",
-  "upload360Description": "قم بتحميل صورة بانورامية 360° أو قدم رابطًا لعارض 360° خارجي.",
-  "view360Link": "رابط عرض 360°",
-  "view360Placeholder": "https://example.com/360-view.jpg",
-  "enter360ViewerUrl": "أدخل رابط صورة 360° أو عارض بانورامي",
-  "previewLink": "معاينة الرابط",
-  "pleaseProvide360Link": "يرجى تقديم رابط عرض 360° أو تحميل صورة.",
-  "view360Updated": "تم تحديث عرض 360° بنجاح!",
-  "failedToUpdate360View": "فشل تحديث عرض 360°",
-  "saving": "جارٍ الحفظ..."
-
+    "upload360Text": "قم بتحميل صورة بانورامية 360° أو قدم رابطًا لعارض 360° خارجي.",
+    "viewLink": "رابط عرض 360°",
+    "orUploadImage": "أو قم بتحميل صورة",
+    "upload360Image": "تحميل صورة 360°",
+    "add360ViewFor": "إضافة عرض 360° لـ {{name}}",
+    "upload360Description": "قم بتحميل صورة بانورامية 360° أو قدم رابطًا لعارض 360° خارجي.",
+    "view360Link": "رابط عرض 360°",
+    "view360Placeholder": "https://example.com/360-view.jpg",
+    "enter360ViewerUrl": "أدخل رابط صورة 360° أو عارض بانورامي",
+    "previewLink": "معاينة الرابط",
+    "pleaseProvide360Link": "يرجى تقديم رابط عرض 360° أو تحميل صورة.",
+    "view360Updated": "تم تحديث عرض 360° بنجاح!",
+    "failedToUpdate360View": "فشل تحديث عرض 360°",
+    "saving": "جارٍ الحفظ..."
   },
   "BankDetails": {
     "title": "التفاصيل المصرفية والدفع",
@@ -3530,7 +3527,7 @@
       "promotionNameHint": "هذا لك فقط - لن يتمكن المستخدمون من رؤيته",
       "autoApply": "تطبيق تلقائي",
       "autoAppliedDescription": "يتم تطبيق هذا العرض الترويجي تلقائياً على الحجز",
-        "notAutoAppliedDescription": "هذا العرض الترويجي غير مطبق تلقائيًا على الحجز حاليًا.",
+      "notAutoAppliedDescription": "هذا العرض الترويجي غير مطبق تلقائيًا على الحجز حاليًا.",
       "activeStatus": "الحالة النشطة",
       "activeDescription": "هذا العرض الترويجي نشط حالياً",
       "inactiveDescription": "هذا العرض الترويجي غير نشط حالياً",
