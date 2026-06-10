@@ -22,10 +22,10 @@ export class CustomerController {
         if (!/\d/.test(password)) {
             return "Password must contain at least one number";
         }
-        if (!/[!@#$&]/.test(password)) {
-            return "Password must contain at least one special character (!, @, #, $, &)";
+        if (!/[!@#$&.]/.test(password)) {
+            return "Password must contain at least one special character (!, @, #, $, &, .)";
         }
-        if (!/^[A-Za-z\d@#$]+$/.test(password)) {
+        if (!/^[A-Za-z\d@#$&.]+$/.test(password)) {
             return "Password contains invalid characters";
         }
         return null;

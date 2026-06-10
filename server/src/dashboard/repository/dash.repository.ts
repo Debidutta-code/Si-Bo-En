@@ -1060,6 +1060,7 @@ export class DashUtilsRepo {
                 code: string;
                 name: string;
                 currencyCode: CurrencyCode;
+                isLoyaltyProgramEnabled: boolean;
             }> = [];
 
             const level4Creation = await prisma.creation.findUnique({
@@ -1075,6 +1076,7 @@ export class DashUtilsRepo {
                             propertyConfigs: {
                                 select: {
                                     baseCurrency: true,
+                                    isLoyaltyProgramEnabled: true,
                                 },
                             },
                         },
@@ -1099,6 +1101,8 @@ export class DashUtilsRepo {
                                     propertyConfigs: {
                                         select: {
                                             baseCurrency: true,
+                                            isLoyaltyProgramEnabled: true,
+
                                         },
                                     },
                                 },
@@ -1111,13 +1115,6 @@ export class DashUtilsRepo {
                                 },
                                 include: {
                                     property: {
-                                        // where: {
-                                        //     propertyConfigs: {
-                                        //         isLoyaltyProgramEnabled: true
-                                        //     }
-
-                                        // },
-
                                         select: {
                                             id: true,
                                             propertyCode: true,
@@ -1125,6 +1122,8 @@ export class DashUtilsRepo {
                                             propertyConfigs: {
                                                 select: {
                                                     baseCurrency: true,
+                                                    isLoyaltyProgramEnabled: true,
+
                                                 },
                                             },
                                         },
@@ -1137,12 +1136,6 @@ export class DashUtilsRepo {
                                         },
                                         include: {
                                             property: {
-                                                // where: {
-                                                //     propertyConfigs: {
-                                                //         isLoyaltyProgramEnabled: true
-                                                //     }
-
-                                                // },
 
                                                 select: {
                                                     id: true,
@@ -1151,6 +1144,8 @@ export class DashUtilsRepo {
                                                     propertyConfigs: {
                                                         select: {
                                                             baseCurrency: true,
+                                                            isLoyaltyProgramEnabled: true,
+
                                                         },
                                                     },
                                                 },
@@ -1177,6 +1172,8 @@ export class DashUtilsRepo {
                                                             propertyConfigs: {
                                                                 select: {
                                                                     baseCurrency: true,
+                                                                    isLoyaltyProgramEnabled: true,
+
                                                                 },
                                                             },
                                                         },
@@ -1205,6 +1202,8 @@ export class DashUtilsRepo {
                                             propertyConfigs: {
                                                 select: {
                                                     baseCurrency: true,
+                                                    isLoyaltyProgramEnabled: true,
+
                                                 },
                                             },
                                         },
@@ -1230,6 +1229,8 @@ export class DashUtilsRepo {
                                                     propertyConfigs: {
                                                         select: {
                                                             baseCurrency: true,
+                                                            isLoyaltyProgramEnabled: true,
+
                                                         },
                                                     },
                                                 },
@@ -1258,6 +1259,8 @@ export class DashUtilsRepo {
                     name: level4Creation.property.propertyName,
                     currencyCode: (level4Creation.property.propertyConfigs
                         ?.baseCurrency ?? 'USD') as CurrencyCode,
+                    isLoyaltyProgramEnabled: level4Creation.property.propertyConfigs
+                        ?.isLoyaltyProgramEnabled ?? false,
                 });
             }
 
@@ -1271,6 +1274,9 @@ export class DashUtilsRepo {
                         name: superChild.property.propertyName,
                         currencyCode: (superChild.property.propertyConfigs
                             ?.baseCurrency ?? 'USD') as CurrencyCode,
+                        isLoyaltyProgramEnabled: superChild.property.propertyConfigs
+                            ?.isLoyaltyProgramEnabled ?? false,
+
                     });
                 }
 
@@ -1284,6 +1290,9 @@ export class DashUtilsRepo {
                             name: groupChild.property.propertyName,
                             currencyCode: (groupChild.property.propertyConfigs
                                 ?.baseCurrency ?? 'USD') as CurrencyCode,
+                            isLoyaltyProgramEnabled: groupChild.property.propertyConfigs
+                                ?.isLoyaltyProgramEnabled ?? false,
+
                         });
                     }
 
@@ -1298,6 +1307,9 @@ export class DashUtilsRepo {
                                 currencyCode: (brandChild.property
                                     .propertyConfigs?.baseCurrency ??
                                     'USD') as CurrencyCode,
+                                isLoyaltyProgramEnabled: brandChild.property.propertyConfigs
+                                    ?.isLoyaltyProgramEnabled ?? false,
+
                             });
                         }
 
@@ -1311,6 +1323,10 @@ export class DashUtilsRepo {
                                     currencyCode: (level1.property
                                         .propertyConfigs?.baseCurrency ??
                                         'USD') as CurrencyCode,
+                                    isLoyaltyProgramEnabled: level1.property
+                                        .propertyConfigs
+                                        ?.isLoyaltyProgramEnabled ?? false,
+
                                 });
                             }
                         }
@@ -1325,6 +1341,9 @@ export class DashUtilsRepo {
                             name: brandChild.property.propertyName,
                             currencyCode: (brandChild.property.propertyConfigs
                                 ?.baseCurrency ?? 'USD') as CurrencyCode,
+                            isLoyaltyProgramEnabled: brandChild.property.propertyConfigs
+                                ?.isLoyaltyProgramEnabled ?? false,
+
                         });
                     }
                     for (const level1 of brandChild.groupChildren) {
@@ -1335,6 +1354,9 @@ export class DashUtilsRepo {
                                 name: level1.property.propertyName,
                                 currencyCode: (level1.property.propertyConfigs
                                     ?.baseCurrency ?? 'USD') as CurrencyCode,
+                                isLoyaltyProgramEnabled: level1.property?.propertyConfigs
+                                    ?.isLoyaltyProgramEnabled ?? false,
+
                             });
                         }
                     }
@@ -1366,6 +1388,7 @@ export class DashUtilsRepo {
                 code: string;
                 name: string;
                 currencyCode: CurrencyCode;
+                isLoyaltyProgramEnabled: boolean;
             }> = [];
 
             const level3Creation = await prisma.creation.findUnique({
@@ -1388,6 +1411,8 @@ export class DashUtilsRepo {
                             propertyConfigs: {
                                 select: {
                                     baseCurrency: true,
+                                    isLoyaltyProgramEnabled: true,
+
                                 },
                             },
                         },
@@ -1412,6 +1437,8 @@ export class DashUtilsRepo {
                                     propertyConfigs: {
                                         select: {
                                             baseCurrency: true,
+                                            isLoyaltyProgramEnabled: true,
+
                                         },
                                     },
                                 },
@@ -1439,6 +1466,7 @@ export class DashUtilsRepo {
                                             propertyConfigs: {
                                                 select: {
                                                     baseCurrency: true,
+                                                    isLoyaltyProgramEnabled: true,
                                                 },
                                             },
                                         },
@@ -1465,6 +1493,8 @@ export class DashUtilsRepo {
                                                     propertyConfigs: {
                                                         select: {
                                                             baseCurrency: true,
+                                                            isLoyaltyProgramEnabled: true,
+
                                                         },
                                                     },
                                                 },
@@ -1493,6 +1523,9 @@ export class DashUtilsRepo {
                     name: level3Creation.property.propertyName,
                     currencyCode: level3Creation.property.propertyConfigs
                         ?.baseCurrency as CurrencyCode,
+                    isLoyaltyProgramEnabled: level3Creation.property?.propertyConfigs
+                        ?.isLoyaltyProgramEnabled as boolean,
+
                 });
             }
 
@@ -1506,6 +1539,9 @@ export class DashUtilsRepo {
                         name: groupChild.property.propertyName,
                         currencyCode: groupChild.property.propertyConfigs
                             ?.baseCurrency as CurrencyCode,
+                        isLoyaltyProgramEnabled: groupChild.property?.propertyConfigs
+                            ?.isLoyaltyProgramEnabled as boolean,
+
                     });
                 }
 
@@ -1519,6 +1555,9 @@ export class DashUtilsRepo {
                             name: brandChild.property.propertyName,
                             currencyCode: brandChild.property.propertyConfigs
                                 ?.baseCurrency as CurrencyCode,
+                            isLoyaltyProgramEnabled: brandChild.property?.propertyConfigs
+                                ?.isLoyaltyProgramEnabled as boolean,
+
                         });
                     }
 
@@ -1531,6 +1570,9 @@ export class DashUtilsRepo {
                                 name: level1.property.propertyName,
                                 currencyCode: level1.property.propertyConfigs
                                     ?.baseCurrency as CurrencyCode,
+                                isLoyaltyProgramEnabled: level1.property?.propertyConfigs
+                                    ?.isLoyaltyProgramEnabled as boolean,
+
                             });
                         }
                     }
@@ -1561,6 +1603,8 @@ export class DashUtilsRepo {
                 code: string;
                 name: string;
                 currencyCode: CurrencyCode;
+                isLoyaltyProgramEnabled: boolean;
+
             }> = [];
 
             const level2Creation = await prisma.creation.findUnique({
@@ -1584,6 +1628,8 @@ export class DashUtilsRepo {
                             propertyConfigs: {
                                 select: {
                                     baseCurrency: true,
+                                    isLoyaltyProgramEnabled: true,
+
                                 },
                             },
                         },
@@ -1610,6 +1656,8 @@ export class DashUtilsRepo {
                                     propertyConfigs: {
                                         select: {
                                             baseCurrency: true,
+                                            isLoyaltyProgramEnabled: true,
+
                                         },
                                     },
                                 },
@@ -1636,6 +1684,8 @@ export class DashUtilsRepo {
                                             propertyConfigs: {
                                                 select: {
                                                     baseCurrency: true,
+                                                    isLoyaltyProgramEnabled: true,
+
                                                 },
                                             },
                                         },
@@ -1662,6 +1712,8 @@ export class DashUtilsRepo {
                     name: level2Creation.property.propertyName,
                     currencyCode: (level2Creation.property.propertyConfigs
                         ?.baseCurrency ?? 'USD') as CurrencyCode,
+                    isLoyaltyProgramEnabled: (level2Creation.property.propertyConfigs
+                        ?.isLoyaltyProgramEnabled ?? false) as boolean,
                 });
             }
 
@@ -1675,6 +1727,8 @@ export class DashUtilsRepo {
                         name: brandChild.property.propertyName,
                         currencyCode: brandChild.property.propertyConfigs
                             ?.baseCurrency as CurrencyCode,
+                        isLoyaltyProgramEnabled: (brandChild.property.propertyConfigs
+                            ?.isLoyaltyProgramEnabled ?? false) as boolean,
                     });
                 }
 
@@ -1687,6 +1741,8 @@ export class DashUtilsRepo {
                             name: level1.property.propertyName,
                             currencyCode: level1.property.propertyConfigs
                                 ?.baseCurrency as CurrencyCode,
+                            isLoyaltyProgramEnabled: (level1.property.propertyConfigs
+                                ?.isLoyaltyProgramEnabled ?? false) as boolean,
                         });
                     }
                 }
@@ -1730,6 +1786,8 @@ export class DashUtilsRepo {
                             propertyConfigs: {
                                 select: {
                                     baseCurrency: true,
+                                    isLoyaltyProgramEnabled: true,
+
                                 },
                             },
                         },
@@ -1746,6 +1804,7 @@ export class DashUtilsRepo {
                         name: propertyCreation?.property?.propertyName,
                         currencyCode: propertyCreation?.property
                             ?.propertyConfigs?.baseCurrency as CurrencyCode,
+                        isLoyaltyProgramEnabled: propertyCreation?.property
                     },
                 ],
             };
