@@ -76,7 +76,7 @@ model Reservation {
   PricingBrakeDown      PricingBreakdown?      @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
   promo                 PromoCode?             @relation(fields: [promoId], references: [id], onDelete: Cascade)
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  SpaSlot               SpaSlots[]
+  SlotsAvailable        SlotsAvailable[]
 
   @@index([propertyCode])
   @@index([propertyId])

@@ -29,6 +29,7 @@ import {
     CurrencyCode,
     DiscountType,
 } from '../../tax-system/interfaces/tourist-tax.type';
+import { IInventory } from '../../ari/types';
 
 export class RoomBookingService {
     public static async fetchRooms(payload: IBookingSearchPayload) {
@@ -139,7 +140,7 @@ export class RoomBookingService {
                     propertyVideos: property.propertyConfigs?.showVideo
                         ? property.propertyVideos
                         : null,
-                    loyaltyProgramConfig: property.propertyConfigs?.isLoyaltyProgramEnabled?property.loyaltyProgramConfig:null,
+                    loyaltyProgramConfig: property.propertyConfigs?.isLoyaltyProgramEnabled ? property.loyaltyProgramConfig : null,
                     propertyCode: property.propertyCode,
                     starRating: property.starRating,
                     bookingEngineConfig: property.bookingEngineConfig,
@@ -169,7 +170,17 @@ export class RoomBookingService {
             room.roomType,
             dates
         );
+        console.log("inventory", inventory)
+        console.log("guests", guests)
         if (inventory.length !== dates.length) return null;
+
+        const numberOfRooms = guests.roomsArray?.length || guests.rooms || 1;
+
+        // ✅ Ensure enough available rooms for every date in the stay
+        const insufficientInventory = inventory.some(
+            (inv) => inv.availability < numberOfRooms
+        );
+        if (insufficientInventory) return null;
 
         const ratePlanResults = await Promise.all(
             property.ratePlans.map((ratePlan: IPropertyRatePlan) =>
@@ -1096,14 +1107,14 @@ class RoomTouristTaxCalculator {
         numberOfNights: number,
         numberOfRooms: number,
         numberOfBedrooms: number,
-        currencyCode:string
+        currencyCode: string
     ): ITouristTax | null {
         if (!touristTaxData) return null;
         const isPercentage = touristTaxData.discountType === 'percentage';
 
         const calculatedTaxAmount =
             touristTaxData.discountType === 'percentage'
-                ? baseAmount * (Number(touristTaxData.discountValue) / 100)*
+                ? baseAmount * (Number(touristTaxData.discountValue) / 100) *
                 numberOfNights *
                 numberOfRooms *
                 numberOfBedrooms
@@ -1112,7 +1123,7 @@ class RoomTouristTaxCalculator {
                 numberOfRooms *
                 numberOfBedrooms;
 
-       return {
+        return {
             id: touristTaxData.id,
             name: touristTaxData.name || '',
             discountType: touristTaxData.discountType as DiscountType,

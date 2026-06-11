@@ -520,3 +520,16 @@ enum Language {
   is
   mt
 }
+enum SlotBookingStatus {
+  confirmed
+  completed
+  cancelled
+}
+
+enum SlotStatus {
+  active
+  inactive
+  booked
+  completed
+  cancelled
+}

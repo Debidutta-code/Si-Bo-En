@@ -331,7 +331,7 @@ export class ReservationRepository {
                     Customers: true,
                     paymentImages: true,
                     paymentMethod: true,
-                    SpaSlot: true,
+                    SlotsAvailable: true,
                     roomTypeCode: true,
                     payments: true,
                     platforms: true,

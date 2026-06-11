@@ -175,14 +175,11 @@ export class RTReservationPushService {
         try {
             const { guestDetails } = incomingPayload;
             const { finalPrice } = incomingPayload;
-            // console.log(
-            //     'pushCommit incomingPayload:',
-            //     JSON.stringify(incomingPayload, null, 2)
-            // );
+
             const roomsArray = incomingPayload?.guests?.roomsArray ?? [];
             const numberOfRooms = incomingPayload.numberOfRooms;
 
-            const roomRatePerRoom = finalPrice.baseRatePerNight; // e.g. 57.2 for type3
+            const roomRatePerRoom = finalPrice.baseRatePerNight;
             const totalTaxPerRoom =
                 (finalPrice.taxedAmount ?? 0) / numberOfRooms;
 

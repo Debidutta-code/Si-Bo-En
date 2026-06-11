@@ -6,7 +6,7 @@ model SpaBooking {
 
   totalAmount  Float   @map("total_amount")
   currencyCode String? @default("AED") @map("currency_code")
-  status       String  @default("confirmed") @map("status")
+  status       SlotBookingStatus  @default(confirmed) @map("status")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -17,16 +17,19 @@ model SpaBooking {
   @@map("spa_bookings")
 }
 model SlotBooking {
-  id           String @id @default(uuid())
-  spaBookingId String @map("spa_booking_id")
-  spaId        String @map("spa_id")
-  amount Float @map("amount")
-  spaSlotsId String
+  id               String         @id @default(uuid())
 
-  spaSlots   SpaSlots?  @relation(fields: [spaSlotsId], references: [id])
-  spa        Spa        @relation(fields: [spaId], references: [id],onDelete: Cascade)
-  spaBooking SpaBooking @relation(fields: [spaBookingId], references: [id])
+  spaBookingId     String         @map("spa_booking_id")
+  spaId            String         @map("spa_id")
+  amount           Float          @map("amount")
 
-  createdAt  DateTime   @default(now()) @map("created_at")
+ slotsAvailableId String @unique @map("slots_available_id") 
+
+  slotsAvailable   SlotsAvailable @relation(fields: [slotsAvailableId], references: [id], onDelete: Cascade)
+  spa              Spa            @relation(fields: [spaId], references: [id], onDelete: Cascade)
+  spaBooking       SpaBooking     @relation(fields: [spaBookingId], references: [id])
+
+  createdAt        DateTime       @default(now()) @map("created_at")
+
   @@map("slot_bookings")
 }

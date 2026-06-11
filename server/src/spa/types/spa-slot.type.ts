@@ -1,4 +1,6 @@
-import { CurrencyCode } from '../../tax-system/interfaces';
+// spa-slots.types.ts
+
+import { CurrencyCode } from "../../tax-system/interfaces";
 
 export interface ICSpaDatesS {
     date: Date;
@@ -8,48 +10,55 @@ export interface ICSpaDatesR extends ICSpaDatesS {
 }
 export interface ISpaDates extends ICSpaDatesR {
     id: string;
-    Slots: ISpaSlotsWReservation[];
+    Slots: ISpaSlotWAvailability[];
 }
 export interface BatchPayload {
     count: number;
 }
+
+// SpaSlots — clean, no booking state here anymore
 export interface ICSpaSlotS {
     startTime: Date;
     endTime: Date | null;
-    isBooked: boolean;
-    noOfSlots: number;
-    slotsBooked:number;
 }
 export interface ICSpaSlotR extends ICSpaSlotS {
     spaDateId: string;
 }
 export interface ISpaSlot extends ICSpaSlotR {
     id: string;
-    isCompleted: boolean;
+}
+
+export interface ISlotsAvailable {
+    id: string;
+    spaSlotId: string;
+    status: SlotStatus;
     reservationId: string | null;
+    slotBooking?: ISlotBooking | null;
 }
-export interface ISpaSlotsWReservation extends ISpaSlot {
-    Reservation: {
-        bookingCode: string;
-    } | null;
+
+export type SlotStatus = 'active' | 'inactive' | 'booked' | 'completed' | 'cancelled';
+
+export interface ISpaSlotWAvailability extends ISpaSlot {
+    slotsAvailable: ISlotsAvailable[];
 }
-export interface IMarkSlotAdAvilable {
-    reservationId: string;
-    userName: string;
-    isBooked: boolean;
-}
-export interface ITaxBrakeDown {
-    currencyCode: CurrencyCode;
-    name: string;
-    taxedAmount: number;
-    pricingBrakeDownId: string;
+
+
+export interface ISlotBooking {
+    id: string;
+    spaBookingId: string;
+    spaId: string;
+    amount: number;
+    slotsAvailableId: string;      
 }
 
 export interface ISpaBookingRequest {
     userEmail: string;
-    userName:string;
-    currencyCode:CurrencyCode;
+    userName: string;
+    currencyCode: CurrencyCode;
     userContactNumber: string;
     userId?: string;
-    slots: { spaId: string; spaSlotId: string }[];
+    slots: {
+        spaId: string;
+        slotsAvailableId: string;  
+    }[];
 }

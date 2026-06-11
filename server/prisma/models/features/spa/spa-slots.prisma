@@ -1,31 +1,46 @@
 model SpaDates {
-  id          String     @id @default(uuid())
-  date        DateTime   @map("date")
-  spaModuleId String     @map("spa_module_id")
-  spaModule   Spa        @relation(fields: [spaModuleId], references: [id], onDelete: Cascade)
-  Slots       SpaSlots[]
+  id   String   @id @default(uuid())
+  date DateTime @map("date")
+
+  spaModuleId String @map("spa_module_id")
+  spaModule   Spa    @relation(fields: [spaModuleId], references: [id], onDelete: Cascade)
+
+  slots SpaSlots[]
 
   @@unique([spaModuleId, date])
+  @@index([spaModuleId])
+  @@index([date])
   @@map("spa_dates")
 }
 
 model SpaSlots {
-  id            String        @id @default(uuid())
-  startTime     DateTime      @map("start_time")
-  endTime       DateTime?     @map("end_time")
-  spaDateId     String        @map("spa_date_id")
-  noOfSlots     Int           @default(1) @map("no_of_slots")
-  slotsBooked   Int           @default(0) @map("slots_booked")
-  isBooked      Boolean       @default(false) @map("is_booked")
-  isCompleted   Boolean       @default(false) @map("is_completed")
-  reservationId String?       @map("reservation_id")
-  userName      String?       @map("user_name")
-  Reservation   Reservation?  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-  spaDate       SpaDates      @relation(fields: [spaDateId], references: [id], onDelete: Cascade)
-  spaPricing    SpaPricing?
-  SlotBookings  SlotBooking[]
+  id        String    @id @default(uuid())
+  startTime DateTime  @map("start_time")
+  endTime   DateTime? @map("end_time")
 
+  spaDateId String   @map("spa_date_id")
+  spaDate   SpaDates @relation(fields: [spaDateId], references: [id], onDelete: Cascade)
+
+  spaPricing     SpaPricing?
+  slotsAvailable SlotsAvailable[]
+
+  @@index([spaDateId])
   @@map("spa_slots")
 }
 
+model SlotsAvailable {
+  id String @id @default(uuid())
 
+  spaSlotId String   @map("spa_slot_id")
+  spaSlot   SpaSlots @relation(fields: [spaSlotId], references: [id], onDelete: Cascade)
+
+  status SlotStatus @default(active) @map("status")  // ← replaces isActive, isBooked, isCompleted
+
+  reservationId String?      @map("reservation_id")
+  reservation   Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+
+  slotBooking SlotBooking?
+
+ 
+  @@map("slots_available")
+}
