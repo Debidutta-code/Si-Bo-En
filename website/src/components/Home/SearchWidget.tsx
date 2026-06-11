@@ -69,11 +69,6 @@ const DatePickerWithHover = ({
 }) => {
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
 
-  const currencySign = React.useMemo(() => {
-    if (!currencyCode) return "";
-    return currencies.find((c) => c.code === currencyCode)?.symbol || currencyCode;
-  }, [currencyCode]);
-
   // Custom day component to handle hover events
   const renderDayContents = (day: number, date: Date) => {
     const dateKey = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
@@ -151,12 +146,12 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const { t, i18n } = useTranslation();
   const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
 
-  const formatNumber = (num: number) => {
-    if (i18n.language === "ar") {
-      return num.toLocaleString("ar-EG");
-    }
-    return num.toString();
-  };
+  // const formatNumber = (num: number) => {
+  //   if (i18n.language === "ar") {
+  //     return num.toLocaleString("ar-EG");
+  //   }
+  //   return num.toString();
+  // };
 
   const dispatch = useDispatch();
   const [isGuestSelectorOpen, setIsGuestSelectorOpen] = useState(false);
@@ -543,10 +538,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   {t("SearchWidget.checkIn")}
                 </p>
                 <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
-                  {formatNumber(checkIn?.getDate() ?? 0)}
+                  {checkIn?.getDate() ?? 0}
                 </p>
-                <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: primaryColor }}>
-                  {checkIn?.toLocaleDateString(i18n.language === "ar" ? "ar-EG" : "en-US", { month: "short", year: "numeric" })}
+                <p className="text-[9px] lg:text-[10px] uppercase tracking-wider  font-medium" style={{ color: primaryColor }}>
+                  {checkIn?.toLocaleDateString( "en-US", { month: "short", year: "numeric" })}
                 </p>
               </div>
 
@@ -561,11 +556,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   {t("SearchWidget.checkOut")}
                 </p>
                 <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
-                  {checkOut ? formatNumber(checkOut.getDate()) : "--"}
+                  {checkOut ? checkOut.getDate() : "--"}
                 </p>
                 <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: primaryColor }}>
                   {checkOut
-                    ? checkOut.toLocaleDateString(i18n.language === "ar" ? "ar-EG" : "en-US", { month: "short", year: "numeric" })
+                    ? checkOut.toLocaleDateString("en-US", { month: "short", year: "numeric" })
                     : t("SearchWidget.checkOutSelect")}
                 </p>
               </div>
@@ -590,7 +585,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </svg>
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {formatNumber(Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1)}
+                    {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
                   </span>
                 </div>
                 {/* Adults */}
@@ -599,9 +594,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     <Users className="w-2.5 h-2.5" style={{ color: "#5B543F" }} />
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {formatNumber(Array.isArray(guestInfo.rooms)
+                    {Array.isArray(guestInfo.rooms)
                       ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
-                      : guestInfo.adults || 1)}
+                      : guestInfo.adults || 1}
                   </span>
                 </div>
                 {/* Children */}
@@ -613,9 +608,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </svg>
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {formatNumber(Array.isArray(guestInfo.rooms)
+                    {Array.isArray(guestInfo.rooms)
                       ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
-                      : guestInfo.children || 0)}
+                      : guestInfo.children || 0}
                   </span>
                 </div>
               </div>

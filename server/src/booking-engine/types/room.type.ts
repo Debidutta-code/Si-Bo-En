@@ -306,7 +306,10 @@ export interface IRoomPrice {
     ratePlanId?: string;
     ratePlanName: string;
     ratePlanCode: string;
-    comboLabel: string;
+    comboLabel: {
+        id:string;
+        label:string;
+    };
     totalAmount: number;
     currencyCode: string;
     baseByGuestAmts: IBaseByGuestAmount[];

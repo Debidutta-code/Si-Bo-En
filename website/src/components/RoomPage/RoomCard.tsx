@@ -172,7 +172,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   // ─── Addon state ─────────────────────────────────────────────────────────────
   const [selectedAddons, setSelectedAddons] = useState<Record<string, ISelectedAddon>>({});
-  const addonsRef = useRef<HTMLDivElement | null>(null);
 
   // ─── Booking flow state ──────────────────────────────────────────────────────
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
@@ -208,7 +207,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
     });
   }, [selectedAddons, expandedRatePlan, latestPrice, onPriceUpdate, room]);
   const handleBookNowClick = async (ratePlan: IRoomPrice) => {
-    const loadingKey = `${ratePlan.ratePlanCode}-${ratePlan.comboLabel}`;
+    const comboId = typeof ratePlan.comboLabel === 'string' ? ratePlan.comboLabel : ratePlan.comboLabel?.id || '';
+    const loadingKey = `${ratePlan.ratePlanCode}-${comboId}`;
     setLoadingPriceFor(loadingKey);
     setPendingRatePlan(ratePlan);
 
@@ -240,7 +240,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
     ratePlan: IRoomPrice,
     selectedAddonsList: ISelectedAddon[]
   ) => {
-    const loadingKey = `${ratePlan.ratePlanCode}-${ratePlan.comboLabel}`;
+    const comboId = typeof ratePlan.comboLabel === 'string' ? ratePlan.comboLabel : ratePlan.comboLabel?.id || '';
+    const loadingKey = `${ratePlan.ratePlanCode}-${comboId}`;
     setLoadingPriceFor(loadingKey);
 
     try {
@@ -375,7 +376,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <Ruler size={16} className="text-orange-500 flex-shrink-0" />
-                <span className="font-medium">{room.roomSize} {room.roomUnit ? t(`RoomCard.units.${room.roomUnit.toLowerCase()}`, { defaultValue: room.roomUnit }) : ""}</span>
+                <span className="font-medium">{room.roomSize} {room.roomUnit ? t(`Rooms.${room.roomUnit.toLowerCase()}`, { defaultValue: room.roomUnit }) : ""}</span>
               </div>
               {room.roomView && (
                 <div className="flex items-center gap-1.5">
@@ -388,7 +389,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
               {room.numberOfBedrooms > 0 && (
                 <div className="flex items-center gap-1.5">
                   <Eye size={16} className="text-orange-500 flex-shrink-0" />
-                  <span className="font-medium">{room.numberOfBedrooms} {t("RoomCard.bedrooms", { defaultValue: "Bedrooms" })}</span>
+                  <span className="font-medium">{room.numberOfBedrooms} {t("RoomDetails.bedrooms", { defaultValue: "Bedrooms" })}</span>
                 </div>
               )}
             </div>
@@ -543,10 +544,17 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 {/* Combo Rows */}
                 <div className="divide-y divide-gray-100">
                   {combos.map((combo) => {
-                    const match = combo.comboLabel.match(/\((.+)\)$/);
-                    const rawLabel = match ? match[1] : combo.comboLabel;
+                    const labelStr = typeof combo.comboLabel === 'string' ? combo.comboLabel : (combo.comboLabel?.label || '');
+                    const comboId = typeof combo.comboLabel === 'string' ? combo.comboLabel : (combo.comboLabel?.id || labelStr);
+                    const match = labelStr.match(/\((.+)\)$/);
+                    const rawLabel = match ? match[1] : labelStr;
                     const isOnlyRoomOnly = combos.length === 1 && rawLabel === "Room Only";
-                    const subLabel = isOnlyRoomOnly
+                    
+                    const translatedLabel = typeof combo.comboLabel === 'object' && combo.comboLabel !== null && combo.comboLabel._translations?.name ? combo.comboLabel._translations.name : null;
+
+                    const subLabel = translatedLabel
+                      ? translatedLabel
+                      : isOnlyRoomOnly
                       ? combo.ratePlanName
                       : rawLabel === "Room Only"
                         ? "Room Only"
@@ -565,14 +573,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
                       : getLoyaltyDiscountAmount(roomOnlyPrice);
 
                     const comboAfterLoyalty = comboBase - loyaltyDiscountOnRoom;
-                    const isComboExpanded = expandedCombo === `${ratePlanCode}-${combo.comboLabel}`;
-                    const loadingKey = `${ratePlanCode}-${combo.comboLabel}`;
+                    const isComboExpanded = expandedCombo === `${ratePlanCode}-${comboId}`;
+                    const loadingKey = `${ratePlanCode}-${comboId}`;
 
                     return (
-                      <div key={combo.comboLabel}>
+                      <div key={comboId}>
                         <div className="flex items-center justify-between sm:px-4 p-2 hover:bg-gray-50 transition-colors">
                           <button
-                            onClick={() => setExpandedCombo(isComboExpanded ? null : `${ratePlanCode}-${combo.comboLabel}`)}
+                            onClick={() => setExpandedCombo(isComboExpanded ? null : `${ratePlanCode}-${comboId}`)}
                             className="flex items-center gap-1 text-xs sm:text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors"
                           >
                             {isComboExpanded ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
@@ -680,10 +688,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
                   <div className="px-4 py-2 border-t border-amber-100 bg-amber-50 flex items-center justify-center gap-1.5">
                     <span className="text-amber-400 text-xs">ℹ️</span>
                     <p className="text-[11px] text-amber-800 text-center">
-                      <span className="font-semibold">{firstCombo.touristTax!.name ?? t("RoomCard.taxNotIncluded")}</span>
-                      {" "}of{" "}
-                      <span className="font-semibold">{firstCombo.touristTax!.currencyCode ?? currency} {firstCombo.touristTax!.calculatedTaxAmount.toFixed(2)}</span>
-                      {" "}is{" "}
+                      <span className="font-semibold">{firstCombo.touristTax?._translations? firstCombo.touristTax?._translations.name:firstCombo.touristTax?.name?? t("RoomCard.taxNotIncluded")}</span>
+                      {" "}{t("Rooms.of")}{" "}
+                      <span className="font-semibold">{firstCombo.touristTax?.currencyCode ?? currency} {firstCombo.touristTax?.calculatedTaxAmount.toFixed(2)}</span>
+                      {" "}{t("Rooms.is")}{" "}
                       <span className="font-semibold text-amber-900">{t("RoomCard.touristTax.notIncluded")}</span>
                       {" "}{t("RoomCard.touristTax.paidAtHotel")}
                     </p>

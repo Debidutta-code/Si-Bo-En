@@ -111,7 +111,14 @@ export interface IRoomPrice {
     policy: IPolicy;
     availablePromotions: IAvailablePromotions[];
     appliedDiscounts: IAppliedDiscounts[];
-    comboLabel: string;
+    comboLabel: {
+        id: string;
+        label: string;
+        _translations: {
+            name: string;
+            description: string;
+        };
+    };
     addons: IAddonsWithRatePlan[];
     totalAmount: number;
     touristTax: ITouristTax | null;
@@ -198,6 +205,9 @@ export interface ITouristTax {
     discountValue: number;
     currencyCode: CurrencyCode;
     calculatedTaxAmount: number;
+    _translations?:{
+        name:string
+    }
 }
 export type IDiscountType = "flat" | "percentage"
 export interface IPolicy {
