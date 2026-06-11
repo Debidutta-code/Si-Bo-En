@@ -155,6 +155,7 @@ export default function Rooms({
                       <Input
                         id="roomType"
                         value={roomDetails.roomType || ""}
+                        disabled
                         onChange={(e) =>
                           updateRoom({ ...roomDetails, roomType: e.target.value })
                         }
