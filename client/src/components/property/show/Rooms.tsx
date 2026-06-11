@@ -520,6 +520,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                   roomDetails={roomDetails}
                                   isLoading={loading}
                                   updateRoomDetails={setRoomDetails}
+                                  isUpdateMode={true}
                                 />
                               </AlertDialogHeader>
                               <AlertDialogFooter className="border-t pt-4">

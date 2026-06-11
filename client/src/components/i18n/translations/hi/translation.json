@@ -91,7 +91,10 @@
     "showMore": "और दिखाएँ",
     "update": "अपडेट करें",
     "recover": "पुनर्स्थापित करें",
-    "deleted": "हटाया गया"
+    "deleted": "हटाया गया",
+    "to": "से",
+  "from": "तक"
+
   },
   "BookingStatus": {
     "confirmed": "पुष्टि की गई",
@@ -3278,7 +3281,12 @@
     "noAdditionalChargesFound": "कोई अतिरिक्त शुल्क नहीं मिला",
     "getStartedAdditionalCharges": "अपना पहला अतिरिक्त शुल्क बनाकर शुरुआत करें।",
     "addCharges": "शुल्क जोड़ें",
-    "searchAdditionalCharges": "अतिरिक्त शुल्क खोजें..."
+    "searchAdditionalCharges": "अतिरिक्त शुल्क खोजें...",
+    "addRatePlanToTaxGroup": "टैक्स समूह में रेट प्लान जोड़ें",
+    "removeRatePlanFromTaxGroup": "टैक्स समूह से रेट प्लान हटाएँ",
+    "remove": "हटाएँ",
+    "addRatePlanConfirm": "\"{{ratePlan}}\" को \"{{group}}\" में जोड़ें?",
+    "removeRatePlanConfirm": "\"{{ratePlan}}\" को \"{{group}}\" से हटाएँ?"
   },
   "TouristTaxDialog": {
     "createTitle": "अतिरिक्त शुल्क",

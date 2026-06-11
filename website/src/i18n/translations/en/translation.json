@@ -1,4 +1,6 @@
 {
+  "adult":"Adult",
+  "child":"Child",
   "Navbar": {
     "home": "Home",
     "services": "Services",

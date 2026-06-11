@@ -91,7 +91,10 @@
     "showMore": "عرض المزيد",
     "update": "تحديث",
     "recover": "استعادة",
-    "deleted": "محذوف"
+    "deleted": "محذوف",
+    "from": "من",
+    "to": "إلى"
+
   },
   "AddRoomLangDialog": {
     "title": "إضافة ترجمة الغرفة",
@@ -3320,7 +3323,12 @@
     "noAdditionalChargesFound": "لم يتم العثور على أي رسوم إضافية",
     "getStartedAdditionalCharges": "ابدأ بإنشاء أول رسوم إضافية لك.",
     "addCharges": "إضافة رسوم",
-    "searchAdditionalCharges": "ابحث عن الرسوم الإضافية..."
+    "searchAdditionalCharges": "ابحث عن الرسوم الإضافية...",
+    "addRatePlanToTaxGroup": "إضافة خطة الأسعار إلى مجموعة الضرائب",
+    "removeRatePlanFromTaxGroup": "إزالة خطة الأسعار من مجموعة الضرائب",
+    "remove": "إزالة",
+    "addRatePlanConfirm": "إضافة \"{{ratePlan}}\" إلى \"{{group}}\"?",
+    "removeRatePlanConfirm": "إزالة \"{{ratePlan}}\" من \"{{group}}\"?"
   },
   "TouristTaxDialog": {
     "createTitle": "إنشاء رسوم إضافية",

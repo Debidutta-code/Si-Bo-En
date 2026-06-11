@@ -91,7 +91,9 @@
     "showMore": "Show More",
     "update": "Update",
     "recover": "Recover",
-    "deleted": "Deleted"
+    "deleted": "Deleted",
+    "to":"to",
+    "from":"from"
   },
   "AddRoomLangDialog": {
     "title": "Add Room Translation",
@@ -3321,7 +3323,12 @@
     "addRatePlan": "Add Rate Plan",
     "removeRatePlan": "Remove Rate Plan",
     "noAvailableRatePlans": "No rate plans available",
-    "noRatePlanAdded": "No rate plan added"
+    "noRatePlanAdded": "No rate plan added",
+    "addRatePlanToTaxGroup": "Add Rate Plan To Tax Group",
+    "removeRatePlanFromTaxGroup": "Remove Rate Plan From Tax Group",
+    "remove": "Remove",
+    "addRatePlanConfirm": "Add \"{{ratePlan}}\" to \"{{group}}\"?",
+    "removeRatePlanConfirm": "Remove \"{{ratePlan}}\" from \"{{group}}\"?"
   },
   "TouristTaxDialog": {
     "createTitle": "Additional Charge",

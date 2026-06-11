@@ -53,10 +53,12 @@ export default function Rooms({
   roomDetails,
   updateRoomDetails,
   isLoading,
+  isUpdateMode = false,
 }: {
   roomDetails: IRoomDetails;
   updateRoomDetails: Dispatch<SetStateAction<IRoomDetails>>;
   isLoading: boolean;
+  isUpdateMode?: boolean;
 }) {
   const { t } = useTranslation();
   useEffect(() => {
@@ -155,12 +157,12 @@ export default function Rooms({
                       <Input
                         id="roomType"
                         value={roomDetails.roomType || ""}
-                        disabled
+                        disabled={isUpdateMode}
                         onChange={(e) =>
                           updateRoom({ ...roomDetails, roomType: e.target.value })
                         }
                         placeholder={t("UpdateRooms.placeholder.roomCode")}
-                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                        className={`mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100 ${isUpdateMode ? "opacity-60 cursor-not-allowed bg-gray-50" : ""}`}
                       />
                       {errors?.roomType?._errors[0] && (
                         <p className="text-red-500 text-sm mt-1">

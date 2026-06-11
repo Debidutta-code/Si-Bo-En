@@ -255,13 +255,13 @@ const GuestFormModal: React.FC<Props> = ({
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-2">
                     <User className="h-5 w-5" style={{ color: colors.primaryColor }} />
-                    <CardTitle className="text-lg">
+                    <CardTitle className="text-lg ">
                       {guest.type === "adult"
                         ? `${t("GuestForm.adult")} ${typeCount}`
                         : `${t("GuestForm.child")} ${typeCount}`}
                     </CardTitle>
                     <Badge variant="outline" style={{ borderColor: colors.primaryColor, color: colors.primaryColor }}>
-                      {guest.type}
+                      {t(`${guest.type}`)}
                     </Badge>
                     {isPrimaryGuest ? (
                       <Badge style={{ backgroundColor: colors.primaryColor, color: colors.buttonTextColor }}>

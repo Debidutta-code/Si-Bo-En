@@ -1540,12 +1540,22 @@ export default function TaxSystem() {
                             </AlertDialogTitle>
                             <AlertDialogDescription>
                                 {ratePlanActionDialog.action === "add"
-                                    ? `Add "${ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName || 'Unknown'}" to "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`
-                                    : `Remove "${ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName || 'Unknown'}" from "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`}
+                                    ? t("TaxSystem.addRatePlanConfirm", {
+                                        ratePlan: ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?._translations?.ratePlanName
+                                            ?? ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName,
+                                        group: taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?._translations?.name
+                                        ??taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name,
+                                    })
+                                    : t("TaxSystem.removeRatePlanConfirm", {
+                                        ratePlan: ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?._translations?.ratePlanName
+                                            ?? ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName,
+                                        group: taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?._translations?.name
+                                        ??taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name,
+                                    })}
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t("Common.cancel")}</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={
                                     ratePlanActionDialog.action === "add"
@@ -1553,7 +1563,7 @@ export default function TaxSystem() {
                                         : handleRemoveRatePlanFromGroup
                                 }
                             >
-                                {ratePlanActionDialog.action === "add" ? t("TaxSystem.add") : t("TaxSystem.remove")}
+                                {ratePlanActionDialog.action === "add" ? t("Common.add") : t("TaxSystem.remove")}
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
