@@ -385,7 +385,10 @@ export class RoomBookingService {
         if (ratePlan.roomOnlyVisible) {
             combos.push({
                 ...sharedFields,
-                comboLabel: `Room Only`,
+                comboLabel: {
+                    id: 'room_only',
+                    label: 'Room Only'
+                },
                 addons: [],
                 totalAmount: baseAmount - totalAutoDiscount,
             });
@@ -394,7 +397,10 @@ export class RoomBookingService {
         for (const addon of availableAddonDetails) {
             combos.push({
                 ...sharedFields,
-                comboLabel: `${addon.name}`,
+                comboLabel: {
+                    id: `${addon.id}`,
+                    label: `${addon.name}`
+                },
                 addons: [addon],
                 totalAmount: baseAmount - totalAutoDiscount + addon.price,
             });

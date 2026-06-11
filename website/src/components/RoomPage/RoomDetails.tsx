@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { IRoom, IRoomPrice } from "@/src/app/(unauth)/Rooms/types";
-
 interface Props {
   room: IRoom;
   selectedRatePlan?: IRoomPrice;
@@ -26,9 +25,10 @@ const PolicySection = ({
   title: string;
   content?: string;
 }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
-  const displayText = content?.trim() || "Not Available";
+  const displayText = content?.trim() || t("GuestForm.notAvailable");
   const shouldTruncate = displayText.length > 200;
 
   return (
@@ -302,13 +302,8 @@ const RoomDetails: React.FC<Props> = ({
   {selectedRatePlan?.touristTax && (
     <div className="mb-8 bg-amber-50 border border-amber-200 rounded-lg p-4">
       <h3 className="font-semibold text-amber-900 mb-2">
-        {selectedRatePlan.touristTax.name ||
-          t("RoomDetails.notAvailable")}
+        {selectedRatePlan.touristTax._translations?.name || selectedRatePlan.touristTax.name || t("RoomDetails.notAvailable")}
       </h3>
-
-      <p className="text-amber-800">
-        {selectedRatePlan.touristTax.discountType}
-      </p>
 
       <p className="font-bold">
         {selectedRatePlan.touristTax.currencyCode}{" "}

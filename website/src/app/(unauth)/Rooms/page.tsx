@@ -34,9 +34,6 @@ const Rooms = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ─── Context & Redux ──────────────────────────────────────────────────────
-  // Property branding/config come from context (fetched before rooms load).
-  // Booking flow state (dates, guests, promo) stays in Redux via SearchWidget.
   const { propertyDetails, isLoading: propertyLoading } = usePropertyContext();
   const bookingContext = useSelector((state: RootState) => state.booking);
   const { primaryColor } = useBookingColors();

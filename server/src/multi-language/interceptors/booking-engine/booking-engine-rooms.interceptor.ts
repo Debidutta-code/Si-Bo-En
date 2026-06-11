@@ -12,6 +12,7 @@ import {
 } from '../../models/features/loyalty/loyalty-configs.model';
 import { LoyalityFieldController } from '../../../loyalty/controllers';
 import { MasterLoyaltyRegistrationFieldTranslation } from '../../models/masters/loyalty.master.model';
+import { AddonTranslation } from '../../models/features/addons/addon.model';
 
 export class BookingEngineRoomsInterceptor {
     public static async intercept(response: any, locale: string): Promise<any> {
@@ -186,7 +187,13 @@ export class BookingEngineRoomsInterceptor {
                 }
             }
         }
-
+        //Addons
+        if(rp.comboLabel){
+            const comboLabelTranslation = await AddonTranslation.getTranslated(rp.comboLabel.id, locale);
+            if (comboLabelTranslation) {
+                result.comboLabel = { ...rp.comboLabel, _translations: comboLabelTranslation };
+            }
+        }
         // Tourist tax
         if (rp.touristTax?.id) {
             const taxTranslation = await TouristTaxTranslation.getTranslated(

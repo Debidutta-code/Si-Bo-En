@@ -230,7 +230,6 @@ export interface IRoomPrice {
     currencyCode: CurrencyCode;
     baseByGuestAmts: IBaseByGuestAmount[];
     policy: IRoomPricePolicy;
-    /** Room charge before commission */
     baseAmount: number;
     /** Commission added on top */
     appliedCommission: IAppliedCommission;
