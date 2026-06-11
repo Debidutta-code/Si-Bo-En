@@ -56,74 +56,12 @@ const GuestFormModal: React.FC<Props> = ({
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
-  // const [isLoyaltyMember, setIsLoyaltyMember] = useState(false);
-  // const [loyaltyDiscount, setLoyaltyDiscount] = useState<any>(null);
-  // const [verifyingLoyalty, setVerifyingLoyalty] = useState(false);
-  // const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const toggleSection = (key: string) =>
     setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   const { t } = useTranslation();
-  // const isLoyaltyMember = !!loyaltyMemberEmail && !!loyaltyDiscountInfo;
   const loyaltyDiscount = loyaltyDiscountInfo ?? null;
 
-  // useEffect(() => {
-  //   if (loyaltyMemberEmail && !contactInfo.email) {
-  //     handleContactChange("email", loyaltyMemberEmail);
-  //   }
-  // }, [loyaltyMemberEmail]);
-
-  //   // const verifyLoyaltyMembership = async (email: string) => {
-  //   //   if (!email || !propertyId) return;
-
-  //   //   if (debounceTimerRef.current) {
-  //   //     clearTimeout(debounceTimerRef.current);
-  //   //   }
-
-  //   //   setVerifyingLoyalty(true);
-
-  //   //   // Set up new debounce timer
-  //   //   debounceTimerRef.current = setTimeout(async () => {
-  //   //     try {
-  //   //       const response = await fetch(
-  //   //         `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
-  //   //         {
-  //   //           method: "POST",
-  //   //           headers: { "Content-Type": "application/json" },
-  //   //           body: JSON.stringify({
-  //   //             email: email,
-  //   //             propertyId: propertyId,
-  //   //           }),
-  //   //         }
-  //   //       );
-
-  //   //       const data = await response.json();
-
-  //   //       if (response.ok && data.success && data.data?.isLoyaltyMember) {
-  //   //         setIsLoyaltyMember(true);
-  //   //         setLoyaltyDiscount(data.data.discount);
-  //   //       } else {
-  //   //         setIsLoyaltyMember(false);
-  //   //         setLoyaltyDiscount(null);
-  //   //       }
-  //   //     } catch (error) {
-  //   //       console.error("Error verifying loyalty membership:", error);
-  //   //       setIsLoyaltyMember(false);
-  //   //       setLoyaltyDiscount(null);
-  //   //     } finally {
-  //   //       setVerifyingLoyalty(false);
-  //   //     }
-  //   //   }, 800); // 800ms debounce delay
-  //   // };
-
-  //   // Cleanup debounce timer on unmount
-  //   useEffect(() => {
-  //     return () => {
-  //       if (debounceTimerRef.current) {
-  //         clearTimeout(debounceTimerRef.current);
-  //       }
-  //     };
-  //   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -184,8 +122,6 @@ const GuestFormModal: React.FC<Props> = ({
       newErrors.email = t("GuestForm.errors.invalidEmail");
     }
 
-    // Validate phone
-    // Validate phone
     if (!contactInfo.phoneNumber.trim()) {
       newErrors.phoneNumber = t("GuestForm.errors.phoneRequired");
     } else if (!phoneRegex.test(contactInfo.phoneNumber)) {
@@ -241,14 +177,12 @@ const GuestFormModal: React.FC<Props> = ({
     onSubmit();
   };
 
-  // Clear specific field error when user starts typing
   const handleFieldChange = (
     type: 'guest' | 'contact',
     indexOrField: number | string,
     field: string,
     value: string
   ) => {
-    // Clear submit error when user starts correcting
     if (submitError) setSubmitError(null);
 
     if (type === 'guest') {

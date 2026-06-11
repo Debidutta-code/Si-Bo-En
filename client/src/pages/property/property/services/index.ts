@@ -20,4 +20,5 @@ export{
     updatePropertyIntegrationStatusService
 }
 
-export * from "./property-language.services"
+export * from "./property-language.services";
+export * from "./transfer.services";

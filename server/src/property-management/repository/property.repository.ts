@@ -101,6 +101,7 @@ export class PropertyDao {
                 where: {
                     id: id,
                     isDraft: isDraft,
+                    isDeleted: false,
                 },
                 include: {
                     propertyRooms: {
@@ -110,9 +111,9 @@ export class PropertyDao {
                             },
                             { createdAt: 'asc' },
                         ],
-                        where: {
-                            isDeleted: false,
-                        },
+                        // where: {
+                        //     isDeleted: false,
+                        // },
 
                         include: {
                             roomAmenities: {

@@ -88,5 +88,7 @@ const config = {
     alertReceipeints: process.env.ALERT_RECIPEINTS
         ? process.env.ALERT_RECIPEINTS.split(',').map(e => e.trim()).filter(Boolean)
         : ['no-reply@revchilldirect.com'],
+
+    extranetUrl: process.env.EXTRANET_URL,
 };
 export default config;

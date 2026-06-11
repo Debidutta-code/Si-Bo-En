@@ -10,7 +10,7 @@ import {
 } from '@/src/components/ui/dialog';
 import { useTranslation } from "react-i18next";
 
-interface AddonAvailability {
+export interface AddonAvailability {
     id: string;
     addonId: string;
     date: string;

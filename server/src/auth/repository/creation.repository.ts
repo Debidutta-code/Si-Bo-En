@@ -129,12 +129,18 @@ export default class CreationDao {
             throw new Error(`Failed to mark as deleted: ${error.message}`);
         }
     }
+
     public static async recoveryCreation(creationId: string): Promise<BaseEntity | null> {
         try {
             return await prisma.creation.update({
                 where: { id: creationId },
                 data: {
-                    isDeleted: false
+                    isDeleted: false,
+                    property:{
+                        update:{
+                            isDeleted: false
+                        }
+                    }
                 },
             });
         } catch (error: any) {
@@ -180,7 +186,9 @@ export default class CreationDao {
     public static async getCreationsByRole(): Promise<any[]> {
         try {
             return await prisma.creation.findMany({
-                where: {},
+                where: {type:{
+                    notIn:["super"]
+                }},
                 orderBy: { createdAt: 'desc' },
                 include: {
                     users: {

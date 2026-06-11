@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { protect } from '../../middlewares/auth.middleware';
-import { checkRoleBased } from '../../middlewares/checkRole.middleware';
 import { CreationLoyalityController } from '../controllers';
 
 const router = Router();
@@ -16,6 +15,8 @@ router
             creationLoyalityController
         )
     );
+router.route("/get-properties")
+.get(protect,creationLoyalityController.getPropertyByCreationId.bind(creationLoyalityController)) 
 
 router
     .route('/:creationLoyalityId')
@@ -47,13 +48,5 @@ router
         )
     );
 
-// router
-//     .route('/with-property/:creationId')
-//     .get(
-//         protect,
-//         creationLoyalityController.getAllCreationLoyalityWithProperty.bind(
-//             creationLoyalityController
-//         )
-//     );
 
 export default router;

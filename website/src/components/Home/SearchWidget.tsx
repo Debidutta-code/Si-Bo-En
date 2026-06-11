@@ -201,7 +201,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const hotelcode = bookingContext?.PropertyCode || "4BTXDZ";
   const PathName = usePathname();
 
-  const totalGuests = guestInfo.adults + guestInfo.children;
 
   useEffect(() => {
     if (bookingContext) {
@@ -398,43 +397,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
-  const handleDateSelect = (date: Date) => {
-    if (selectionMode === "checkin") {
-      // First click - set check-in
-      setCheckIn(date);
-      setCheckOut(null);
-      setSelectionMode("checkout");
-      setIsSelectingRange(true);
-    } else if (selectionMode === "checkout") {
-      // Second click - set check-out
-      if (date > checkIn!) {
-        setCheckOut(date);
-        setIsSelectingRange(false);
-        // Close the calendar automatically after selecting check-out
-        setTimeout(() => {
-          setIsCalendarOpen(false);
-          setSelectionMode("checkin"); // Reset for next time
-          setTemporaryCheckOut(null);
-        }, 300);
-      } else if (date < checkIn!) {
-        // If user selects a date before current check-in, start over
-        setCheckIn(date);
-        setCheckOut(null);
-        setSelectionMode("checkout");
-        setIsSelectingRange(true);
-      }
-    }
-  };
-
-  const handleDateMouseEnter = (date: Date) => {
-    if (isSelectingRange && checkIn && date > checkIn) {
-      setTemporaryCheckOut(date);
-    }
-  };
-
-  const handleDateMouseLeave = () => {
-    setTemporaryCheckOut(null);
-  };
   const fetchCalendarPrices = async (fromDate?: Date, toDate?: Date) => {
     setIsPricesLoading(true);
     try {
@@ -472,7 +434,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       fetchCalendarPrices();
     }
   }, [isCalendarOpen, hotelcode]);
-   const handleMonthChange = (date: Date) => {
+  const handleMonthChange = (date: Date) => {
     const isTwoMonths = typeof window !== 'undefined' && window.innerWidth >= 640;
     // Start of the navigated-to month
     const start = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -524,25 +486,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
-  // const getContrastTextColor = (bgColor: string) => {
-  //   // Convert hex to RGB
-  //   const hex = bgColor.replace("#", "");
-  //   const r = parseInt(hex.substring(0, 2), 16);
-  //   const g = parseInt(hex.substring(2, 4), 16);
-  //   const b = parseInt(hex.substring(4, 6), 16);
-
-  //   // Calculate luminance
-  //   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-  //   // Return black or white based on luminance
-  //   return luminance > 0.5 ? "#2F2A1F" : "#FFFFFF";
-  // };
-
-  // // Calculate button text color - use provided buttonTextColor or get contrast color
-  // const calculatedButtonTextColor =
-  //   buttonTextColor || getContrastTextColor(secondaryColor);
-
-
   return (
     <>
       {isCalendarOpen && (
@@ -555,9 +498,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       <div className="w-full bg-[#F4EFE6] border-b  border-[#D4CABA]">
         <div className="mx-auto px-4 sm:px-6 py-3 flex items-center justify-center">
           {/* Widget Row */}
-<div className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 xl:gap-6 w-full ${
-  PathName.includes('/properties') ? 'max-w-[1100px]' : 'max-w-[900px]'
-}`}>           
+          <div className={`flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 xl:gap-6 w-full ${PathName.includes('/properties') ? 'max-w-[1100px]' : 'max-w-[900px]'
+            }`}>
             {PathName.includes('/properties') && (
               <div
                 className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-5 xl:px-8 py-3 lg:py-3 xl:py-4 flex items-center gap-3 shadow-sm flex-1 lg:flex-initial"

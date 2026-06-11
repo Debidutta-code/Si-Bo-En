@@ -24,7 +24,7 @@ export default function AddPropertyDetailsLangDialog({ open, onOpenChange, prope
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const propertyCtx = usePropertyContextSafe();
+    const propertyCtx = usePropertyContextSafe();
   const availableLanguages =
     propertyCtx?.languages && propertyCtx.languages.length > 0
       ? languages.filter((l) => propertyCtx.languages.some((pl) => pl.language === l.code))

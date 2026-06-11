@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { RoomBookingService } from '../service';
-import { PropertyRequest } from '../../utils';
+import { CustomRequest, PropertyRequest } from '../../utils';
 import { getGeoLocationDetails } from '../../utils/get-location.utils';
 import { getDeviceInfo } from '../../utils/device-type.util';
 import { BookingEngineRoomsInterceptor } from '../../multi-language/interceptors/booking-engine/booking-engine-rooms.interceptor';
@@ -28,7 +28,7 @@ export class RoomBookingController {
     }
   }
 
-  public static async fetchRooms(req: PropertyRequest, res: Response) {
+  public static async fetchRooms(req: CustomRequest, res: Response) {
     try {
       const { propertyCode, startDate, endDate, guests, promocode } = req.body || {};
 

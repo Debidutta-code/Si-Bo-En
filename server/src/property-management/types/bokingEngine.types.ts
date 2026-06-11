@@ -4,8 +4,8 @@ export interface IBookingEngineConfig {
     primaryColor: string;
     secondaryColor: string;
     tertiaryColor: string;
-    buttonTextColor: string; // new field
-    bannerImage: string;
+    buttonTextColor: string;
+    bannerImage: string | null;
     logo: string;
-    url: string;
+    url: string | null;
 }

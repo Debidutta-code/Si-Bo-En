@@ -201,6 +201,35 @@
       "failedToFetchPrice": "فشل في جلب السعر. يرجى المحاولة مرة أخرى."
     }
   },
+  "RoomDetails": {
+  "roomInformation": "معلومات الغرفة",
+  "description": "الوصف",
+  "roomType": "نوع الغرفة",
+  "roomView": "إطلالة الغرفة",
+  "roomSize": "حجم الغرفة",
+  "bedrooms": "غرف النوم",
+  "maxOccupancy": "الحد الأقصى للإشغال",
+  "guests": "الضيوف",
+  "ratePlanInformation": "معلومات خطة السعر",
+  "ratePlan": "خطة السعر",
+  "currency": "العملة",
+  "includedAddons": "الإضافات المشمولة",
+  "availablePromotions": "العروض المتاحة",
+  "amenities": "المرافق",
+  "policies": "السياسات",
+  "cancellationPolicy": "سياسة الإلغاء",
+  "guaranteePolicy": "سياسة الضمان",
+  "depositPolicy": "سياسة الإيداع",
+  "seeMore": "عرض المزيد",
+  "seeLess": "عرض أقل",
+  "notAvailable": "غير متوفر",
+  "video": "فيديو",
+  "images": "الصور",
+  "promotionType": "نوع العرض",
+  "discount": "الخصم",
+  "addonIncluded": "مشمول",
+  "close": "إغلاق"
+},
   "Footer": {
     "defaultAddress": "دبي، الإمارات العربية المتحدة",
     "recaptcha": {

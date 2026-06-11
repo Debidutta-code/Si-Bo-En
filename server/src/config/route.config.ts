@@ -24,7 +24,6 @@ import { currencyRoutes } from '../currency-maping/routes';
 import { fikafiPaymentRoutes } from '../payment/routes/fikafi.routes';
 import { managementRoute } from '../utils-management/routes';
 import { uploadRouter } from '../uploads/routes';
-import { loyalityGuestRouter } from '../loyality-users/routes/loyality-user.route';
 import { spaRouter } from '../spa/routes';
 import serviceLogRouter from '../logs/routes/service-log.route';
 import { reservationRoute } from '../reservation/routes';
@@ -69,7 +68,6 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/reservations', reservationRoute);
     apiV1Router.use('/reports', reportsRouter);
 
-    apiV1Router.use('/loyalit-guest', loyalityGuestRouter);
     apiV1Router.use('/booking-engine', BookingEngineRoutes);
     apiV1Router.use('/agency', agencyMainRouter);
     apiV1Router.use('/promotions', promotionRouter);

@@ -59,7 +59,7 @@ export default function DeleteCreationDialog({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="sm" className="text-right">
+        <Button variant="destructive" size="sm" className="text-right w-48">
           <Trash2 className="h-4 w-4" />
           <span className="ml-2">{t("DeleteCreationDialog.triggerButton", { typeName })}</span>
         </Button>

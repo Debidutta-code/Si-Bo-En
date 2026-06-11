@@ -6,7 +6,7 @@ import {
     PropertyAmenityDao,
 } from './property.repository';
 import { PropertyConfigRepo } from './property-config.repository';
-import { RoomAmenityDao, RoomDao } from './room.repository';
+export * from './room.repository';
 import {
     PropertyAmenitySelectionDao,
     PropertyCategorySelectionDao,
@@ -23,8 +23,6 @@ export {
     PropertyDao,
     PropertyAddressDao,
     PropertyAmenityDao,
-    RoomAmenityDao,
-    RoomDao,
     PropertyAmenitySelectionDao,
     PropertyCategorySelectionDao,
     PropertyTypeSelectionDao,
@@ -33,3 +31,4 @@ export {
 export * from './property-integration.repository';
 export * from './propertyEmails.repository';
 export * from "./active-language.repository";
+export * from "./transfer.repository";

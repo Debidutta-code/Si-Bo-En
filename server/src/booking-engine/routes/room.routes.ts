@@ -3,6 +3,7 @@ import { RoomBookingController } from '../controllers';
 import { attachPropertyDetails } from '../../middlewares/property.middleware';
 import { pricingRouter } from './pricing.route';
 import { groupSearchRouter } from './group-search.route';
+import { propertyDetailsRouter } from './property-details.route';
 export const BookingEngineRoutes = Router();
 
 BookingEngineRoutes.post(
@@ -20,3 +21,4 @@ BookingEngineRoutes.post("/calendar-prices",
     }), RoomBookingController.getCalendarPrices);
 BookingEngineRoutes.use("/pricing", pricingRouter);
 BookingEngineRoutes.use("/group-search", groupSearchRouter);
+BookingEngineRoutes.use("/property-details", propertyDetailsRouter);

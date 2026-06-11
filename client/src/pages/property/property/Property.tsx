@@ -39,6 +39,7 @@ import IntegrationDialog from './components/IntegrationDialog';
 import PropertyConfigDialog from './components/PropertyConfigDialog';
 import ViewIntegrationDetailsDialog from './components/ViewIntegrationDetailsDialog';
 import ManageIntegrationFieldsDialog from './components/ManageIntegrationFieldsDialog';
+import PropertyTransferDialog from './components/PropertyTransferDialog';
 import { Award, FileText, LayoutDashboard, Shield, Users as UsersIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { capitalizeFirstLetter } from '@/lib/utils';
@@ -103,6 +104,7 @@ export default function PropertyPage() {
     const [isPropertyConfigDialogOpen, setIsPropertyConfigDialogOpen] = useState(false);
     const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
     const [isManageFieldsDialogOpen, setIsManageFieldsDialogOpen] = useState(false);
+    const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
     const [updatePropertyDetails, setUpdatePropertyDetails] = useState<IUpdateCreation>({
         id: creationDetails.id,
         name: creationDetails.name,
@@ -254,11 +256,9 @@ export default function PropertyPage() {
 
 
     const handleCreateProperty = () => {
-        if (!propertyDetails?.id) {
-            navigate(`/property/create?creationId=${creationId}`);
-        } else {
-            navigate(`/property/create?propertyId=${propertyDetails?.id}`);
-        }
+        // Open the transfer / import dialog first.
+        // The dialog handles both the "skip" (normal flow) and "proceed" (transfer) paths.
+        setIsTransferDialogOpen(true);
     };
 
     const handleEditProperty = () => {
@@ -504,7 +504,7 @@ export default function PropertyPage() {
                 <Loader text={t('Property.loadingYourPropertys')} />
             </div>
         );
-    }``
+    } ``
 
     if (!creationDetails) {
         return (
@@ -559,7 +559,7 @@ export default function PropertyPage() {
                                 </p>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isDrafted
                                     ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                                    : 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200'
+                                    : 'bg-ye    llow-100 text-yellow-700 ring-1 ring-yellow-200'
                                     }`}>
                                     {isDrafted ? t('Property.activeStatus') : t('Property.setupRequiredStatus')}
                                 </span>
@@ -589,41 +589,41 @@ export default function PropertyPage() {
                             </Button>
                         )}
                     </div>
-                    <DropdownMenu>
+                    <DropdownMenu >
                         <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="icon">
                                 <MoreVertical className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 space-y-2">
+                        <DropdownMenuContent align='start' className="w-56 space-y-2">
                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); openUpdateDialog(); }} className="cursor-pointer">
-                                <Button variant={"secondary"}>
+                                <Button variant={"secondary"} className='w-full'>
                                     <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> {t('Property.updateProperty')}
                                 </Button>
                             </DropdownMenuItem>
 
                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setAddTranslationDialogOpen(true); }} className="cursor-pointer">
-                                <Button variant={"secondary"}>
+                                <Button variant={"secondary"} className='w-full'>
                                     <Plus className="h-4 w-4 mr-2 text-gray-600" /> {t("Common.addTranslation")}
                                 </Button>
                             </DropdownMenuItem>
                             <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setCheckTranslationsDialogOpen(true); }} className="cursor-pointer">
-                                <Button variant={"secondary"}>
+                                <Button variant={"secondary"} className='w-full'>
                                     <Globe className="h-4 w-4 mr-2 text-gray-600" /> {t("Common.checkTranslation")}
                                 </Button>
                             </DropdownMenuItem>
 
-                                <DropdownMenuItem
-                                    onSelect={(e) => {
-                                        e.preventDefault();
-                                        setIsPropertyConfigDialogOpen(true);
-                                    }}
-                                    className="cursor-pointer"
-                                >
-                                    <Button variant={"secondary"}>
-                                        <Settings className='h-4 w-4 mr-2' /> {t('Property.propertyConfig')}
-                                    </Button>
-                                </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onSelect={(e) => {
+                                    e.preventDefault();
+                                    setIsPropertyConfigDialogOpen(true);
+                                }}
+                                className="cursor-pointer"
+                            >
+                                <Button variant={"secondary"} className='w-full'>
+                                    <Settings className='h-4 w-4 mr-2' /> {t('Property.propertyConfig')}
+                                </Button>
+                            </DropdownMenuItem>
 
                             <Dialog onOpenChange={setAddMemberDialogOpen} open={addMemberDialogOpen}>
                                 <DialogTrigger asChild>
@@ -631,6 +631,7 @@ export default function PropertyPage() {
                                         <Button
                                             variant={"secondary"}
                                             onClick={() => { setAddMemberDialogOpen(true) }}
+                                            className='w-full'
                                         >
                                             <User2Icon className='h-4 w-4 mr-2' /> {t('Property.addMembers')}
                                         </Button>
@@ -653,7 +654,7 @@ export default function PropertyPage() {
                                                 <SelectContent>
                                                     {roles.map((role, index) => (
                                                         <SelectItem key={index} value={role.value}>
-                                                            {role.value === "hotel_manager" ? t('Roles.hotelManager') : role.value==="staff"?t('Roles.staff'):t('Roles.spaManager')}
+                                                            {role.value === "hotel_manager" ? t('Roles.hotelManager') : role.value === "staff" ? t('Roles.staff') : t('Roles.spaManager')}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -710,10 +711,10 @@ export default function PropertyPage() {
                                 </DialogContent>
                             </Dialog>
 
-                   
 
-                            <div className='ml-5'>
-                                <DeleteCreationDialog type={t(`CreateEntity.types.${"property"}`)as any} name={creationDetails.name} id={creationDetails.id} />
+
+                            <div className='ml-5 w-56'>
+                                <DeleteCreationDialog type={t(`CreateEntity.types.${"property"}`) as any} name={creationDetails.name} id={creationDetails.id} />
                             </div>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -756,13 +757,12 @@ export default function PropertyPage() {
                                                 alt={`Preview ${index + 1}`}
                                                 className="w-full h-24 object-cover rounded border"
                                             />
-                                            <button
-                                                type="button"
+                                            <Button
                                                 onClick={() => handleRemoveImage(index)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                className="absolute top-1 right-1  text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <Trash2 className="h-3 w-3" />
-                                            </button>
+                                            </Button>
                                         </div>
                                     ))}
                                 </div>
@@ -858,7 +858,7 @@ export default function PropertyPage() {
                                     <p className="text-xs text-gray-500">{user.email}</p>
                                 </div>
                                 <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 whitespace-nowrap ml-2">
-                                          <span className="font-medium">{t(`Roles.${user.role.split("_").map((word, index) => index != 0 ? capitalizeFirstLetter(word) : word).join("")}`)}</span>
+                                    <span className="font-medium">{t(`Roles.${user.role.split("_").map((word, index) => index != 0 ? capitalizeFirstLetter(word) : word).join("")}`)}</span>
                                 </span>
                             </div>
                         ))}
@@ -986,7 +986,7 @@ export default function PropertyPage() {
             {/* ──────────────────────────────────────────────────────────── */}
 
             {/* Loyalty Configuration Section */}
-            {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') &&  propertyConfig.isLoyaltyProgramEnabled && (
+            {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') && propertyConfig.isLoyaltyProgramEnabled && (
                 <div className="bg-white p-6 rounded-lg shadow">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">{t('Sidebar.loyaltyConfiguration')}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1035,6 +1035,14 @@ export default function PropertyPage() {
                     </div>
                 </div>
             )}
+
+            {/* Property Transfer / Recovery Dialog */}
+            <PropertyTransferDialog
+                open={isTransferDialogOpen}
+                onOpenChange={setIsTransferDialogOpen}
+                creationId={creationId!}
+                propertyId={propertyDetails?.id}
+            />
 
             {/* Integration Dialog */}
             <IntegrationDialog

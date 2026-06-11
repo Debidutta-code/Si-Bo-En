@@ -97,3 +97,19 @@ export const getAllCreationLoyalityWithProperty = async (creationId: string) => 
         }
     }
 };
+
+export const getAllProperties=async(creationId:string)=>{
+    try {
+        const res=await axiosInstance.get(`/loyalty/creation/get-properties?creationId=${creationId}`);
+        return res.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            };
+        }
+    }
+}
