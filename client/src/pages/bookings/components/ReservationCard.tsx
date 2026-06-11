@@ -487,7 +487,7 @@ export default function ReservationCard({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-semibold text-gray-900">
-                      {t('Bookings.amend.primaryGuest')}
+                      {t('Bookings.reservationCard.primaryGuest')}
                     </h4>
                     {reservation.bookingStatus === "checked_in" && (
                       <button
@@ -504,7 +504,7 @@ export default function ReservationCard({
                       {primary.firstName} {primary.lastName}
                     </span>
                     <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize">
-                      {t('Bookings.amend.primary')}
+                      {t('Bookings.reservationCard.primary')}
                     </span>
                   </div>
                   {reservation.guests.length > 1 && (

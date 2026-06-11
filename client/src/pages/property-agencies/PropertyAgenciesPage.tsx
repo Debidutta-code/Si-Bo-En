@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import Loader from '@/components/Loader/Loader';
 import createAxiosInstance from '@/components/axiosInstance';
 import BackButton from '@/components/shared/BackButton';
+import { useTranslation } from 'react-i18next';
 
 interface IAgency {
   id: string;
@@ -32,6 +33,7 @@ interface IAgency {
 }
 
 const PropertyAgenciesPage: React.FC = () => {
+  const { t } = useTranslation();
   const { propertyId } = useParams<{ propertyId: string }>();
   const navigate = useNavigate();
   
@@ -61,7 +63,6 @@ const PropertyAgenciesPage: React.FC = () => {
         const agenciesData = response.data.data || [];
         setAgencies(agenciesData);
         
-        // Calculate stats
         const totalRooms = agenciesData.reduce((sum: number, agency: IAgency) => {
           const propertyData = agency.AgenticProperties.find(ap => ap.propertyId === propertyId);
           return sum + (propertyData?.AgenticRooms?.length || 0);
@@ -87,7 +88,7 @@ const PropertyAgenciesPage: React.FC = () => {
   if (loading) {
     return (
       <div className='h-screen flex justify-center items-center'>
-        <Loader text="Loading agencies..." />;
+        <Loader text={t('PropertyAgencies.loading')} />;
       </div>
     )
   }
@@ -97,9 +98,9 @@ const PropertyAgenciesPage: React.FC = () => {
       {/* Header */}
       <BackButton/>
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Property Agencies</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('PropertyAgencies.title')}</h1>
         <p className="text-gray-500 mt-1">
-          View agencies assigned to this property and their reservations
+          {t('PropertyAgencies.subtitle')}
         </p>
       </div>
 
@@ -108,7 +109,7 @@ const PropertyAgenciesPage: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              Total Agencies
+              {t('PropertyAgencies.statTotalAgencies')}
             </CardTitle>
             <Building2 className="h-4 w-4 text-gray-400" />
           </CardHeader>
@@ -120,7 +121,7 @@ const PropertyAgenciesPage: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              Active Agencies
+              {t('PropertyAgencies.statActiveAgencies')}
             </CardTitle>
             <Users className="h-4 w-4 text-gray-400" />
           </CardHeader>
@@ -132,7 +133,7 @@ const PropertyAgenciesPage: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              Total Allocated Rooms
+              {t('PropertyAgencies.statTotalRooms')}
             </CardTitle>
             <Calendar className="h-4 w-4 text-gray-400" />
           </CardHeader>
@@ -145,20 +146,20 @@ const PropertyAgenciesPage: React.FC = () => {
       {/* Agencies Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Agencies ({agencies.length})</CardTitle>
+          <CardTitle>{t('PropertyAgencies.tableTitle', { count: agencies.length })}</CardTitle>
         </CardHeader>
         <CardContent>
           {agencies.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Agency Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Commission</TableHead>
-                  <TableHead>Allocated Rooms</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>{t('PropertyAgencies.colAgencyName')}</TableHead>
+                  <TableHead>{t('PropertyAgencies.colType')}</TableHead>
+                  <TableHead>{t('PropertyAgencies.colEmail')}</TableHead>
+                  <TableHead>{t('PropertyAgencies.colCommission')}</TableHead>
+                  <TableHead>{t('PropertyAgencies.colAllocatedRooms')}</TableHead>
+                  <TableHead>{t('PropertyAgencies.colStatus')}</TableHead>
+                  <TableHead className="text-right">{t('PropertyAgencies.colActions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -184,7 +185,7 @@ const PropertyAgenciesPage: React.FC = () => {
                       <TableCell>{agency.commissionValue}%</TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          {roomCount} {roomCount === 1 ? 'room' : 'rooms'}
+                          {roomCount} {roomCount === 1 ? t('PropertyAgencies.room') : t('PropertyAgencies.rooms')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -196,8 +197,8 @@ const PropertyAgenciesPage: React.FC = () => {
                           }
                         >
                           {agency.isActive && propertyData?.isActive
-                            ? 'Active'
-                            : 'Inactive'}
+                            ? t('PropertyAgencies.active')
+                            : t('PropertyAgencies.inactive')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -207,7 +208,7 @@ const PropertyAgenciesPage: React.FC = () => {
                           onClick={() => handleViewReservations(agency.id)}
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          View Reservations
+                          {t('PropertyAgencies.viewReservations')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -218,7 +219,7 @@ const PropertyAgenciesPage: React.FC = () => {
           ) : (
             <div className="text-center py-12 text-gray-500">
               <Building2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No agencies assigned to this property yet</p>
+              <p>{t('PropertyAgencies.noAgencies')}</p>
             </div>
           )}
         </CardContent>

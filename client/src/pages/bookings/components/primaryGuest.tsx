@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { IPrimaryGuest } from "../types";
 import { Mail, Phone, MapPin, FileText, Shield, Download } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface PrimaryGuestDetailsDialogProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export default function PrimaryGuestDetailsDialog({
   onOpenChange,
   primaryGuest,
 }: PrimaryGuestDetailsDialogProps) {
+  const { t } = useTranslation();
+
   if (!primaryGuest) return null;
 
   const handleDownloadIdentityImage = async () => {
@@ -59,7 +62,7 @@ export default function PrimaryGuestDetailsDialog({
             {primaryGuest.isALoyalityGuest && (
               <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
                 <Shield className="w-3 h-3 mr-1" />
-                Loyalty Guest
+                {t("Bookings.reservationCard.loyaltyGuest")}
               </Badge>
             )}
             <Badge variant="outline" className="capitalize">
@@ -71,11 +74,13 @@ export default function PrimaryGuestDetailsDialog({
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-100">
             <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <Mail className="w-4 h-4 text-blue-600" />
-              Contact Information
+              {t("Bookings.reservationCard.contactInfo")}
             </h3>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="text-gray-600 text-sm w-24">Email:</span>
+                <span className="text-gray-600 text-sm w-24">
+                  {t("Bookings.reservationCard.email")}:
+                </span>
                 <p className="text-gray-900 font-medium text-sm break-all">
                   {primaryGuest.email}
                 </p>
@@ -83,7 +88,9 @@ export default function PrimaryGuestDetailsDialog({
               {primaryGuest.phoneNumber && (
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-blue-600" />
-                  <span className="text-gray-600 text-sm w-20">Phone:</span>
+                  <span className="text-gray-600 text-sm w-20">
+                    {t("Bookings.reservationCard.phone")}:
+                  </span>
                   <p className="text-gray-900 font-medium text-sm">
                     {primaryGuest.phoneNumber}
                   </p>
@@ -101,25 +108,31 @@ export default function PrimaryGuestDetailsDialog({
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-4 border border-green-100">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-green-600" />
-                Address Information
+                {t("Bookings.reservationCard.addressInfo")}
               </h3>
               <div className="space-y-2 text-sm">
                 {primaryGuest.address && (
                   <p className="text-gray-900">
-                    <span className="text-gray-600 font-medium">Street: </span>
+                    <span className="text-gray-600 font-medium">
+                      {t("Bookings.reservationCard.street")}:{" "}
+                    </span>
                     {primaryGuest.address}
                   </p>
                 )}
                 <div className="grid grid-cols-2 gap-2">
                   {primaryGuest.city && (
                     <p className="text-gray-900">
-                      <span className="text-gray-600 font-medium">City: </span>
+                      <span className="text-gray-600 font-medium">
+                        {t("Bookings.reservationCard.city")}:{" "}
+                      </span>
                       {primaryGuest.city}
                     </p>
                   )}
                   {primaryGuest.state && (
                     <p className="text-gray-900">
-                      <span className="text-gray-600 font-medium">State: </span>
+                      <span className="text-gray-600 font-medium">
+                        {t("Bookings.reservationCard.state")}:{" "}
+                      </span>
                       {primaryGuest.state}
                     </p>
                   )}
@@ -127,13 +140,17 @@ export default function PrimaryGuestDetailsDialog({
                 <div className="grid grid-cols-2 gap-2">
                   {primaryGuest.country && (
                     <p className="text-gray-900">
-                      <span className="text-gray-600 font-medium">Country: </span>
+                      <span className="text-gray-600 font-medium">
+                        {t("Bookings.reservationCard.country")}:{" "}
+                      </span>
                       {primaryGuest.country}
                     </p>
                   )}
                   {primaryGuest.zipCode && (
                     <p className="text-gray-900">
-                      <span className="text-gray-600 font-medium">ZIP: </span>
+                      <span className="text-gray-600 font-medium">
+                        {t("Bookings.reservationCard.zip")}:{" "}
+                      </span>
                       {primaryGuest.zipCode}
                     </p>
                   )}
@@ -142,26 +159,31 @@ export default function PrimaryGuestDetailsDialog({
             </div>
           )}
 
+          {/* Identity Information Card */}
           {(primaryGuest.userIdentityCardType ||
             primaryGuest.identityCardNumber ||
             primaryGuest.identityCardImage) && (
             <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border border-purple-100">
               <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-purple-600" />
-                Identity Information
+                {t("Bookings.reservationCard.identityInfo")}
               </h3>
               <div className="space-y-3">
                 {primaryGuest.userIdentityCardType && (
                   <div>
-                    <p className="text-gray-600 text-sm font-medium">ID Type</p>
+                    <p className="text-gray-600 text-sm font-medium">
+                      {t("Bookings.reservationCard.idType")}
+                    </p>
                     <p className="text-gray-900 text-sm capitalize mt-1">
                       {primaryGuest.userIdentityCardType.replace(/_/g, " ")}
                     </p>
                   </div>
                 )}
-                {primaryGuest.identityCardNumber && (  
+                {primaryGuest.identityCardNumber && (
                   <div>
-                    <p className="text-gray-600 text-sm font-medium">ID Number</p>
+                    <p className="text-gray-600 text-sm font-medium">
+                      {t("Bookings.reservationCard.idNumber")}
+                    </p>
                     <p className="text-gray-900 text-sm font-mono mt-1">
                       {primaryGuest.identityCardNumber}
                     </p>
@@ -171,20 +193,20 @@ export default function PrimaryGuestDetailsDialog({
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-gray-600 text-sm font-medium">
-                        ID Document
+                        {t("Bookings.reservationCard.idDocument")}
                       </p>
                       <button
                         onClick={handleDownloadIdentityImage}
                         className="flex items-center gap-1 text-xs font-medium text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-md transition-colors"
                       >
                         <Download className="w-3 h-3" />
-                        Download
+                        {t("Bookings.reservationCard.download")}
                       </button>
                     </div>
                     <div className="relative bg-white rounded-lg border-2 border-dashed border-purple-200 p-2 overflow-hidden">
                       <img
                         src={primaryGuest.identityCardImage}
-                        alt="Identity Document"
+                        alt={t("Bookings.reservationCard.idDocument")}
                         className="w-full h-auto rounded max-h-96 object-cover"
                       />
                     </div>
@@ -201,7 +223,7 @@ export default function PrimaryGuestDetailsDialog({
             onClick={() => onOpenChange(false)}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            Close
+            {t("Bookings.reservationCard.close")}
           </Button>
         </DialogFooter>
       </DialogContent>
