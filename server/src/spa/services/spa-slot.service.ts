@@ -128,9 +128,9 @@ export class SpaSlotsServ {
                 spaDateId,
                 startTime: toUTC(slot.startTime),
                 endTime: slot.endTime ? toUTC(slot.endTime) : null,
+                slotsBooked:0,
             }));
 
-            // Check for overlaps
             for (let i = 0; i < slotsData.length; i++) {
                 const pStart = new Date(slotsData[i].startTime).getTime();
                 const pEndMatch = slotsData[i].endTime;

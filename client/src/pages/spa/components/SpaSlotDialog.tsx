@@ -19,11 +19,13 @@ export default function SpaSlotDialog({ isOpen, onClose, onSave, selectedDate, s
   const { t } = useTranslation();
   const [startTime, setStartTime] = useState('');
   const [numberOfSlots, setNumberOfSlots] = useState(1);
+  const [noOfSlots,setNoOfSlots]=useState(1)
 
   useEffect(() => {
     if (isOpen) {
       setStartTime('');
       setNumberOfSlots(1);
+      setNoOfSlots(1)
     }
   }, [isOpen]);
 
@@ -79,6 +81,10 @@ export default function SpaSlotDialog({ isOpen, onClose, onSave, selectedDate, s
            <div className="space-y-2">
              <Label>{t('SpaSlotDialog.numberOfSlots', { serviceTime })}</Label>
              <Input type="number" min={1} max={24} value={numberOfSlots} onChange={e => setNumberOfSlots(Number(e.target.value))} />
+           </div>
+           <div className="space-y-2">
+             <Label>{t('SpaSlotDialog.noOfSlots')}</Label>
+             <Input type="number" min={1}value={noOfSlots} onChange={e => setNoOfSlots(Number(e.target.value))} />
            </div>
            {startTime && (
                <div className="text-xs text-gray-500 mt-2 p-2 bg-gray-50 rounded">

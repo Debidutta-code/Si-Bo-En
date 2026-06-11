@@ -17,9 +17,11 @@ export interface ICSpaSlotS {
     startTime: Date;
     endTime: Date | null;
     isBooked: boolean;
+    noOfSlots:number;
 }
 export interface ICSpaSlotR extends ICSpaSlotS {
     spaDateId: string;
+    slotsBooked:number;
 }
 export interface ISpaSlot extends ICSpaSlotR {
     id: string;
