@@ -207,8 +207,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     });
   }, [selectedAddons, expandedRatePlan, latestPrice, onPriceUpdate, room]);
   const handleBookNowClick = async (ratePlan: IRoomPrice) => {
-    const comboId = typeof ratePlan.comboLabel === 'string' ? ratePlan.comboLabel : ratePlan.comboLabel?.id || '';
-    const loadingKey = `${ratePlan.ratePlanCode}-${comboId}`;
+    const loadingKey = `${ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}`;
     setLoadingPriceFor(loadingKey);
     setPendingRatePlan(ratePlan);
 
@@ -240,8 +239,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     ratePlan: IRoomPrice,
     selectedAddonsList: ISelectedAddon[]
   ) => {
-    const comboId = typeof ratePlan.comboLabel === 'string' ? ratePlan.comboLabel : ratePlan.comboLabel?.id || '';
-    const loadingKey = `${ratePlan.ratePlanCode}-${comboId}`;
+    const loadingKey = `${ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}`;
     setLoadingPriceFor(loadingKey);
 
     try {
@@ -549,8 +547,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     const match = labelStr.match(/\((.+)\)$/);
                     const rawLabel = match ? match[1] : labelStr;
                     const isOnlyRoomOnly = combos.length === 1 && rawLabel === "Room Only";
-                    
-                    const translatedLabel = typeof combo.comboLabel === 'object' && combo.comboLabel !== null && combo.comboLabel._translations?.name ? combo.comboLabel._translations.name : null;
+
+                    const translatedLabel = typeof combo.comboLabel === 'object' && combo.comboLabel !== null && combo.comboLabel.id==="room_only"?t("Rooms.roomOnly") : combo.comboLabel?._translations?combo.comboLabel?._translations.name:combo.comboLabel.label;
 
                     const subLabel = translatedLabel
                       ? translatedLabel
