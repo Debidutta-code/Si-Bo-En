@@ -427,7 +427,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 <div className="flex items-center justify-between p-2 sm:px-4 sm:py-3 border-b border-gray-100">
                   <div className="flex items-center gap-2 flex-wrap min-w-0">
                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                      {firstCombo.ratePlanName}
+                      {firstCombo._translations?firstCombo._translations.ratePlanName: firstCombo.ratePlanName}
                     </h3>
                     {selectedPromotions[ratePlanCode]?.length > 0 && (
                       <span className="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded">
