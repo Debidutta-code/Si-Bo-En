@@ -196,16 +196,57 @@ export class SiteMinderRatesService {
                 const fromCurrency = incomingCurrency ?? await getPropertyBaseCurrency(propertyId);
                 const { convert, baseCurrency } = await getCurrencyConverter(propertyId, fromCurrency);
 
-                const finalBaseAmounts = rates.baseByGuestAmts.map((b, i) => ({
-                    numberOfGuests: b.numberOfGuests ?? i + 1,
-                    ageQualifyingCode: '10' as const,
-                    amountBeforeTax: Number(reverseTax(convert(b.amountAfterTax), taxRules).toFixed(2)),
-                }));
+                const finalBaseAmounts = rates.baseByGuestAmts.map((b, i) => {
+                    const hasAmountBeforeTax = b.amountBeforeTax !== undefined;
+                    const hasAmountAfterTax = b.amountAfterTax !== undefined;
+                    
+                    let rawAmount = 0;
+                    let shouldBacktrack = false;
+                    
+                    if (hasAmountBeforeTax) {
+                        rawAmount = b.amountBeforeTax!;
+                        shouldBacktrack = false;
+                    } else if (hasAmountAfterTax) {
+                        rawAmount = b.amountAfterTax!;
+                        if (property.amountBeforeTax) {
+                            shouldBacktrack = false;
+                        } else if (property.amountAfterTax) {
+                            shouldBacktrack = true;
+                        } else {
+                            shouldBacktrack = true;
+                        }
+                    } else {
+                        rawAmount = 0;
+                        shouldBacktrack = false;
+                    }
+
+                    const convertedAmount = convert(rawAmount);
+                    const finalAmount = shouldBacktrack
+                        ? Number(reverseTax(convertedAmount, taxRules).toFixed(2))
+                        : Number(convertedAmount.toFixed(2));
+
+                    return {
+                        numberOfGuests: b.numberOfGuests ?? i + 1,
+                        ageQualifyingCode: '10' as const,
+                        amountBeforeTax: finalAmount,
+                    };
+                });
 
                 const childBaseAmount = rates.additionalGuestAmounts?.find(
                     a => String(a.ageQualifyingCode) === '8'
                 )?.amount ?? 0;
-                const convertedChildAmount = reverseTax(convert(childBaseAmount), taxRules, { skipFixed: true });
+
+                let shouldBacktrackChild = true;
+                if (property.amountBeforeTax) {
+                    shouldBacktrackChild = false;
+                } else if (property.amountAfterTax) {
+                    shouldBacktrackChild = true;
+                }
+
+                const convertedChildAmount = shouldBacktrackChild
+                    ? reverseTax(convert(childBaseAmount), taxRules, { skipFixed: true })
+                    : convert(childBaseAmount);
+
                 const maxChildren = await SiteMinderDao.getRoomMaxChildren(roomTypeCode, propertyCode);
 
                 const childBaseAmounts = (convertedChildAmount > 0 && maxChildren > 0)

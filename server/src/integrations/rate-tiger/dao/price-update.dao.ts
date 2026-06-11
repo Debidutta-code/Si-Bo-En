@@ -15,7 +15,89 @@ export class PriceUpdateDao {
             throw new Error('Failed to verify property existence');
         }
     }
+    // Add to dao/price-update.dao.ts
 
+    public static async getPropertyMeta(propertyCode: string): Promise<{ id: string } | null> {
+        const property = await prisma.property.findUnique({
+            where: { propertyCode },
+            select: { id: true },
+        });
+        return property ?? null;
+    }
+
+    public static async getActiveTaxRulesForRatePlan(
+        ratePlanCode: string,
+        propertyCode: string
+    ): Promise<Array<{ priority: number; type: string; value: number }>> {
+        const ratePlan = await prisma.ratePlan.findFirst({
+            where: {
+                ratePlanCode,
+                property: { propertyCode },
+            },
+            select: {
+                taxGroup: {
+                    select: {
+                        isActive: true,
+                        taxGroupRules: {
+                            select: {
+                                taxRule: {
+                                    select: {
+                                        priority: true,
+                                        type: true,
+                                        value: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+
+        if (!ratePlan?.taxGroup?.isActive) return [];
+
+        return ratePlan.taxGroup.taxGroupRules.map(r => ({
+            priority: r.taxRule.priority,
+            type: r.taxRule.type,
+            value: r.taxRule.value,
+        }));
+    }
+    // Add to dao/price-update.dao.ts
+
+    public static async getRateTigerIntegrationConfig(
+        propertyCode: string
+    ): Promise<{
+        amountsIncludeTax: boolean;
+        amountBeforeTax: boolean;
+        amountAfterTax: boolean;
+    } | null> {
+        const integration = await prisma.propertyIntegrations.findFirst({
+            where: {
+                isActive: true,
+                Property: { propertyCode },
+            },
+            select: {
+                amountBeforeTax: true,
+                amountAfterTax: true,
+                propertyIntegrationSecrets: {
+                    where: {
+                        RequiredField: { name: 'Amounts Include Tax' },
+                    },
+                    select: { value: true },
+                },
+            },
+        });
+
+        if (!integration) return null;
+
+        const raw = integration.propertyIntegrationSecrets[0]?.value;
+        return {
+            amountsIncludeTax: raw === 'true' || raw === '1',
+            amountBeforeTax: integration.amountBeforeTax,
+            amountAfterTax: integration.amountAfterTax,
+        };
+    }
     public static async upsertCharge(params: {
         propertyCode: string;
         roomTypeCode: string;
@@ -76,14 +158,14 @@ export class PriceUpdateDao {
                 }),
                 ...(additionalGuestAmounts.length > 0
                     ? [
-                          prisma.chargeAdditionalGuest.createMany({
-                              data: additionalGuestAmounts.map(ag => ({
-                                  chargeId: existingCharge.id,
-                                  ageQualifyingCode: ag.ageQualifyingCode,
-                                  amount: ag.amount,
-                              })),
-                          }),
-                      ]
+                        prisma.chargeAdditionalGuest.createMany({
+                            data: additionalGuestAmounts.map(ag => ({
+                                chargeId: existingCharge.id,
+                                ageQualifyingCode: ag.ageQualifyingCode,
+                                amount: ag.amount,
+                            })),
+                        }),
+                    ]
                     : []),
             ]);
         } else {

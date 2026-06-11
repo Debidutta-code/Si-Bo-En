@@ -3,6 +3,8 @@ import { IMasterIntegrationFields } from '../../utils-management/types';
 export interface ICPropertyIntegration {
     propertyId: string;
     masterIntegrationId: string;
+    amountAfterTax?:boolean;
+    amountBeforeTax?:boolean;
 }
 export interface ICPropertyIntegrationS extends ICPropertyIntegration {
     fields: ICPropertyInregrationSecrets[];

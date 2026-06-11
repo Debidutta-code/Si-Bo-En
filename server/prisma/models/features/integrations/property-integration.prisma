@@ -3,6 +3,8 @@ model PropertyIntegrations {
   propertyId                 String                       @map("property_id")
   masterIntegrationId        String                       @map("master_integration_id")
   isActive                   Boolean                      @map("is_active")
+  amountBeforeTax            Boolean                      @default(true) @map("amount_before_tax")
+  amountAfterTax             Boolean                      @default(false) @map("amount_after_tax")
   createdAt                  DateTime                     @default(now()) @map("created_at")
   propertyIntegrationSecrets PropertyInregrationSecrets[]
   MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id])
