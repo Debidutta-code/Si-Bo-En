@@ -151,12 +151,6 @@ export class SpaController {
         res: Response
     ): Promise<Response> {
         try {
-            if (!req.property) {
-                return res.status(500).json(errorResponse('Property configuration not found'));
-            }
-            if (!req.property.propertyConfig?.isSpaModuleEnabled) {
-                return res.status(400).json(errorResponse('Spa module is not enabled for this property'));
-            }
             const spaId = req.params.id;
 
             if (!spaId) {

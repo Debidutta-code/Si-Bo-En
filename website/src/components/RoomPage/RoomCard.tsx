@@ -29,6 +29,8 @@ import {
   getAvailableAddons,
   getRoomPrice,
 } from "../../app/(unauth)/Rooms/services";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -595,7 +597,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                                   </svg>
                                   <span className="text-xs font-bold text-gray-700">
-                                    {currency} {formatNumber(Number(comboAfterLoyalty.toFixed(2)))}
+                                    {currencies.find((c: Currency) => c.code === currency)?.symbol} {formatNumber(Number(comboAfterLoyalty.toFixed(2)))}
                                   </span>
                                 </div>
                               </button>
@@ -605,7 +607,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                               {isLoyaltyMember && loyaltyDiscountInfo && (
                                 <div className="flex items-center gap-1 justify-end">
                                   <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">
-                                    {currency} {formatNumber(Number(comboBase.toFixed(2)))}
+                                    {currencies.find((c: Currency) => c.code === currency)?.symbol} {formatNumber(Number(comboBase.toFixed(2)))}
                                   </span>
                                   <span className="px-1 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded">
                                     -{loyaltyDiscountInfo.type === "percentage" ? `${formatNumber(loyaltyDiscountInfo.value)}%` : `${loyaltyDiscountInfo.currencyCode} ${formatNumber(loyaltyDiscountInfo.value)}`}
@@ -613,7 +615,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                 </div>
                               )}
                               <span className="text-sm sm:text-base font-bold text-gray-900">
-                                {currency}{" "}
+                                {currencies.find((c: Currency) => c.code === currency)?.symbol}{" "}
                                 {formatNumber(Number((isLoyaltyMember ? comboAfterLoyalty : comboBase).toFixed(2)))}
                               </span>
                             </div>
@@ -641,7 +643,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                               <div className="flex items-center gap-1.5">
                                 <span className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">{t("RoomCard.basePrice")}:</span>
                                 <span className="text-xs font-bold text-gray-800">
-                                  {currency}{" "}
+                                  {currencies.find((c: Currency) => c.code === currency)?.symbol}{" "}
                                   {formatNumber(Number((
                                     combo.totalAmount +
                                     (combo.appliedDiscounts?.reduce((sum, d) => sum + d.calculatedDiscountAmount, 0) ?? 0) -

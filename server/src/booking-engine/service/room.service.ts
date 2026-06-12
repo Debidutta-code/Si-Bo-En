@@ -484,8 +484,8 @@ export class RoomBookingService {
         const start = toUTCDate(startDate);
         const end = toUTCDate(endDate);
 
-        const property = await RoomBookingRepository.getPropertyByCode(propertyCode) as any;
-        const currencyCode = property?.propertyConfigs?.baseCurrency || 'AED';
+        const property = await RoomBookingRepository.getPropertyByCode(propertyCode);
+        const currencyCode = property?.propertyConfigs?.baseCurrency;
 
         const charges = await RoomBookingRepository.getPropertyChargesForCalendar(propertyCode, start, end);
 
