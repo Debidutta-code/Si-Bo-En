@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Navbar from "@/src/components/Home/Navbar";
-import Footer from "@/src/components/Home/RoiBackFooter";
+import Footer from "@/src/components/Home/Footer";
 import { PropertyProvider } from "@/src/components/context/property-context";
 
 export default function UnAuthLayout({
