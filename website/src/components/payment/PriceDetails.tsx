@@ -2,6 +2,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { currencies } from "../currencyCode/cuurency";
+import { formatNumber } from "@/src/utils/numLang";
 
 interface PriceDetailsProps {
   bookingDetails: any;
@@ -51,13 +52,13 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails }) => {
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-600">{t("PriceDetails.payNow")}</span>
             <span className="font-semibold text-green-700">
-              {currencyCode} {fp?.currentChargeableAmount.toFixed(2) || 0}
+              {currencyCode} {formatNumber(Number(fp?.currentChargeableAmount.toFixed(2)) || 0)}
             </span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-600">{t("PriceDetails.payAtHotel")}</span>
             <span className="font-semibold text-amber-600">
-              {currencyCode} {fp?.latterpayableAmount.toFixed(2) || 0}
+              {currencyCode} {formatNumber(Number(fp?.latterpayableAmount.toFixed(2)) || 0)}
             </span>
           </div>
         </div>
@@ -66,7 +67,7 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails }) => {
       {/* Total Amount */}
       <div className={`flex justify-between items-center text-base border-t pt-3 ${hasPayLater ? "" : "mt-0"}`}>
         <span className="font-semibold text-gray-900">{t("PriceDetails.totalAmount")}</span>
-        <span className="font-bold text-orange-600 text-xl">{currencyCode} {fp?.totalAmount.toFixed(2) || 0}</span>
+        <span className="font-bold text-orange-600 text-xl">{currencyCode} {formatNumber(Number(fp?.totalAmount.toFixed(2)) || 0)}</span>
       </div>
 
       {/* Secure Payment */}

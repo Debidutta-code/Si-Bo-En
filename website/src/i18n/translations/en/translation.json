@@ -389,7 +389,7 @@
     "promoInvalid": "Invalid promo code",
     "promoError": "Something went wrong. Try again!",
     "payNow": "Pay Now",
-    "payAtHotel": "Pay at Hotel"
+    "payathotel": "Pay at Hotel"
   },
   "Fikafi": {
     "preparingPayment": "Preparing secure payment...",
@@ -530,6 +530,12 @@
       "paidAmount": "Paid Amount:",
       "refundable": "Refundable Amount:"
     },
+    "promoCodeDiscount":"Promocode Discount",
+    "loyaltyDiscount":"Loyalty Discount",
+    "amountBeforeTax":"Amount Before Tax",
+    "totalTax":"Total Tax amount",
+    "amountAfterTax":"Amount After Tax",
+
     "actions": {
       "checkInNow": "Check In Now",
       "checkOutNow": "Check Out Now",
@@ -1148,5 +1154,11 @@
     "toast": {
       "uploadFailed": "Failed to upload images"
     }
+  },
+  "ModifyBookingModal":{
+    "nights":"nights",
+    "rooms":"rooms",
+    "adult":"adult",
+    "children":"child"
   }
 }

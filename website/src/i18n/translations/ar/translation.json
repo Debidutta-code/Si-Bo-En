@@ -1,7 +1,6 @@
 {
   "adult": "بالغ",
   "child": "طفل",
-
   "Navbar": {
     "home": "الرئيسية",
     "services": "الخدمات",
@@ -90,8 +89,8 @@
     "roomOnly": "غرفة فقط",
     "of": "من",
     "is": "هو",
-        "sqft":"قدم مربع",
-    "sqm":"متر مربع",
+    "sqft": "قدم مربع",
+    "sqm": "متر مربع",
     "videoOverlay": "جولة في العقار",
     "searchingRooms": "جاري البحث عن الغرف...",
     "noRoomsHotel": "لا توجد غرف متاحة لهذا الفندق.",
@@ -268,7 +267,7 @@
     "title": "أكمل حجزك",
     "adult": "بالغ",
     "child": "طفل",
-    "notAvailable":"غير متوفر",
+    "notAvailable": "غير متوفر",
     "firstName": "الاسم الأول",
     "firstNamePlaceholder": "الاسم الأول",
     "lastName": "اسم العائلة",
@@ -390,7 +389,7 @@
     "promoInvalid": "رمز ترويجي غير صالح",
     "promoError": "حدث خطأ ما. حاول مرة أخرى!",
     "payNow": "ادفع الآن",
-    "payAtHotel": "ادفع في الفندق"
+    "payathotel": "ادفع في الفندق"
   },
   "Fikafi": {
     "preparingPayment": "جاري تحضير الدفع الآمن...",
@@ -513,6 +512,11 @@
     "no": "لا",
     "totalActivityCharges": "إجمالي رسوم الأنشطة",
     "printItinerary": "طباعة المسار",
+      "promoCodeDiscount": "خصم رمز القسيمة",
+  "loyaltyDiscount": "خصم الولاء",
+  "amountBeforeTax": "المبلغ قبل الضريبة",
+  "totalTax": "إجمالي مبلغ الضريبة",
+  "amountAfterTax": "المبلغ بعد الضريبة",
     "pdf": {
       "title": "تأكيد الحجز",
       "hotelInfo": "معلومات الفندق",
@@ -1149,5 +1153,12 @@
     "toast": {
       "uploadFailed": "فشل في رفع الصور"
     }
-  }
+  },
+  "ModifyBookingModal": {
+  "nights": "ليالٍ",
+  "rooms": "غرف",
+    "adult": "بالغ",
+  "children": "طفل"
+
+}
 }

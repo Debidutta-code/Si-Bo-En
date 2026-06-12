@@ -218,11 +218,15 @@ export class IntegrationPartnerUrlFieldsController {
         res: Response
     ): Promise<Response> {
         try {
-            const masterIntegrationId = req.params.masterId;
-            const data: ICMasterIntegrationUrlFields[] = req.body;
+            const {name,url,masterIntegrationId} = req.body;
+            if(!name || !url || !masterIntegrationId){
+                return res
+                    .status(400)
+                    .json(errorResponse('Missing required fields'));
+            }
             const createdField =
                 await this.masterIntegrationUrlField.createField(
-                    data,
+                    [{name,url}],
                     masterIntegrationId
                 );
             return res

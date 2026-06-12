@@ -7,10 +7,11 @@ import {
   markSlotAsBookedApi,
   markSlotAsAvailableApi,
 } from "../../app/(auth)/profile/api/profile.api";
-import { format } from "date-fns";
+import { formatNumber, getLocale } from "../../utils/numLang";
 import { Check, Search, Clock, MapPin, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { ISpaWSlots } from "./types/spa.type";
 
 interface SpaBookingDialogProps {
   bookingCode: string;
@@ -37,11 +38,11 @@ export default function SpaBookingDialog({
   onClose,
 }: SpaBookingDialogProps) {
   const { t } = useTranslation();
-  const [spas, setSpas] = useState<any[]>([]);
+  const [spas, setSpas] = useState<ISpaWSlots[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const [activeSpa, setActiveSpa] = useState<any | null>(null);
+  const [activeSpa, setActiveSpa] = useState<ISpaWSlots | null>(null);
   const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
   const [cancelSlot, setCancelSlot] = useState<SelectedSlot | null>(null);
   const [userName, setUserName] = useState(guestName || "");
@@ -97,7 +98,7 @@ export default function SpaBookingDialog({
   };
 
   const handleSlotClick = (slot: any, spaDate: any, spa: any) => {
-    const dateLabel = format(new Date(spaDate.date.split("T")[0] + "T00:00:00"), "EEEE, dd MMM yyyy");
+    const dateLabel = new Date(spaDate.date.split("T")[0] + "T00:00:00").toLocaleDateString(getLocale(), { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' });
 
     // If it's already booked by me => show cancel confirm
     if (slot.isBooked) {
@@ -199,12 +200,7 @@ export default function SpaBookingDialog({
 
   const formatTime = (iso: string) => {
     const d = new Date(iso);
-    const hours = d.getUTCHours();
-    const minutes = d.getUTCMinutes();
-    const ampm = hours >= 12 ? "PM" : "AM";
-    const h = hours % 12 || 12;
-    const m = minutes.toString().padStart(2, "0");
-    return `${h}:${m} ${ampm}`;
+    return d.toLocaleTimeString(getLocale(), { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'UTC' });
   };
 
   // Find earliest available slot date for active spa
@@ -256,21 +252,21 @@ export default function SpaBookingDialog({
                       </span>
                     )}
 
-                    <h3 className="text-[15px] font-semibold text-gray-900">{activeSpa.name}</h3>
+                    <h3 className="text-[15px] font-semibold text-gray-900">{activeSpa._translations?activeSpa._translations.name:activeSpa.name}</h3>
 
                     {/* Meta row */}
                     <div className="flex flex-col gap-1.5">
                       {activeSpa.location && (
                         <div className="flex items-center gap-1.5 text-xs text-gray-500">
                           <MapPin className="h-3 w-3 flex-shrink-0" />
-                          {activeSpa.location}
+                          {activeSpa._translations?activeSpa._translations.location:activeSpa.location}
                           {activeSpa.serviceTime && (
                             <span className="text-gray-300 mx-1">|</span>
                           )}
                           {activeSpa.serviceTime && (
                             <>
                               <Clock className="h-3 w-3 flex-shrink-0" />
-                              {t("SpaBookingDialog.detail.duration")} {activeSpa.serviceTime} {t("SpaBookingDialog.detail.minutes")}
+                              {t("SpaBookingDialog.detail.duration")} {formatNumber(activeSpa.serviceTime)} {t("SpaBookingDialog.detail.minutes")}
                             </>
                           )}
                         </div>
@@ -279,14 +275,14 @@ export default function SpaBookingDialog({
                       {activeSpa.discountValue && !activeSpa.isInclusive && (
                         <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                           <Tag className="h-3 w-3 flex-shrink-0" />
-                          {t("SpaBookingDialog.detail.charges")} {activeSpa.discountValue} {activeSpa.currencyCode}
+                          {t("SpaBookingDialog.detail.charges")} {formatNumber(activeSpa.discountValue)} {activeSpa.currencyCode}
                         </div>
                       )}
                     </div>
                     {activeSpa.description && (
                       <p className="text-xs text-gray-500 leading-relaxed">
                         <span className="font-medium text-gray-700">{t("SpaBookingDialog.detail.description")} </span>
-                        {activeSpa.description}
+                        {activeSpa._translations?activeSpa._translations.description:activeSpa.description}
                       </p>
                     )}
 
@@ -296,7 +292,7 @@ export default function SpaBookingDialog({
                         {activeSpa.SpaDates.map((spaDate: any) => (
                           <div key={spaDate.id}>
                             <p className="text-[11px] font-medium text-gray-400 mb-1.5 uppercase tracking-wide">
-                              {format(new Date(spaDate.date.split("T")[0] + "T00:00:00"), "EEEE, dd MMM yyyy")}
+                              {new Date(spaDate.date.split("T")[0] + "T00:00:00").toLocaleDateString(getLocale(), { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}
                             </p>
                             <div className="flex flex-wrap gap-2">
                               {spaDate.Slots?.map((slot: any) => {
@@ -340,8 +336,8 @@ export default function SpaBookingDialog({
                       <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-2">
                         <p className="text-xs font-medium text-gray-700">
                           {selectedSlots.length === 1
-                            ? t("SpaBookingDialog.confirmPanel.activitySelected", { count: selectedSlots.length })
-                            : t("SpaBookingDialog.confirmPanel.activitiesSelected", { count: selectedSlots.length })}                        </p>
+                            ? t("SpaBookingDialog.confirmPanel.activitySelected", { count: formatNumber(selectedSlots.length) })
+                            : t("SpaBookingDialog.confirmPanel.activitiesSelected", { count: formatNumber(selectedSlots.length) })}                        </p>
                         <div>
                           <label className="text-[11px] text-gray-500 mb-1 block">{t("SpaBookingDialog.confirmPanel.guestNameLabel")}</label>
                           <input
@@ -479,8 +475,8 @@ export default function SpaBookingDialog({
 
                             {/* Info */}
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-gray-800 truncate">{spa.name}</p>
-                              <p className="text-[11px] text-gray-400">{spa.SubCategory?.name || spa.Category?.name}</p>
+                              <p className="text-xs font-medium text-gray-800 truncate">{spa._translations?spa._translations.name:spa.name}</p>
+                              <p className="text-[11px] text-gray-400">{spa.SubCategory?._translations?spa.SubCategory._translations.name:spa.SubCategory.name}</p>
                               <div className="flex items-center gap-2 mt-1">
                                 <span
                                   className="text-[10px] px-1.5 py-0.5 rounded font-medium"
@@ -493,7 +489,7 @@ export default function SpaBookingDialog({
                                   {spa.isInclusive ? t("SpaBookingDialog.list.included") : t("SpaBookingDialog.list.paid")}
                                 </span>
                                 <span className="text-[10px] text-gray-400">
-                                  {t("SpaBookingDialog.list.slotsFree", { available: availableSlots, total: totalSlots })}
+                                  {t("SpaBookingDialog.list.slotsFree", { available: formatNumber(availableSlots), total: formatNumber(totalSlots) })}
                                 </span>
                               </div>
                             </div>
