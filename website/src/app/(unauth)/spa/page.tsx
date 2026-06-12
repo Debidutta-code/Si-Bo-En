@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../store/store";
 import { getCustomerSpaBookingsApi } from "../../(auth)/profile/api/spa.api";
 import { formatInTimeZone } from "date-fns-tz";
+import { formatNumber, getLocale } from "../../../utils/numLang";
 
 type Tab = "all" | "booked";
 
@@ -99,7 +100,13 @@ export default function SpaPage() {
 
   const formatDate = (dateValue: string) => {
     try {
-      return formatInTimeZone(new Date(dateValue), "UTC", "EEE, MMM d, yyyy");
+      return new Intl.DateTimeFormat(getLocale(), {
+        timeZone: "UTC",
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }).format(new Date(dateValue));
     } catch {
       return dateValue;
     }
@@ -107,7 +114,12 @@ export default function SpaPage() {
 
   const formatTime = (dateValue: string) => {
     try {
-      return formatInTimeZone(new Date(dateValue), "UTC", "hh:mm a");
+      return new Intl.DateTimeFormat(getLocale(), {
+        timeZone: "UTC",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      }).format(new Date(dateValue));
     } catch {
       return dateValue;
     }
@@ -265,9 +277,9 @@ export default function SpaPage() {
             <p className="mt-1.5 text-sm text-stone-500">
               {hasPropertyCode
                 ? t("SpaPage.header.subtitle", {
-                    slotCount: availableSpaCount,
+                    slotCount: formatNumber(availableSpaCount),
                     slotWord: availableSpaCount === 1 ? t("SpaPage.header.slot") : t("SpaPage.header.slots"),
-                    serviceCount: upcomingSpas.length,
+                    serviceCount: formatNumber(upcomingSpas.length),
                     serviceWord: upcomingSpas.length === 1 ? t("SpaPage.header.service") : t("SpaPage.header.services"),
                   })
                 : t("SpaPage.header.noPropertyCode")}
@@ -306,7 +318,7 @@ export default function SpaPage() {
                         activeTab === "booked" ? "bg-white/20" : "bg-stone-100 text-stone-600"
                       }`}
                     >
-                      {visibleBookedSpas.length}
+                      {formatNumber(visibleBookedSpas.length)}
                     </span>
                   )}
                 </button>
@@ -363,7 +375,7 @@ export default function SpaPage() {
                               {spa.isInclusive
                                 ? t("SpaPage.allTab.inclusive")
                                 : spa.discountValue
-                                  ? `${spa.currencyCode || "AED"} ${spa.discountValue}`
+                                  ? `${spa.currencyCode || "AED"} ${formatNumber(spa.discountValue)}`
                                   : "—"}
                             </span>
                           </div>
@@ -389,11 +401,11 @@ export default function SpaPage() {
                               )}
                               <span className="flex items-center gap-1 text-stone-600 font-medium ml-auto shrink-0">
                                 <Clock className="h-3.5 w-3.5 text-amber-500" />
-                                {spa.serviceTime || t("SpaPage.allTab.timeTbd")} min
+                                {spa.serviceTime ? formatNumber(spa.serviceTime) : t("SpaPage.allTab.timeTbd")} min
                               </span>
                               <span className="flex items-center gap-1 text-emerald-700 font-semibold shrink-0">
                                 <CalendarDays className="h-3.5 w-3.5" />
-                                {availableSlots}
+                                {formatNumber(availableSlots)}
                               </span>
                             </div>
 
@@ -471,9 +483,9 @@ export default function SpaPage() {
                                   {slots.length === 1 ? t("SpaPage.bookedTab.slot") : t("SpaPage.bookedTab.slots", { count: slots.length })}
                                 </span>
                                 <span className="font-semibold text-stone-700">
-                                  {booking?.currencyCode || "AED"} {booking?.totalAmount ?? 0}
+                                  {booking?.currencyCode || "AED"} {formatNumber(booking?.totalAmount ?? 0)}
                                 </span>
-                                <span>{t("SpaPage.bookedTab.bookedOn", { date: format(new Date(booking.createdAt), "MMM d, yyyy") })}</span>
+                                <span>{t("SpaPage.bookedTab.bookedOn", { date: new Intl.DateTimeFormat(getLocale(), { month: "short", day: "numeric", year: "numeric" }).format(new Date(booking.createdAt)) })}</span>
                               </div>
                             </div>
 
@@ -523,7 +535,7 @@ export default function SpaPage() {
                                         )}
                                         {slotAmount > 0 && (
                                           <p className="text-xs text-emerald-700 font-medium mt-0.5">
-                                            {booking?.currencyCode || "AED"} {slotAmount}
+                                            {booking?.currencyCode || "AED"} {formatNumber(slotAmount)}
                                           </p>
                                         )}
                                       </div>

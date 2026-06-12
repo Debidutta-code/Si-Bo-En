@@ -512,11 +512,11 @@
     "no": "لا",
     "totalActivityCharges": "إجمالي رسوم الأنشطة",
     "printItinerary": "طباعة المسار",
-      "promoCodeDiscount": "خصم رمز القسيمة",
-  "loyaltyDiscount": "خصم الولاء",
-  "amountBeforeTax": "المبلغ قبل الضريبة",
-  "totalTax": "إجمالي مبلغ الضريبة",
-  "amountAfterTax": "المبلغ بعد الضريبة",
+    "promoCodeDiscount": "خصم رمز القسيمة",
+    "loyaltyDiscount": "خصم الولاء",
+    "amountBeforeTax": "المبلغ قبل الضريبة",
+    "totalTax": "إجمالي مبلغ الضريبة",
+    "amountAfterTax": "المبلغ بعد الضريبة",
     "pdf": {
       "title": "تأكيد الحجز",
       "hotelInfo": "معلومات الفندق",
@@ -1155,10 +1155,16 @@
     }
   },
   "ModifyBookingModal": {
-  "nights": "ليالٍ",
-  "rooms": "غرف",
+    "nights": "ليالٍ",
+    "rooms": "غرف",
     "adult": "بالغ",
-  "children": "طفل"
+    "children": "طفل"
+  },
+  "GroupSearch": {
+    "perNight": "لكل ليلة قبل الضرائب والرسوم",
+    "viewRoom": "عرض الغرف ←",
+      "location": "الموقع",
+  "whereTo": "إلى أين"
 
-}
+  }
 }

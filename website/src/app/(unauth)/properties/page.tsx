@@ -8,7 +8,7 @@ import PropertyCard from "@/src/components/PropertyPage/PropertyCard";
 import { IPropertyDetails } from "./interface";
 import { Search } from "lucide-react";
 import { setBookingContext } from "@/src/store/bookingSlice";
-
+import createAxiosInstance from "@/src/components/axiosInstance";
 const Properties = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -24,7 +24,7 @@ const Properties = () => {
   const initializedRef = useRef(false);
 
   const urlGroupId = searchParams.get("groupId");
-
+const axiosInstance = createAxiosInstance();
   // Helper to build rooms array from total guests
   const buildRoomsArrayFallback = (
     numRooms: number,
@@ -102,11 +102,11 @@ const Properties = () => {
 
   const fetchBrands = async (groupId: string) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/group-search/${groupId}/brands`
+      const response = await axiosInstance.post(
+        `/booking-engine/group-search/${groupId}/brands`
       );
-      const data = await response.json();
-      if (response.ok && data.success) {
+      const data = await response.data;
+      if (data.success) {
         setBrands(data.data || []);
       }
     } catch (err) {
@@ -135,18 +135,14 @@ const Properties = () => {
       }
 
       const url = selectedBrandId !="all"
-        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/group-search/brand/${selectedBrandId}`
-        : `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/group-search/${groupId}`;
+        ? `/booking-engine/group-search/brand/${selectedBrandId}`
+        : `/booking-engine/group-search/${groupId}`;
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const response = await axiosInstance.post(url, body);
 
-      const data = await response.json();
+      const data = await response.data;
 
-      if (!response.ok || data.status === "fail") {
+      if (!data.success) {
         throw new Error(data.message || "Failed to fetch properties");
       }
 

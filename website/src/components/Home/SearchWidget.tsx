@@ -516,13 +516,13 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* Text */}
                 <div className="flex flex-col min-w-0">
                   <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
-                    LOCATION
+                    {t("GroupSearch.location")}
                   </p>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Where to?"
+                    placeholder={t("GroupSearch.whereTo")}
                     className="text-sm font-semibold bg-transparent focus:outline-none placeholder-[#9B8B6F] w-full leading-none"
                     style={{ color: primaryColor }}
                   />

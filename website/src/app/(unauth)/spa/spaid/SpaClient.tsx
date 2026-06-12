@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../../../store/store";
 import { formatInTimeZone } from "date-fns-tz";
 import { CurrencyCode } from "@/src/components/currencyCode/currency-code.type";
+import { formatNumber, getLocale } from "../../../../utils/numLang";
 
 interface SelectedSlot {
   id: string;
@@ -103,7 +104,7 @@ export default function SpaClient() {
         next.set(uniqueId, {
           id: uniqueId, spaId: spa.id || spaId as string, slotId: slot.id,
           spaDateId: spaDate.id, date: spaDate.date, spaName: spa.name,
-          dateLabel: formatInTimeZone(new Date(spaDate.date), "UTC", "EEEE, MMM dd, yyyy"),
+          dateLabel: new Intl.DateTimeFormat(getLocale(), { timeZone: "UTC", weekday: "long", month: "short", day: "2-digit", year: "numeric" }).format(new Date(spaDate.date)),
           startTime: slot.startTime, endTime: slot.endTime || slot.startTime, amount,
         });
       }
@@ -231,13 +232,24 @@ export default function SpaClient() {
 
   const formatDate = (v: string) => {
     try {
-      return formatInTimeZone(new Date(v), "UTC", "EEE, MMM d, yyyy");
+      return new Intl.DateTimeFormat(getLocale(), {
+        timeZone: "UTC",
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }).format(new Date(v));
     } catch { return v; }
   };
 
   const formatTime = (v: string) => {
     try {
-      return formatInTimeZone(new Date(v), "UTC", "hh:mm a");
+      return new Intl.DateTimeFormat(getLocale(), {
+        timeZone: "UTC",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true
+      }).format(new Date(v));
     } catch { return v; }
   };
 
@@ -313,15 +325,15 @@ export default function SpaClient() {
                       {spa.isInclusive
                         ? t("SpaClient.hero.inclusive")
                         : spa.discountValue
-                          ? `${spa.currencyCode || "AED"} ${spa.discountValue}`
+                          ? `${spa.currencyCode || "AED"} ${formatNumber(spa.discountValue)}`
                           : "—"}
                     </p>
                     <div className="mt-2 space-y-1 text-xs text-stone-500">
                       <p className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />{spa.serviceTime || t("SpaClient.hero.timeTbd")} {t("SpaClient.hero.minSession")}
+                        <Clock className="h-3 w-3" />{spa.serviceTime ? formatNumber(spa.serviceTime) : t("SpaClient.hero.timeTbd")} {t("SpaClient.hero.minSession")}
                       </p>
                       <p className="flex items-center gap-1">
-                        <CalendarDays className="h-3 w-3" />{availableSlots} {t("SpaClient.hero.openSlots")}
+                        <CalendarDays className="h-3 w-3" />{formatNumber(availableSlots)} {t("SpaClient.hero.openSlots")}
                       </p>
                     </div>
                   </div>
@@ -360,7 +372,7 @@ export default function SpaClient() {
                             <div>
                               <p className="text-sm font-semibold text-stone-900">{formatDate(spaDate.date)}</p>
                               <p className="text-xs text-stone-500 mt-0.5">
-                                {t("SpaClient.slots.openDot", { open: openCount, total: spaDate.Slots?.length || 0 })}
+                                {t("SpaClient.slots.openDot", { open: formatNumber(openCount), total: formatNumber(spaDate.Slots?.length || 0) })}
                               </p>
                             </div>
                             {selectedCount > 0 && (
@@ -479,7 +491,7 @@ export default function SpaClient() {
                               {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
                             </p>
                             <p className="font-semibold text-emerald-700 mt-1">
-                              {slot.amount === 0 ? t("SpaClient.modal.inclusive") : `${spa?.currencyCode || "AED"} ${slot.amount}`}
+                              {slot.amount === 0 ? t("SpaClient.modal.inclusive") : `${spa?.currencyCode || "AED"} ${formatNumber(slot.amount)}`}
                             </p>
                           </div>
                           <button
@@ -500,12 +512,12 @@ export default function SpaClient() {
                 <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-stone-50 border border-amber-100 p-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-stone-500">{t("SpaClient.modal.price.slots")}</span>
-                    <span className="font-semibold text-stone-900">{selectedSlots.size}</span>
+                    <span className="font-semibold text-stone-900">{formatNumber(selectedSlots.size)}</span>
                   </div>
                   <div className="border-t border-amber-100 pt-2 flex justify-between">
                     <span className="text-stone-500">{t("SpaClient.modal.price.total")}</span>
                     <span className="text-lg font-bold text-stone-900">
-                      {totalAmount === 0 ? t("SpaClient.modal.inclusive") : `${spa?.currencyCode || "AED"} ${totalAmount}`}
+                      {totalAmount === 0 ? t("SpaClient.modal.inclusive") : `${spa?.currencyCode || "AED"} ${formatNumber(totalAmount)}`}
                     </span>
                   </div>
                 </div>
@@ -600,7 +612,7 @@ export default function SpaClient() {
 
                 <div className="rounded-2xl border border-stone-100 bg-stone-50 p-4 text-xs text-stone-500 text-center">
                   <p className="font-semibold text-stone-700 mb-1">{t("SpaClient.modal.availableSlotsLabel")}</p>
-                  <p className="text-lg font-bold text-stone-900">{availableSlots}</p>
+                  <p className="text-lg font-bold text-stone-900">{formatNumber(availableSlots)}</p>
                 </div>
               </div>
             </div>

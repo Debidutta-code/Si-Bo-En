@@ -1160,5 +1160,12 @@
     "rooms":"rooms",
     "adult":"adult",
     "children":"child"
+  },
+  "GroupSearch":{
+    "perNight":"Per night before taxes and fees",
+    "viewRoom":"View Rooms →",
+    "location":"Location",
+    "whereTo":"Where to"
   }
+  
 }

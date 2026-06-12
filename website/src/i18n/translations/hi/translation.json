@@ -512,11 +512,11 @@
     "no": "नहीं",
     "totalActivityCharges": "कुल गतिविधि शुल्क",
     "printItinerary": "यात्रा कार्यक्रम प्रिंट करें",
-      "promoCodeDiscount": "प्रोमो कोड छूट",
-  "loyaltyDiscount": "लॉयल्टी छूट",
-  "amountBeforeTax": "कर से पहले की राशि",
-  "totalTax": "कुल कर राशि",
-  "amountAfterTax": "कर के बाद की राशि",
+    "promoCodeDiscount": "प्रोमो कोड छूट",
+    "loyaltyDiscount": "लॉयल्टी छूट",
+    "amountBeforeTax": "कर से पहले की राशि",
+    "totalTax": "कुल कर राशि",
+    "amountAfterTax": "कर के बाद की राशि",
     "pdf": {
       "title": "बुकिंग पुष्टिकरण",
       "hotelInfo": "होटल की जानकारी",
@@ -1155,10 +1155,16 @@
     }
   },
   "ModifyBookingModal": {
-  "nights": "रातें",
-  "rooms": "कमरे",
+    "nights": "रातें",
+    "rooms": "कमरे",
     "adult": "वयस्क",
-  "children": "बच्चा"
+    "children": "बच्चा"
+  },
+  "GroupSearch": {
+    "perNight": "प्रति रात (करों और शुल्कों से पहले)",
+    "viewRoom": "कमरे देखें →",
+      "location": "स्थान",
+  "whereTo": "कहाँ जाना है"
 
-}
+  }
 }
