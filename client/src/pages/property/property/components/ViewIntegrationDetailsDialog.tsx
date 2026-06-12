@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Lock, Calendar, CheckCircle2, XCircle, Info, AlertCircle } from 'lucide-react';
 import type { IMasterPartnersWProperty } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface ViewIntegrationDetailsDialogProps {
     isOpen: boolean;
@@ -16,6 +17,7 @@ export default function ViewIntegrationDetailsDialog({
     onClose,
     partner
 }: ViewIntegrationDetailsDialogProps) {
+    const { t } = useTranslation();
     if (!partner) return null;
 
     const integration = partner.propertyIntegrations?.[0];
@@ -31,16 +33,16 @@ export default function ViewIntegrationDetailsDialog({
                                 {partner.name}
                             </DialogTitle>
                             <DialogDescription className='mt-2 text-base'>
-                                Complete integration configuration and credentials overview
+                                {t('PartnerIntegration.viewDialog.subtitle')}
                             </DialogDescription>
                         </div>
                         {hasIntegration && integration?.isActive ? (
                             <Badge className='bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 text-sm'>
-                                <CheckCircle2 className='h-4 w-4 mr-1' /> Active
+                                <CheckCircle2 className='h-4 w-4 mr-1' /> {t('PartnerIntegration.section.active')}
                             </Badge>
                         ) : hasIntegration ? (
                             <Badge variant='secondary' className='px-4 py-2 text-sm'>
-                                <XCircle className='h-4 w-4 mr-1' /> Inactive
+                                <XCircle className='h-4 w-4 mr-1' /> {t('PartnerIntegration.viewDialog.inactive')}
                             </Badge>
                         ) : null}
                     </div>
@@ -51,25 +53,25 @@ export default function ViewIntegrationDetailsDialog({
                     <div className='bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-5 shadow-sm'>
                         <div className='flex items-center gap-2 mb-4'>
                             <Info className='h-5 w-5 text-blue-600' />
-                            <h4 className='font-bold text-blue-900 text-lg'>Partner Information</h4>
+                            <h4 className='font-bold text-blue-900 text-lg'>{t('PartnerIntegration.viewDialog.partnerInformation')}</h4>
                         </div>
                         <div className='grid grid-cols-2 gap-4'>
                             <div className='bg-white/70 rounded-lg p-3'>
-                                <p className='text-xs text-gray-600 mb-1'>Integration Type</p>
+                                <p className='text-xs text-gray-600 mb-1'>{t('PartnerIntegration.viewDialog.integrationType')}</p>
                                 <p className='font-semibold text-gray-900'>
-                                    {partner.type === 'channel_manager' ? '📊 Channel Manager' : '🏨 Property Management System'}
+                                    {partner.type === 'channel_manager' ? `📊 ${t('PartnerIntegration.section.channelManagerUpper')}` : `🏨 ${t('PartnerIntegration.section.pmsUpper')}`}
                                 </p>
                             </div>
                             <div className='bg-white/70 rounded-lg p-3'>
-                                <p className='text-xs text-gray-600 mb-1'>Availability</p>
+                                <p className='text-xs text-gray-600 mb-1'>{t('PartnerIntegration.viewDialog.availability')}</p>
                                 <p className='font-semibold text-gray-900'>
-                                    {partner.isActive ? '✅ Available' : '⏸️ Unavailable'}
+                                    {partner.isActive ? `✅ ${t('PartnerIntegration.viewDialog.available')}` : `⏸️ ${t('PartnerIntegration.viewDialog.unavailable')}`}
                                 </p>
                             </div>
                             {integration && integration.createdAt && (
                                 <>
                                     <div className='bg-white/70 rounded-lg p-3'>
-                                        <p className='text-xs text-gray-600 mb-1'>Integrated On</p>
+                                        <p className='text-xs text-gray-600 mb-1'>{t('PartnerIntegration.viewDialog.integratedOn')}</p>
                                         <p className='flex items-center gap-2 font-semibold text-gray-900'>
                                             <Calendar className='h-4 w-4 text-indigo-600' />
                                             {new Date(integration.createdAt).toLocaleDateString('en-US', { 
@@ -80,9 +82,9 @@ export default function ViewIntegrationDetailsDialog({
                                         </p>
                                     </div>
                                     <div className='bg-white/70 rounded-lg p-3'>
-                                        <p className='text-xs text-gray-600 mb-1'>Configured Fields</p>
+                                        <p className='text-xs text-gray-600 mb-1'>{t('PartnerIntegration.viewDialog.configuredFields')}</p>
                                         <p className='font-semibold text-gray-900'>
-                                            {integration.propertyIntegrationSecrets?.length || 0} Fields
+                                            {t('PartnerIntegration.viewDialog.fieldsCount', { count: integration.propertyIntegrationSecrets?.length || 0 })}
                                         </p>
                                     </div>
                                 </>
@@ -97,7 +99,7 @@ export default function ViewIntegrationDetailsDialog({
                                 <div className='h-8 w-8 rounded-lg bg-primary flex items-center justify-center'>
                                     <ExternalLink className='h-4 w-4 text-white' />
                                 </div>
-                                API Endpoints
+                                {t('PartnerIntegration.viewDialog.apiEndpoints')}
                             </Label>
                             <div className='space-y-3'>
                                 {partner.masterIntegrationURLFields.map((urlField) => (
@@ -136,9 +138,9 @@ export default function ViewIntegrationDetailsDialog({
                                 <div className='h-8 w-8 rounded-lg bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center'>
                                     <Lock className='h-4 w-4 text-white' />
                                 </div>
-                                Configured Credentials
+                                {t('PartnerIntegration.viewDialog.configuredCredentials')}
                                 <Badge variant='outline' className='ml-2'>
-                                    {integration?.propertyIntegrationSecrets?.length || 0} Fields
+                                    {t('PartnerIntegration.viewDialog.fieldsCount', { count: integration?.propertyIntegrationSecrets?.length || 0 })}
                                 </Badge>
                             </Label>
                             
@@ -154,7 +156,7 @@ export default function ViewIntegrationDetailsDialog({
                                                     <div className='flex items-center gap-2 mb-2'>
                                                         <Lock className='h-4 w-4 text-green-600' />
                                                         <Label className='text-sm font-bold text-gray-800'>
-                                                            {secret.RequiredField?.name || 'Unknown Field'}
+                                                            {secret.RequiredField?.name || t('PartnerIntegration.viewDialog.unknownField')}
                                                         </Label>
                                                     </div>
                                                     <div className='bg-gray-100 px-4 py-2 rounded-lg border border-gray-300 font-mono text-sm'>
@@ -164,7 +166,7 @@ export default function ViewIntegrationDetailsDialog({
                                                 </div>
                                                 {secret.createdAt && (
                                                     <div className='text-right'>
-                                                        <p className='text-xs text-gray-500'>Added</p>
+                                                        <p className='text-xs text-gray-500'>{t('PartnerIntegration.viewDialog.added')}</p>
                                                         <p className='text-xs font-medium text-gray-700'>
                                                             {new Date(secret.createdAt).toLocaleDateString('en-US', {
                                                                 month: 'short',
@@ -180,9 +182,9 @@ export default function ViewIntegrationDetailsDialog({
                             ) : (
                                 <div className='text-center py-8 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl'>
                                     <Lock className='h-12 w-12 text-amber-400 mx-auto mb-3' />
-                                    <p className='text-amber-800 font-medium'>No fields configured</p>
+                                    <p className='text-amber-800 font-medium'>{t('PartnerIntegration.viewDialog.noFieldsConfigured')}</p>
                                     <p className='text-sm text-amber-700 mt-1'>
-                                        Add credential fields to complete the integration setup.
+                                        {t('PartnerIntegration.viewDialog.addCredentialFields')}
                                     </p>
                                 </div>
                             )}
@@ -195,9 +197,9 @@ export default function ViewIntegrationDetailsDialog({
                             <div className='h-16 w-16 rounded-full bg-yellow-200 flex items-center justify-center mx-auto mb-4'>
                                 <AlertCircle className='h-8 w-8 text-yellow-700' />
                             </div>
-                            <p className='text-yellow-900 font-bold text-lg'>Not Integrated Yet</p>
+                            <p className='text-yellow-900 font-bold text-lg'>{t('PartnerIntegration.viewDialog.notIntegratedYet')}</p>
                             <p className='text-sm text-yellow-700 mt-2 max-w-md mx-auto'>
-                                This partner has not been integrated with your property. Please initiate the integration process first.
+                                {t('PartnerIntegration.viewDialog.notIntegratedDesc')}
                             </p>
                         </div>
                     )}
@@ -205,7 +207,7 @@ export default function ViewIntegrationDetailsDialog({
 
                 <div className='flex justify-end gap-3 pt-4 border-t'>
                     <Button onClick={onClose} variant='outline' className='px-6'>
-                        Close
+                        {t('PartnerIntegration.viewDialog.close')}
                     </Button>
                 </div>
             </DialogContent>

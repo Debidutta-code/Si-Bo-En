@@ -93,8 +93,7 @@
     "recover": "पुनर्स्थापित करें",
     "deleted": "हटाया गया",
     "to": "से",
-  "from": "तक"
-
+    "from": "तक"
   },
   "BookingStatus": {
     "confirmed": "पुष्टि की गई",
@@ -745,6 +744,7 @@
       "noAmenities": "कोई सुविधा उपलब्ध नहीं",
       "loadError": "सुविधाएँ लोड नहीं कर सका"
     },
+
     "address": {
       "title": "संपत्ति का पता",
       "addressLine1": "पता पंक्ति 1",
@@ -5727,5 +5727,102 @@
     "colPayment": "भुगतान",
     "colStatus": "स्थिति",
     "noReservations": "इस एजेंसी के लिए कोई आरक्षण नहीं मिला"
-  }
+  },
+      "PartnerIntegration": {
+      "section": {
+        "noPartners": "कोई {{type}} पार्टनर उपलब्ध नहीं है",
+        "partnersWillAppear": "सिस्टम में जोड़े जाने के बाद पार्टनर यहाँ दिखाई देंगे",
+        "partnersCount": "{{count}} पार्टनर",
+        "partnersCountPlural": "{{count}} पार्टनर्स",
+        "active": "सक्रिय",
+        "configured": "कॉन्फ़िगर किया गया",
+        "available": "उपलब्ध",
+        "requiredCredentials": "आवश्यक क्रेडेंशियल्स ({{count}}):",
+        "apiEndpoints": "API एंडपॉइंट्स:",
+        "configuredFields": "कॉन्फ़िगर किए गए फ़ील्ड:",
+        "integrate": "इंटीग्रेट करें",
+        "activating": "सक्रिय किया जा रहा है...",
+        "deactivating": "निष्क्रिय किया जा रहा है...",
+        "activate": "सक्रिय करें",
+        "deactivate": "निष्क्रिय करें",
+        "view": "देखें",
+        "manage": "प्रबंधित करें",
+        "channelManager": "चैनल मैनेजर",
+        "pms": "PMS",
+        "channelManagerUpper": "चैनल मैनेजर",
+        "pmsUpper": "PMS"
+      },
+      "viewDialog": {
+        "subtitle": "पूर्ण इंटीग्रेशन कॉन्फ़िगरेशन और क्रेडेंशियल्स का अवलोकन",
+        "inactive": "निष्क्रिय",
+        "partnerInformation": "पार्टनर जानकारी",
+        "integrationType": "इंटीग्रेशन प्रकार",
+        "availability": "उपलब्धता",
+        "available": "उपलब्ध",
+        "unavailable": "अनुपलब्ध",
+        "integratedOn": "इंटीग्रेशन की तिथि",
+        "configuredFields": "कॉन्फ़िगर किए गए फ़ील्ड",
+        "fieldsCount": "{{count}} फ़ील्ड",
+        "apiEndpoints": "API एंडपॉइंट्स",
+        "configuredCredentials": "कॉन्फ़िगर किए गए क्रेडेंशियल्स",
+        "unknownField": "अज्ञात फ़ील्ड",
+        "added": "जोड़ा गया",
+        "noFieldsConfigured": "कोई फ़ील्ड कॉन्फ़िगर नहीं किया गया",
+        "addCredentialFields": "इंटीग्रेशन सेटअप पूरा करने के लिए क्रेडेंशियल फ़ील्ड जोड़ें।",
+        "notIntegratedYet": "अभी तक इंटीग्रेट नहीं किया गया",
+        "notIntegratedDesc": "यह पार्टनर आपकी प्रॉपर्टी के साथ अभी तक इंटीग्रेट नहीं किया गया है। कृपया पहले इंटीग्रेशन प्रक्रिया शुरू करें।",
+        "close": "बंद करें"
+      },
+      "manageDialog": {
+        "titleNotIntegrated": "इंटीग्रेशन फ़ील्ड प्रबंधित करें",
+        "descNotIntegrated": "यह पार्टनर अभी तक इंटीग्रेट नहीं किया गया है।",
+        "pleaseIntegrateFirst": "फ़ील्ड प्रबंधित करने से पहले कृपया इस पार्टनर के साथ इंटीग्रेट करें।",
+        "close": "बंद करें",
+        "toastEmptyField": "फ़ील्ड का मान खाली नहीं हो सकता",
+        "confirmDelete": "क्या आप वाकई इस फ़ील्ड को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।",
+        "toastSelectField": "कृपया एक फ़ील्ड चुनें और उसका मान दर्ज करें",
+        "title": "{{name}} इंटीग्रेशन फ़ील्ड प्रबंधित करें",
+        "desc": "इंटीग्रेशन फ़ील्ड मान जोड़ें, अपडेट करें या हटाएँ",
+        "configuredFields": "कॉन्फ़िगर किए गए फ़ील्ड ({{count}})",
+        "addField": "फ़ील्ड जोड़ें",
+        "addNewField": "नया फ़ील्ड जोड़ें",
+        "selectField": "फ़ील्ड चुनें",
+        "selectFieldPlaceholder": "-- एक फ़ील्ड चुनें --",
+        "fieldValue": "फ़ील्ड मान",
+        "enterFieldValue": "फ़ील्ड मान दर्ज करें",
+        "adding": "जोड़ा जा रहा है...",
+        "add": "जोड़ें",
+        "cancel": "रद्द करें",
+        "enterNewValue": "नया मान दर्ज करें",
+        "saving": "सहेजा जा रहा है...",
+        "save": "सहेजें",
+        "chars": "{{count}} अक्षर",
+        "noFieldsConfiguredYet": "अभी तक कोई फ़ील्ड कॉन्फ़िगर नहीं किया गया है",
+        "warning": "चेतावनी:",
+        "warningDesc": "फ़ील्ड बदलने या हटाने से आपका इंटीग्रेशन प्रभावित हो सकता है। सहेजने से पहले सुनिश्चित करें कि मान सही हैं।"
+      },
+      "integrationDialog": {
+        "validationRequired": "{{fieldName}} आवश्यक है",
+        "validationEmail": "अमान्य ईमेल प्रारूप",
+        "validationUrl": "अमान्य URL प्रारूप",
+        "validationApiKey": "API कुंजी बहुत छोटी प्रतीत होती है",
+        "toastFixErrors": "कृपया सभी सत्यापन त्रुटियाँ ठीक करें",
+        "title": "{{name}} के साथ इंटीग्रेट करें",
+        "desc": "आवश्यक क्रेडेंशियल्स और सेटिंग्स प्रदान करके इंटीग्रेशन कॉन्फ़िगर करें। * चिह्नित सभी फ़ील्ड आवश्यक हैं।",
+        "partnerType": "पार्टनर प्रकार",
+        "partnerTypeDesc": "आप {{name}} के साथ इंटीग्रेशन सेट कर रहे हैं। सुनिश्चित करें कि आपके पास {{name}} के एडमिन पैनल से सही क्रेडेंशियल्स हैं।",
+        "apiEndpoints": "API एंडपॉइंट्स",
+        "apiEndpointsDesc": "ये वे एंडपॉइंट्स हैं जिनका उपयोग हमारा सिस्टम {{name}} के साथ संवाद करने के लिए करेगा",
+        "requiredConfigFields": "आवश्यक कॉन्फ़िगरेशन फ़ील्ड",
+        "requiredConfigFieldsDesc": "अपनी प्रॉपर्टी के लिए क्रेडेंशियल्स और कॉन्फ़िगरेशन मान दर्ज करें",
+        "fieldCount": "(फ़ील्ड {{current}} / {{total}})",
+        "propertyIdentifier": "यह {{name}} के सिस्टम में आपकी प्रॉपर्टी की पहचान है",
+        "securityNotice": "सुरक्षा सूचना:",
+        "securityNoticeDesc": "आपके क्रेडेंशियल्स एन्क्रिप्टेड और सुरक्षित रूप से संग्रहीत किए जाते हैं। इनका उपयोग केवल {{name}} के साथ API संचार के लिए किया जाएगा।",
+        "cancel": "रद्द करें",
+        "integrating": "इंटीग्रेट किया जा रहा है...",
+        "integrateNow": "अभी इंटीग्रेट करें",
+        "enterField": "{{name}} दर्ज करें"
+      }
+    }
 }

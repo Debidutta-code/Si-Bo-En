@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Power, Settings2, Plug, CheckCircle, Shield } from 'lucide-react';
 import type { IMasterPartnersWProperty } from '../types';
 import { capitalizeFirstLetter } from '@/lib/utils';
-
+import { useTranslation } from 'react-i18next';
 interface PartnerIntegrationSectionProps {
     title: string;
     partners: IMasterPartnersWProperty[];
@@ -25,6 +25,7 @@ export default function PartnerIntegrationSection({
     onManageFields,
     isLoading
 }: PartnerIntegrationSectionProps) {
+    const { t } = useTranslation();
     // console.log(isLoading)
     const filteredPartners = partners.filter(partner => partner.type === type);
 
@@ -40,10 +41,10 @@ export default function PartnerIntegrationSection({
                         <Plug className='h-8 w-8 text-gray-400' />
                     </div>
                     <p className='text-gray-600 font-medium'>
-                        No {type === 'channel_manager' ? 'channel manager' : 'PMS'} partners available
+                        {t('PartnerIntegration.section.noPartners', { type: type === 'channel_manager' ? t('PartnerIntegration.section.channelManager') : t('PartnerIntegration.section.pms') })}
                     </p>
                     <p className='text-sm text-gray-500 mt-1'>
-                        Partners will appear here once they are added to the system
+                        {t('PartnerIntegration.section.partnersWillAppear')}
                     </p>
                 </div>
             </div>
@@ -60,7 +61,7 @@ export default function PartnerIntegrationSection({
                     {title}
                 </h3>
                 <Badge variant='outline' className='text-xs'>
-                    {filteredPartners.length} Partner{filteredPartners.length !== 1 ? 's' : ''}
+                    {filteredPartners.length !== 1 ? t('PartnerIntegration.section.partnersCountPlural', { count: filteredPartners.length }) : t('PartnerIntegration.section.partnersCount', { count: filteredPartners.length })}
                 </Badge>
             </div>
             <div className='grid gap-4 max-h-[500px] overflow-y-auto pr-2'>
@@ -99,17 +100,17 @@ export default function PartnerIntegrationSection({
                                             <div className='flex items-center gap-2 mt-1'>
                                                 {isActive && (
                                                     <Badge className='bg-gradient-to-r from-green-500 to-emerald-600 text-white text-xs'>
-                                                        <CheckCircle className='h-3 w-3 mr-1' /> Active
+                                                        <CheckCircle className='h-3 w-3 mr-1' /> {t('PartnerIntegration.section.active')}
                                                     </Badge>
                                                 )}
                                                 {hasIntegration && !isActive && (
                                                     <Badge variant='secondary' className='text-xs'>
-                                                        <Shield className='h-3 w-3 mr-1' /> Configured
+                                                        <Shield className='h-3 w-3 mr-1' /> {t('PartnerIntegration.section.configured')}
                                                     </Badge>
                                                 )}
                                                 {!hasIntegration && (
                                                     <Badge variant='outline' className='text-xs'>
-                                                        Available
+                                                        {t('PartnerIntegration.section.available')}
                                                     </Badge>
                                                 )}
                                             </div>
@@ -121,7 +122,7 @@ export default function PartnerIntegrationSection({
                                         <div className='mt-3 p-3 bg-white/50 rounded-lg border border-gray-200'>
                                             <p className='text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1'>
                                                 <Shield className='h-3 w-3' />
-                                                Required Credentials ({partner.requiredFieldsForMasterIntegration.length}):
+                                                {t('PartnerIntegration.section.requiredCredentials', { count: partner.requiredFieldsForMasterIntegration.length })}
                                             </p>
                                             <div className='flex flex-wrap gap-2'>
                                                 {partner.requiredFieldsForMasterIntegration.map((field) => (
@@ -136,11 +137,10 @@ export default function PartnerIntegrationSection({
                                         </div>
                                     )}
 
-                                    {/* Stats Row */}
                                     <div className='flex gap-4 mt-3'>
                                         {partner.masterIntegrationURLFields.length > 0 && (
                                             <div className='text-xs'>
-                                                <span className='text-gray-600'>API Endpoints:</span>
+                                                <span className='text-gray-600'>{t('PartnerIntegration.section.apiEndpoints')}</span>
                                                 <span className='font-semibold text-gray-900 ml-1'>
                                                     {partner.masterIntegrationURLFields.length}
                                                 </span>
@@ -148,7 +148,7 @@ export default function PartnerIntegrationSection({
                                         )}
                                         {hasIntegration && integration && (
                                             <div className='text-xs'>
-                                                <span className='text-gray-600'>Configured Fields:</span>
+                                                <span className='text-gray-600'>{t('PartnerIntegration.section.configuredFields')}</span>
                                                 <span className='font-semibold text-gray-900 ml-1'>
                                                     {integration.propertyIntegrationSecrets?.length || 0}
                                                 </span>
@@ -166,7 +166,7 @@ export default function PartnerIntegrationSection({
                                             className='bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white px-4'
                                         >
                                             <Plug className='h-4 w-4 mr-2' />
-                                            Integrate
+                                            {t('PartnerIntegration.section.integrate')}
                                         </Button>
                                     ) : (
                                         // Integrated - Show action buttons
@@ -182,7 +182,7 @@ export default function PartnerIntegrationSection({
                                                 className='w-full'
                                             >
                                                 <Power className='h-3 w-3 mr-2' />
-                                                {isLoading[integration?.id || ''] ? (isActive ? 'Deactivating...' : 'Activating...') : isActive ? 'Deactivate' : 'Activate'}
+                                                {isLoading[integration?.id || ''] ? (isActive ? t('PartnerIntegration.section.deactivating') : t('PartnerIntegration.section.activating')) : isActive ? t('PartnerIntegration.section.deactivate') : t('PartnerIntegration.section.activate')}
                                             </Button>
                                             
                                             <Button
@@ -196,7 +196,7 @@ export default function PartnerIntegrationSection({
                                                 className='w-full'
                                             >
                                                 <Eye className='h-3 w-3 mr-2' />
-                                                View
+                                                {t('PartnerIntegration.section.view')}
                                             </Button>
 
                                             <Button
@@ -210,7 +210,7 @@ export default function PartnerIntegrationSection({
                                                 className='w-full'
                                             >
                                                 <Settings2 className='h-3 w-3 mr-2' />
-                                                Manage
+                                                {t('PartnerIntegration.section.manage')}
                                             </Button>
                                         </>
                                     )}
