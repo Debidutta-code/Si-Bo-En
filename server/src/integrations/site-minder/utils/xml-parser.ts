@@ -380,7 +380,7 @@ export class SiteMinderXmlParser {
                             RatePlan: {
                                 '@_RatePlanCode': rs.ratePlanCode,
                                 RatePlanDescription: {
-                                    '@_Name': rs.ratePlanName,
+                                    '@_Name': `${rs.ratePlanName} - ${rs.roomTypeName}`,
                                 },
                             },
                         },

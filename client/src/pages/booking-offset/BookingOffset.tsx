@@ -343,7 +343,7 @@ export default function BookingOffset() {
               onClick={handleBulkDeleteClick}
               variant={"destructive"}
             >
-              {t("BookingOffset.bulkActions.bulkUpdate")}
+              {t("BookingOffset.bulkActions.bulkDelete")}
             </Button>
           </div>
         </div>

@@ -75,7 +75,7 @@ export default function DeleteConfirmDialog({
             {showDateRange && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  {t("BookingOffset.formModal.startDate")}
+                  {t("BookingOffsetForm.formModal.startDate")}
                   <Input
                     type="date"
                     value={startDate}
@@ -83,7 +83,7 @@ export default function DeleteConfirmDialog({
                   />
                 </div>
                 <div className="space-y-2">
-                  {t("BookingOffset.formModal.endDate")}
+                  {t("BookingOffsetForm.formModal.endDate")}
                   <Input
                     type="date"
                     value={endDate}
@@ -97,10 +97,10 @@ export default function DeleteConfirmDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isLoading}>
-            {t("BookingOffset.formModal.cancel")}
+            {t("BookingOffsetForm.formModal.cancel")}
           </Button>
           <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? t("BookingOffset.formModal.deleting") : t("BookingOffset.formModal.delete")}
+            {isLoading ? t("BookingOffsetForm.formModal.deleting") : t("BookingOffsetForm.formModal.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>
