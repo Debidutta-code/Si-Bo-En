@@ -1,11 +1,11 @@
 import createAxiosInstance from "@/components/axiosInstance";
-import type { ICSpaDatesS, ICSpaSlotS, IgetInDates } from "../interfaces";
+import type {  ICSpaSlotS, IgetInDates } from "../interfaces";
 
 const axiosInstance = createAxiosInstance();
 
 // --- Spa Dates API ---
 
-export const createSpaDate = async (spaId: string, dateData: ICSpaDatesS) => {
+export const createSpaDate = async (spaId: string, dateData: { dates: string[] }) => {
     try {
         const response = await axiosInstance.post(`/spa/slots/dates/${spaId}`, dateData);
         return response.data;
@@ -13,10 +13,7 @@ export const createSpaDate = async (spaId: string, dateData: ICSpaDatesS) => {
         if (error?.response?.data) {
             return error.response.data;
         } else {
-            return {
-                success: false,
-                message: error?.message
-            }
+            return { success: false, message: error?.message };
         }
     }
 };
@@ -55,21 +52,18 @@ export const getSpaForDateRange = async (spaId: string, dateData: IgetInDates) =
 };
 
 
-export const createSpaSlots = async (spaDateId: string, slotData: ICSpaSlotS[]) => {
+export const createSpaSlots = async (slotData: (ICSpaSlotS & { spaDateId: string })[]) => {
     try {
-        const response = await axiosInstance.post(`/spa/slots/slots/${spaDateId}`, slotData);
+        const response = await axiosInstance.post(`/spa/slots/slots`, slotData);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
             return error.response.data;
         } else {
-            return {
-                success: false,
-                message: error?.message
-            }
+            return { success: false, message: error?.message };
         }
     }
-}
+};
 
 export const deleteSpaSlot = async (slotId: string) => {
     try {

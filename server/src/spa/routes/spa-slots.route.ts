@@ -17,16 +17,17 @@ spaSlotRouter
         protect,
         spaDateController.getSpaForDateRange.bind(spaDateController)
     );
+spaSlotRouter
+    .route('/slots').post(protect, spaSlotController.createSlots.bind(spaSlotController))
 
-// Spa Slots
 spaSlotRouter
     .route('/slots/:id')
-    .post(protect, spaSlotController.createSlots.bind(spaSlotController))
-    .delete(protect, spaSlotController.deleteSpaSlot.bind(spaSlotController));
+    .delete(protect, spaSlotController.deleteSpaSlot.bind(spaSlotController))
+
 
 // Slot Availability / Booking
-spaSlotRouter.route("/slots/:id/book").patch(spaSlotController.markSlotAsBooked.bind(spaSlotController));
-spaSlotRouter.route("/slots/:id/available").patch(spaSlotController.markSlotAsAvailable.bind(spaSlotController));
-spaSlotRouter.route("/slots/:id/completed").patch(protect, spaSlotController.markSlotAsCompleted.bind(spaSlotController));
+// spaSlotRouter.route("/slots/:id/book").patch(spaSlotController.markSlotAsBooked.bind(spaSlotController));
+// spaSlotRouter.route("/slots/:id/available").patch(spaSlotController.markSlotAsAvailable.bind(spaSlotController));
+// spaSlotRouter.route("/slots/:id/completed").patch(protect, spaSlotController.markSlotAsCompleted.bind(spaSlotController));
 
 export { spaSlotRouter };

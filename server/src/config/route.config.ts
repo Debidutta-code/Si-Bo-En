@@ -24,7 +24,7 @@ import { currencyRoutes } from '../currency-maping/routes';
 import { fikafiPaymentRoutes } from '../payment/routes/fikafi.routes';
 import { managementRoute } from '../utils-management/routes';
 import { uploadRouter } from '../uploads/routes';
-// import { spaRouter } from '../spa/routes';
+import { spaRouter } from '../spa/routes';
 import serviceLogRouter from '../logs/routes/service-log.route';
 import { reservationRoute } from '../reservation/routes';
 import { reportsRouter } from '../reports/routes/reports.route';
@@ -78,7 +78,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/payment', PaymentRoutes);
     apiV1Router.use('/integrations', integrationRouter);
     apiV1Router.use('/platform', platformRouter);
-    // apiV1Router.use('/spa', spaRouter);
+    apiV1Router.use('/spa', spaRouter);
     apiV1Router.use('/currency', currencyRoutes);
     apiV1Router.use('/service-logs', serviceLogRouter);
     apiV1Router.use('/problem-tickets', problemTicketRouter);

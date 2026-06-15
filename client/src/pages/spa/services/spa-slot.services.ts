@@ -7,19 +7,17 @@ import {
     markSlotAsAvailable,
     markSlotAsCompleted,
 } from "../api";
-import type { ICSpaDatesS, ICSpaSlotS ,IgetInDates} from "../interfaces";
+import type {  ICSpaSlotS ,IgetInDates} from "../interfaces";
 
-export const createSpaDateService = async (spaId: string, dateData: ICSpaDatesS) => {
+export const createSpaDateService = async (spaId: string, dates: string[]) => {
     try {
-        const result = await createSpaDate(spaId, dateData);
+        const result = await createSpaDate(spaId, { dates });
         return result;
     } catch (error) {
-        return {
-            success: false,
-            message: "Failed to create spa date"
-        };
+        return { success: false, message: "Failed to create spa dates" };
     }
 };
+
 
 export const deleteSpaDateService = async (spaId: string) => {
     try {
@@ -45,15 +43,12 @@ export const getSpaForDateRangeService = async (spaId: string, dateData: IgetInD
     }
 };
 
-export const createSpaSlotsService = async (spaDateId: string, slotData: ICSpaSlotS[]) => {
+export const createSpaSlotsService = async (slotData: (ICSpaSlotS & { spaDateId: string })[]) => {
     try {
-        const result = await createSpaSlots(spaDateId, slotData);
+        const result = await createSpaSlots(slotData);
         return result;
     } catch (error) {
-        return {
-            success: false,
-            message: "Failed to create spa slots"
-        };
+        return { success: false, message: "Failed to create spa slots" };
     }
 };
 

@@ -135,11 +135,16 @@ export class SpaUserRepository {
                             },
                         },
                         include: {
-                            Slots: {
+                            slots: {
                                 include: {
-                                    Reservation: {
+                                    slotsAvailable: {
                                         select: {
-                                            bookingCode: true,
+                                            id: true,
+                                            status: true,
+                                            reservationId: true,
+                                            slotBooking: {
+                                                select: { id: true, spaBookingId: true, amount: true },
+                                            },
                                         },
                                     },
                                 },

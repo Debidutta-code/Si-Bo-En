@@ -10,7 +10,7 @@ export interface ICSpaDatesR extends ICSpaDatesS {
 }
 export interface ISpaDates extends ICSpaDatesR {
     id: string;
-    Slots: ISpaSlotWAvailability[];
+    slots: ISpaSlotWAvailability[];
 }
 export interface BatchPayload {
     count: number;
@@ -61,4 +61,11 @@ export interface ISpaBookingRequest {
         spaId: string;
         slotsAvailableId: string;  
     }[];
+}
+
+export interface ICSpaSlotBatch {
+    spaDateId: string;
+    startTime: Date;
+    endTime: Date | null;
+    availability: number;
 }

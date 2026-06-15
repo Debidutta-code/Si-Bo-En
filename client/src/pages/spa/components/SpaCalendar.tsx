@@ -14,17 +14,16 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import SpaDateCell from './SpaDateCell';
-import SpaSlotDialog from './SpaSlotDialog';
 import {
   getSpaForDateRangeService,
-  createSpaDateService,
-  createSpaSlotsService,
   deleteSpaDateService,
   deleteSpaSlotService,
+  createSpaSlotsService,
+  createSpaDateService,
 } from '../services';
-import type { ISpaDates, ICSpaSlotS, ISpa } from '../interfaces';
+import type { ISpaDates, ISpa, ICSpaSlotS } from '../interfaces';
 import BackButton from '@/components/shared/BackButton';
-import SpaRangeConfigDialog from './SpaRangeConfigDialog';
+import SpaConfigDialog, { type SpaConfigPayload } from './SpaConfigDialog';
 
 export default function SpaCalendar({
   spaId,
@@ -39,10 +38,6 @@ export default function SpaCalendar({
   const [spaDates, setSpaDates] = useState<ISpaDates[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Single slot dialog (original per-cell)
-  const [slotDialogOpen, setSlotDialogOpen] = useState(false);
-  const [selectedDateContext, setSelectedDateContext] = useState<{ date: Date; spaDateId: string } | null>(null);
-
   // Delete contexts
   const [dateDeleteContext, setDateDeleteContext] = useState<string | null>(null);
   const [slotDeleteContext, setSlotDeleteContext] = useState<string | null>(null);
@@ -51,10 +46,10 @@ export default function SpaCalendar({
   const [dragStart, setDragStart] = useState<Date | null>(null);
   const [dragEnd, setDragEnd] = useState<Date | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [rangeDialogOpen, setRangeDialogOpen] = useState(false);
-  const [confirmedRange, setConfirmedRange] = useState<Date[]>([]);
-  // ───────────────────────────────────────────────────────────────────────────
 
+  const [configDialogOpen, setConfigDialogOpen] = useState(false);
+  const [configDates, setConfigDates] = useState<Date[]>([]);
+  const [forceWithSlots, setForceWithSlots] = useState(false);
   useEffect(() => {
     fetchSpaDates();
   }, [currentMonth, spaId]);
@@ -125,8 +120,9 @@ export default function SpaCalendar({
     }).filter((d) => !isBefore(d, startOfDay(new Date())));
 
     if (range.length > 0) {
-      setConfirmedRange(range);
-      setRangeDialogOpen(true);
+      setConfigDates(range);
+      setForceWithSlots(true); // drag = always day+slots, no toggle
+      setConfigDialogOpen(true);
     }
     resetDrag();
   };
@@ -144,22 +140,6 @@ export default function SpaCalendar({
     const end = isAfter(dragEnd ?? dragStart, dragStart) ? (dragEnd ?? dragStart) : dragStart;
     return isWithinInterval(startOfDay(day), { start: startOfDay(start), end: startOfDay(end) });
   };
-  // ───────────────────────────────────────────────────────────────────────────
-
-  // ── Actions ─────────────────────────────────────────────────────────────────
-  const handleAddSpaDate = async (date: Date) => {
-    setIsLoading(true);
-    const floatDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0));
-    const res = await createSpaDateService(spaId, { date: floatDate });
-    if (res?.success) {
-      toast.success(t('SpaCalendar.toast.dateMarked'));
-      await fetchSpaDates();
-    } else {
-      toast.error(res?.message || t('SpaCalendar.toast.dateMarkFailed'));
-    }
-    setIsLoading(false);
-  };
-
   const handleRemoveSpaDate = (id: string) => setDateDeleteContext(id);
 
   const confirmRemoveSpaDate = async () => {
@@ -176,23 +156,7 @@ export default function SpaCalendar({
     setDateDeleteContext(null);
   };
 
-  const handleOpenSlotDialog = (date: Date, spaDateId: string) => {
-    setSelectedDateContext({ date, spaDateId });
-    setSlotDialogOpen(true);
-  };
 
-  const handleSaveSlot = async (data: ICSpaSlotS[]) => {
-    if (!selectedDateContext) return;
-    setIsLoading(true);
-    const res = await createSpaSlotsService(selectedDateContext.spaDateId, data);
-    if (res?.success) {
-      toast.success(t('SpaCalendar.toast.slotsAdded'));
-      await fetchSpaDates();
-    } else {
-      toast.error(res?.message || t('SpaCalendar.toast.slotsAddFailed'));
-    }
-    setIsLoading(false);
-  };
 
   const handleRemoveSlot = (id: string) => setSlotDeleteContext(id);
 
@@ -210,49 +174,109 @@ export default function SpaCalendar({
     setSlotDeleteContext(null);
   };
 
-  /**
-   * Range save — for each date in range:
-   * 1. If no spaDate exists → create one first, then add slots
-   * 2. If spaDate already exists → just add slots
-   */
-  const handleSaveRange = async (entries: { date: Date; slots: ICSpaSlotS[] }[]) => {
+
+  const handleCellClick = (date: Date) => {
+    setConfigDates([date]);
+    setForceWithSlots(false); // show mode toggle for single click
+    setConfigDialogOpen(true);
+  };
+
+const handleSaveConfig = async (payload: SpaConfigPayload) => {
     setIsLoading(true);
-    let successCount = 0;
 
-    for (const entry of entries) {
-      const { date, slots } = entry;
+    const isoDateStrings = payload.dates.map((d) =>
+        new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString()
+    );
 
-      // Check if this date already has a spa date record
-      let spaDateId: string | null = null;
-      const existing = spaDates.find((sd) => {
-        const d = new Date(sd.date);
-        const localD = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-        return isSameDay(localD, date);
-      });
+    // Check which dates are missing from current spaDates state
+    const missingDates = isoDateStrings.filter((isoDate) =>
+        !spaDates.some((sd) => {
+            const existing = new Date(sd.date);
+            const incoming = new Date(isoDate);
+            return (
+                existing.getUTCFullYear() === incoming.getUTCFullYear() &&
+                existing.getUTCMonth() === incoming.getUTCMonth() &&
+                existing.getUTCDate() === incoming.getUTCDate()
+            );
+        })
+    );
 
-      if (existing) {
-        spaDateId = existing.id;
-      } else {
-        // Create spa date first
-        const floatDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0));
-        const res = await createSpaDateService(spaId, { date: floatDate });
-        if (res?.success) {
-          spaDateId = res.data?.id ?? null;
+    // Step 1: only create dates that don't exist yet
+    if (missingDates.length > 0) {
+        const createRes = await createSpaDateService(spaId, missingDates);
+        if (!createRes?.success) {
+            toast.error(createRes?.message || 'Failed to create spa dates');
+            setIsLoading(false);
+            return;
         }
-      }
-
-      if (spaDateId && slots.length > 0) {
-        const res = await createSpaSlotsService(spaDateId, slots);
-        if (res?.success) successCount++;
-      }
     }
 
-    toast.success(`Configured ${successCount} of ${entries.length} dates`);
+    // Day-only config — done
+    if (!payload.slots || payload.slots.length === 0) {
+        toast.success('Dates configured successfully');
+        await fetchSpaDates();
+        setIsLoading(false);
+        return;
+    }
+
+    // Step 2: get fresh records only if we created new dates, otherwise use state
+    let freshDates: ISpaDates[] = spaDates;
+    if (missingDates.length > 0) {
+        const freshRes = await getSpaForDateRangeService(spaId, {
+            startDate: startOfMonth(currentMonth),
+            endDate: endOfMonth(currentMonth),
+        });
+        freshDates = freshRes?.data || [];
+    }
+
+    // Step 3: build all slots across all dates into one array
+    const allSlots: (ICSpaSlotS & { spaDateId: string })[] = [];
+
+    for (const targetDate of payload.dates) {
+        const spaDateRecord = freshDates.find((sd) => {
+            const d = new Date(sd.date);
+            return (
+                d.getUTCFullYear() === targetDate.getFullYear() &&
+                d.getUTCMonth() === targetDate.getMonth() &&
+                d.getUTCDate() === targetDate.getDate()
+            );
+        });
+
+        if (!spaDateRecord) continue;
+
+        const slotsForDate = payload.slots.map((slot) => {
+            const startTemplate = new Date(slot.startTime);
+            const endTemplate = new Date(slot.endTime);
+            return {
+                spaDateId: spaDateRecord.id,
+                startTime: new Date(Date.UTC(
+                    targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(),
+                    startTemplate.getUTCHours(), startTemplate.getUTCMinutes(), 0, 0
+                )),
+                endTime: new Date(Date.UTC(
+                    targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(),
+                    endTemplate.getUTCHours(), endTemplate.getUTCMinutes(), 0, 0
+                )),
+                availability: payload.availability,
+            } as any;
+        });
+
+        allSlots.push(...slotsForDate);
+    }
+
+    // Step 4: single API call for all slots
+    if (allSlots.length > 0) {
+        const slotRes = await createSpaSlotsService(allSlots);
+        if (slotRes?.success) {
+            toast.success(`Configured ${payload.dates.length} dates with ${allSlots.length} slots total`);
+        } else {
+            toast.error(slotRes?.message || 'Failed to create slots');
+        }
+    }
+
     await fetchSpaDates();
     setIsLoading(false);
-  };
-  // ───────────────────────────────────────────────────────────────────────────
-
+};
   return (
     <div
       className="flex flex-col h-full bg-white rounded-xl shadow-sm border p-4"
@@ -311,9 +335,8 @@ export default function SpaCalendar({
               spaDate={spaDate}
               isSelected={isCellSelected(day)}
               isDragActive={isDragging}
-              onAddSpaDate={handleAddSpaDate}
               onRemoveSpaDate={handleRemoveSpaDate}
-              onAddSlot={handleOpenSlotDialog}
+              onCellClick={handleCellClick}
               onRemoveSlot={handleRemoveSlot}
               onDragStart={handleDragStart}
               onDragEnter={handleDragEnter}
@@ -322,23 +345,13 @@ export default function SpaCalendar({
           );
         })}
       </div>
-
-      {/* Single-date slot dialog (original) */}
-      <SpaSlotDialog
-        isOpen={slotDialogOpen}
-        onClose={() => setSlotDialogOpen(false)}
-        onSave={handleSaveSlot}
-        selectedDate={selectedDateContext?.date || null}
+      <SpaConfigDialog
+        isOpen={configDialogOpen}
+        onClose={() => setConfigDialogOpen(false)}
+        onSave={handleSaveConfig}
+        selectedDates={configDates}
         serviceTime={spaDetails.serviceTime}
-      />
-
-      {/* Range config dialog */}
-      <SpaRangeConfigDialog
-        isOpen={rangeDialogOpen}
-        onClose={() => setRangeDialogOpen(false)}
-        onSave={handleSaveRange}
-        selectedDates={confirmedRange}
-        serviceTime={spaDetails.serviceTime}
+        forceWithSlots={forceWithSlots}
       />
 
       {/* Delete SpaDate Alert */}

@@ -1,1 +1,1 @@
-// export * from './spa.route';
+export * from './spa.route';

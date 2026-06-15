@@ -6,7 +6,6 @@ import {
     IRateplanTax,
     ISpaPricing,
     ISpaReservation,
-    ITaxBrakeDown,
 } from '../types';
 export class SpaPricingRepository {
     public async createSpaPricing(data: ICSpaPricingR): Promise<ISpaPricing> {
@@ -140,17 +139,17 @@ export class SpaPricingRepository {
             throw new Error('Failed to delete taxes');
         }
     }
-    public async createTaxBrakeDowns(
-        data: ITaxBrakeDown[]
-    ): Promise<BatchPayload> {
-        try {
-            return await prisma.taxBrakeDown.createMany({
-                data: data,
-            });
-        } catch (error) {
-            throw new Error('Failed to create tax breakdown');
-        }
-    }
+    // public async createTaxBrakeDowns(
+    //     data: ITaxBrakeDown[]
+    // ): Promise<BatchPayload> {
+    //     try {
+    //         return await prisma.taxBrakeDown.createMany({
+    //             data: data,
+    //         });
+    //     } catch (error) {
+    //         throw new Error('Failed to create tax breakdown');
+    //     }
+    // }
     public async getApplicableTaxes(
         ratePlanCode: string
     ): Promise<IRateplanTax | null> {

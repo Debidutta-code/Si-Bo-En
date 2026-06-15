@@ -7,10 +7,6 @@ const validateId = (id: string, entity: string) => {
     return null;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Spa Translation
-// ─────────────────────────────────────────────────────────────────────────────
-
 export async function upsertSpaTranslationService(id: string, payload: UpsertSpaTranslationPayload) {
     const error = validateId(id, "Spa");
     if (error) return error;

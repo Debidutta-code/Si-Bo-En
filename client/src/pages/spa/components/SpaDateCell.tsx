@@ -9,11 +9,9 @@ interface Props {
   spaDate?: ISpaDates;
   isSelected?: boolean;
   isDragActive?: boolean;
-  onAddSpaDate: (d: Date) => void;
+  onCellClick: (d: Date) => void;       // replaces onAddSpaDate + onAddSlot
   onRemoveSpaDate: (id: string) => void;
-  onAddSlot: (d: Date, spaDateId: string) => void;
   onRemoveSlot: (id: string) => void;
-  // Drag selection handlers
   onDragStart: (d: Date) => void;
   onDragEnter: (d: Date) => void;
   onDragEnd: () => void;
@@ -25,13 +23,13 @@ export default function SpaDateCell({
   spaDate,
   isSelected = false,
   isDragActive = false,
-  onAddSpaDate,
   onRemoveSpaDate,
-  onAddSlot,
   onRemoveSlot,
   onDragStart,
   onDragEnter,
   onDragEnd,
+  onCellClick,
+
 }: Props) {
   const { t } = useTranslation();
   const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -72,15 +70,14 @@ export default function SpaDateCell({
       {/* Header */}
       <div className="flex justify-between items-center mb-1 px-1 mt-0.5 relative z-10">
         <span
-          className={`text-xs font-semibold ${
-            isSelected && isCurrentMonth && !isPast
-              ? 'text-blue-700'
-              : isToday
+          className={`text-xs font-semibold ${isSelected && isCurrentMonth && !isPast
+            ? 'text-blue-700'
+            : isToday
               ? 'text-blue-600'
               : isPast
-              ? 'text-gray-400'
-              : 'text-gray-700'
-          }`}
+                ? 'text-gray-400'
+                : 'text-gray-700'
+            }`}
         >
           {format(day, 'd')}
         </span>
@@ -90,7 +87,7 @@ export default function SpaDateCell({
           <div className="flex space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               className="p-1 rounded text-blue-500 hover:bg-blue-100 hover:text-blue-700 transition-colors"
-              onClick={(e) => { e.stopPropagation(); onAddSlot(day, spaDate.id); }}
+              onClick={(e) => { e.stopPropagation(); onCellClick(day); }}
               title={t('SpaDateCell.tooltips.addSlots')}
               onMouseDown={(e) => e.stopPropagation()} // prevent triggering drag
             >
@@ -113,7 +110,7 @@ export default function SpaDateCell({
         {!spaDate ? (
           !isPast && !isDragActive && (
             <button
-              onClick={(e) => { e.stopPropagation(); onAddSpaDate(day); }}
+              onClick={(e) => { e.stopPropagation(); onCellClick(day); }}
               onMouseDown={(e) => e.stopPropagation()}
               className="w-full h-full min-h-[60px] flex flex-col items-center justify-center text-gray-300 hover:text-blue-500 hover:bg-blue-50/50 border border-transparent hover:border-dashed hover:border-blue-300 rounded transition-all opacity-0 group-hover:opacity-100"
             >
@@ -129,11 +126,10 @@ export default function SpaDateCell({
             .map((slot) => (
               <div
                 key={slot.id}
-                className={`relative overflow-hidden flex items-center justify-between p-1.5 rounded border text-[10px] shadow-sm group/slot transition-all ${
-                  slot.isBooked
-                    ? 'bg-red-50 border-red-100 text-red-800'
-                    : 'bg-green-50 border-green-100 text-green-800'
-                }`}
+                className={`relative overflow-hidden flex items-center justify-between p-1.5 rounded border text-[10px] shadow-sm group/slot transition-all ${slot.isBooked
+                  ? 'bg-red-50 border-red-100 text-red-800'
+                  : 'bg-green-50 border-green-100 text-green-800'
+                  }`}
               >
                 <div className="flex justify-between items-center">
                   <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis text-gray-800">
