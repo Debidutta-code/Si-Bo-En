@@ -103,7 +103,7 @@ const DatePickerWithHover = ({
         <span>{formatNumber(day)}</span>
         {price > 0 && (
           <span className="terra-solis-day-price">
-            {currencyCode} {formatNumber(Math.round(price))}
+            {currencies.find((c)=>c.code===currencyCode)?.symbol} {formatNumber(Math.round(price))}
           </span>
         )}
       </div>
@@ -147,6 +147,48 @@ const DatePickerWithHover = ({
       renderDayContents={renderDayContents}
       onMonthChange={onMonthChange}
       locale={locale}
+      renderCustomHeader={({
+        monthDate,
+        customHeaderCount,
+        decreaseMonth,
+        increaseMonth,
+        prevMonthButtonDisabled,
+        nextMonthButtonDisabled,
+      }) => {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        return (
+          <div className="relative flex justify-center items-center w-full">
+            {customHeaderCount === 0 && (
+              <button
+                type="button"
+                className="absolute left-0 w-8 h-8 flex items-center justify-center hover:bg-[#E8DFC9] rounded-full transition-colors z-10"
+                style={{ top: "0px" }}
+                onClick={decreaseMonth}
+                disabled={prevMonthButtonDisabled}
+              >
+                <span className="w-2 h-2 border-t-2 border-l-2 border-[#5B543F] -rotate-45 ml-1"></span>
+              </button>
+            )}
+            
+            <div className="react-datepicker__current-month">
+              {monthDate.toLocaleDateString(locale || getLocale(), { month: "long" })}{" "}
+              {formatNumber(monthDate.getFullYear())}
+            </div>
+
+            {(customHeaderCount === 1 || (isMobile && customHeaderCount === 0)) && (
+              <button
+                type="button"
+                className="absolute right-0 w-8 h-8 flex items-center justify-center hover:bg-[#E8DFC9] rounded-full transition-colors z-10"
+                style={{ top: "0px" }}
+                onClick={increaseMonth}
+                disabled={nextMonthButtonDisabled}
+              >
+                <span className="w-2 h-2 border-t-2 border-r-2 border-[#5B543F] rotate-45 mr-1"></span>
+              </button>
+            )}
+          </div>
+        );
+      }}
     />
   );
 };
@@ -545,7 +587,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   {formatNumber(checkIn?.getDate() ?? 0)}
                 </p>
                 <p className="text-[9px] lg:text-[10px] uppercase tracking-wider  font-medium" style={{ color: primaryColor }}>
-                  {checkIn?.toLocaleDateString(getLocale(), { month: "short" })}{" "}{formatNumber(checkIn?.getFullYear() ?? 0)}
+                  {checkIn?.toLocaleDateString(getLocale(), { weekday: "short", month: "short" })}{" "}{formatNumber(checkIn?.getFullYear() ?? 0)}
                 </p>
               </div>
 
@@ -564,7 +606,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 </p>
                 <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: primaryColor }}>
                   {checkOut
-                    ? `${checkOut.toLocaleDateString(getLocale(), { month: "short" })} ${formatNumber(checkOut.getFullYear())}`
+                    ? `${checkOut.toLocaleDateString(getLocale(), { weekday: "short", month: "short" })} ${formatNumber(checkOut.getFullYear())}`
                     : t("SearchWidget.checkOutSelect")}
                 </p>
               </div>
@@ -671,6 +713,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   prices={prices}
                   isPricesLoading={isPricesLoading}
                   currencyCode={bookingContext.currency}
+                  locale={getLocale().split("-")[0]}
                   onDateSelect={(date: Date) => {
                     if (selectionMode === "checkin") {
                       setCheckIn(date);
@@ -700,7 +743,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   onDayMouseLeave={() => setTemporaryCheckOut(null)}
                   isSelectingRange={isSelectingRange}
                   onMonthChange={handleMonthChange}
-                  locale={getLocale()}
                 />
               </div>
             </div>

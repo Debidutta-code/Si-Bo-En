@@ -142,7 +142,11 @@
       "alreadyRegistered": "वापसी पर स्वागत है! आप पहले से ही एक लॉयल्टी सदस्य हैं।",
       "registerSuccess": "लॉयल्टी प्रोग्राम के लिए सफलतापूर्वक पंजीकृत!",
       "failedRetry": "पंजीकरण विफल। कृपया पुनः प्रयास करें।"
-    }
+    },
+    "uptoOffPercent": "{{value}}% तक की छूट",
+    "uptoOffCurrency": "{{symbol}} {{value}} तक की छूट",
+    "offPercent": "{{value}}% की छूट",
+    "offCurrency": "{{symbol}} {{value}} की छूट"
   },
   "LoyaltyContainer": {
     "verifying": "सत्यापित किया जा रहा है...",
@@ -170,7 +174,11 @@
       "alreadyRegistered": "वापसी पर स्वागत है! आप पहले से ही एक लॉयल्टी सदस्य हैं।",
       "registerSuccess": "लॉयल्टी प्रोग्राम के लिए सफलतापूर्वक पंजीकृत!",
       "failedRetry": "पंजीकरण विफल। कृपया पुनः प्रयास करें।"
-    }
+    },
+    "uptoOffPercent": "{{value}}% तक की छूट",
+    "uptoOffCurrency": "{{symbol}} {{value}} तक की छूट",
+    "offPercent": "{{value}}% की छूट",
+    "offCurrency": "{{symbol}} {{value}} की छूट"
   },
   "RoomCard": {
     "guests": "मेहमान",
@@ -192,6 +200,7 @@
     "roomOnly": "केवल कमरा",
     "onlyRoomsLeft": "केवल {{count}} कमरा शेष!",
     "onlyRoomsLeftPlural": "केवल {{count}} कमरे शेष!",
+    "mlos": "न्यूनतम {{nights}} रातों का ठहराव",
     "touristTax": {
       "notIncluded": "शामिल नहीं",
       "paidAtHotel": " कमरे की दर में — सीधे होटल में भुगतान किया जाना है।"
@@ -235,7 +244,8 @@
     "promotionType": "ऑफ़र का प्रकार",
     "discount": "छूट",
     "addonIncluded": "शामिल",
-    "close": "बंद करें"
+    "close": "बंद करें",
+    "price": "कीमत"
   },
   "Footer": {
     "defaultAddress": "दुबई, संयुक्त अरब अमीरात",
@@ -1163,8 +1173,9 @@
   "GroupSearch": {
     "perNight": "प्रति रात (करों और शुल्कों से पहले)",
     "viewRoom": "कमरे देखें →",
-      "location": "स्थान",
-  "whereTo": "कहाँ जाना है"
-
-  }
+    "location": "स्थान",
+    "whereTo": "कहाँ जाना है"
+  },
+  "programTerms": "कार्यक्रम की शर्तें",
+  "specialBenifits": "विशेष लाभ"
 }

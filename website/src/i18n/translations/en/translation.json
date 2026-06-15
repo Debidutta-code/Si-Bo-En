@@ -1,6 +1,6 @@
 {
-  "adult":"Adult",
-  "child":"Child",
+  "adult": "Adult",
+  "child": "Child",
   "Navbar": {
     "home": "Home",
     "services": "Services",
@@ -87,10 +87,10 @@
       "subtitle": "The prices can rise at any moment. Don't wait any longer!"
     },
     "roomOnly": "Room Only",
-    "of":"of",
-    "is":"is",
-    "sqft":"sqft",
-    "sqm":"sqm",
+    "of": "of",
+    "is": "is",
+    "sqft": "sqft",
+    "sqm": "sqm",
     "videoOverlay": "Property Tour",
     "searchingRooms": "Searching rooms...",
     "noRoomsHotel": "No rooms available for this hotel.",
@@ -142,7 +142,11 @@
       "alreadyRegistered": "Welcome back! You're already a loyalty member.",
       "registerSuccess": "Successfully registered for loyalty program!",
       "failedRetry": "Failed to register. Please try again."
-    }
+    },
+    "uptoOffPercent": "Upto {{value}}% OFF",
+    "uptoOffCurrency": "Upto {{symbol}} {{value}} OFF",
+    "offPercent": "{{value}}% OFF",
+    "offCurrency": "{{symbol}} {{value}} OFF"
   },
   "LoyaltyContainer": {
     "verifying": "Verifying...",
@@ -170,7 +174,11 @@
       "alreadyRegistered": "Welcome back! You're already a loyalty member.",
       "registerSuccess": "Successfully registered for loyalty program!",
       "failedRetry": "Failed to register. Please try again."
-    }
+    },
+    "uptoOffPercent": "Upto {{value}}% OFF",
+    "uptoOffCurrency": "Upto {{symbol}} {{value}} OFF",
+    "offPercent": "{{value}}% OFF",
+    "offCurrency": "{{symbol}} {{value}} OFF"
   },
   "RoomCard": {
     "guests": "Guests",
@@ -180,7 +188,7 @@
     "promotionalRate": "Promotional rate",
     "specialOffersAvailable": "Special Offers Available",
     "specialOfferAvailable": "Special Offer Available",
-    "offersSelected": "offer(s) selected — will be applied at checkout",
+    "offersSelected": "offer(s) selected — applied at checkout",
     "taxNotIncluded": "Tax not included",
     "unlock": "UNLOCK",
     "basePrice": "Base Price",
@@ -192,6 +200,7 @@
     "roomOnly": "Room Only",
     "onlyRoomsLeft": "Only {{count}} Room Left!",
     "onlyRoomsLeftPlural": "Only {{count}} Rooms Left!",
+    "mlos": "Minimum {{nights}} nights stay",
     "touristTax": {
       "notIncluded": "not included",
       "paidAtHotel": " in the room rate — to be paid directly at the hotel."
@@ -235,7 +244,8 @@
     "promotionType": "Promotion Type",
     "discount": "Discount",
     "addonIncluded": "Included",
-    "close": "Close"
+    "close": "Close",
+    "price": "Price"
   },
   "Footer": {
     "defaultAddress": "Dubai, United Arab Emirates",
@@ -267,7 +277,7 @@
     "title": "Complete Your Booking",
     "adult": "Adult",
     "child": "Child",
-    "notAvailable":"Not Available",
+    "notAvailable": "Not Available",
     "firstName": "First Name",
     "firstNamePlaceholder": "First Name",
     "lastName": "Last Name",
@@ -530,12 +540,11 @@
       "paidAmount": "Paid Amount:",
       "refundable": "Refundable Amount:"
     },
-    "promoCodeDiscount":"Promocode Discount",
-    "loyaltyDiscount":"Loyalty Discount",
-    "amountBeforeTax":"Amount Before Tax",
-    "totalTax":"Total Tax amount",
-    "amountAfterTax":"Amount After Tax",
-
+    "promoCodeDiscount": "Promocode Discount",
+    "loyaltyDiscount": "Loyalty Discount",
+    "amountBeforeTax": "Amount Before Tax",
+    "totalTax": "Total Tax amount",
+    "amountAfterTax": "Amount After Tax",
     "actions": {
       "checkInNow": "Check In Now",
       "checkOutNow": "Check Out Now",
@@ -1155,17 +1164,18 @@
       "uploadFailed": "Failed to upload images"
     }
   },
-  "ModifyBookingModal":{
-    "nights":"nights",
-    "rooms":"rooms",
-    "adult":"adult",
-    "children":"child"
+  "ModifyBookingModal": {
+    "nights": "nights",
+    "rooms": "rooms",
+    "adult": "adult",
+    "children": "child"
   },
-  "GroupSearch":{
-    "perNight":"Per night before taxes and fees",
-    "viewRoom":"View Rooms →",
-    "location":"Location",
-    "whereTo":"Where to"
-  }
-  
+  "GroupSearch": {
+    "perNight": "Per night before taxes and fees",
+    "viewRoom": "View Rooms →",
+    "location": "Location",
+    "whereTo": "Where to"
+  },
+  "programTerms": "Program Terms",
+  "specialBenifits": "Special Benefits"
 }

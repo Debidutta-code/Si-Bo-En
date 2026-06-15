@@ -200,19 +200,19 @@ export const LoyaltyContainer = ({
 
   const getDiscountDisplay = (isPreLogin = false) => {
     if (!isPreLogin && isRegistered && discountInfo) {
-      if (discountInfo.type === "percentage") return `${formatNumber(discountInfo.value)}% OFF`;
+      if (discountInfo.type === "percentage") return t("LoyaltyContainer.offPercent", { value: formatNumber(discountInfo.value) });
       const currencySymbol = currencies.find((c: Currency) => c.code === discountInfo.currencyCode)?.symbol || discountInfo.currencyCode;
-      return `${currencySymbol} ${formatNumber(discountInfo.value)} OFF`;
+      return t("LoyaltyContainer.offCurrency", { symbol: currencySymbol, value: formatNumber(discountInfo.value) });
     }
     // Pre-login or not registered — show "Upto X% OFF"
     if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
-      return `Upto ${formatNumber(loyaltyProgram.discountPercentage)}% OFF`;
+      return t("LoyaltyContainer.uptoOffPercent", { value: formatNumber(loyaltyProgram.discountPercentage) });
     }
     if (program.loyaltyDiscountType === "percentage") {
-      return `Upto ${formatNumber(program.discountValue)}% OFF`;
+      return t("LoyaltyContainer.uptoOffPercent", { value: formatNumber(program.discountValue) });
     }
     const currencySymbol = currencies.find((c: Currency) => c.code === program.currencyCode)?.symbol || program.currencyCode;
-    return `Upto ${currencySymbol} ${formatNumber(program.discountValue)} OFF`;
+    return t("LoyaltyContainer.uptoOffCurrency", { symbol: currencySymbol, value: formatNumber(program.discountValue) });
   };
 
   // Only show where isDeleted is false AND isActive is true

@@ -294,12 +294,7 @@ const RoomDetails: React.FC<Props> = ({
         </p>
 
         <p>
-          <strong>{t("RoomDetails.currency")}:</strong>{" "}
-          {currencySymbol}
-        </p>
-
-        <p>
-          <strong>{t("RoomDetails.discount")}:</strong>{" "}
+          <strong>{t("RoomDetails.price")}:</strong>{" "}
           {currencySymbol}{" "}
           {formatNumber(selectedRatePlan.totalAmount)}
         </p>

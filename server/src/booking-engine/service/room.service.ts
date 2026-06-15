@@ -1012,7 +1012,7 @@ class RoomDiscountCalculator {
         if (this.ratePlanRule.isAutoApplied) {
             appliedDiscounts.push({
                 id: this.ratePlanRule.id,
-                promotionName: `Minimum ${this.ratePlanRule.minLos} nights stay`,
+                promotionName: `${this.ratePlanRule.minLos}`,
                 promotionType: 'mlos',
                 discountType: this.ratePlanRule.discountType,
                 discountValue: Number(this.ratePlanRule.discountValue),
@@ -1021,7 +1021,7 @@ class RoomDiscountCalculator {
         } else {
             availablePromotions.push({
                 id: this.ratePlanRule.id,
-                promotionName: `Minimum ${this.ratePlanRule.minLos} nights stay`,
+                promotionName: `${this.ratePlanRule.minLos}`,
                 promotionType: 'mlos',
                 discountType: this.ratePlanRule.discountType,
                 discountValue: this.ratePlanRule.discountValue,

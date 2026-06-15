@@ -102,3 +102,12 @@ export interface IRoomDetails {
 
   }
 }
+export interface IURoomAmenity {
+  id: string,
+  amenityName: string,
+  description: string|null,
+  icon: string|null,
+  _translations?: {
+    amenityName: string,
+  }
+}

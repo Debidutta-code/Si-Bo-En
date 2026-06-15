@@ -152,6 +152,9 @@ export interface IAvailablePromotions {
     friApplicable?: boolean;
     satApplicable?: boolean;
     sunApplicable?: boolean;
+    _translations?: {
+        promotionName: string;
+    }
 }
 export interface IAppliedDiscounts {
     id: string;
@@ -160,6 +163,9 @@ export interface IAppliedDiscounts {
     discountType: IDiscountType;
     discountValue: number;
     calculatedDiscountAmount: number;
+    _translations?: {
+        promotionName: string;
+    }
 }
 export interface IAddonsWithRatePlan {
     id: string;

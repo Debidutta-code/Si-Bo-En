@@ -25,7 +25,6 @@ import Loader from '@/components/Loader/Loader';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
 import { currencies } from '@/components/currency-code/cuurency';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
-import { format } from 'date-fns';
 import SpaCalendar from './components/SpaCalendar';
 import SpaViewDialog from './components/SpaViewDialog';
 import SpaAssignUserDialog from './components/SpaAssignUserDialog';
@@ -36,6 +35,12 @@ import toast from 'react-hot-toast';
 
 export default function Spa() {
   const { t } = useTranslation();
+  const formatDate = (date: string | null | undefined) => {
+    if (!date) return 'N/A';
+    const [y, m, d] = date.split('T')[0].split('-').map(Number);
+    const monthKeys = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    return `${t(`Months.${monthKeys[m - 1]}`)} ${d}, ${y}`;
+  };
   const { propertyId, spaId } = useParams();
   const navigate = useNavigate();
   const { languages: propertyLanguages } = usePropertyContext();
@@ -389,7 +394,7 @@ const [editIsActive,setEditIsActive]=useState(false)
                 <TableCell>{spa.serviceTime}</TableCell>
                 <TableCell>{spa.location}</TableCell>
                 <TableCell>
-                  <span className="text-xs text-gray-500">{format(new Date((spa as any).createdAt), 'dd MMM yyyy, p')}</span>
+                  <span className="text-xs text-gray-500">{formatDate((spa as any).createdAt)}</span>
                 </TableCell>
                 <TableCell>
                   {spa.User ? (

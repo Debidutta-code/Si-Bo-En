@@ -244,19 +244,19 @@ export const LoyaltyProgramBanner = ({
 
   const getDiscountDisplay = (isPreLogin = false) => {
     if (!isPreLogin && isRegistered && discountInfo) {
-      if (discountInfo.type === "percentage") return `${formatNumber(discountInfo.value)}% OFF`;
+      if (discountInfo.type === "percentage") return t("LoyaltyBanner.offPercent", { value: formatNumber(discountInfo.value) });
       const currencySymbol = currencies.find((c: Currency) => c.code === discountInfo.currencyCode)?.symbol || discountInfo.currencyCode;
-      return `${currencySymbol} ${formatNumber(discountInfo.value)} OFF`;
+      return t("LoyaltyBanner.offCurrency", { symbol: currencySymbol, value: formatNumber(discountInfo.value) });
     }
     // Pre-login or not registered — show "Upto X% OFF"
     if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
-      return `Upto ${formatNumber(loyaltyProgram.discountPercentage)}% OFF`;
+      return t("LoyaltyBanner.uptoOffPercent", { value: formatNumber(loyaltyProgram.discountPercentage) });
     }
     if (program.loyaltyDiscountType === "percentage") {
-      return `Upto ${formatNumber(program.discountValue)}% OFF`;
+      return t("LoyaltyBanner.uptoOffPercent", { value: formatNumber(program.discountValue) });
     }
     const currencySymbol = currencies.find((c: Currency) => c.code === program.currencyCode)?.symbol || program.currencyCode;
-    return `Upto ${currencySymbol} ${formatNumber(program.discountValue)} OFF`;
+    return t("LoyaltyBanner.uptoOffCurrency", { symbol: currencySymbol, value: formatNumber(program.discountValue) });
   };
 
   return (
@@ -342,7 +342,7 @@ export const LoyaltyProgramBanner = ({
                         className="w-3 h-3"
                         style={{ color: primaryColor }}
                       />
-                      Program Terms
+                      {t("programTerms")}
                     </h3>
                     <div className="space-y-1 max-h-20 overflow-y-auto custom-scrollbar">
                       {program.loyaltyConditions
@@ -376,7 +376,7 @@ export const LoyaltyProgramBanner = ({
                         className="w-3 h-3"
                         style={{ color: primaryColor }}
                       />
-                      Special Benefits
+                      {t("specialBenifits")}
                     </h3>
                     <div className="space-y-1">
                       {program.loyaltySpecialConditions
