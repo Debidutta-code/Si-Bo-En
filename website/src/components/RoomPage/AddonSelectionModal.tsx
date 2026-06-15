@@ -10,6 +10,8 @@ import {
 } from '@/src/components/ui/dialog';
 import { useTranslation } from "react-i18next";
 import { formatNumber, getLocale } from "../../utils/numLang";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 
 export interface AddonAvailability {
     id: string;
@@ -87,6 +89,8 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
     const [selectedAddons, setSelectedAddons] = useState<Record<string, SelectedAddon>>({});
     const [showAllAddons, setShowAllAddons] = useState(false);
     const { t } = useTranslation();
+
+    const currencySymbol = currencies.find((c: Currency) => c.code === currencyCode)?.symbol || currencyCode;
 
     const groupedAddons = groupAddonsByAddonId(addons);
 
@@ -218,14 +222,14 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                                                             })}
                                                                         </p>
                                                                         <p className="text-xs text-gray-600">
-                                                                            {currencyCode} {formatNumber(availability.price)} {t("AddonModal.each")}
+                                                                            {currencySymbol} {formatNumber(availability.price)} {t("AddonModal.each")}
                                                                         </p>
                                                                     </div>
 
                                                                     <div className="flex items-center gap-2">
                                                                         {currentQuantity > 0 && (
                                                                             <span className="text-xs font-semibold text-orange-600">
-                                                                                {currencyCode} {formatNumber(availability.price * currentQuantity)}
+                                                                                {currencySymbol} {formatNumber(availability.price * currentQuantity)}
                                                                             </span>
                                                                         )}
                                                                         <div className="flex items-center">
@@ -293,7 +297,7 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                     ? t("AddonModal.addonsSelectedPlural")
                                     : t("AddonModal.addonsSelected")}{" "}•
                                 <span className="font-bold text-orange-600 ml-1">
-                                    {currencyCode} {formatNumber(totalAddonsPrice)}
+                                    {currencySymbol} {formatNumber(totalAddonsPrice)}
                                 </span>
                             </span>
                         ) : (

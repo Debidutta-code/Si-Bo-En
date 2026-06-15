@@ -247,7 +247,6 @@ useEffect(() => {
     if (paramsData) {
       setIsExternalRequest(true);
       isLoadingFromExternal.current = true;
-
       const contextWithDates = {
         ...paramsData,
         startDate: paramsData.startDate || defaultStartDate,

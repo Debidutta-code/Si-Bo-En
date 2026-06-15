@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import { currencies } from "@/src/components/currencyCode/cuurency";
+import { Currency } from "@/src/components/currencyCode/currency-code.type";
 import { formatNumber } from "@/src/utils/numLang";
 
 const PaymentSuccessPage = () => {
@@ -108,10 +109,11 @@ const PaymentSuccessPage = () => {
       `/my-trip?propertyCode=${bookingData.PropertyCode}&code=${code}`,
     );
   };
-  const currencyCode =
+  const rawCurrencyCode =
     finalPrice?.currencyCode ||
     finalPrice?.dailyBreakdown?.[0]?.currencyCode ||
     "USD";
+  const currencyCode = currencies.find((c: Currency) => c.code === rawCurrencyCode)?.symbol || rawCurrencyCode;
   return isConfirmed ? (
     <div className="min-h-screen bg-gray-100  py-8 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8 sm:p-10">

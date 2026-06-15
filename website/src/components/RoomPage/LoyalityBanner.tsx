@@ -23,6 +23,9 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
+import { formatNumber } from "../../utils/numLang";
 
 export const LoyaltyProgramBanner = ({
   loyaltyProgram,
@@ -241,17 +244,19 @@ export const LoyaltyProgramBanner = ({
 
   const getDiscountDisplay = (isPreLogin = false) => {
     if (!isPreLogin && isRegistered && discountInfo) {
-      if (discountInfo.type === "percentage") return `${discountInfo.value}% OFF`;
-      return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
+      if (discountInfo.type === "percentage") return `${formatNumber(discountInfo.value)}% OFF`;
+      const currencySymbol = currencies.find((c: Currency) => c.code === discountInfo.currencyCode)?.symbol || discountInfo.currencyCode;
+      return `${currencySymbol} ${formatNumber(discountInfo.value)} OFF`;
     }
     // Pre-login or not registered — show "Upto X% OFF"
     if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
-      return `Upto ${loyaltyProgram.discountPercentage}% OFF`;
+      return `Upto ${formatNumber(loyaltyProgram.discountPercentage)}% OFF`;
     }
     if (program.loyaltyDiscountType === "percentage") {
-      return `Upto ${program.discountValue}% OFF`;
+      return `Upto ${formatNumber(program.discountValue)}% OFF`;
     }
-    return `Upto ${program.currencyCode} ${program.discountValue} OFF`;
+    const currencySymbol = currencies.find((c: Currency) => c.code === program.currencyCode)?.symbol || program.currencyCode;
+    return `Upto ${currencySymbol} ${formatNumber(program.discountValue)} OFF`;
   };
 
   return (

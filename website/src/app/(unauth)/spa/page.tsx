@@ -14,6 +14,8 @@ import { RootState } from "../../../store/store";
 import { getCustomerSpaBookingsApi } from "../../(auth)/profile/api/spa.api";
 import { formatInTimeZone } from "date-fns-tz";
 import { formatNumber, getLocale } from "../../../utils/numLang";
+import { currencies } from "@/src/components/currencyCode/cuurency";
+import { Currency } from "@/src/components/currencyCode/currency-code.type";
 
 type Tab = "all" | "booked";
 
@@ -375,7 +377,7 @@ export default function SpaPage() {
                               {spa.isInclusive
                                 ? t("SpaPage.allTab.inclusive")
                                 : spa.discountValue
-                                  ? `${spa.currencyCode || "AED"} ${formatNumber(spa.discountValue)}`
+                                  ? `${(currencies.find((c: Currency) => c.code === (spa.currencyCode || "AED"))?.symbol || spa.currencyCode || "AED")} ${formatNumber(spa.discountValue)}`
                                   : "—"}
                             </span>
                           </div>
@@ -483,7 +485,7 @@ export default function SpaPage() {
                                   {slots.length === 1 ? t("SpaPage.bookedTab.slot") : t("SpaPage.bookedTab.slots", { count: slots.length })}
                                 </span>
                                 <span className="font-semibold text-stone-700">
-                                  {booking?.currencyCode || "AED"} {formatNumber(booking?.totalAmount ?? 0)}
+                                  {(currencies.find((c: Currency) => c.code === (booking?.currencyCode || "AED"))?.symbol || booking?.currencyCode || "AED")} {formatNumber(booking?.totalAmount ?? 0)}
                                 </span>
                                 <span>{t("SpaPage.bookedTab.bookedOn", { date: new Intl.DateTimeFormat(getLocale(), { month: "short", day: "numeric", year: "numeric" }).format(new Date(booking.createdAt)) })}</span>
                               </div>
@@ -535,7 +537,7 @@ export default function SpaPage() {
                                         )}
                                         {slotAmount > 0 && (
                                           <p className="text-xs text-emerald-700 font-medium mt-0.5">
-                                            {booking?.currencyCode || "AED"} {formatNumber(slotAmount)}
+                                            {(currencies.find((c: Currency) => c.code === (booking?.currencyCode || "AED"))?.symbol || booking?.currencyCode || "AED")} {formatNumber(slotAmount)}
                                           </p>
                                         )}
                                       </div>

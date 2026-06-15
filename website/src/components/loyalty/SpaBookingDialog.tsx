@@ -8,6 +8,8 @@ import {
   markSlotAsAvailableApi,
 } from "../../app/(auth)/profile/api/profile.api";
 import { formatNumber, getLocale } from "../../utils/numLang";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 import { Check, Search, Clock, MapPin, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -275,7 +277,7 @@ export default function SpaBookingDialog({
                       {activeSpa.discountValue && !activeSpa.isInclusive && (
                         <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
                           <Tag className="h-3 w-3 flex-shrink-0" />
-                          {t("SpaBookingDialog.detail.charges")} {formatNumber(activeSpa.discountValue)} {activeSpa.currencyCode}
+                          {t("SpaBookingDialog.detail.charges")} {currencies.find((c: Currency) => c.code === activeSpa.currencyCode)?.symbol || activeSpa.currencyCode} {formatNumber(activeSpa.discountValue)}
                         </div>
                       )}
                     </div>

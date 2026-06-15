@@ -8,6 +8,8 @@ import { IPropertyDetails } from "../../app/(unauth)/properties/interface";
 import { RootState } from "@/src/store/store";
 import { formatNumber } from "../../utils/numLang";
 import { useTranslation } from "react-i18next";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 
 interface PropertyCardProps {
   property: IPropertyDetails;
@@ -109,7 +111,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             <>
               <p className="text-[22px] font-semibold text-gray-900 leading-none">
                 <span className="text-[13px] font-normal text-gray-400 mr-0.5">
-                  {property.currencyCode }
+                  {currencies.find((c: Currency) => c.code === property.currencyCode)?.symbol || property.currencyCode}
                 </span>
                 {formatNumber(property.basePrice)}
               </p>

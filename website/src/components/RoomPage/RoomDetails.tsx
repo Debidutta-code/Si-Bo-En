@@ -11,6 +11,9 @@ import {
   X,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
+import { formatNumber } from "../../utils/numLang";
 import { IRoom, IRoomPrice } from "@/src/app/(unauth)/Rooms/types";
 interface Props {
   room: IRoom;
@@ -112,6 +115,12 @@ const RoomDetails: React.FC<Props> = ({
     mediaItems[currentMediaIndex];
 
   const policy = selectedRatePlan?.policy;
+  
+  const selectedCurrencyCode = selectedRatePlan?.currencyCode || "USD";
+  const currencySymbol = currencies.find((c: Currency) => c.code === selectedCurrencyCode)?.symbol || selectedCurrencyCode;
+  
+  const touristTaxCurrency = selectedRatePlan?.touristTax?.currencyCode || "USD";
+  const touristTaxSymbol = currencies.find((c: Currency) => c.code === touristTaxCurrency)?.symbol || touristTaxCurrency;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex justify-center items-center p-4">
@@ -286,13 +295,13 @@ const RoomDetails: React.FC<Props> = ({
 
         <p>
           <strong>{t("RoomDetails.currency")}:</strong>{" "}
-          {selectedRatePlan.currencyCode}
+          {currencySymbol}
         </p>
 
         <p>
           <strong>{t("RoomDetails.discount")}:</strong>{" "}
-          {selectedRatePlan.currencyCode}{" "}
-          {selectedRatePlan.totalAmount}
+          {currencySymbol}{" "}
+          {formatNumber(selectedRatePlan.totalAmount)}
         </p>
       </div>
     </div>
@@ -306,8 +315,8 @@ const RoomDetails: React.FC<Props> = ({
       </h3>
 
       <p className="font-bold">
-        {selectedRatePlan.touristTax.currencyCode}{" "}
-        {selectedRatePlan.touristTax.calculatedTaxAmount}
+        {touristTaxSymbol}{" "}
+        {formatNumber(selectedRatePlan.touristTax.calculatedTaxAmount)}
       </p>
     </div>
   )}

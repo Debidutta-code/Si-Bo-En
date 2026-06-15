@@ -6,6 +6,8 @@ import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
 import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
+import { formatNumber } from "@/src/utils/numLang";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 
@@ -29,6 +31,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
   } = bookingData;
   // console.log("bookingdatsdfsjdfhcdsa", bookingData)
   const [reason, setReason] = useState("");
+  const currencySymbol = currencies.find((c: Currency) => c.code === currencyCode)?.symbol || currencyCode;
   const [loading, setLoading] = useState(false);
 
   // Add the hook usage at the component level
@@ -128,7 +131,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
             </div>
             <div className="flex items-center gap-2">
               <FaMoneyBill style={{ color: colors.primaryColor }} />
-              <span>{t("CancelModal.total")} {currencyCode} {amount.toLocaleString()}</span>
+              <span>{t("CancelModal.total")} {currencySymbol} {formatNumber(amount)}</span>
             </div>
           </div>
         </div>
@@ -140,7 +143,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
             <p className="flex justify-between">
               <span>{t("CancelModal.originalPayment")}:</span>
               <span className="font-semibold text-gray-800">
-                {currencyCode} {amount.toLocaleString()}
+                {currencySymbol} {formatNumber(amount)}
               </span>
             </p>
           </div>

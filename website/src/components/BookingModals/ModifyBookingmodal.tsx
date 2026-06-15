@@ -7,6 +7,8 @@ import { Loader2, Plus, Trash2, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { formatNumber, getLocale } from "../../utils/numLang";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 export interface Guest {
   type: "adult" | "child";
   firstName: string;
@@ -160,6 +162,9 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const [amount, setAmount] = useState(bookingData.amount);
   const [loading, setLoading] = useState(false);
   const [priceLoading, setPriceLoading] = useState(false);
+
+  const rawCurrencyCode = bookingData?.currencyCode || "USD";
+  const currencySymbol = currencies.find((c: Currency) => c.code === rawCurrencyCode)?.symbol || rawCurrencyCode;
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [priceFetched, setPriceFetched] = useState(false);
   const [priceFetchError, setPriceFetchError] = useState(false);
@@ -570,7 +575,7 @@ const fetchUpdatedPrice = async () => {
           <div key={i} className="flex justify-between text-sm">
             <span className="text-gray-600">🧾 {tax.name}</span>
             <span>
-              +{tax.currencyCode || bookingData?.currencyCode}{" "}
+              +{currencies.find((c: Currency) => c.code === (tax.currencyCode || rawCurrencyCode))?.symbol || (tax.currencyCode || rawCurrencyCode)}{" "}
               {formatNumber(tax.taxedAmount)}
             </span>
           </div>
@@ -578,7 +583,7 @@ const fetchUpdatedPrice = async () => {
         <div className="flex justify-between font-medium border-t pt-1 mt-1">
           <span>Total Tax</span>
           <span>
-            {bookingData?.currencyCode}{" "}
+            {currencySymbol}{" "}
             {formatNumber(finalPrice.taxedAmount || finalPrice.totalTaxAmount)}
           </span>
         </div>
@@ -867,7 +872,7 @@ const fetchUpdatedPrice = async () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-yellow-800 font-semibold">{t("ModifyBooking.chargedAtHotel")}</p>
-                    <p className="text-lg text-blue-700 font-bold">{bookingData?.currencyCode || "USD"} {formatNumber(amount)}</p>
+                    <p className="text-lg text-blue-700 font-bold">{currencySymbol} {formatNumber(amount)}</p>
                   </div>
                   {priceFetched && (
                     <button onClick={() => setShowBreakdown(!showBreakdown)} className="text-yellow-600 hover:text-yellow-800">
@@ -881,12 +886,12 @@ const fetchUpdatedPrice = async () => {
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Base Rate ({formatNumber(getPriceBreakdown().numberOfNights)} night{getPriceBreakdown().numberOfNights > 1 ? "s" : ""})</span>
-                        <span>{bookingData?.currencyCode} {formatNumber(getPriceBreakdown().baseAmount)}</span>
+                        <span>{currencySymbol} {formatNumber(getPriceBreakdown().baseAmount)}</span>
                       </div>
                       {getPriceBreakdown().additionalCharges > 0 && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">{t("ModifyBooking.additionalGuestCharges")}</span>
-                          <span>{bookingData?.currencyCode} {formatNumber(getPriceBreakdown().additionalCharges)}</span>
+                          <span>{currencySymbol} {formatNumber(getPriceBreakdown().additionalCharges)}</span>
                         </div>
                       )}
                       {/* Addon Breakdown */}
@@ -902,7 +907,7 @@ const fetchUpdatedPrice = async () => {
 
                         const selectedAddons = Object.values(grouped).filter((a: any) => a.type === 'selected' && a.totalAmount > 0);
                         const includedAddons = Object.values(grouped).filter((a: any) => a.type === 'included');
-
+                        
                         return (
                           <>
                             {selectedAddons.map((addon: any, i: number) => (
@@ -910,7 +915,7 @@ const fetchUpdatedPrice = async () => {
                                 <span className="text-gray-600">🍽 {addon.name}
                                   <span className="text-xs text-blue-400 ml-1">(Selected)</span>
                                 </span>
-                                <span>+{bookingData?.currencyCode} {formatNumber(addon.totalAmount)}</span>
+                                <span>+{currencySymbol} {formatNumber(addon.totalAmount)}</span>
                               </div>
                             ))}
                             {includedAddons.map((addon: any, i: number) => (
@@ -924,7 +929,7 @@ const fetchUpdatedPrice = async () => {
                             {finalPrice.totalAddonAmount > 0 && (
                               <div className="flex justify-between text-gray-700 font-medium border-t pt-1">
                                 <span>Total Add-ons</span>
-                                <span>+{bookingData?.currencyCode} {formatNumber(finalPrice.totalAddonAmount)}</span>
+                                <span>+{currencySymbol} {formatNumber(finalPrice.totalAddonAmount)}</span>
                               </div>
                             )}
                           </>
@@ -936,27 +941,27 @@ const fetchUpdatedPrice = async () => {
                           <div key={i} className="flex justify-between">
                             <span className={isPayLater ? "text-orange-600" : "text-green-600"}>
                               {isPayLater ? "⏳" : "🏷"} {promo.name}
-                              <span className="text-xs text-gray-400 ml-1">({promo.discountType === "percentage" ? `${formatNumber(promo.discountValue)}%` : `${promo.currencyCode || bookingData?.currencyCode} ${formatNumber(promo.discountValue)}`})</span>
+                              <span className="text-xs text-gray-400 ml-1">({promo.discountType === "percentage" ? `${formatNumber(promo.discountValue)}%` : `${currencies.find((c: Currency) => c.code === (promo.currencyCode || rawCurrencyCode))?.symbol || (promo.currencyCode || rawCurrencyCode)} ${formatNumber(promo.discountValue)}`})</span>
                             </span>
-                            <span className={isPayLater ? "text-orange-600" : "text-green-600"}>{isPayLater ? "+" : "-"}{bookingData?.currencyCode} {formatNumber(promo.discountAmount)}</span>
+                            <span className={isPayLater ? "text-orange-600" : "text-green-600"}>{isPayLater ? "+" : "-"}{currencySymbol} {formatNumber(promo.discountAmount)}</span>
                           </div>
                         );
                       })}
                       {renderTaxBreakdown()}
                       <div className="flex justify-between font-bold border-t pt-2 mt-2">
                         <span>Total</span>
-                        <span className="text-blue-700">{bookingData?.currencyCode} {formatNumber(getPriceBreakdown().priceAfterTax)}</span>
+                        <span className="text-blue-700">{currencySymbol} {formatNumber(getPriceBreakdown().priceAfterTax)}</span>
                       </div>
                       {finalPrice.latterpayableAmount > 0 && (
                         <div className="flex justify-between text-orange-600">
                           <span>⏳ Pay Later at Hotel</span>
-                          <span>{bookingData?.currencyCode} {formatNumber(finalPrice.latterpayableAmount)}</span>
+                          <span>{currencySymbol} {formatNumber(finalPrice.latterpayableAmount)}</span>
                         </div>
                       )}
                       {finalPrice.currentChargeableAmount > 0 && (
                         <div className="flex justify-between font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded mt-1">
                           <span>Amount Due Now</span>
-                          <span>{bookingData?.currencyCode} {formatNumber(finalPrice.currentChargeableAmount)}</span>
+                          <span>{currencySymbol} {formatNumber(finalPrice.currentChargeableAmount)}</span>
                         </div>
                       )}
                     </div>
@@ -970,11 +975,11 @@ const fetchUpdatedPrice = async () => {
                     <div className="grid grid-cols-2 gap-4 flex-1">
                       <div>
                         <p className="text-sm text-gray-600">{t("ModifyBooking.originalPrice")}</p>
-                        <p className="text-lg font-semibold">{bookingData?.currencyCode || "USD"} {bookingData.amount ? formatNumber(bookingData.amount) : formatNumber(0)}</p>
+                        <p className="text-lg font-semibold">{currencySymbol} {bookingData.amount ? formatNumber(bookingData.amount) : formatNumber(0)}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">{t("ModifyBooking.updatedPrice")}</p>
-                        <p className={`text-lg font-bold ${priceFetched ? "text-blue-700" : "text-gray-800"}`}>{bookingData?.currencyCode || "USD"} {formatNumber(amount)}</p>
+                        <p className={`text-lg font-bold ${priceFetched ? "text-blue-700" : "text-gray-800"}`}>{currencySymbol} {formatNumber(amount)}</p>
                       </div>
                     </div>
                     {priceFetched && (
@@ -990,7 +995,7 @@ const fetchUpdatedPrice = async () => {
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-600">{t("ModifyBooking.baseRate")} ({formatNumber((finalPrice.dailyPriceBrakeDown || finalPrice.dailyBreakdown || []).length)} nights)</span>
-                          <span>{bookingData?.currencyCode} {formatNumber(finalPrice.amountBeforeTax)}</span>
+                          <span>{currencySymbol} {formatNumber(finalPrice.amountBeforeTax)}</span>
                         </div>
                         {finalPrice.promotionBrakeDown?.length > 0 && finalPrice.promotionBrakeDown.map((promo: any, i: number) => {
                           const isDiscount = promo.restrictionType === "decrease"; // ✅ add this
@@ -1006,13 +1011,13 @@ const fetchUpdatedPrice = async () => {
                                 <span className="text-xs text-gray-400 ml-1">
                                   ({promo.discountType === "percentage"
                                     ? `${formatNumber(promo.discountValue)}%`
-                                    : `${promo.currencyCode || bookingData?.currencyCode} ${formatNumber(promo.discountValue)}`}
+                                    : `${currencies.find((c: Currency) => c.code === (promo.currencyCode || rawCurrencyCode))?.symbol || (promo.currencyCode || rawCurrencyCode)} ${formatNumber(promo.discountValue)}`}
                                   )
                                 </span>
                               </span>
                               <span>
                                 {isDiscount ? "-" : "+"}
-                                {promo.currencyCode || bookingData?.currencyCode}{" "}
+                                {currencies.find((c: Currency) => c.code === (promo.currencyCode || rawCurrencyCode))?.symbol || (promo.currencyCode || rawCurrencyCode)}{" "}
                                 {formatNumber(promo.discountAmount ?? 0)}
                               </span>
                             </div>
@@ -1026,21 +1031,21 @@ const fetchUpdatedPrice = async () => {
                         ))}
                         <div className="flex justify-between text-gray-600">
                           <span>{t("ModifyBooking.totalTax")}</span>
-                          <span>{bookingData?.currencyCode} {formatNumber(finalPrice.taxedAmount)}</span>
+                          <span>{currencySymbol} {formatNumber(finalPrice.taxedAmount)}</span>
                         </div>
                         <div className="flex justify-between font-bold border-t pt-2 mt-2">
                           <span>{t("ModifyBooking.total")}</span>
-                          <span className="text-blue-700">{bookingData?.currencyCode} {formatNumber(finalPrice.totalAmount)}</span>
+                          <span className="text-blue-700">{currencySymbol} {formatNumber(finalPrice.totalAmount)}</span>
                         </div>
                         {finalPrice.latterpayableAmount > 0 && (
                           <div className="flex justify-between text-orange-600">
                             <span>{t("ModifyBooking.payLaterAtHotel")}</span>
-                            <span>{bookingData?.currencyCode} {formatNumber(finalPrice.latterpayableAmount)}</span>
+                            <span>{currencySymbol} {formatNumber(finalPrice.latterpayableAmount)}</span>
                           </div>
                         )}
                         <div className="flex justify-between font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded mt-1">
                           <span>{t("ModifyBooking.amountDueNow")}</span>
-                          <span>{bookingData?.currencyCode} {formatNumber(finalPrice.currentChargeableAmount)}</span>
+                          <span>{currencySymbol} {formatNumber(finalPrice.currentChargeableAmount)}</span>
                         </div>
                       </div>
                     </div>
@@ -1050,24 +1055,24 @@ const fetchUpdatedPrice = async () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span>{t("ModifyBooking.alreadyPaid")}:</span>
-                        <span className="text-green-600 font-medium">{bookingData?.currencyCode || "USD"} {bookingData?.paidAmount ? formatNumber(bookingData.paidAmount) : formatNumber(0)}</span>
+                        <span className="text-green-600 font-medium">{currencySymbol} {bookingData?.paidAmount ? formatNumber(bookingData.paidAmount) : formatNumber(0)}</span>
                       </div>
                       {finalPrice.booking?.discount > 0 && (
                         <div className="flex justify-between">
                           <span>{t("ModifyBooking.discountApplied")}:</span>
-                          <span className="text-red-600 font-medium">- {bookingData?.currencyCode || "USD"} {formatNumber(finalPrice.booking.discount)}</span>
+                          <span className="text-red-600 font-medium">- {currencySymbol} {formatNumber(finalPrice.booking.discount)}</span>
                         </div>
                       )}
                       {priceFetched && finalPrice.booking?.finalPayable > 0 && (
                         <div className="flex justify-between bg-red-50 p-2 rounded">
                           <span className="text-red-700 font-semibold">{t("ModifyBooking.toPayAtHotel")}:</span>
-                          <span className="text-red-700 font-bold">{bookingData?.currencyCode || "USD"} {formatNumber(finalPrice.booking.finalPayable)}</span>
+                          <span className="text-red-700 font-bold">{currencySymbol} {formatNumber(finalPrice.booking.finalPayable)}</span>
                         </div>
                       )}
                       {priceFetched && finalPrice.booking?.refundAmount > 0 && (
                         <div className="flex justify-between bg-green-50 p-2 rounded">
                           <span className="text-green-700 font-semibold">{t("ModifyBooking.toBeRefunded")}:</span>
-                          <span className="text-green-700 font-bold">{bookingData?.currencyCode || "USD"} {formatNumber(finalPrice.booking.refundAmount)}</span>
+                          <span className="text-green-700 font-bold">{currencySymbol} {formatNumber(finalPrice.booking.refundAmount)}</span>
                         </div>
                       )}
                       {!priceFetched && !priceFetchError && (

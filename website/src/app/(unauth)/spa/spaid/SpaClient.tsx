@@ -17,6 +17,8 @@ import { RootState } from "../../../../store/store";
 import { formatInTimeZone } from "date-fns-tz";
 import { CurrencyCode } from "@/src/components/currencyCode/currency-code.type";
 import { formatNumber, getLocale } from "../../../../utils/numLang";
+import { currencies } from "@/src/components/currencyCode/cuurency";
+import { Currency } from "@/src/components/currencyCode/currency-code.type";
 
 interface SelectedSlot {
   id: string;
@@ -325,7 +327,7 @@ export default function SpaClient() {
                       {spa.isInclusive
                         ? t("SpaClient.hero.inclusive")
                         : spa.discountValue
-                          ? `${spa.currencyCode || "AED"} ${formatNumber(spa.discountValue)}`
+                          ? `${(currencies.find((c: Currency) => c.code === (spa.currencyCode || "AED"))?.symbol || spa.currencyCode || "AED")} ${formatNumber(spa.discountValue)}`
                           : "—"}
                     </p>
                     <div className="mt-2 space-y-1 text-xs text-stone-500">
@@ -352,7 +354,7 @@ export default function SpaClient() {
                       className="inline-flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 font-medium"
                     >
                       <X className="h-4 w-4" />
-                      {t("SpaClient.slots.clearSelection", { count: selectedSlots.size })}
+                      {t("SpaClient.slots.clearSelection",{count: formatNumber(selectedSlots.size)})}
                     </button>
                   )}
                 </div>
@@ -452,7 +454,7 @@ export default function SpaClient() {
                     className="inline-flex items-center gap-2 rounded-2xl bg-stone-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 hover:shadow-lg"
                   >
                     <ShoppingCart className="h-5 w-5" />
-                    {t("SpaClient.bookingButton", { count: selectedSlots.size })}
+                    {t("SpaClient.bookingButton", { count: formatNumber(selectedSlots.size) })}
                   </button>
                 </div>
               )}
@@ -491,7 +493,7 @@ export default function SpaClient() {
                               {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
                             </p>
                             <p className="font-semibold text-emerald-700 mt-1">
-                              {slot.amount === 0 ? t("SpaClient.modal.inclusive") : `${spa?.currencyCode || "AED"} ${formatNumber(slot.amount)}`}
+                              {slot.amount === 0 ? t("SpaClient.modal.inclusive") : `${(currencies.find((c: Currency) => c.code === (spa?.currencyCode || "AED"))?.symbol || spa?.currencyCode || "AED")} ${formatNumber(slot.amount)}`}
                             </p>
                           </div>
                           <button
@@ -517,7 +519,7 @@ export default function SpaClient() {
                   <div className="border-t border-amber-100 pt-2 flex justify-between">
                     <span className="text-stone-500">{t("SpaClient.modal.price.total")}</span>
                     <span className="text-lg font-bold text-stone-900">
-                      {totalAmount === 0 ? t("SpaClient.modal.inclusive") : `${spa?.currencyCode || "AED"} ${formatNumber(totalAmount)}`}
+                      {totalAmount === 0 ? t("SpaClient.modal.inclusive") : `${(currencies.find((c: Currency) => c.code === (spa?.currencyCode || "AED"))?.symbol || spa?.currencyCode || "AED")} ${formatNumber(totalAmount)}`}
                     </span>
                   </div>
                 </div>
