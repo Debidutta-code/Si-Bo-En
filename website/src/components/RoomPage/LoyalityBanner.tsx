@@ -324,21 +324,7 @@ export const LoyaltyProgramBanner = ({
                       {t("LoyaltyBanner.loyaltyProgram")}
                     </span>
                   </div>
-                </div>
-
-                {/* Basic / Premium Badge - right side of header on all screens */}
-                <div className="flex-shrink-0">
-                  {isBasicProgram && (
-                    <span className="px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] sm:text-xs font-semibold whitespace-nowrap">
-                      {t("LoyaltyBanner.basic")}
-                    </span>
-                  )}
-                  {isAdvancedProgram && (
-                    <span className="px-2 py-0.5 bg-purple-500 text-white rounded text-[10px] sm:text-xs font-semibold whitespace-nowrap">
-                      {t("LoyaltyBanner.premium")}
-                    </span>
-                  )}
-                </div>
+                </div>                
               </div>
 
               {/* Program Terms */}
