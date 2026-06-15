@@ -1,45 +1,45 @@
+// interfaces/spa-slot.type.ts — replace entirely
+
+export interface IgetInDates {
+    startDate: Date;
+    endDate: Date;
+}
+
 export interface ICSpaDatesS {
     date: Date;
-
 }
 export interface ICSpaDatesR extends ICSpaDatesS {
     spaModuleId: string;
-
 }
 export interface ISpaDates extends ICSpaDatesR {
     id: string;
-    Slots: ISpaSlotsWReservation[];
+    slots: ISpaSlotWAvailability[]; // lowercase, matches API response
 }
+
 export interface BatchPayload {
     count: number;
 }
+
+export type SlotStatus = 'active' | 'inactive' | 'booked' | 'completed' | 'cancelled';
+
 export interface ICSpaSlotS {
     startTime: Date;
     endTime: Date | null;
-    isBooked: boolean;
-    noOfSlots:number;
 }
 export interface ICSpaSlotR extends ICSpaSlotS {
     spaDateId: string;
-    slotsBooked:number;
 }
 export interface ISpaSlot extends ICSpaSlotR {
     id: string;
-    isCompleted:boolean;
 }
-export interface ISpaSlotsWReservation extends ISpaSlot{
-    Reservation:{
-        bookingCode:string;
-    }|null;
-    reservationId: string;
-    userName: string;
 
+export interface ISlotsAvailable {
+    id: string;
+    spaSlotId: string;
+    status: SlotStatus;
+    reservationId: string | null;
 }
-export interface IMarkSlotAdAvilable{
-    isBooked: boolean;
 
-}
-export interface IgetInDates{
-    startDate: Date;
-    endDate: Date;
+export interface ISpaSlotWAvailability extends ISpaSlot {
+    slotsAvailable: ISlotsAvailable[];
 }

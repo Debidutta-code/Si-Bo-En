@@ -120,15 +120,17 @@ export default function SpaDateCell({
               </span>
             </button>
           )
-        ) : spaDate.Slots && spaDate.Slots.length > 0 ? (
-          [...spaDate.Slots]
+        ) : spaDate.slots && spaDate.slots.length > 0 ? (
+          [...spaDate.slots]
             .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
             .map((slot) => (
               <div
                 key={slot.id}
-                className={`relative overflow-hidden flex items-center justify-between p-1.5 rounded border text-[10px] shadow-sm group/slot transition-all ${slot.isBooked
+                className={`... ${slot.slotsAvailable.every(s => s.status === 'booked')
                   ? 'bg-red-50 border-red-100 text-red-800'
-                  : 'bg-green-50 border-green-100 text-green-800'
+                  : slot.slotsAvailable.some(s => s.status === 'booked')
+                    ? 'bg-yellow-50 border-yellow-100 text-yellow-800'
+                    : 'bg-green-50 border-green-100 text-green-800'
                   }`}
               >
                 <div className="flex justify-between items-center">
@@ -141,6 +143,9 @@ export default function SpaDateCell({
                         'h:mm a'
                       )}
                     </span>
+                  </span>
+                  <span className="ml-1 text-[9px] text-gray-400">
+                    {slot.slotsAvailable.filter(s => s.status === 'active').length}/{slot.slotsAvailable.length}
                   </span>
                 </div>
                 {!isPast && !isDragActive && (

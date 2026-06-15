@@ -25,7 +25,7 @@ spaSlotRouter
     .delete(protect, spaSlotController.deleteSpaSlot.bind(spaSlotController))
 
 
-// Slot Availability / Booking
+// Slot Availability / Bookingbb            
 // spaSlotRouter.route("/slots/:id/book").patch(spaSlotController.markSlotAsBooked.bind(spaSlotController));
 // spaSlotRouter.route("/slots/:id/available").patch(spaSlotController.markSlotAsAvailable.bind(spaSlotController));
 // spaSlotRouter.route("/slots/:id/completed").patch(protect, spaSlotController.markSlotAsCompleted.bind(spaSlotController));

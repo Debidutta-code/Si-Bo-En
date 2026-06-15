@@ -230,7 +230,7 @@ const handleSaveConfig = async (payload: SpaConfigPayload) => {
     }
 
     // Step 3: build all slots across all dates into one array
-    const allSlots: (ICSpaSlotS & { spaDateId: string })[] = [];
+    const allSlots: (ICSpaSlotS & { spaDateId: string; availability: number })[] = [];
 
     for (const targetDate of payload.dates) {
         const spaDateRecord = freshDates.find((sd) => {
@@ -258,7 +258,7 @@ const handleSaveConfig = async (payload: SpaConfigPayload) => {
                     endTemplate.getUTCHours(), endTemplate.getUTCMinutes(), 0, 0
                 )),
                 availability: payload.availability,
-            } as any;
+            };
         });
 
         allSlots.push(...slotsForDate);
