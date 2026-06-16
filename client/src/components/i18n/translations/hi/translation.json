@@ -1953,6 +1953,7 @@
     "loyaltyGuestFieldsTitle": "लॉयल्टी अतिथि पंजीकरण फ़ील्ड",
     "manageLoyaltyGuestFields": "लॉयल्टी कार्यक्रम पंजीकरण के लिए कस्टम फ़ील्ड प्रबंधित करें",
     "addFields": "फ़ील्ड जोड़ें",
+    "loadingAmenities": "सुविधाएँ लोड हो रही हैं...",
     "createLoyaltyFields": "लॉयल्टी पंजीकरण फ़ील्ड बनाएं",
     "addNewLoyaltyFields": "अतिथि पंजीकरण के लिए नए कस्टम फ़ील्ड जोड़ें",
     "noLoyaltyFieldsFound": "कोई लॉयल्टी फ़ील्ड नहीं मिला। आरंभ करने के लिए अपना पहला फ़ील्ड बनाएं।",
@@ -3252,6 +3253,8 @@
     "taxSystemManagement": "कर प्रणाली प्रबंधन",
     "configureTaxRules": "अपनी संपत्ति के लिए कर नियम और समूह कॉन्फ़िगर करें",
     "totalTaxRules": "कुल कर नियम",
+    "addRuleConfirm": "\"{{group}}\" में यह कर नियम जोड़ें?",
+"removeRuleConfirm": "\"{{group}}\" से यह कर नियम हटाएँ?",
     "totalTaxGroups": "कुल कर समूह",
     "totalAdditionalCharges": "कुल अतिरिक्त शुल्क",
     "taxRules": "कर नियम",
@@ -4706,7 +4709,7 @@
   "DeleteCreationDialog": {
     "triggerButton": "{{typeName}} हटाएं",
     "dialogTitle": "{{name}} हटाएं?",
-    "warning": "⚠️ इस क्रिया को पूर्ववत नहीं किया जा सकता है!",
+    "warning": "⚠️ इस क्रिया को पूर्ववत नहीं किया जा सकता है! इसे हटाने पर, सभी संपत्तियां, असाइन किए गए उपयोगकर्ता हटा दिए जाएंगे और वे सुलभ नहीं होंगे।",
     "confirmQuestion": "क्या आप वाकई इस विलोपन के साथ आगे बढ़ना चाहते हैं?",
     "property": {
       "description": "इस संपत्ति को हटाने से {{name}} और सभी संबद्ध डेटा स्थायी रूप से हट जाएगा जिसमें शामिल हैं:",
@@ -5824,5 +5827,16 @@
         "integrateNow": "अभी इंटीग्रेट करें",
         "enterField": "{{name}} दर्ज करें"
       }
-    }
+    },
+  "AddRoomsDialog": {
+    "title": "एजेंसी संपत्ति में कमरे जोड़ें",
+    "description": "इस संपत्ति के लिए इस एजेंसी को आवंटित करने के लिए कमरे चुनें।",
+    "loadingRooms": "उपलब्ध कमरे लोड हो रहे हैं...",
+    "noRoomsAvailable": "इस संपत्ति के लिए कोई कमरे उपलब्ध नहीं हैं",
+    "selectRoomsLabel": "कमरे चुनें:",
+    "roomsSelected": "{{count}} कमरा(कमरे) चुने गए",
+    "cancel": "रद्द करें",
+    "addBtnCount": "{{count}} कमरा(कमरे) जोड़ें",
+    "addBtn": "कमरा(कमरे) जोड़ें"
+  }
 }

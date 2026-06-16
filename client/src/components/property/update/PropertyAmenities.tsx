@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { cn } from "@/lib/utils";
 import { Check, X } from "lucide-react";
 import Loader from "@/components/Loader/Loader";
-
+import { useTranslation } from "react-i18next";
 
 // API
 import { getAmenities } from "../api/create/propertyAmenity";
@@ -33,6 +33,7 @@ export default function UpdatePropertyAmenity({
   availableAmenities: IAmenity[];
   setSelectedAmenities: (val: AmenityState) => void;
 }) {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [_apiError, setApiError] = useState<string | null>(null);
@@ -96,7 +97,7 @@ export default function UpdatePropertyAmenity({
   };
 
   if (isLoading) {
-    return <Loader text="Loading Amenities..." />;
+    return <Loader text={`${t("Management.loadingAmenities")}`} />;
   }
 
   return (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,6 +31,7 @@ const AddRoomsDialog: React.FC<AddRoomsDialogProps> = ({
   propertyId,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [fetchingRooms, setFetchingRooms] = useState(false);
   const [availableRooms, setAvailableRooms] = useState<IRooms[]>([]);
@@ -105,26 +107,26 @@ const AddRoomsDialog: React.FC<AddRoomsDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Rooms to Agency Property</DialogTitle>
+          <DialogTitle>{t('AddRoomsDialog.title')}</DialogTitle>
           <DialogDescription>
-            Select rooms to allocate to this agency for this property.
+            {t('AddRoomsDialog.description')}
           </DialogDescription>
         </DialogHeader>
 
         {fetchingRooms ? (
           <div className="py-8">
-            <Loader text="Loading available rooms..." />
+            <Loader text={t('AddRoomsDialog.loadingRooms')} />
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-4">
               {availableRooms.length === 0 ? (
                 <p className="text-sm text-gray-500 text-center py-4">
-                  No rooms available for this property
+                  {t('AddRoomsDialog.noRoomsAvailable')}
                 </p>
               ) : (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Select Rooms:</Label>
+                  <Label className="text-base font-semibold">{t('AddRoomsDialog.selectRoomsLabel')}</Label>
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
                     {availableRooms.map((room) => (
                       <div
@@ -150,7 +152,7 @@ const AddRoomsDialog: React.FC<AddRoomsDialogProps> = ({
                   </div>
                   {selectedRooms.size > 0 && (
                     <p className="text-sm text-gray-600">
-                      {selectedRooms.size} room(s) selected
+                      {t('AddRoomsDialog.roomsSelected', { count: selectedRooms.size })}
                     </p>
                   )}
                 </div>
@@ -166,14 +168,14 @@ const AddRoomsDialog: React.FC<AddRoomsDialogProps> = ({
                   setSelectedRooms(new Set());
                 }}
               >
-                Cancel
+                {t('AddRoomsDialog.cancel')}
               </Button>
               <Button 
                 type="submit" 
                 disabled={loading || selectedRooms.size === 0 || availableRooms.length === 0}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Add {selectedRooms.size > 0 ? `${selectedRooms.size} ` : ''}Room(s)
+                {selectedRooms.size > 0 ? t('AddRoomsDialog.addBtnCount', { count: selectedRooms.size }) : t('AddRoomsDialog.addBtn')}
               </Button>
             </DialogFooter>
           </form>

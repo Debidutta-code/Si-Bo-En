@@ -555,7 +555,7 @@ export default function MyTripPage() {
                   <div>
                     <p className="text-gray-500 text-sm font-medium">{t("MyTrip.rooms")}</p>
                     <p className="text-gray-800 font-medium">
-                      {formatNumber(bookingData.finalPrice?.requestedRooms || 1)}
+                      {formatNumber(new Set(bookingData.PricingBrakeDown?.DailyPriceBrakeDown?.map((d: any) => d.roomNumber) || []).size || 1)}
                     </p>
                   </div>
                   <div>
@@ -567,7 +567,7 @@ export default function MyTripPage() {
                   <div>
                     <p className="text-gray-500 text-sm font-medium">{t("MyTrip.nights")}</p>
                     <p className="text-gray-800 font-medium">
-                      {formatNumber(bookingData.finalPrice?.numberOfNights || 1)}
+                      {formatNumber((bookingData.PricingBrakeDown?.DailyPriceBrakeDown?.length || 0) / (new Set(bookingData.PricingBrakeDown?.DailyPriceBrakeDown?.map((d: any) => d.roomNumber) || []).size || 1) || 1)}
                     </p>
                   </div>
                 </div>
@@ -758,35 +758,6 @@ export default function MyTripPage() {
                       <p className="font-medium text-black">{currencySymbol} {formatNumber(Number(bookingData.PricingBrakeDown.taxedAmount?.toFixed(2)))}</p>
                     </div>
                   )}
-                  {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (() => {
-                    // Group by name and sum totalAmount
-                    const grouped = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
-                      if (!acc[addon.name]) {
-                        acc[addon.name] = { ...addon, totalAmount: 0 };
-                      }
-                      acc[addon.name].totalAmount += addon.totalAmount;
-                      return acc;
-                    }, {});
-
-                    return (
-                      <div className="space-y-1">
-                        {Object.values(grouped).map((addon: any, i: number) => (
-                          addon.totalAmount > 0 && (
-                            <div key={i} className="flex justify-between items-center">
-                              <p className="text-gray-600">🍽 {addon.name}
-                                <span className="text-xs text-gray-400 ml-1">
-                                  ({addon.type === 'included' ? 'Included' : 'Selected'})
-                                </span>
-                              </p>
-                              <p className="font-medium">
-                                +{currencySymbol} {formatNumber(Number(addon.totalAmount?.toFixed(2)))}
-                              </p>
-                            </div>
-                          )
-                        ))}
-                      </div>
-                    );
-                  })()}
 
                   {/* 6. Amount After Tax */}
                   <div className="flex justify-between items-center border-t pt-2">

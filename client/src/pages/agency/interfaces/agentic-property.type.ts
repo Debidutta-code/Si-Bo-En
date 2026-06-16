@@ -6,12 +6,17 @@ export interface ICAgenticProperty {
     propertyCode: string;
     propertyName: string;
     isActive: boolean;
+    _translations?:{
+        propertyName:string;
+        description:string;
+    }
 
 }
 export interface ICAgenticProperties{
     id: string;
     propertyCode: string;
     propertyName: string;
+    
 }
 export interface IAgenticProperty extends ICAgenticProperty {
     id: string;

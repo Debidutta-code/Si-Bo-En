@@ -389,7 +389,7 @@ export default function page() {
                             <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={2} fetchProperties={fetchBrandData} />
                         </div>
                         <div className="px-2">
-                            <DeleteCreationDialog type={t(`CreateEntity.types.${"brand"}`) as any} name={updateBrandDetails.name} id={creationId ? creationId : ""} />
+                            <DeleteCreationDialog type={"brand"} name={brandDetails._translations?brandDetails._translations.name: brandDetails.name} id={creationId ? creationId : ""} />
                         </div>
                     </DropdownMenuContent>
 

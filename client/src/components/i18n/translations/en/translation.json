@@ -1994,6 +1994,7 @@
     "manageRoomAmenities": "Manage room amenities",
     "createRoomAmenities": "Create Room Amenities",
     "addNewRoomAmenities": "Add new room amenities",
+    "loadingAmenities": "Loading Amenities...",
     "noRoomAmenitiesFound": "No room amenities found. Create your first amenity to get started.",
     "loyaltyGuestFieldsTitle": "Loyalty Guest Registration Fields",
     "manageLoyaltyGuestFields": "Manage custom fields for loyalty program registration",
@@ -3291,6 +3292,8 @@
     "addingRatePlanToTaxGroup": "Adding rate plan to tax group...",
     "ratePlanAddedToTaxGroupSuccessfully": "Rate plan added to tax group successfully",
     "failedToAddRatePlanToTaxGroup": "Failed to add rate plan to tax group",
+    "addRuleConfirm": "Add this tax rule to \"{{group}}\"?",
+    "removeRuleConfirm": "Remove this tax rule from \"{{group}}\"?",
     "removingRatePlanFromTaxGroup": "Removing rate plan from tax group...",
     "ratePlanRemovedFromTaxGroupSuccessfully": "Rate plan removed from tax group successfully",
     "failedToRemoveRatePlanFromTaxGroup": "Failed to remove rate plan from tax group",
@@ -4756,7 +4759,7 @@
   "DeleteCreationDialog": {
     "triggerButton": "Delete {{typeName}}",
     "dialogTitle": "Delete {{name}}?",
-    "warning": "⚠️ This action cannot be undone!",
+    "warning": "⚠️ This action cannot be undone! On deleting this, all the properties, assigned users, will be removed and not accessible for any user of this platform.",
     "confirmQuestion": "Are you sure you want to proceed with this deletion?",
     "property": {
       "description": "Deleting this property will permanently remove {{name}} and all associated data including:",
@@ -5936,5 +5939,16 @@
         "integrateNow": "Integrate Now",
         "enterField": "Enter {{name}}"
       }
-    }
+    },
+  "AddRoomsDialog": {
+    "title": "Add Rooms to Agency Property",
+    "description": "Select rooms to allocate to this agency for this property.",
+    "loadingRooms": "Loading available rooms...",
+    "noRoomsAvailable": "No rooms available for this property",
+    "selectRoomsLabel": "Select Rooms:",
+    "roomsSelected": "{{count}} room(s) selected",
+    "cancel": "Cancel",
+    "addBtnCount": "Add {{count}} Room(s)",
+    "addBtn": "Add Room(s)"
+  }
 }

@@ -592,7 +592,7 @@ const GuestFormModal: React.FC<Props> = ({
                         >
                           {deductPromos.map((promo: any, i: number) => {
                             const promoName = promo._translations?.promotionName || promo.name;
-                            const promoCurrencyCode = promo.currencyCode || finalPrice.currencyCode;
+                            const promoCurrencyCode = finalPrice.currencyCode;
                             const promoCurrencySymbol = currencies.find((c: Currency) => c.code === promoCurrencyCode)?.symbol || promoCurrencyCode;
                             return (
                               <div key={i} className="flex justify-between py-0.5 text-green-700">
@@ -625,7 +625,7 @@ const GuestFormModal: React.FC<Props> = ({
                       >
                         {finalPrice.taxBrakeDown.map((tax: any, i: number) => {
                           const taxName = tax._translations?.name || tax.name;
-                          const taxCurrencyCode = tax.currencyCode || finalPrice.currencyCode;
+                          const taxCurrencyCode =  finalPrice.currencyCode;
                           const taxCurrencySymbol = currencies.find((c: Currency) => c.code === taxCurrencyCode)?.symbol || taxCurrencyCode;
                           return (
                             <div key={i} className="flex justify-between py-0.5 text-gray-600">

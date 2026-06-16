@@ -132,9 +132,8 @@ export default function PropertyPage() {
         isSpaModuleEnabled: false,
     });
 
-    const refreshLanguages = async () => {
-        if (!propertyDetails?.id) return;
-        const response = await getPropertyLanguagesService(propertyDetails.id);
+    const refreshLanguages = async (propertyId: string) => {
+        const response = await getPropertyLanguagesService(propertyId);
         if (response.success && response.data) {
             setPropertyLanguages(response.data);
         }
@@ -174,6 +173,7 @@ export default function PropertyPage() {
                 setPropertyDetails(response.data.propertyDetails);
                 setIsDrafted(response.data.propertyDetails.isDrafted);
                 fetchPartners(response.data.propertyDetails.id);
+                refreshLanguages(response.data.propertyDetails.id)
             } else {
                 toast.error(response.message || t('Toast.failedToFetchProperty'));
             }
@@ -352,7 +352,7 @@ export default function PropertyPage() {
             });
             if (response.success) {
                 toast.success(t('Property.languageAdded'));
-                refreshLanguages();
+                refreshLanguages(propertyDetails.id);
             } else {
                 toast.error(response.message || t('Property.failedToAddLanguage'));
             }
@@ -364,12 +364,13 @@ export default function PropertyPage() {
     };
 
     const handleDeleteLanguage = async (propertyLanguageId: string) => {
+        if(!propertyDetails?.id) return;
         setIsDeletingLang(propertyLanguageId);
         try {
             const response = await deletePropertyLanguageService(propertyLanguageId);
             if (response.success) {
                 toast.success(t('Property.languageRemoved'));
-                refreshLanguages();
+                refreshLanguages(propertyDetails.id);
             } else {
                 toast.error(response.message || t('Property.failedToRemoveLanguage'));
             }
@@ -714,7 +715,7 @@ export default function PropertyPage() {
 
 
                             <div className='ml-5 w-56'>
-                                <DeleteCreationDialog type={t(`CreateEntity.types.${"property"}`) as any} name={creationDetails.name} id={creationDetails.id} />
+                                <DeleteCreationDialog type={"property"} name={creationDetails._translations?creationDetails._translations.name:creationDetails.name} id={creationDetails.id} />
                             </div>
                         </DropdownMenuContent>
                     </DropdownMenu>

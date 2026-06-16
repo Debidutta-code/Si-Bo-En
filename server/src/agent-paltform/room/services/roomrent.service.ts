@@ -785,9 +785,7 @@ export class AgentPricingService {
         const tax = touristTaxes[0];
 
         const calculatedAmount =
-            tax.discountType === 'percentage'
-                ? (baseAmount * Number(tax.discountValue)) / 100
-                : Number(tax.discountValue) *
+                 Number(tax.discountValue) *
                   numberOfNights *
                   noOfRooms *
                   noOfBedrooms;

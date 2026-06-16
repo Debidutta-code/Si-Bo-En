@@ -1956,6 +1956,7 @@
     "viewDraftedProperties": "عرض العقارات المسودة"
   },
   "Management": {
+    "loadingAmenities": "جارٍ تحميل المرافق...",
     "title": "إدارة العقار",
     "subtitle": "إدارة الفئات والأنواع والمرافق لعقاراتك",
     "loadingData": "جارٍ تحميل بيانات الإدارة ...",
@@ -3246,6 +3247,8 @@
     }
   },
   "TaxSystem": {
+    "addRuleConfirm": "\"{{group}}\" में यह कर नियम जोड़ें?",
+"removeRuleConfirm": "\"{{group}}\" से यह कर नियम हटाएँ?",
     "loadingTaxSystemData": "جارٍ تحميل بيانات نظام الضرائب...",
     "failedToLoadTaxSystemData": "فشل تحميل بيانات نظام الضرائب",
     "failedToFetchTouristTaxes": "فشل جلب ضرائب السياح",
@@ -4754,7 +4757,7 @@
   "DeleteCreationDialog": {
     "triggerButton": "حذف {{typeName}}",
     "dialogTitle": "حذف {{name}}؟",
-    "warning": "⚠️ لا يمكن التراجع عن هذا الإجراء!",
+    "warning": "⚠️ لا يمكن التراجع عن هذا الإجراء! عند حذف هذا، ستتم إزالة جميع العقارات والمستخدمين المعينين ولن يمكن الوصول إليهم.",
     "confirmQuestion": "هل أنت متأكد من رغبتك في المتابعة مع هذا الحذف؟",
     "property": {
       "description": "سيؤدي حذف هذا العقار إلى إزالة {{name}} وجميع البيانات المرتبطة به بشكل دائم بما في ذلك:",
@@ -5844,5 +5847,16 @@
       "integrateNow": "دمج الآن",
       "enterField": "أدخل {{name}}"
     }
+  },
+  "AddRoomsDialog": {
+    "title": "إضافة غرف إلى عقار الوكالة",
+    "description": "حدد الغرف لتخصيصها لهذه الوكالة لهذا العقار.",
+    "loadingRooms": "جارٍ تحميل الغرف المتاحة...",
+    "noRoomsAvailable": "لا توجد غرف متاحة لهذا العقار",
+    "selectRoomsLabel": "حدد الغرف:",
+    "roomsSelected": "تم تحديد {{count}} غرفة/غرف",
+    "cancel": "إلغاء",
+    "addBtnCount": "إضافة {{count}} غرفة/غرف",
+    "addBtn": "إضافة غرف"
   }
 }
