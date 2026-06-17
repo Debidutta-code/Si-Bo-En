@@ -1,5 +1,5 @@
 import { CurrencyCode } from "@/src/components/currencyCode/currency-code.type";
-import { IPropertyLoyalityWithLoyality } from "../interface";
+import { IIncudedAddons, IPropertyLoyalityWithLoyality, IRoomDetails } from "../interface";
 import { IBookingEngineConfig } from "./property-details.type";
 import { AddonAvailability } from "@/src/components/RoomPage/AddonSelectionModal";
 
@@ -66,20 +66,19 @@ export interface IRoom {
     roomSize: number;
     roomUnit: RoomUnit;
     priority: number;
-    roomView: IRoomView;
+    roomView: IRoomView|null;
     numberOfBedrooms: number;
     maxOccupancy: number;
-    description: string;
+    description: string|null;
     images: string[];
-    amenities: IAmenity[];
+    // amenities: IAmenity[];
     hasValidRate: boolean;
-    roomPrice: IRoomPrice[];
-    roomVideos: IRoomVideo | null;
-    _translations?: IRoomTranslated;
+    // roomPrice: IRoomPrice[];
+    // roomVideos: IRoomVideo | null;
+    // _translations?: IRoomTranslated;
 }
 export interface IRoomTranslated {
     roomName: string;
-    roomType: string;
     description: string;
 }
 export interface IRoomVideo {
@@ -291,7 +290,7 @@ export interface IFetchRoomsResponse {
 }
 
 export interface IFetchRoomsData {
-    rooms: IRoom[];
+    rooms: IRoomDetails[];
     propertyDetails: IPropertyDetails
 }
 
@@ -317,7 +316,7 @@ export interface IGuest {
 export interface IPriceSummaryData {
     room: IRoom;
     ratePlan: IRoomPrice;
-    selectedAddons: ISelectedAddon[];
+    selectedAddons: IIncudedAddons[];
     basePrice: number;
     totalAddonsPrice: number;
     finalprice?: IFinalPrice;
@@ -468,6 +467,8 @@ export interface IGetPricePayload {
     promotions?: IPricePayloadPromotion[];
     parsedAddons?: IParsedAddon[];
     includedAddons?: string[];
+    applyLoyaltyDiscount:boolean;
+    email:string|null
 }
 
 export interface IAvailableAddonAvailability {

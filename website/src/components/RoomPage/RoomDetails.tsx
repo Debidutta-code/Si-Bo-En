@@ -14,9 +14,10 @@ import { useTranslation } from "react-i18next";
 import { currencies } from "../currencyCode/cuurency";
 import { Currency } from "../currencyCode/currency-code.type";
 import { formatNumber } from "../../utils/numLang";
-import { IRoom, IRoomPrice } from "@/src/app/(unauth)/Rooms/types";
+import { IRoomDetails } from "@/src/app/(unauth)/Rooms/interface";
+import { IRoomPrice } from "@/src/app/(unauth)/Rooms/types";
 interface Props {
-  room: IRoom;
+  room: IRoomDetails;
   selectedRatePlan?: IRoomPrice;
   onClose: () => void;
 }
@@ -139,11 +140,6 @@ const RoomDetails: React.FC<Props> = ({
             {room._translations?.roomName ||
               room.roomName}
           </h2>
-
-          <p className="text-gray-500 mt-1">
-            {room._translations?.roomType ||
-              room.roomType}
-          </p>
         </div>
 
         {/* Media */}
@@ -259,7 +255,7 @@ const RoomDetails: React.FC<Props> = ({
   </div>
 
   {/* Amenities */}
-  {room.amenities?.length > 0 && (
+  {room.amenities && (
     <div className="mb-8">
       <h3 className="text-xl font-semibold mb-3">
         {t("RoomDetails.amenities")}

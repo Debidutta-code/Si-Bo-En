@@ -35,13 +35,11 @@ export const fetchAvailableAddonsApi = async (
 
 export const fetchRoomPriceApi = async (
   payload: IGetPricePayload,
-  loyaltyToggleOn: boolean
 ): Promise<IGetPriceResponse> => {
   try {
     const response = await axiosInstance.post<IGetPriceResponse>(
       `/booking-engine/pricing/get-price`,
       payload,
-      { withCredentials: loyaltyToggleOn }
     );
     return response.data;
   } catch (error: any) {

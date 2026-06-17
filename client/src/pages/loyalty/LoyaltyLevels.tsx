@@ -582,7 +582,7 @@ export default function LoyaltyLevels() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={submitting}>{t('PropertyLoyalties.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel disabled={submitting}>{t('Common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={submitting}

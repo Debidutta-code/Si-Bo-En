@@ -1,38 +1,15 @@
 import { IPropertyLoyalityWithLoyality } from "@/src/app/(unauth)/Rooms/interface";
 import {
   Award,
-  Gift,
-  Star,
-  User,
-  Sparkles,
   CheckCircle2,
-  Mail,
-  LogOut,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
-import { currencies } from "../currencyCode/cuurency";
-import { Currency } from "../currencyCode/currency-code.type";
 import { formatNumber } from "../../utils/numLang";
 
 export const LoyaltyProgramBanner = ({
   loyaltyProgram,
   primaryColor,
-  onSignUpSuccess,
-  onLogoutSuccess,
-  onDiscountVerified,
 }: {
   loyaltyProgram: IPropertyLoyalityWithLoyality | null;
   primaryColor: string;
@@ -41,228 +18,36 @@ export const LoyaltyProgramBanner = ({
   onDiscountVerified?: (discount: { type: string; value: number; currencyCode: string }) => void;
 }) => {
   const { t } = useTranslation();
-  const [internalShowSignUpModal, setInternalShowSignUpModal] = useState(false);
-  const [formData, setFormData] = useState<Record<string, any>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState<string>("");
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [showAllBenefits, setShowAllBenefits] = useState(false);
-  const [discountInfo, setDiscountInfo] = useState<{
-    type: string;
-    value: number;
-    currencyCode: string;
-  } | null>(null);
 
-  // Check if user is already registered and verify with backend
-  useEffect(() => {
-    const verifyLoyaltyMembership = async () => {
-      if (!loyaltyProgram?.propertyId) return;
-      setIsVerifying(true);
-      const loyaltyMemberEmail = localStorage.getItem(
-        `loyalty_member_${loyaltyProgram.propertyId}`,
-      );
+  const getDiscountDisplay = () => {
+    const levels = loyaltyProgram?.CreationLoyaltyConfig?.LoyalityLevels;
+    if (levels && levels.length > 0) {
+      return `${t("LoyaltyBanner.uptoOffPercent", {
+        value: formatNumber(levels[0].discountPercentage),
+      })}`;
+    }
 
-      if (loyaltyMemberEmail) {
-        try {
-          // Verify with backend using check-discount endpoint
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: loyaltyMemberEmail,
-                propertyId: loyaltyProgram.propertyId,
-              }),
-            },
-          );
+    return `${t("LoyaltyBanner.offPercent", {
+      value: formatNumber(loyaltyProgram?.CreationLoyaltyConfig?.discountValue),
+    })}`;
+  };
 
-          const data = await response.json();
 
-          if (response.ok && data.success && data.data?.isLoyaltyMember) {
-            // Valid loyalty member
-            setIsRegistered(true);
-            setRegisteredEmail(loyaltyMemberEmail);
-            onDiscountVerified?.(data.data.discount);
-            setDiscountInfo(data.data.discount);
-          } else {
-            // Not a valid loyalty member, clear localStorage
-            localStorage.removeItem(
-              `loyalty_member_${loyaltyProgram.propertyId}`,
-            );
-            setIsRegistered(false);
-            setRegisteredEmail("");
-            setDiscountInfo(null);
-          }
-        } catch (error) {
-          console.error("Error verifying loyalty membership:", error);
-          // On error, clear localStorage to be safe
-          localStorage.removeItem(
-            `loyalty_member_${loyaltyProgram.propertyId}`,
-          );
-          setIsRegistered(false);
-          setRegisteredEmail("");
-          setDiscountInfo(null);
-        }
-      }
-
-      setIsVerifying(false);
-    };
-
-    verifyLoyaltyMembership();
-  }, [loyaltyProgram]);
-
-  // Return early if loyaltyProgram is null or if CreationLoyaltyConfig is missing
-  // This must be after all hooks to avoid "Rendered more hooks than during the previous render" error
   if (!loyaltyProgram || !loyaltyProgram.CreationLoyaltyConfig) {
     return null;
   }
-
-  // Always use internal state for the modal to avoid conflicts when multiple
-  // loyalty components share the same parent state and both register onOpenChange.
-  const showSignUpModal = internalShowSignUpModal;
-  const setShowSignUpModal = setInternalShowSignUpModal;
-
   const program = loyaltyProgram.CreationLoyaltyConfig;
   const isBasicProgram = program.BasicLoyaltyProgram !== null;
-  const isAdvancedProgram = program.AdvanceLoyaltyProgram !== null;
   const loyaltyLogo =
     loyaltyProgram.loyalityConfigLogo ??
     (isBasicProgram && program.BasicLoyaltyProgram?.logo?.[0]
       ? program.BasicLoyaltyProgram.logo[0]
       : null);
 
-  const handleFieldChange = (fieldName: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [fieldName]: value,
-    }));
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
-    setIsRegistered(false);
-    setRegisteredEmail("");
-    setDiscountInfo(null);
-    toast.success(t("LoyaltyBanner.logoutSuccess"));
-    onLogoutSuccess?.();
-  };
-
-  const handleSignUpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // Separate email from other fields
-      const { email, ...otherFields } = formData;
-
-      if (!email) {
-        toast.error(t("LoyaltyBanner.modal.emailRequired"));
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Call registration API
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email,
-            propertyId: loyaltyProgram.propertyId,
-            metadata: otherFields, // All other fields go into metadata
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        const errorMsg =
-          data.message || t("LoyaltyBanner.modal.failedToRegister");
-
-        // Check if already registered
-        if (errorMsg.includes("already registered")) {
-          // Save to localStorage
-          localStorage.setItem(
-            `loyalty_member_${loyaltyProgram.propertyId}`,
-            email,
-          );
-
-          // Update state with discount info from backend
-          setIsRegistered(true);
-          setRegisteredEmail(email);
-          if (data.data?.discount) {
-            setDiscountInfo(data.data.discount);
-          }
-
-          toast.success(t("LoyaltyBanner.modal.alreadyRegistered"));
-          setShowSignUpModal(false);
-          setFormData({});
-          setIsSubmitting(false);
-          onSignUpSuccess?.(email);
-          return;
-        }
-
-        toast.error(t("LoyaltyBanner.modal.failedRetry"));
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Save to localStorage
-      localStorage.setItem(
-        `loyalty_member_${loyaltyProgram.propertyId}`,
-        email,
-      );
-
-      // Update state with discount info from registration response
-      setIsRegistered(true);
-      setRegisteredEmail(email);
-
-      // Store discount info from response
-      if (data.data?.discountType && data.data?.discountValue) {
-        setDiscountInfo({
-          type: data.data.discountType,
-          value: data.data.discountValue,
-          currencyCode: data.data.currencyCode || program.currencyCode,
-        });
-      }
-
-      toast.success(t("LoyaltyBanner.modal.registerSuccess"));
-      setShowSignUpModal(false);
-      setFormData({});
-      onSignUpSuccess?.(email);
-    } catch (error) {
-      console.error("Registration error:", error);
-      toast.error("Failed to register. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const getDiscountDisplay = (isPreLogin = false) => {
-    if (!isPreLogin && isRegistered && discountInfo) {
-      if (discountInfo.type === "percentage") return t("LoyaltyBanner.offPercent", { value: formatNumber(discountInfo.value) });
-      const currencySymbol = currencies.find((c: Currency) => c.code === discountInfo.currencyCode)?.symbol || discountInfo.currencyCode;
-      return t("LoyaltyBanner.offCurrency", { symbol: currencySymbol, value: formatNumber(discountInfo.value) });
-    }
-    // Pre-login or not registered — show "Upto X% OFF"
-    if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
-      return t("LoyaltyBanner.uptoOffPercent", { value: formatNumber(loyaltyProgram.discountPercentage) });
-    }
-    if (program.loyaltyDiscountType === "percentage") {
-      return t("LoyaltyBanner.uptoOffPercent", { value: formatNumber(program.discountValue) });
-    }
-    const currencySymbol = currencies.find((c: Currency) => c.code === program.currencyCode)?.symbol || program.currencyCode;
-    return t("LoyaltyBanner.uptoOffCurrency", { symbol: currencySymbol, value: formatNumber(program.discountValue) });
-  };
-
   return (
     <>
-      <div className="h-full">
-        <div className="max-w-7xl h-full mx-auto">
+      <div className="max-h-[348px] min-h-[348px] overflow-y-scroll custom-scrollbar">
+        <div className="max-w-7xl  h-full mx-auto">
           <div
             className="relative h-full overflow-hidden rounded-xl shadow-md border"
             data-loyalty-banner
@@ -271,22 +56,9 @@ export const LoyaltyProgramBanner = ({
               background: "white",
             }}
           >
-            {/* Loading overlay while verifying */}
-            {isVerifying && (
-              <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-20">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="animate-spin rounded-full h-4 w-4 border-2 border-gray-200"
-                    style={{ borderTopColor: primaryColor }}
-                  ></div>
-                  <span className="text-xs font-medium text-gray-600">
-                    {t("LoyaltyBanner.verifying")}
-                  </span>
-                </div>
-              </div>
-            )}
 
-            <div className="p-3 sm:p-4 h-full flex flex-col gap-2.5">
+
+            <div className="p-3 sm:p-4 h-full min-h-[348px]  flex flex-col gap-2.5">
               {/* Header Row: Logo + Property Name + Badge */}
               <div className="flex items-center gap-2 sm:gap-3">
                 {/* Logo */}
@@ -329,7 +101,7 @@ export const LoyaltyProgramBanner = ({
                       {t("LoyaltyBanner.loyaltyProgram")}
                     </span>
                   </div>
-                </div>                
+                </div>
               </div>
 
               {/* Program Terms */}
@@ -344,10 +116,9 @@ export const LoyaltyProgramBanner = ({
                       />
                       {t("programTerms")}
                     </h3>
-                    <div className="space-y-1 max-h-20 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-1  custom-scrollbar">
                       {program.loyaltyConditions
-                        .filter((condition) => condition.isActive)
-                        .slice(0, 2)
+                        .filter((condition) => condition.isActive && condition.isDeleted == false)
                         .map((condition, index) => (
                           <div
                             key={index}
@@ -358,7 +129,7 @@ export const LoyaltyProgramBanner = ({
                               style={{ color: primaryColor }}
                             />
                             <span className="text-[10px] sm:text-xs text-gray-700 leading-snug">
-                              {condition._translations?.text || condition.text}
+                              {condition._translations?condition._translations.text : condition.text}
                             </span>
                           </div>
                         ))}
@@ -366,39 +137,8 @@ export const LoyaltyProgramBanner = ({
                   </div>
                 )}
 
-              {/* Special Benefits */}
-              {program.loyaltySpecialConditions &&
-                program.loyaltySpecialConditions.filter((c) => c.isActive)
-                  .length > 0 && (
-                  <div>
-                    <h3 className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
-                      <Star
-                        className="w-3 h-3"
-                        style={{ color: primaryColor }}
-                      />
-                      {t("specialBenifits")}
-                    </h3>
-                    <div className="space-y-1">
-                      {program.loyaltySpecialConditions
-                        .filter((condition) => condition.isActive)
-                        .slice(0, showAllBenefits ? undefined : 1)
-                        .map((condition, index) => (
-                          <div
-                            key={index}
-                            className="flex items-start gap-1.5 bg-gradient-to-br from-purple-50 to-blue-50 rounded p-1.5 border border-purple-200 overflow-hidden min-w-0"
-                          >
-                            <Star
-                              className="w-3 h-3 flex-shrink-0 mt-0.5"
-                              style={{ color: primaryColor }}
-                            />
-                            <span className="text-[10px] sm:text-xs text-gray-900 font-semibold leading-snug">
-                              {condition._translations?.subTitle || condition.subTitle}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
+
+
 
               {/* Bottom Row: Discount Badge + Spacer + (Join/Logout) */}
               <div className="flex items-center gap-2 mt-auto flex-wrap sm:flex-nowrap">
@@ -412,154 +152,14 @@ export const LoyaltyProgramBanner = ({
 
                 <div className="flex-1" />
 
-             
+
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sign Up Modal */}
-      {showSignUpModal && (
-        <Dialog open={showSignUpModal} onOpenChange={setShowSignUpModal}>
-          <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
-                <Award
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: primaryColor }}
-                />
-                {t("LoyaltyBanner.modal.join")} {loyaltyProgram._translations?.propertyName || loyaltyProgram.propertyName}
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm">
-                {t("LoyaltyBanner.modal.registerTo")} {getDiscountDisplay()} {t("LoyaltyBanner.modal.onAllBookings")}
-              </DialogDescription>
-            </DialogHeader>
 
-            <form onSubmit={handleSignUpSubmit} className="mt-4">
-              <div className="space-y-4">
-                {/* Discount Banner */}
-                <div
-                  className="p-3 rounded-lg border flex items-center gap-3"
-                  style={{
-                    backgroundColor: `${primaryColor}10`,
-                    borderColor: `${primaryColor}40`,
-                  }}
-                >
-                  <div
-                    className="p-2 rounded-lg flex-shrink-0"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900 text-xs sm:text-sm">
-                      {getDiscountDisplay()} {t("LoyaltyBanner.modal.discount")}
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-gray-600">
-                      {t("LoyaltyBanner.modal.autoApplied")}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Email Field */}
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="email"
-                    className="text-xs sm:text-sm font-medium"
-                  >
-                    {t("LoyaltyBanner.modal.emailLabel")} <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder={t("LoyaltyBanner.modal.emailPlaceholder")}
-                    required
-                    value={formData.email || ""}
-                    onChange={(e) => handleFieldChange("email", e.target.value)}
-                    className="w-full text-sm"
-                  />
-                </div>
-
-
-                {/* Dynamic Fields */}
-                {program.LoyaltyProgramFieldConfig &&
-                  program.LoyaltyProgramFieldConfig.filter(
-                    (field) =>
-                      field.visibleInRegistration &&
-                      field.fieldName.toLowerCase() !== "email"
-                  ).length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {program.LoyaltyProgramFieldConfig.filter(
-                        (field) =>
-                          field.visibleInRegistration &&
-                          field.fieldName.toLowerCase() !== "email",
-                      ).map((field) => (
-                        <div key={field.id} className="space-y-1.5">
-                          <Label
-                            htmlFor={field.fieldName}
-                            className="text-xs sm:text-sm font-medium"
-                          >
-                            {field._translations?.fieldName || (field.fieldName.charAt(0).toUpperCase() +
-                              field.fieldName.slice(1).replaceAll("_", " "))}
-                            {field.required && (
-                              <span className="text-red-500">*</span>
-                            )}
-                          </Label>
-                          <Input
-                            id={field.fieldName}
-                            type="text"
-                            placeholder={field._translations?.fieldName ? `Enter ${field._translations.fieldName}` : `Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
-                            required={field.required}
-                            value={formData[field.fieldName] || ""}
-                            onChange={(e) =>
-                              handleFieldChange(field.fieldName, e.target.value)
-                            }
-                            className="w-full text-sm"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-              </div>
-
-              {/* Buttons */}
-              <div className="flex flex-col-reverse sm:flex-row gap-2 mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setShowSignUpModal(false);
-                    setFormData({});
-                  }}
-                  className="flex-1 text-sm"
-                  disabled={isSubmitting}
-                >
-                  {t("LoyaltyBanner.modal.cancel")}
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 text-white font-semibold text-sm"
-                  style={{ backgroundColor: primaryColor }}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-1.5">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      {t("LoyaltyBanner.modal.registering")}
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-1.5">
-                      <User className="w-4 h-4" />
-                      {t("LoyaltyBanner.modal.signUp")}
-                    </span>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {

@@ -5,14 +5,14 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Users, Ruler, Eye, Wifi, Coffee, Tv, Wind,
   Phone, Utensils, ChevronRight, ChevronDown,
-  ChevronUp, ChevronLeft,
+  ChevronUp, ChevronLeft, Lock,
 } from "lucide-react";
 import RoomDetails from "./RoomDetails";
 import AddonSelectionModal, { AddonAvailability } from "./AddonSelectionModal";
 import { IAddonAvailability, IRoom } from "@/src/app/(unauth)/Rooms/types";
 import { useBookingStorage } from "../../hooks/useBookingStorage";
 import toast from "react-hot-toast";
-import { IPropertyLoyalityWithLoyality } from "@/src/app/(unauth)/Rooms/interface";
+import { IPropertyLoyalityWithLoyality, IRoomDetails } from "@/src/app/(unauth)/Rooms/interface";
 import { useTranslation } from "react-i18next";
 import { formatNumber } from "@/src/utils/numLang";
 import {
@@ -32,12 +32,10 @@ import {
 import { currencies } from "../currencyCode/cuurency";
 import { Currency } from "../currencyCode/currency-code.type";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface RoomCardProps {
-  room: IRoom;
-  propertyDetails: unknown; // used only for passing through, not read here
-  addons: IAddonAvailability[];
+  room: IRoomDetails;
+  propertyDetails: unknown;
   bookingContext: IBookingContext;
   onBookNow: (
     room: IRoom,
@@ -46,13 +44,22 @@ interface RoomCardProps {
     selectedPromotions: ISelectedPromotion[],
     priceData: IFinalPrice
   ) => void;
-  loadingBookNow: string | null;
-  onPriceUpdate?: (data: IPriceSummaryData) => void;
+  onOpenGuestModal: (
+    room: IRoom,
+    ratePlan: IRoomPrice,
+    selectedAddons: ISelectedAddon[],
+    selectedPromotions: ISelectedPromotion[]
+  ) => void;
+  onRegisterReproceed: (fn: (email: string) => Promise<void>) => void;
   selectedBoardType?: string;
   loyalty: IPropertyLoyalityWithLoyality | null;
-  onUnlockLoyalty?: () => void;
   loyaltyDiscountInfo?: ILoyaltyDiscountInfo | null;
-  loyaltyToggleOn?: boolean;
+  loyaltyToggleOn: boolean;
+  setLoyaltyToggle: (value: boolean) => void;
+  contactInfo?: {
+    email: string;
+    phoneNumber: string;
+  }
 }
 
 interface IBookingContext {
@@ -74,8 +81,6 @@ interface ILoyaltyDiscountInfo {
   value: number;
   currencyCode: string;
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const getDatesBetween = (startDate: string, endDate: string): string[] => {
   const dates: string[] = [];
@@ -129,23 +134,23 @@ const RoomCard: React.FC<RoomCardProps> = ({
   room,
   bookingContext,
   onBookNow,
-  onPriceUpdate,
+  onOpenGuestModal,
+  onRegisterReproceed,
   selectedBoardType,
   loyalty,
-  onUnlockLoyalty,
   loyaltyDiscountInfo,
-  loyaltyToggleOn = false,
+  loyaltyToggleOn,
+  setLoyaltyToggle,
+  contactInfo
 }) => {
   const { t } = useTranslation();
 
-  // ─── Loyalty helpers ────────────────────────────────────────────────────────
   const loyaltyDiscount = loyalty?.CreationLoyaltyConfig;
-  const isLoyaltyMember = !!loyaltyDiscountInfo;
 
   // ─── Media state ────────────────────────────────────────────────────────────
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showVideo, setShowVideo] = useState(false);
-  const hasVideo = !!room.roomVideos?.url;
+  const [showVideo, setShowVideo] = useState(true);
+  const hasVideo = !!room?.roomVideos?.url;
   const images = room.images?.length
     ? room.images
     : ["https://via.placeholder.com/600x400?text=No+Image+Available"];
@@ -171,7 +176,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [expandedCombo, setExpandedCombo] = useState<string | null>(null);
   const [expandedPromotions, setExpandedPromotions] = useState<string | null>(null);
   const [selectedPromotions, setSelectedPromotions] = useState<Record<string, ISelectedPromotion[]>>({});
-  const [collapsedRatePlans, setCollapsedRatePlans] = useState<Set<string>>(new Set());
 
   // ─── Addon state ─────────────────────────────────────────────────────────────
   const [selectedAddons, setSelectedAddons] = useState<Record<string, ISelectedAddon>>({});
@@ -188,6 +192,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [fetchedAddons, setFetchedAddons] = useState<AddonAvailability[]>([]);
   const [pendingRatePlan, setPendingRatePlan] = useState<IRoomPrice | null>(null);
 
+  // Stored addons for the pending rate plan (used for Step-2 re-fetch)
+  const pendingAddonsRef = useRef<ISelectedAddon[]>([]);
+
   // ─── Derived guest counts ─────────────────────────────────────────────────────
   const roomsArray = deriveRoomsArray(bookingContext);
   const noOfRooms = roomsArray.length || 1;
@@ -196,23 +203,44 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   // ─── Sync price sidebar ──────────────────────────────────────────────────────
   useEffect(() => {
-    if (!expandedRatePlan || !onPriceUpdate || !latestPrice) return;
+    if (!expandedRatePlan || !latestPrice) return;
     const currentRatePlan = room.roomPrice.find((rp) => rp.ratePlanCode === expandedRatePlan);
     if (!currentRatePlan) return;
-    const selectedAddonsList = Object.values(selectedAddons);
-    onPriceUpdate({
-      room,
-      ratePlan: currentRatePlan,
-      selectedAddons: selectedAddonsList,
-      basePrice: currentRatePlan.baseByGuestAmts?.[0]?.amountBeforeTax ?? 0,
-      totalAddonsPrice: selectedAddonsList.reduce((sum, a) => sum + a.totalPrice, 0),
-      finalprice: latestPrice,
-    });
-  }, [selectedAddons, expandedRatePlan, latestPrice, onPriceUpdate, room]);
+    // onPriceUpdate({
+    //   room:{
+    //     id: room.id,
+    //     roomName: room.roomName,
+    //     roomType: room.roomType,
+    //     roomSize: room.roomSize,
+    //     roomUnit: room.roomUnit,
+    //     priority: room.priority,
+    //     roomView: room.roomView,
+    //     numberOfBedrooms: room.numberOfBedrooms,
+    //     maxOccupancy: room.maxOccupancy,
+    //     description: room.description,
+    //     images: room.images,
+    //     amenities: room.amenities,
+    //     hasValidRate: room.hasValidRate,
+    //     roomPrice:room.roomPrice,
+    //     roomVideos:room.roomVideos
+    //   },
+    // selectedRatePlan: currentRatePlan,
+    // selectedAddons: selectedAddonsList,
+    // basePrice: currentRatePlan.baseByGuestAmts?.[0]?.amountBeforeTax ?? 0,
+    // totalAddonsPrice: selectedAddonsList.reduce((sum, a) => sum + a.totalPrice, 0),
+    // finalprice: latestPrice,
+    //   basePrice:currentRatePlan.baseByGuestAmts?.[0]?.amountBeforeTax,
+    //   ratePlan:currentRatePlan,
+    //   selectedAddons:currentRatePlan.addons,
+    //   totalAddonsPrice:currentRatePlan.addons.reduce((sum, a) => sum + a.price, 0),
+
+    // });
+  }, [selectedAddons, expandedRatePlan, latestPrice, room]);
   const handleBookNowClick = async (ratePlan: IRoomPrice) => {
     const loadingKey = `${ratePlan._translations ? ratePlan._translations.ratePlanName : ratePlan.ratePlanName}`;
     setLoadingPriceFor(loadingKey);
     setPendingRatePlan(ratePlan);
+    pendingAddonsRef.current = [];
 
     try {
       const availableAddons = await getAvailableAddons(
@@ -225,11 +253,18 @@ const RoomCard: React.FC<RoomCardProps> = ({
       if (availableAddons.length > 0) {
         setFetchedAddons(availableAddons);
         setAddonModalOpen(true);
-        setLoadingPriceFor(null);
         return;
       }
 
-      await proceedWithBooking(ratePlan, []);
+      // No addons — open guest form directly (price fetched after Step 1)
+      const selectedPromotionsList = selectedPromotions[ratePlan.ratePlanCode] ?? [];
+      onOpenGuestModal({
+        id: room.id, roomName: room.roomName, roomType: room.roomType,
+        roomSize: room.roomSize, roomUnit: room.roomUnit, priority: room.priority,
+        numberOfBedrooms: room.numberOfBedrooms, maxOccupancy: room.maxOccupancy,
+        images: room.images, description: room.description,
+        hasValidRate: room.hasValidRate, roomView: room.roomView,
+      }, ratePlan, [], selectedPromotionsList);
     } catch (err) {
       console.error("Error in booking flow:", err);
       toast.error(t("RoomCard.errors.somethingWentWrong"));
@@ -240,7 +275,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   const proceedWithBooking = async (
     ratePlan: IRoomPrice,
-    selectedAddonsList: ISelectedAddon[]
+    selectedAddonsList: ISelectedAddon[],
+    /** Real customer email for loyalty lookup; null on the initial call */
+    email: string | null = null
   ) => {
     const loadingKey = `${ratePlan._translations ? ratePlan._translations.ratePlanName : ratePlan.ratePlanName}`;
     setLoadingPriceFor(loadingKey);
@@ -262,11 +299,24 @@ const RoomCard: React.FC<RoomCardProps> = ({
         selectedPromotions: selectedPromotionsList,
         selectedAddons: selectedAddonsList,
         includedAddonIds: ratePlan.addons?.map((a) => a.id) ?? [],
-      });
-
-      const finalPrice = await getRoomPrice(payload, loyaltyToggleOn);
+        email: loyaltyToggleOn ? contactInfo ? contactInfo.email : null : null,
+      }, loyaltyToggleOn);
+      const finalPrice = await getRoomPrice(payload);
       setLatestPrice(finalPrice);
-      onBookNow(room, ratePlan, selectedAddonsList, selectedPromotionsList, finalPrice);
+      onBookNow({
+        id: room.id,
+        roomName: room.roomName,
+        roomType: room.roomType,
+        roomSize: room.roomSize,
+        roomUnit: room.roomUnit,
+        priority: room.priority,
+        numberOfBedrooms: room.numberOfBedrooms,
+        maxOccupancy: room.maxOccupancy,
+        images: room.images,
+        description: room.description,
+        hasValidRate: room.hasValidRate,
+        roomView: room.roomView,
+      }, ratePlan, selectedAddonsList, selectedPromotionsList, finalPrice);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("RoomCard.errors.failedToFetchPrice");
       toast.error(message);
@@ -275,14 +325,41 @@ const RoomCard: React.FC<RoomCardProps> = ({
     }
   };
 
+  const reproceedWithEmail = async (email: string) => {
+    if (!pendingRatePlan) return;
+    await proceedWithBooking(pendingRatePlan, pendingAddonsRef.current, email);
+  };
+
+  useEffect(() => {
+    onRegisterReproceed(reproceedWithEmail);
+  }, [pendingRatePlan]);
+
   const handleAddonContinue = (selectedAddonsList: ISelectedAddon[]) => {
+    pendingAddonsRef.current = selectedAddonsList;
     setAddonModalOpen(false);
-    if (pendingRatePlan) proceedWithBooking(pendingRatePlan, selectedAddonsList);
+    if (!pendingRatePlan) return;
+    const selectedPromotionsList = selectedPromotions[pendingRatePlan.ratePlanCode] ?? [];
+    onOpenGuestModal({
+      id: room.id, roomName: room.roomName, roomType: room.roomType,
+      roomSize: room.roomSize, roomUnit: room.roomUnit, priority: room.priority,
+      numberOfBedrooms: room.numberOfBedrooms, maxOccupancy: room.maxOccupancy,
+      images: room.images, description: room.description,
+      hasValidRate: room.hasValidRate, roomView: room.roomView,
+    }, pendingRatePlan, selectedAddonsList, selectedPromotionsList);
   };
 
   const handleAddonSkip = () => {
+    pendingAddonsRef.current = [];
     setAddonModalOpen(false);
-    if (pendingRatePlan) proceedWithBooking(pendingRatePlan, []);
+    if (!pendingRatePlan) return;
+    const selectedPromotionsList = selectedPromotions[pendingRatePlan.ratePlanCode] ?? [];
+    onOpenGuestModal({
+      id: room.id, roomName: room.roomName, roomType: room.roomType,
+      roomSize: room.roomSize, roomUnit: room.roomUnit, priority: room.priority,
+      numberOfBedrooms: room.numberOfBedrooms, maxOccupancy: room.maxOccupancy,
+      images: room.images, description: room.description,
+      hasValidRate: room.hasValidRate, roomView: room.roomView,
+    }, pendingRatePlan, [], selectedPromotionsList);
   };
 
   const activeAmenities = getActiveAmenities(room.amenities);
@@ -504,7 +581,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-sm">{promoEmoji[promo.promotionType] ?? "🏷"}</span>
                               <div className="min-w-0">
-                                <p className="text-xs font-semibold text-orange-900 truncate">{promo.promotionType === "mlos" ?`${t("RoomCard.mlos", { nights: formatNumber(parseInt(promo.promotionName)) })}` : promo?._translations?promo._translations.promotionName:promo.promotionName}</p>
+                                <p className="text-xs font-semibold text-orange-900 truncate">{promo.promotionType === "mlos" ? `${t("RoomCard.mlos", { nights: formatNumber(parseInt(promo.promotionName)) })}` : promo?._translations ? promo._translations.promotionName : promo.promotionName}</p>
                                 <p className="text-[10px] text-orange-600">
                                   {promo.promotionType === "mlos"
                                     ? `${t("RoomCard.mlos", { nights: formatNumber(parseInt(promo.promotionName)) })}`
@@ -566,13 +643,22 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     const includedAddonsTotal = combo.addons?.reduce((sum, a) => sum + (a.price ?? 0), 0) ?? 0;
                     const roomOnlyPrice = comboBase - includedAddonsTotal;
 
-                    const loyaltyDiscountOnRoom = isLoyaltyMember && loyaltyDiscountInfo
+                    const loyaltyDiscountOnRoom = loyaltyDiscountInfo
                       ? loyaltyDiscountInfo.type === "percentage"
                         ? (roomOnlyPrice * loyaltyDiscountInfo.value) / 100
                         : loyaltyDiscountInfo.value
                       : getLoyaltyDiscountAmount(roomOnlyPrice);
 
                     const comboAfterLoyalty = comboBase - loyaltyDiscountOnRoom;
+                    const listPrice =
+                      comboBase +
+                      (combo.appliedDiscounts?.reduce((sum, d) => sum + (d.calculatedDiscountAmount ?? 0), 0) ?? 0);
+
+                    // Whichever price is "live" right now, based on the loyalty toggle.
+                    const displayedPrice = loyaltyToggleOn ? comboAfterLoyalty : comboBase;
+                    const showStrike = listPrice - displayedPrice > 0.01;
+                    const discountPercent = showStrike ? ((listPrice - displayedPrice) / listPrice) * 100 : 0;
+
                     const isComboExpanded = expandedCombo === `${ratePlanCode}-${comboId}`;
                     const loadingKey = `${ratePlanCode}-${comboId}`;
 
@@ -588,16 +674,16 @@ const RoomCard: React.FC<RoomCardProps> = ({
                           </button>
 
                           <div className="flex items-center gap-2 sm:gap-3">
-                            {!isLoyaltyMember && loyalty && loyaltyDiscountAmount > 0 && (
+                            {loyalty && loyaltyDiscountAmount > 0 && !loyaltyToggleOn && (
                               <button
-                                onClick={(e) => { e.stopPropagation(); onUnlockLoyalty?.(); }}
-                                className="flex flex-col items-center border border-dashed border-gray-300 rounded-lg px-2 py-1 hover:border-blue-400 transition-all group"
+                                onClick={(e) => { e.stopPropagation(); setLoyaltyToggle(!loyaltyToggleOn) }}
+                                className="flex items-center gap-1.5 border border-dashed border-gray-300 rounded-lg px-2 py-1 hover:border-blue-400 transition-all group"
                               >
-                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">— {t("RoomCard.unlock")} —</span>
-                                <div className="flex items-center gap-1">
-                                  <svg className="w-3 h-3 text-gray-500 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                  </svg>
+                                <Lock size={12} className="text-gray-400 group-hover:text-blue-500" />
+                                <div className="flex flex-col items-start leading-tight">
+                                  <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">
+                                    {t("RoomCard.unlock")}
+                                  </span>
                                   <span className="text-xs font-bold text-gray-700">
                                     {currencies.find((c: Currency) => c.code === currency)?.symbol} {formatNumber(Number(comboAfterLoyalty.toFixed(2)))}
                                   </span>
@@ -606,19 +692,19 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             )}
 
                             <div className="text-right">
-                              {isLoyaltyMember && loyaltyDiscountInfo && (
+                              {showStrike && (
                                 <div className="flex items-center gap-1 justify-end">
                                   <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">
-                                    {currencies.find((c: Currency) => c.code === currency)?.symbol} {formatNumber(Number(comboBase.toFixed(2)))}
+                                    {currencies.find((c: Currency) => c.code === currency)?.symbol} {formatNumber(Number(listPrice.toFixed(2)))}
                                   </span>
-                                  <span className="px-1 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded">
-                                    -{loyaltyDiscountInfo.type === "percentage" ? `${formatNumber(loyaltyDiscountInfo.value)}%` : `${loyaltyDiscountInfo.currencyCode} ${formatNumber(loyaltyDiscountInfo.value)}`}
+                                  <span className="text-[9px] sm:text-[10px] font-bold text-red-500">
+                                    -{formatNumber(Number(discountPercent.toFixed(1)))}%
                                   </span>
                                 </div>
                               )}
                               <span className="text-sm sm:text-base font-bold text-gray-900">
                                 {currencies.find((c: Currency) => c.code === currency)?.symbol}{" "}
-                                {formatNumber(Number((isLoyaltyMember ? comboAfterLoyalty : comboBase).toFixed(2)))}
+                                {formatNumber(Number(displayedPrice.toFixed(2)))}
                               </span>
                             </div>
 
@@ -661,7 +747,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                               {combo.appliedDiscounts?.map((discount) => (
                                 <div key={discount.id} className="flex items-center gap-1">
                                   <span className="text-[10px] text-green-700 truncate max-w-[120px]">
-                                    {discount.promotionType === "mlos" ? `${t("RoomCard.mlos", { nights: formatNumber(parseInt(discount.promotionName)) })}` : discount?._translations?discount._translations.promotionName:discount.promotionName}
+                                    {discount.promotionType === "mlos" ? `${t("RoomCard.mlos", { nights: formatNumber(parseInt(discount.promotionName)) })}` : discount?._translations ? discount._translations.promotionName : discount.promotionName}
                                   </span>
                                   <span className="text-[10px] font-bold text-green-600 whitespace-nowrap">
                                     -{currency} {formatNumber(Number(discount.calculatedDiscountAmount.toFixed(2)))}

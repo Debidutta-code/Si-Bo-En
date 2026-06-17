@@ -14,7 +14,7 @@ export class RoomBookingRepository {
                         isLoyaltyProgramEnabled: true,
                         showVideo: true,
                         isB2cAvailable: true,
-                                                baseCurrency: true
+                        baseCurrency: true
 
                     }
                 },
@@ -32,7 +32,20 @@ export class RoomBookingRepository {
                                 loyaltyConditions: true,
                                 loyaltySpecialConditions: true,
                                 LoyaltyProgramFieldConfig: true,
-                                PropertyLoyaltyConfig: true,
+                                PropertyLoyaltyConfig: {
+                                    where: {
+                                        Property: {
+                                            propertyCode
+                                        }
+                                    }
+                                },
+                                LoyalityLevels: {
+                                    where: {
+                                        level: {
+                                            equals: 1
+                                        }
+                                    }
+                                }
                             },
                         },
                     },
@@ -44,9 +57,9 @@ export class RoomBookingRepository {
                     include: {
                         roomAmenities: { include: { amenity: true } },
                         roomVideos: true,
-                        RoomViews:{
-                            include:{
-                                MasterRoomView:true
+                        RoomViews: {
+                            include: {
+                                MasterRoomView: true
                             }
                         }
                     },

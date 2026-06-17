@@ -47,9 +47,8 @@ export class LoyalityConditionRepository {
         id: string
     ): Promise<ILoyalityCondition> {
         try {
-            return await prisma.loyaltyConditions.update({
+            return await prisma.loyaltyConditions.delete({
                 where: { id },
-                data: { isDeleted: true },
             });
         } catch (error) {
             throw new Error('Error deleting loyalty condition ');
