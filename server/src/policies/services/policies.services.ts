@@ -169,4 +169,24 @@ export class PoliciesServices {
             );
         }
     }
+    public static async RemovePolicyFromRatePlans(
+        policyId: string,
+        ratePlanIds: string[]
+    ) {
+        try {
+            const existingPolicy = await PolicyRepository.getPolicyById(policyId);
+            if (!existingPolicy) {
+                return errorResponse('Policy not found');
+            }
+
+            await PolicyRepository.RemovePolicyFromRatePlans(policyId, ratePlanIds);
+
+            return successResponse('Policy removed from Rate Plan(s) successfully');
+        } catch (error: any) {
+            return errorResponse(
+                'Error occurred while removing Policy from Rate Plan(s)',
+                error.message
+            );
+        }
+    }
 }

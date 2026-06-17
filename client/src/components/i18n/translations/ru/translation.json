@@ -2664,6 +2664,7 @@
     "actions": "Действия",
     "editPolicy": "Редактировать политику",
     "addToRatePlan": "Добавить в тарифный план",
+    "removeFromRatePlan": "Удалить из тарифного плана",
     "delete": "Удалить",
     "deleteConfirmTitle": "Вы уверены?",
     "deleteConfirmDescription": "Это действие навсегда удалит \"{{name}}\". Это действие невозможно отменить.",

@@ -2647,6 +2647,7 @@
     "actions": "İşlemler",
     "editPolicy": "Politikayı Düzenle",
     "addToRatePlan": "Ücret Planına Ekle",
+    "removeFromRatePlan": "Ücret Planından Kaldır",
     "delete": "Sil",
     "deleteConfirmTitle": "Emin misiniz?",
     "deleteConfirmDescription": "Bu, \"{{name}}\" öğesini kalıcı olarak silecektir. Bu işlem geri alınamaz.",

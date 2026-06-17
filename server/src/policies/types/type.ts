@@ -49,3 +49,7 @@ export interface PaginatedResult<T> {
         totalPages: number;
     };
 }
+export interface RemovePolicyFromRatePlansData {
+    policyId: string;
+    ratePlanIds: string[];
+}

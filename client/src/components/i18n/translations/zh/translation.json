@@ -2666,6 +2666,7 @@
     "actions": "操作",
     "editPolicy": "编辑政策",
     "addToRatePlan": "添加到房价方案",
+    "removeFromRatePlan": "从房价方案中移除",
     "delete": "删除",
     "deleteConfirmTitle": "您确定吗？",
     "deleteConfirmDescription": "这将永久删除 \"{{name}}\"。此操作无法撤销。",
