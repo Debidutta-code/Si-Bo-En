@@ -5,6 +5,8 @@ import {
     ISpaSlot,
     ICSpaDatesR,
     ISpaDates,
+    ISlotsAvailable,
+    SlotStatus,
 } from '../types';
 
 export class SpaDatesRepo {
@@ -163,7 +165,6 @@ export class SpaDatesRepo {
 }
 
 export class SpaSlotsRepo {
-    // SpaSlotsRepo — add these two methods
     public async createSlot(data: ICSpaSlotR): Promise<ISpaSlot> {
         try {
             return await prisma.spaSlots.create({
@@ -174,7 +175,6 @@ export class SpaSlotsRepo {
             throw new Error('Error occurred while creating spa slot');
         }
     }
-
     public async createManyAvailability(spaSlotId: string, count: number): Promise<void> {
         try {
             await prisma.slotsAvailable.createMany({
@@ -208,7 +208,6 @@ export class SpaSlotsRepo {
             throw new Error('Error occur while fetching spa slot by id');
         }
     }
-
     public async deleteSlot(id: string): Promise<ISpaSlot> {
         try {
             return await prisma.spaSlots.delete({
@@ -227,54 +226,7 @@ export class SpaSlotsRepo {
             throw new Error('Error occur while deleting spa slot');
         }
     }
-
-    // marks a specific SlotsAvailable section as booked
-    public async markSectionAsBooked(
-        slotsAvailableId: string,
-        reservationId: string
-    ) {
-        try {
-            return await prisma.slotsAvailable.update({
-                where: { id: slotsAvailableId },
-                data: {
-                    status: 'booked',
-                    reservationId,
-                },
-            });
-        } catch (error) {
-            throw new Error('Error occur while marking section as booked');
-        }
-    }
-
-    // frees a specific SlotsAvailable section
-    public async markSectionAsAvailable(slotsAvailableId: string) {
-        try {
-            return await prisma.slotsAvailable.update({
-                where: { id: slotsAvailableId },
-                data: {
-                    status: 'active',
-                    reservationId: null,
-                },
-            });
-        } catch (error) {
-            throw new Error('Error occur while marking section as available');
-        }
-    }
-
-    // marks a specific SlotsAvailable section as completed
-    public async markSectionAsCompleted(slotsAvailableId: string) {
-        try {
-            return await prisma.slotsAvailable.update({
-                where: { id: slotsAvailableId },
-                data: { status: 'completed' },
-            });
-        } catch (error) {
-            throw new Error('Error occur while marking section as completed');
-        }
-    }
-
-    // marks a whole slot inactive (admin disables the slot)
-    public async markSlotAsInactive(id: string): Promise<ISpaSlot> {
+    public async updateSpaSlotStatus(id: string, isActive: boolean): Promise<ISpaSlot> {
         try {
             return await prisma.spaSlots.update({
                 where: {
@@ -288,16 +240,148 @@ export class SpaSlotsRepo {
                     },
                 },
                 data: {
-                    slotsAvailable: {
-                        updateMany: {
-                            where: { status: 'active' },
-                            data: { status: 'inactive' },
+                    isActive,
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occur while updating spa slot status');
+        }
+    }
+    public async getspaSlotAvailibilitybySpaId(id: string): Promise<ISlotsAvailable[]> {
+        try {
+            return await prisma.slotsAvailable.findMany({
+                where: { spaSlotId: id },
+            });
+        } catch (error) {
+            throw new Error('Error occur while fetching spa slot availibility by id');
+        }
+    }
+    public async getspaSlotAvailibilitybyId(id: string): Promise<ISlotsAvailable | null> {
+        try {
+            return await prisma.slotsAvailable.findUnique({
+                where: {
+                    id,
+                    spaSlot: {
+                        spaDate: {
+                            spaModule: {
+                                Property: {
+                                    propertyConfigs: { isSpaModuleEnabled: true },
+                                },
+                            },
+                        },
+                    },
+                },
+                include: {
+                    spaSlot: {
+                        include: {
+                            spaDate: {
+                                include: {
+                                    spaModule: {
+                                        include: {
+                                            Property: {
+                                                include: {
+                                                    propertyConfigs: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
                         },
                     },
                 },
             });
         } catch (error) {
-            throw new Error('Error occur while marking slot as inactive');
+            throw new Error('Error occur while fetching spa slot availibility by id');
+        }
+    }
+    public async markSlotAvailabilitiesAsBooked(
+        slotsAvailableIds: string[],
+        reservationId: string,
+        userName: string,
+    ): Promise<ISlotsAvailable[]> {
+        try {
+            await prisma.slotsAvailable.updateMany({
+                where: {
+                    id: { in: slotsAvailableIds },
+                    status: 'active',
+                },
+                data: {
+                    status: 'booked',
+                    reservationId,
+                    userName,
+                },
+            });
+
+            return await prisma.slotsAvailable.findMany({
+                where: { id: { in: slotsAvailableIds } },
+            });
+        } catch (error) {
+            throw new Error('Error occurred while marking spa slots as booked');
+        }
+    }
+    public async deleteSlotAvailibilityById(id: string): Promise<ISlotsAvailable> {
+        try {
+            return await prisma.slotsAvailable.delete({
+                where: {
+                    id,
+                    spaSlot: {
+                        spaDate: {
+                            spaModule: {
+                                Property: {
+                                    propertyConfigs: { isSpaModuleEnabled: true },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occurred while deleting spa slot availability by id');
+        }
+    }
+    public async updateSpaSlotAvailibilityStatus(id: string, status: SlotStatus): Promise<ISlotsAvailable> {
+        try {
+            return await prisma.slotsAvailable.update({
+                where: {
+                    id,
+                    spaSlot: {
+                        spaDate: {
+                            spaModule: {
+                                Property: {
+                                    propertyConfigs: { isSpaModuleEnabled: true },
+                                },
+                            },
+                        },
+                    },
+                },
+                data: {
+                    status,
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occurred while updating spa slot availability status');
+        }
+    }
+    public async findOverlappingSlot(
+        spaDateId: string,
+        startTime: Date,
+        endTime: Date
+    ): Promise<ISpaSlot | null> {
+        try {
+            return await prisma.spaSlots.findFirst({
+                where: {
+                    spaDateId,
+                    startTime: {
+                        lt: endTime,
+                    },
+                    endTime: {
+                        gt: startTime,
+                    },
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occurred while checking overlapping slots');
         }
     }
 }

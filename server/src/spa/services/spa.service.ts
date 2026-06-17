@@ -148,7 +148,7 @@ export class SpaService {
             if (!reservation) {
                 return errorResponse('Reservation not found');
             }
-            const spas = await this.spaRepository.getAvailableSpaForinDateRange(
+            const spas = await this.spaRepository.getAvailableSpaForinDateRangeBE(
                 reservation.propertyId,
                 reservation.reservationStartDate,
                 reservation.reservationEndDate

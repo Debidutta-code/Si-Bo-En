@@ -34,8 +34,15 @@ export interface ISlotsAvailable {
     status: SlotStatus;
     reservationId: string | null;
     slotBooking?: ISlotBooking | null;
+    spaSlot?:ISpaSlot | null;
+    userName?:string|null;
+    
 }
-
+ export  interface IBookAvailability {
+        availabilityId: string;
+        slotId: string;
+        spaId: string;
+    }
 export type SlotStatus = 'active' | 'inactive' | 'booked' | 'completed' | 'cancelled';
 
 export interface ISpaSlotWAvailability extends ISpaSlot {

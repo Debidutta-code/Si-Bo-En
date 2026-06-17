@@ -25,6 +25,7 @@ export class SpaPricingService {
                 ),
                 this.spaDatesRepository.getDateById(data.spaDateId),
             ]);
+            console.log("data",reservation,spaDate)
             if (!reservation) {
                 return errorResponse('Reservation not found');
             }
@@ -51,46 +52,6 @@ export class SpaPricingService {
                     spaSlotId: data.spaSlotId,
                 });
             } else {
-                // const [applicableTaxes, ] =
-                //     await Promise.all([
-                //         this.spaPricingRepository.getApplicableTaxes(
-                //             reservation.ratePlanCode
-                //         ),
-                        // this.spaPricingRepository.deleteTaxBrakedowns(
-                        //     reservation.pricingBrakedownId
-                        // ),
-                    // ]);
-                // const sortedTaxRules = (
-                //     applicableTaxes?.taxGroup?.taxGroupRules || []
-                // ).sort(
-                //     (a, b) =>
-                //         (a.taxRule?.priority ?? 0) - (b.taxRule?.priority ?? 0)
-                // );
-                // const newTotalAmountBeforeTaxes =
-                //     pricingBrakedown?.amountBeforeTax??0 +
-                //     (spa.discountValue ? spa.discountValue : 0);
-
-                // const newTaxBreakdown = sortedTaxRules.map(rule => {
-                //     const value = rule.taxRule?.value ?? 0;
-                //     const baseAmount = spa.discountValue
-                //         ? spa.discountValue
-                //         : 0;
-
-                //     const taxAmount =
-                //         rule.taxRule?.type === 'percentage'
-                //             ? (baseAmount * value) / 100
-                //             : value;
-                //     return {
-                //         currencyCode: rule.taxRule?.currencyCode!,
-                //         // taxedAmount: taxAmount,
-                //         name: rule.taxRule?.name!,
-                //         pricingBrakeDownId: reservation.pricingBrakedownId!,
-                //     };
-                // });
-                // const newTotalTaxedAmount = newTaxBreakdown.reduce(
-                //     (acc, curr) => acc + curr.taxedAmount,
-                //     0
-                // );
                 const newFinalAmount =
                     pricingBrakedown?.totalAmount ?? 0 + (spa.discountValue ?? 0);
                 await Promise.all([

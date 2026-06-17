@@ -17,7 +17,7 @@ model SpaSlots {
   id        String    @id @default(uuid())
   startTime DateTime  @map("start_time")
   endTime   DateTime? @map("end_time")
-
+  isActive  Boolean   @default(true) @map("is_active")
   spaDateId String   @map("spa_date_id")
   spaDate   SpaDates @relation(fields: [spaDateId], references: [id], onDelete: Cascade)
 
@@ -34,7 +34,8 @@ model SlotsAvailable {
   spaSlotId String   @map("spa_slot_id")
   spaSlot   SpaSlots @relation(fields: [spaSlotId], references: [id], onDelete: Cascade)
 
-  status SlotStatus @default(active) @map("status")  // ← replaces isActive, isBooked, isCompleted
+  status SlotStatus @default(active) @map("status")
+   userName      String?       @map("user_name")
 
   reservationId String?      @map("reservation_id")
   reservation   Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)

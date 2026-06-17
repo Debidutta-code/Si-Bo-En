@@ -184,16 +184,16 @@ export default function MySpa() {
                                                             <div className="text-left">
                                                                 <p className="font-semibold text-base">{formatDate(spaDate.date)}</p>
                                                                 <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                                                                    {spaDate.Slots?.length || 0} {t('MySpa.slots.available')}
+                                                                    {spaDate.slots?.length || 0} {t('MySpa.slots.available')}
                                                                 </p>
                                                             </div>
                                                         </div>
                                                     </AccordionTrigger>
                                                     
                                                     <AccordionContent className="pt-2 pb-4">
-                                                        {spaDate.Slots && spaDate.Slots.length > 0 ? (
+                                                        {spaDate.slots && spaDate.slots.length > 0 ? (
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                                {spaDate.Slots.map((slot: any) => (
+                                                                {spaDate.slots.map((slot: any) => (
                                                                     <div key={slot.id} className="border p-3 rounded-lg flex flex-col justify-start gap-2 h-full">
                                                                         <div className="flex items-center justify-between">
                                                                             <div className="flex items-center gap-2">

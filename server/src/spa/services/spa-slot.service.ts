@@ -4,8 +4,8 @@ import {
     errorResponse,
     toUTC,
 } from '../../utils';
-import { SpaDatesRepo, SpaSlotsRepo } from '../repository';
-import { ICSpaDatesR, ICSpaDatesS, ICSpaSlotBatch, ICSpaSlotS } from '../types/spa-slot.type';
+import { SpaDatesRepo, SpaRepository, SpaSlotsRepo } from '../repository';
+import { IBookAvailability, ICSpaDatesR, ICSpaDatesS, ICSpaSlotBatch, ICSpaSlotS, SlotStatus } from '../types/spa-slot.type';
 import { SpaPricingService } from './spa-pricing.service';
 
 export class SpaDates {
@@ -105,12 +105,14 @@ export class SpaDates {
 
 export class SpaSlotsServ {
     private spaSlotsRepo: SpaSlotsRepo;
+    private spaRepo: SpaRepository;
     private spaDatesRepo: SpaDatesRepo;
     private spaPricingService: SpaPricingService;
     private spaDatesService: SpaDates;
 
     constructor() {
         this.spaSlotsRepo = new SpaSlotsRepo();
+        this.spaRepo = new SpaRepository();
         this.spaDatesRepo = new SpaDatesRepo();
         this.spaPricingService = new SpaPricingService();
         this.spaDatesService = new SpaDates();
@@ -127,7 +129,7 @@ export class SpaSlotsServ {
                 const exists = await this.spaDatesRepo.getDateById(spaDateId);
                 if (!exists) {
                     const createRes = await this.spaDatesService.createSpaDates(
-                        [new Date()], // fallback, ideally never hit
+                        [new Date()],
                         spaModuleId
                     );
                     if (!createRes.success) {
@@ -140,12 +142,40 @@ export class SpaSlotsServ {
             }
 
             for (const slot of slots) {
+                const startTime = new Date(slot.startTime);
+                const endTime = new Date(slot.endTime!);
+
+                if (startTime >= endTime) {
+                    return errorResponse(
+                        'Invalid slot time',
+                        'Start time must be before end time'
+                    );
+                }
+
+                const overlappingSlot =
+                    await this.spaSlotsRepo.findOverlappingSlot(
+                        slot.spaDateId,
+                        startTime,
+                        endTime
+                    );
+
+                if (overlappingSlot) {
+                    return errorResponse(
+                        'Slot overlaps with an existing slot',
+                        `Existing slot: ${overlappingSlot.startTime.toISOString()} - ${overlappingSlot.endTime?.toISOString()}`
+                    );
+                }
+
                 const created = await this.spaSlotsRepo.createSlot({
                     spaDateId: slot.spaDateId,
-                    startTime: new Date(slot.startTime),
-                    endTime: slot.endTime ? new Date(slot.endTime) : null,
+                    startTime,
+                    endTime,
                 });
-                await this.spaSlotsRepo.createManyAvailability(created.id, slot.availability);
+
+                await this.spaSlotsRepo.createManyAvailability(
+                    created.id,
+                    slot.availability
+                );
             }
 
             return successResponse(`${slots.length} slot(s) created successfully`);
@@ -157,6 +187,24 @@ export class SpaSlotsServ {
         }
     }
 
+    public async updateSpaSlotStatus(
+        id: string,
+        isActive: boolean
+    ): Promise<IApiResponse> {
+        try {
+            const exist = await this.spaSlotsRepo.getSlotById(id);
+            if (!exist) {
+                return errorResponse('Spa slot does not exist', 'Spa slot not found');
+            }
+            const updated = await this.spaSlotsRepo.updateSpaSlotStatus(id, isActive);
+            return successResponse('Updated spa slot status successfully', updated);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse('Failed to update spa slot status', error.message);
+            }
+            return errorResponse('Failed to update spa slot status', 'Unknown error');
+        }
+    }
     public async deleteSpaSlot(id: string): Promise<IApiResponse> {
         try {
             const exists = await this.spaSlotsRepo.getSlotById(id);
@@ -172,115 +220,125 @@ export class SpaSlotsServ {
             return errorResponse('Failed to delete spa slot', 'Unknown error');
         }
     }
-    // public async markAsBooked(
-    //     id: string,
-    //     reservationId: string,
-    //     userName: string
-    // ): Promise<IApiResponse> {
-    //     try {
-    //         const isSlotExists = await this.spaSlotsRepo.getSlotById(id);
-    //         if (!isSlotExists) {
-    //             return errorResponse(
-    //                 'Spa slot does not exist',
-    //                 'Spa slot not found'
-    //             );
-    //         }
-    //         if (isSlotExists.isBooked) {
-    //             return errorResponse(
-    //                 'Spa slot is already booked',
-    //                 'Spa slot already booked'
-    //             );
-    //         }
-    //         const updatedSlot = await this.spaSlotsRepo.markSlotAsBooked(
-    //             id,
-    //             reservationId,
-    //             userName
-    //         );
-    //         const spaSlotPricing =
-    //             await this.spaPricingService.createSpaPricing({
-    //                 reservationId: reservationId,
-    //                 spaDateId: isSlotExists.spaDateId,
-    //                 spaSlotId: id,
-    //             });
-    //         return spaSlotPricing;
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return errorResponse(
-    //                 'Failed to mark spa slot as booked',
-    //                 error.message
-    //             );
-    //         }
-    //         return errorResponse(
-    //             'Failed to mark spa slot as booked',
-    //             'Unknown error'
-    //         );
-    //     }
-    // }
-    // public async markAsAvailable(id: string): Promise<IApiResponse> {
-    //     try {
-    //         const isSlotExists = await this.spaSlotsRepo.getSlotById(id);
-    //         if (!isSlotExists) {
-    //             return errorResponse(
-    //                 'Spa slot does not exist',
-    //                 'Spa slot not found'
-    //             );
-    //         }
-    //         if (!isSlotExists.isBooked) {
-    //             return errorResponse(
-    //                 'Spa slot is available',
-    //                 'Spa slot already booked'
-    //             );
-    //         }
-    //         if (!isSlotExists.reservationId) {
-    //             return errorResponse(
-    //                 'Spa slot is not booked yet',
-    //                 'Spa slot is not booked yet'
-    //             );
-    //         }
-    //         const updatedSlot = await this.spaSlotsRepo.markSlotAsAvailable(id);
-    //         const spaSlotPricing =
-    //             await this.spaPricingService.deleteSpaPricing({
-    //                 reservationId: isSlotExists.reservationId,
-    //                 spaDateId: isSlotExists.spaDateId,
-    //                 spaSlotId: isSlotExists.id,
-    //             });
+    
+public async markSlotAvailibilityAsBooked(
+    reservationId: string,
+    userName: string,
+    availabilities: IBookAvailability[]
+): Promise<IApiResponse> {
+    try {
+        // Validate all availabilities exist and are not already booked
+        const existingSlots = await Promise.all(
+            availabilities.map((a) =>
+                this.spaSlotsRepo.getspaSlotAvailibilitybyId(a.availabilityId)
+            )
+        );
 
-    //         return spaSlotPricing;
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return errorResponse(
-    //                 'Failed to mark spa slot as available',
-    //                 error.message
-    //             );
-    //         }
-    //         return errorResponse(
-    //             'Failed to mark as Available',
-    //             'Unknown error'
-    //         );
-    //     }
-    // }
-    // public async markSlotAsCompleted(id: string): Promise<IApiResponse> {
-    //     try {
-    //         const isSlotExists = await this.spaSlotsRepo.getSlotById(id);
-    //         if (!isSlotExists) {
-    //             return errorResponse(
-    //                 'Spa slot does not exist',
-    //                 'Spa slot not found'
-    //             );
-    //         }
-    //         await this.spaSlotsRepo.markSlotAsCompleted(id);
-    //         return successResponse('Slot marked as completed successfully');
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return errorResponse(
-    //                 'Failed to mark slot as completed',
-    //                 error.message
-    //             );
-    //         }
-    //         return errorResponse(
-    //             'Failed to mark slot as completed',
-    //             'Unknown error'
-    //         );
-    //     }
-    // }
+        for (let i = 0; i < existingSlots.length; i++) {
+            const slot = existingSlots[i];
+            if (!slot) {
+                return errorResponse(
+                    'Spa slot does not exist',
+                    `Slot ID ${availabilities[i].availabilityId} not found`
+                );
+            }
+            if (slot.status === 'booked') {
+                return errorResponse(
+                    'Spa slot is already booked',
+                    `Slot ID ${availabilities[i].availabilityId} is already booked`
+                );
+            }
+        }
+
+        // Fetch the spa for each availability to check isInclusive
+        const spas = await Promise.all(
+            availabilities.map((a) => this.spaRepo.getById(a.spaId))
+        );
+
+        for (let i = 0; i < spas.length; i++) {
+            if (!spas[i]) {
+                return errorResponse(
+                    'Spa not found',
+                    `Spa ID ${availabilities[i].spaId} not found`
+                );
+            }
+        }
+
+        // Mark all slots as booked in one DB call
+        await this.spaSlotsRepo.markSlotAvailabilitiesAsBooked(
+            availabilities.map((a) => a.availabilityId),
+            reservationId,
+            userName
+        );
+
+      
+        for (let i = 0; i < existingSlots.length; i++) {
+            if (spas[i]!.isInclusive) continue;
+
+            const pricingResult = await this.spaPricingService.createSpaPricing({
+                reservationId,
+                spaDateId: existingSlots[i]!.spaSlot?.spaDateId!,
+                spaSlotId: existingSlots[i]!.spaSlot?.id!,
+            });
+
+            if (!pricingResult.success) return pricingResult;
+        }
+
+        return successResponse('Spa slots booked successfully');
+    } catch (error) {
+        if (error instanceof Error) {
+            return errorResponse('Failed to mark spa slot as booked', error.message);
+        }
+        return errorResponse('Failed to mark spa slot as booked', 'Unknown error');
+    }
+}
+    
+    public async deleteSlotAvailibilityById(id: string): Promise<IApiResponse> {
+        try {
+            const isSlotExists = await this.spaSlotsRepo.getspaSlotAvailibilitybyId(id);
+            if (!isSlotExists) {
+                return errorResponse(
+                    'Spa slot does not exist',
+                    'Spa slot not found'
+                );
+            }
+            await this.spaSlotsRepo.deleteSlotAvailibilityById(id);
+            return successResponse('Slot availability deleted successfully');
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse(
+                    'Failed to delete slot availability',
+                    error.message
+                );
+            }
+            return errorResponse(
+                'Failed to delete slot availability',
+                'Unknown error'
+            );
+        }
+    }
+    public async updateSpaSlotAvailibilityStatus(id: string, status: SlotStatus): Promise<IApiResponse> {
+        try {
+            const isSlotExists = await this.spaSlotsRepo.getspaSlotAvailibilitybyId(id);
+            if (!isSlotExists) {
+                return errorResponse(
+                    'Spa slot does not exist',
+                    'Spa slot not found'
+                );
+            }
+            await this.spaSlotsRepo.updateSpaSlotAvailibilityStatus(id, status);
+            return successResponse('Slot availability status updated successfully');
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse(
+                    'Failed to update slot availability status',
+                    error.message
+                );
+            }
+            return errorResponse(
+                'Failed to update slot availability status',
+                'Unknown error'
+            );
+        }
+    }
 }

@@ -128,3 +128,23 @@ export const markSlotAsCompleted = async (slotId: string) => {
         }
     }
 }
+
+export const updateSlotAvailabilityStatus = async (id: string, data: { status: string }) => {
+    try {
+        const response = await axiosInstance.patch(`/spa/slots/slot-availibility/${id}`, data);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) return error.response.data;
+        return { success: false, message: error?.message };
+    }
+};
+
+export const deleteSlotAvailability = async (id: string) => {
+    try {
+        const response = await axiosInstance.delete(`/spa/slots/slot-availibility/${id}`);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) return error.response.data;
+        return { success: false, message: error?.message };
+    }
+};

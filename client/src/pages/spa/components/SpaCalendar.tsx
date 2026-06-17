@@ -20,10 +20,13 @@ import {
   deleteSpaSlotService,
   createSpaSlotsService,
   createSpaDateService,
+  deleteSlotAvailabilityService,
+  updateSlotAvailabilityStatusService,
 } from '../services';
-import type { ISpaDates, ISpa, ICSpaSlotS } from '../interfaces';
+import type { ISpaDates, ISpa, ICSpaSlotS, ISpaSlotWAvailability, SlotStatus } from '../interfaces';
 import BackButton from '@/components/shared/BackButton';
 import SpaConfigDialog, { type SpaConfigPayload } from './SpaConfigDialog';
+import SpaSlotAvailabilityModal from './SpaSlotAvailabilityModal';
 
 export default function SpaCalendar({
   spaId,
@@ -50,6 +53,18 @@ export default function SpaCalendar({
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
   const [configDates, setConfigDates] = useState<Date[]>([]);
   const [forceWithSlots, setForceWithSlots] = useState(false);
+
+  const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<ISpaSlotWAvailability | null>(null);
+
+
+  const handleSlotClick = (slot: ISpaSlotWAvailability) => {
+    setSelectedSlot(slot);
+    setAvailabilityModalOpen(true);
+  };
+
+
+
   useEffect(() => {
     fetchSpaDates();
   }, [currentMonth, spaId]);
@@ -181,102 +196,148 @@ export default function SpaCalendar({
     setConfigDialogOpen(true);
   };
 
-const handleSaveConfig = async (payload: SpaConfigPayload) => {
+  const handleSaveConfig = async (payload: SpaConfigPayload) => {
     setIsLoading(true);
 
     const isoDateStrings = payload.dates.map((d) =>
-        new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString()
+      new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())).toISOString()
     );
 
     // Check which dates are missing from current spaDates state
     const missingDates = isoDateStrings.filter((isoDate) =>
-        !spaDates.some((sd) => {
-            const existing = new Date(sd.date);
-            const incoming = new Date(isoDate);
-            return (
-                existing.getUTCFullYear() === incoming.getUTCFullYear() &&
-                existing.getUTCMonth() === incoming.getUTCMonth() &&
-                existing.getUTCDate() === incoming.getUTCDate()
-            );
-        })
+      !spaDates.some((sd) => {
+        const existing = new Date(sd.date);
+        const incoming = new Date(isoDate);
+        return (
+          existing.getUTCFullYear() === incoming.getUTCFullYear() &&
+          existing.getUTCMonth() === incoming.getUTCMonth() &&
+          existing.getUTCDate() === incoming.getUTCDate()
+        );
+      })
     );
 
     // Step 1: only create dates that don't exist yet
     if (missingDates.length > 0) {
-        const createRes = await createSpaDateService(spaId, missingDates);
-        if (!createRes?.success) {
-            toast.error(createRes?.message || 'Failed to create spa dates');
-            setIsLoading(false);
-            return;
-        }
+      const createRes = await createSpaDateService(spaId, missingDates);
+      if (!createRes?.success) {
+        toast.error(createRes?.message || 'Failed to create spa dates');
+        setIsLoading(false);
+        return;
+      }
     }
 
     // Day-only config — done
     if (!payload.slots || payload.slots.length === 0) {
-        toast.success('Dates configured successfully');
-        await fetchSpaDates();
-        setIsLoading(false);
-        return;
+      toast.success('Dates configured successfully');
+      await fetchSpaDates();
+      setIsLoading(false);
+      return;
     }
 
     // Step 2: get fresh records only if we created new dates, otherwise use state
     let freshDates: ISpaDates[] = spaDates;
     if (missingDates.length > 0) {
-        const freshRes = await getSpaForDateRangeService(spaId, {
-            startDate: startOfMonth(currentMonth),
-            endDate: endOfMonth(currentMonth),
-        });
-        freshDates = freshRes?.data || [];
+      const freshRes = await getSpaForDateRangeService(spaId, {
+        startDate: startOfMonth(currentMonth),
+        endDate: endOfMonth(currentMonth),
+      });
+      freshDates = freshRes?.data || [];
     }
 
     // Step 3: build all slots across all dates into one array
     const allSlots: (ICSpaSlotS & { spaDateId: string; availability: number })[] = [];
 
     for (const targetDate of payload.dates) {
-        const spaDateRecord = freshDates.find((sd) => {
-            const d = new Date(sd.date);
-            return (
-                d.getUTCFullYear() === targetDate.getFullYear() &&
-                d.getUTCMonth() === targetDate.getMonth() &&
-                d.getUTCDate() === targetDate.getDate()
-            );
-        });
+      const spaDateRecord = freshDates.find((sd) => {
+        const d = new Date(sd.date);
+        return (
+          d.getUTCFullYear() === targetDate.getFullYear() &&
+          d.getUTCMonth() === targetDate.getMonth() &&
+          d.getUTCDate() === targetDate.getDate()
+        );
+      });
 
-        if (!spaDateRecord) continue;
+      if (!spaDateRecord) continue;
 
-        const slotsForDate = payload.slots.map((slot) => {
-            const startTemplate = new Date(slot.startTime);
-            const endTemplate = new Date(slot.endTime);
-            return {
-                spaDateId: spaDateRecord.id,
-                startTime: new Date(Date.UTC(
-                    targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(),
-                    startTemplate.getUTCHours(), startTemplate.getUTCMinutes(), 0, 0
-                )),
-                endTime: new Date(Date.UTC(
-                    targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(),
-                    endTemplate.getUTCHours(), endTemplate.getUTCMinutes(), 0, 0
-                )),
-                availability: payload.availability,
-            };
-        });
+      const slotsForDate = payload.slots.map((slot) => {
+        const startTemplate = new Date(slot.startTime);
+        const endTemplate = new Date(slot.endTime);
+        return {
+          spaDateId: spaDateRecord.id,
+          startTime: new Date(Date.UTC(
+            targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(),
+            startTemplate.getUTCHours(), startTemplate.getUTCMinutes(), 0, 0
+          )),
+          endTime: new Date(Date.UTC(
+            targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(),
+            endTemplate.getUTCHours(), endTemplate.getUTCMinutes(), 0, 0
+          )),
+          availability: payload.availability,
+        };
+      });
 
-        allSlots.push(...slotsForDate);
+      allSlots.push(...slotsForDate);
     }
 
     // Step 4: single API call for all slots
     if (allSlots.length > 0) {
-        const slotRes = await createSpaSlotsService(allSlots);
-        if (slotRes?.success) {
-            toast.success(`Configured ${payload.dates.length} dates with ${allSlots.length} slots total`);
-        } else {
-            toast.error(slotRes?.message || 'Failed to create slots');
-        }
+      const slotRes = await createSpaSlotsService(allSlots);
+      if (slotRes?.success) {
+        toast.success(`Configured ${payload.dates.length} dates with ${allSlots.length} slots total`);
+      } else {
+        toast.error(slotRes?.message || 'Failed to create slots');
+      }
     }
 
     await fetchSpaDates();
     setIsLoading(false);
-};
+  };
+
+
+  const handleUpdateAvailabilityStatus = async (availabilityId: string, status: SlotStatus) => {
+    const res = await updateSlotAvailabilityStatusService(availabilityId, status);
+    if (res?.success) {
+      toast.success(`Marked as ${status}`);
+      await fetchSpaDates();
+      // refresh the selected slot data
+      const fresh = await getSpaForDateRangeService(spaId, {
+        startDate: startOfMonth(currentMonth),
+        endDate: endOfMonth(currentMonth),
+      });
+      if (fresh?.success && selectedSlot) {
+        const updatedSlot = fresh.data
+          ?.flatMap((d: any) => d.slots)
+          ?.find((s: any) => s.id === selectedSlot.id);
+        if (updatedSlot) setSelectedSlot(updatedSlot);
+      }
+    } else {
+      toast.error(res?.message || 'Failed to update status');
+    }
+  };
+
+  const handleDeleteAvailability = async (availabilityId: string) => {
+    const res = await deleteSlotAvailabilityService(availabilityId);
+    if (res?.success) {
+      toast.success('Availability slot deleted');
+      await fetchSpaDates();
+      // refresh selected slot
+      const fresh = await getSpaForDateRangeService(spaId, {
+        startDate: startOfMonth(currentMonth),
+        endDate: endOfMonth(currentMonth),
+      });
+      if (fresh?.success && selectedSlot) {
+        const updatedSlot = fresh.data
+          ?.flatMap((d: any) => d.slots)
+          ?.find((s: any) => s.id === selectedSlot.id);
+        if (updatedSlot) setSelectedSlot(updatedSlot);
+        else setAvailabilityModalOpen(false); // all deleted
+      }
+    } else {
+      toast.error(res?.message || 'Failed to delete');
+    }
+  };
+
+
   return (
     <div
       className="flex flex-col h-full bg-white rounded-xl shadow-sm border p-4"
@@ -336,6 +397,7 @@ const handleSaveConfig = async (payload: SpaConfigPayload) => {
               isSelected={isCellSelected(day)}
               isDragActive={isDragging}
               onRemoveSpaDate={handleRemoveSpaDate}
+              onSlotClick={handleSlotClick}
               onCellClick={handleCellClick}
               onRemoveSlot={handleRemoveSlot}
               onDragStart={handleDragStart}
@@ -353,7 +415,13 @@ const handleSaveConfig = async (payload: SpaConfigPayload) => {
         serviceTime={spaDetails.serviceTime}
         forceWithSlots={forceWithSlots}
       />
-
+      <SpaSlotAvailabilityModal
+        isOpen={availabilityModalOpen}
+        onClose={() => { setAvailabilityModalOpen(false); setSelectedSlot(null); }}
+        slot={selectedSlot}
+        onUpdateStatus={handleUpdateAvailabilityStatus}
+        onDeleteAvailability={handleDeleteAvailability}
+      />
       {/* Delete SpaDate Alert */}
       <AlertDialog open={!!dateDeleteContext} onOpenChange={(open) => !open && setDateDeleteContext(null)}>
         <AlertDialogContent>

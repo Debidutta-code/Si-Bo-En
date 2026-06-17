@@ -60,13 +60,13 @@ export interface ISpaO extends ICSpaR {
 export interface ISpa extends ICSpaR {
     Category: ICSpaCatrgory;
     SubCategory: ICSpaSubCategory;
-    User: {
+    User?: {
         id: string;
         firstName: string;
         lastName: string;
         email: string;
     };
-    AssignedSpas: {
+    AssignedSpas?: {
         id: string;
         User: ISpaUser;
     }[];

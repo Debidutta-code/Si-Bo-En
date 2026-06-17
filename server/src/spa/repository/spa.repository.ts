@@ -165,7 +165,40 @@ export class SpaRepository {
             throw new Error('Error occur while fetching available spas for property');
         }
     }
-
+ public async getAvailableSpaForinDateRangeBE(
+        propertyId: string,
+        startDate: Date,
+        endDate: Date
+    ): Promise<ISpaWSlots[]> {
+        try {
+            return await prisma.spa.findMany({
+                where: {
+                    propertyId,
+                    isActive: true,
+                    Property: { propertyConfigs: { isSpaModuleEnabled: true } },
+                },
+                include: {
+                    Category: true,
+                    SubCategory: true,
+                    SpaDates: {
+                        where: { date: { gte: startDate, lt: endDate } },
+                        include: {
+                            slots: {
+                                // only show slots that have at least one active section
+                                where: {
+                                    slotsAvailable: { some: { status: 'active' } },
+                                },
+                                orderBy: { startTime: 'asc' },
+                                ...slotsInclude,
+                            },
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occur while fetching available spas for property');
+        }
+    }
     public async getReservationByCode(bookingCode: string): Promise<IReservationSpa | null> {
         try {
             return await prisma.reservation.findUnique({

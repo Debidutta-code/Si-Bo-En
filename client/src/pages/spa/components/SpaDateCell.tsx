@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { isSameMonth, isSameDay, format, isBefore, startOfDay } from 'date-fns';
-import { Plus, Trash2, Settings } from 'lucide-react';
-import type { ISpaDates } from '../interfaces';
+import { Plus, Trash2, Settings, Eye } from 'lucide-react';
+import type { ISpaDates, ISpaSlotWAvailability } from '../interfaces';
 
 interface Props {
   day: Date;
@@ -9,8 +9,9 @@ interface Props {
   spaDate?: ISpaDates;
   isSelected?: boolean;
   isDragActive?: boolean;
-  onCellClick: (d: Date) => void;       // replaces onAddSpaDate + onAddSlot
+  onCellClick: (d: Date) => void;
   onRemoveSpaDate: (id: string) => void;
+  onSlotClick: (slot: ISpaSlotWAvailability) => void;
   onRemoveSlot: (id: string) => void;
   onDragStart: (d: Date) => void;
   onDragEnter: (d: Date) => void;
@@ -25,6 +26,7 @@ export default function SpaDateCell({
   isDragActive = false,
   onRemoveSpaDate,
   onRemoveSlot,
+  onSlotClick,
   onDragStart,
   onDragEnter,
   onDragEnd,
@@ -126,36 +128,42 @@ export default function SpaDateCell({
             .map((slot) => (
               <div
                 key={slot.id}
-                className={`... ${slot.slotsAvailable.every(s => s.status === 'booked')
+                onClick={(e) => { e.stopPropagation(); onSlotClick(slot); }}
+                className={`relative overflow-hidden flex items-center justify-between p-1.5 rounded border text-[10px] shadow-sm group/slot transition-all cursor-pointer ${slot.slotsAvailable.every(s => s.status === 'booked')
                   ? 'bg-red-50 border-red-100 text-red-800'
                   : slot.slotsAvailable.some(s => s.status === 'booked')
                     ? 'bg-yellow-50 border-yellow-100 text-yellow-800'
                     : 'bg-green-50 border-green-100 text-green-800'
                   }`}
               >
-                <div className="flex justify-between items-center">
-                  <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis text-gray-800">
-                    {format(new Date(String(slot.startTime).replace('Z', '')), 'h:mm a')}{' '}
-                    <span className="opacity-75 font-normal">
-                      -{' '}
-                      {format(
-                        new Date(String(slot.endTime || new Date().toISOString()).replace('Z', '')),
-                        'h:mm a'
-                      )}
-                    </span>
+                <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis text-gray-800">
+                  {format(new Date(String(slot.startTime).replace('Z', '')), 'h:mm a')}
+                  {' '}
+                  <span className="opacity-75 font-normal">
+                    -{' '}
+                    {format(new Date(String(slot.endTime ?? new Date().toISOString()).replace('Z', '')), 'h:mm a')}
                   </span>
-                  <span className="ml-1 text-[9px] text-gray-400">
-                    {slot.slotsAvailable.filter(s => s.status === 'active').length}/{slot.slotsAvailable.length}
-                  </span>
-                </div>
+                </span>
+                <span className="text-[9px] text-gray-400 shrink-0">
+                  {slot.slotsAvailable.filter(s => s.status === 'active').length}/{slot.slotsAvailable.length}
+                </span>
+
                 {!isPast && !isDragActive && (
                   <div className="absolute inset-0 bg-white/95 backdrop-blur-[1px] flex items-center justify-evenly translate-x-full group-hover/slot:translate-x-0 transition-transform duration-200">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onSlotClick(slot); }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                      className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-1 rounded"
+                      title="View availability"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
                     <div className="w-px h-3 bg-gray-200" />
                     <button
                       onClick={(e) => { e.stopPropagation(); onRemoveSlot(slot.id); }}
                       onMouseDown={(e) => e.stopPropagation()}
                       className="text-gray-500 hover:text-red-700 hover:bg-red-50 p-1 rounded"
-                      title={t('SpaDateCell.tooltips.deleteSlot')}
+                      title="Delete slot"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

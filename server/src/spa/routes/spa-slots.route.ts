@@ -6,7 +6,6 @@ const spaSlotRouter = Router();
 const spaDateController = new SpaDateController();
 const spaSlotController = new SpaSlotController();
 
-// Spa Dates
 spaSlotRouter
     .route('/dates/:id')
     .post(protect, spaDateController.createSpaDate.bind(spaDateController))
@@ -23,11 +22,17 @@ spaSlotRouter
 spaSlotRouter
     .route('/slots/:id')
     .delete(protect, spaSlotController.deleteSpaSlot.bind(spaSlotController))
+    .patch(protect, spaSlotController.updateSpaSlotStatus.bind(spaSlotController))
+
+spaSlotRouter.route("/slot-availibility/book").patch(spaSlotController.markSlotAvailibilityAsBooked.bind(spaSlotController));
+spaSlotRouter.route("/slot-availibility/cancel").patch(spaSlotController.markSlotAvailibilityAsBooked.bind(spaSlotController));
 
 
-// Slot Availability / Bookingbb            
-// spaSlotRouter.route("/slots/:id/book").patch(spaSlotController.markSlotAsBooked.bind(spaSlotController));
-// spaSlotRouter.route("/slots/:id/available").patch(spaSlotController.markSlotAsAvailable.bind(spaSlotController));
-// spaSlotRouter.route("/slots/:id/completed").patch(protect, spaSlotController.markSlotAsCompleted.bind(spaSlotController));
+spaSlotRouter.route("/slot-availibility/:id")
+    .patch(spaSlotController.updateSpaSlotAvailibilityStatus.bind(spaSlotController))
+    .delete(protect, spaSlotController.deleteSlotAvailibilityById.bind(spaSlotController));
+
+
+
 
 export { spaSlotRouter };

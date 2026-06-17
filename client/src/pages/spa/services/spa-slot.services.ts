@@ -1,13 +1,15 @@
 import {
     createSpaDate,
     createSpaSlots,
+    deleteSlotAvailability,
     deleteSpaDate,
     deleteSpaSlot,
     getSpaForDateRange,
     markSlotAsAvailable,
     markSlotAsCompleted,
+    updateSlotAvailabilityStatus,
 } from "../api";
-import type {  ICSpaSlotS ,IgetInDates} from "../interfaces";
+import type {  ICSpaSlotS ,IgetInDates, SlotStatus} from "../interfaces";
 
 export const createSpaDateService = async (spaId: string, dates: string[]) => {
     try {
@@ -91,5 +93,24 @@ export const markSlotAsCompletedService = async (slotId: string) => {
             success: false,
             message: "Failed to mark spa slot as completed"
         };
+    }
+};
+;
+
+export const updateSlotAvailabilityStatusService = async (id: string, status: SlotStatus) => {
+    try {
+        const result = await updateSlotAvailabilityStatus(id, { status });
+        return result;
+    } catch (error) {
+        return { success: false, message: 'Failed to update slot availability status' };
+    }
+};
+
+export const deleteSlotAvailabilityService = async (id: string) => {
+    try {
+        const result = await deleteSlotAvailability(id);
+        return result;
+    } catch (error) {
+        return { success: false, message: 'Failed to delete slot availability' };
     }
 };
