@@ -13,6 +13,7 @@ import { Check, Search, Clock, MapPin, Tag, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import createAxiosInstance from "../axiosInstance";
+import { format } from "date-fns-tz";
 
 const axiosInstance = createAxiosInstance();
 
@@ -82,7 +83,6 @@ interface SelectedAvailability {
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
-import { ISpaWSlots } from "./types/spa.type";
 
 interface SpaBookingDialogProps {
   bookingCode: string;
@@ -109,8 +109,6 @@ function dateLabel(iso: string) {
   return format(new Date(iso.split("T")[0] + "T00:00:00"), "EEEE, dd MMM yyyy");
 }
 
-// ─── AvailabilityBox ──────────────────────────────────────────────────────────
-// Renders a single small box for one ISpaSlotsAvailable entry
 
 interface AvailabilityBoxProps {
   avail: ISpaSlotsAvailable;
