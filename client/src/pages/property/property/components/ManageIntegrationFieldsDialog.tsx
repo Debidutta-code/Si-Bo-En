@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2, Plus, AlertCircle } from 'lucide-react';
 import type { IMasterPartnersWProperty } from '../types';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface ManageIntegrationFieldsDialogProps {
     isOpen: boolean;
@@ -25,6 +26,7 @@ export default function ManageIntegrationFieldsDialog({
     onUpdateField,
     onDeleteField
 }: ManageIntegrationFieldsDialogProps) {
+    const { t } = useTranslation();
     const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
     const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,16 +43,16 @@ export default function ManageIntegrationFieldsDialog({
             <Dialog open={isOpen} onOpenChange={onClose}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Manage Integration Fields</DialogTitle>
+                        <DialogTitle>{t('PartnerIntegration.manageDialog.titleNotIntegrated')}</DialogTitle>
                         <DialogDescription>
-                            This partner has not been integrated yet.
+                            {t('PartnerIntegration.manageDialog.descNotIntegrated')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className='py-4 text-center'>
-                        <p className='text-gray-600'>Please integrate with this partner first before managing fields.</p>
+                        <p className='text-gray-600'>{t('PartnerIntegration.manageDialog.pleaseIntegrateFirst')}</p>
                     </div>
                     <DialogFooter>
-                        <Button onClick={onClose}>Close</Button>
+                        <Button onClick={onClose}>{t('PartnerIntegration.manageDialog.close')}</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -65,7 +67,7 @@ export default function ManageIntegrationFieldsDialog({
     const handleUpdateField = async (fieldId: string) => {
         const newValue = fieldValues[fieldId];
         if (!newValue || newValue.trim() === '') {
-            toast.error('Field value cannot be empty');
+            toast.error(t('PartnerIntegration.manageDialog.toastEmptyField'));
             return;
         }
 
@@ -82,7 +84,7 @@ export default function ManageIntegrationFieldsDialog({
     };
 
     const handleDeleteField = async (fieldId: string) => {
-        if (!confirm('Are you sure you want to delete this field? This action cannot be undone.')) {
+        if (!confirm(t('PartnerIntegration.manageDialog.confirmDelete'))) {
             return;
         }
 
@@ -98,7 +100,7 @@ export default function ManageIntegrationFieldsDialog({
 
     const handleAddNewField = async () => {
         if (!newFieldData.requiredFieldId || !newFieldData.value.trim()) {
-            toast.error('Please select a field and enter a value');
+            toast.error(t('PartnerIntegration.manageDialog.toastSelectField'));
             return;
         }
 
@@ -125,9 +127,9 @@ export default function ManageIntegrationFieldsDialog({
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className='max-w-2xl max-h-[85vh] overflow-y-auto'>
                 <DialogHeader>
-                    <DialogTitle>Manage {partner.name} Integration Fields</DialogTitle>
+                    <DialogTitle>{t('PartnerIntegration.manageDialog.title', { name: partner.name })}</DialogTitle>
                     <DialogDescription>
-                        Add, update, or remove integration field values
+                        {t('PartnerIntegration.manageDialog.desc')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -136,7 +138,7 @@ export default function ManageIntegrationFieldsDialog({
                     <div>
                         <div className='flex items-center justify-between mb-3'>
                             <Label className='text-base font-semibold'>
-                                Configured Fields ({integration.propertyIntegrationSecrets?.length || 0})
+                                {t('PartnerIntegration.manageDialog.configuredFields', { count: integration.propertyIntegrationSecrets?.length || 0 })}
                             </Label>
                             {unconfiguredFields.length > 0 && !addingNewField && (
                                 <Button
@@ -145,7 +147,7 @@ export default function ManageIntegrationFieldsDialog({
                                     disabled={isSubmitting}
                                 >
                                     <Plus className='h-4 w-4 mr-1' />
-                                    Add Field
+                                    {t('PartnerIntegration.manageDialog.addField')}
                                 </Button>
                             )}
                         </div>
@@ -153,17 +155,17 @@ export default function ManageIntegrationFieldsDialog({
                         {/* Add New Field Form */}
                         {addingNewField && (
                             <div className='mb-4 p-4 border border-blue-200 rounded-lg bg-blue-50'>
-                                <h4 className='font-medium mb-3'>Add New Field</h4>
+                                <h4 className='font-medium mb-3'>{t('PartnerIntegration.manageDialog.addNewField')}</h4>
                                 <div className='space-y-3'>
                                     <div>
-                                        <Label>Select Field</Label>
+                                        <Label>{t('PartnerIntegration.manageDialog.selectField')}</Label>
                                         <select
                                             className='w-full mt-1 p-2 border rounded'
                                             value={newFieldData.requiredFieldId}
                                             onChange={(e) => setNewFieldData({ ...newFieldData, requiredFieldId: e.target.value })}
                                             disabled={isSubmitting}
                                         >
-                                            <option value=''>-- Select a field --</option>
+                                            <option value=''>{t('PartnerIntegration.manageDialog.selectFieldPlaceholder')}</option>
                                             {unconfiguredFields.map(field => (
                                                 <option key={field.id} value={field.id}>
                                                     {field.name}
@@ -172,12 +174,12 @@ export default function ManageIntegrationFieldsDialog({
                                         </select>
                                     </div>
                                     <div>
-                                        <Label>Field Value</Label>
+                                        <Label>{t('PartnerIntegration.manageDialog.fieldValue')}</Label>
                                         <Input
                                             type='text'
                                             value={newFieldData.value}
                                             onChange={(e) => setNewFieldData({ ...newFieldData, value: e.target.value })}
-                                            placeholder='Enter field value'
+                                            placeholder={t('PartnerIntegration.manageDialog.enterFieldValue')}
                                             disabled={isSubmitting}
                                         />
                                     </div>
@@ -187,7 +189,7 @@ export default function ManageIntegrationFieldsDialog({
                                             onClick={handleAddNewField}
                                             disabled={isSubmitting}
                                         >
-                                            {isSubmitting ? 'Adding...' : 'Add'}
+                                            {isSubmitting ? t('PartnerIntegration.manageDialog.adding') : t('PartnerIntegration.manageDialog.add')}
                                         </Button>
                                         <Button
                                             size='sm'
@@ -198,7 +200,7 @@ export default function ManageIntegrationFieldsDialog({
                                             }}
                                             disabled={isSubmitting}
                                         >
-                                            Cancel
+                                            {t('PartnerIntegration.manageDialog.cancel')}
                                         </Button>
                                     </div>
                                 </div>
@@ -213,7 +215,7 @@ export default function ManageIntegrationFieldsDialog({
                                                      partner.requiredFieldsForMasterIntegration.find(
                                                          f => f.id === secret.requiredFieldId
                                                      )?.name || 
-                                                     'Unknown Field';
+                                                     t('PartnerIntegration.viewDialog.unknownField');
 
                                     return (
                                         <div 
@@ -235,7 +237,7 @@ export default function ManageIntegrationFieldsDialog({
                                                                     ...fieldValues,
                                                                     [secret.id]: e.target.value
                                                                 })}
-                                                                placeholder='Enter new value'
+                                                                placeholder={t('PartnerIntegration.manageDialog.enterNewValue')}
                                                                 disabled={isSubmitting}
                                                             />
                                                             <div className='flex gap-2'>
@@ -244,7 +246,7 @@ export default function ManageIntegrationFieldsDialog({
                                                                     onClick={() => handleUpdateField(secret.id)}
                                                                     disabled={isSubmitting}
                                                                 >
-                                                                    {isSubmitting ? 'Saving...' : 'Save'}
+                                                                    {isSubmitting ? t('PartnerIntegration.manageDialog.saving') : t('PartnerIntegration.manageDialog.save')}
                                                                 </Button>
                                                                 <Button
                                                                     size='sm'
@@ -255,7 +257,7 @@ export default function ManageIntegrationFieldsDialog({
                                                                     }}
                                                                     disabled={isSubmitting}
                                                                 >
-                                                                    Cancel
+                                                                    {t('PartnerIntegration.manageDialog.cancel')}
                                                                 </Button>
                                                             </div>
                                                         </div>
@@ -265,7 +267,7 @@ export default function ManageIntegrationFieldsDialog({
                                                                 {'•'.repeat(Math.min(secret.value.length, 20))}
                                                             </span>
                                                             <Badge variant='secondary' className='text-xs'>
-                                                                {secret.value.length} chars
+                                                                {t('PartnerIntegration.manageDialog.chars', { count: secret.value.length })}
                                                             </Badge>
                                                         </div>
                                                     )}
@@ -298,7 +300,7 @@ export default function ManageIntegrationFieldsDialog({
                             </div>
                         ) : (
                             <div className='text-center py-6 bg-gray-50 rounded-lg border border-gray-200'>
-                                <p className='text-gray-500'>No fields configured yet</p>
+                                <p className='text-gray-500'>{t('PartnerIntegration.manageDialog.noFieldsConfiguredYet')}</p>
                             </div>
                         )}
                     </div>
@@ -308,8 +310,7 @@ export default function ManageIntegrationFieldsDialog({
                         <div className='flex items-start gap-2'>
                             <AlertCircle className='h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0' />
                             <p className='text-xs text-yellow-800'>
-                                <strong>Warning:</strong> Changing or deleting fields may affect your integration. 
-                                Make sure you have the correct values before saving.
+                                <strong>{t('PartnerIntegration.manageDialog.warning')}</strong> {t('PartnerIntegration.manageDialog.warningDesc')}
                             </p>
                         </div>
                     </div>
@@ -317,7 +318,7 @@ export default function ManageIntegrationFieldsDialog({
 
                 <DialogFooter>
                     <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
-                        Close
+                        {t('PartnerIntegration.manageDialog.close')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

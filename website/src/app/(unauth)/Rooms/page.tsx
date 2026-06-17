@@ -247,7 +247,6 @@ useEffect(() => {
     if (paramsData) {
       setIsExternalRequest(true);
       isLoadingFromExternal.current = true;
-
       const contextWithDates = {
         ...paramsData,
         startDate: paramsData.startDate || defaultStartDate,
@@ -530,7 +529,7 @@ useEffect(() => {
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                         <h3 className="text-white font-semibold text-lg">
-                          {(roomsPropertyDetails)._translations?.propertyName ||
+                          {roomsPropertyDetails._translations?roomsPropertyDetails._translations.propertyName :
                             roomsPropertyDetails.propertyName}{" "}
                           — {t("Rooms.videoOverlay")}
                         </h3>

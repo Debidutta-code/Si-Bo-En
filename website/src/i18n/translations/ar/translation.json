@@ -1,4 +1,6 @@
 {
+  "adult": "بالغ",
+  "child": "طفل",
   "Navbar": {
     "home": "الرئيسية",
     "services": "الخدمات",
@@ -87,8 +89,8 @@
     "roomOnly": "غرفة فقط",
     "of": "من",
     "is": "هو",
-        "sqft":"قدم مربع",
-    "sqm":"متر مربع",
+    "sqft": "قدم مربع",
+    "sqm": "متر مربع",
     "videoOverlay": "جولة في العقار",
     "searchingRooms": "جاري البحث عن الغرف...",
     "noRoomsHotel": "لا توجد غرف متاحة لهذا الفندق.",
@@ -140,7 +142,11 @@
       "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو ولاء.",
       "registerSuccess": "تم التسجيل في برنامج الولاء بنجاح!",
       "failedRetry": "فشل التسجيل. يرجى المحاولة مرة أخرى."
-    }
+    },
+    "uptoOffPercent": "حتى {{value}}% خصم",
+    "uptoOffCurrency": "حتى {{symbol}} {{value}} خصم",
+    "offPercent": "{{value}}% خصم",
+    "offCurrency": "{{symbol}} {{value}} خصم"
   },
   "LoyaltyContainer": {
     "verifying": "جاري التحقق...",
@@ -168,7 +174,11 @@
       "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو ولاء.",
       "registerSuccess": "تم التسجيل في برنامج الولاء بنجاح!",
       "failedRetry": "فشل التسجيل. يرجى المحاولة مرة أخرى."
-    }
+    },
+    "uptoOffPercent": "حتى {{value}}% خصم",
+    "uptoOffCurrency": "حتى {{symbol}} {{value}} خصم",
+    "offPercent": "{{value}}% خصم",
+    "offCurrency": "{{symbol}} {{value}} خصم"
   },
   "RoomCard": {
     "guests": "الضيوف",
@@ -190,6 +200,7 @@
     "roomOnly": "غرفة فقط",
     "onlyRoomsLeft": "تبقت {{count}} غرفة فقط!",
     "onlyRoomsLeftPlural": "تبقت {{count}} غرف فقط!",
+    "mlos": "الحد الأدنى للإقامة {{nights}} ليالٍ",
     "touristTax": {
       "notIncluded": "غير مشمولة",
       "paidAtHotel": " في سعر الغرفة — سيتم دفعها مباشرة في الفندق."
@@ -233,7 +244,8 @@
     "promotionType": "نوع العرض",
     "discount": "الخصم",
     "addonIncluded": "مشمول",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "price": "سعر"
   },
   "Footer": {
     "defaultAddress": "دبي، الإمارات العربية المتحدة",
@@ -265,7 +277,7 @@
     "title": "أكمل حجزك",
     "adult": "بالغ",
     "child": "طفل",
-    "notAvailable":"غير متوفر",
+    "notAvailable": "غير متوفر",
     "firstName": "الاسم الأول",
     "firstNamePlaceholder": "الاسم الأول",
     "lastName": "اسم العائلة",
@@ -387,7 +399,7 @@
     "promoInvalid": "رمز ترويجي غير صالح",
     "promoError": "حدث خطأ ما. حاول مرة أخرى!",
     "payNow": "ادفع الآن",
-    "payAtHotel": "ادفع في الفندق"
+    "payathotel": "ادفع في الفندق"
   },
   "Fikafi": {
     "preparingPayment": "جاري تحضير الدفع الآمن...",
@@ -510,6 +522,11 @@
     "no": "لا",
     "totalActivityCharges": "إجمالي رسوم الأنشطة",
     "printItinerary": "طباعة المسار",
+    "promoCodeDiscount": "خصم رمز القسيمة",
+    "loyaltyDiscount": "خصم الولاء",
+    "amountBeforeTax": "المبلغ قبل الضريبة",
+    "totalTax": "إجمالي مبلغ الضريبة",
+    "amountAfterTax": "المبلغ بعد الضريبة",
     "pdf": {
       "title": "تأكيد الحجز",
       "hotelInfo": "معلومات الفندق",
@@ -1146,5 +1163,19 @@
     "toast": {
       "uploadFailed": "فشل في رفع الصور"
     }
-  }
+  },
+  "ModifyBookingModal": {
+    "nights": "ليالٍ",
+    "rooms": "غرف",
+    "adult": "بالغ",
+    "children": "طفل"
+  },
+  "GroupSearch": {
+    "perNight": "لكل ليلة قبل الضرائب والرسوم",
+    "viewRoom": "عرض الغرف ←",
+    "location": "الموقع",
+    "whereTo": "إلى أين"
+  },
+  "programTerms": "شروط البرنامج",
+  "specialBenifits": "المزايا الخاصة"
 }

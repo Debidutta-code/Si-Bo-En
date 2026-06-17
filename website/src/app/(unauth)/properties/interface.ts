@@ -9,6 +9,10 @@ export interface IPropertyDetails {
   propertyAddress: IPropertyAddress | null;
   basePrice?: number;
   currencyCode?: string;
+  _translations?:{
+    propertyName:string,
+    description:string,
+  }
 }
 
 export interface propertyCategory {
@@ -16,6 +20,10 @@ export interface propertyCategory {
   masterCategory: {
     categoryName: string;
     categoryDescription: string | null;
+    _translations?:{
+      categoryName:string,
+      categoryDescription:string
+    }
   };
 }
 
@@ -24,6 +32,10 @@ export interface propertyType {
   masterPropertyType: {
     propertyTypeName: string;
     propertyTypeDescription: string | null;
+      _translations?:{
+      propertyTypeName:string,
+      propertyTypeDescription:string
+    }
   };
 }
 
@@ -39,4 +51,13 @@ export interface IPropertyAddress {
   zipCode: string;
   latitude: number;
   longitude: number;
+  _translations?:{
+    addressLine1: string,
+    addressLine2: string,
+    country: string,
+    state: string,
+    city: string,
+    location: string,
+    landmark: string
+  }
 }

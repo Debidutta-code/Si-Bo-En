@@ -1,4 +1,6 @@
 {
+  "adult": "वयस्क",
+  "child": "बच्चा",
   "Navbar": {
     "home": "होम",
     "services": "सेवाएँ",
@@ -84,11 +86,11 @@
       "title": "यदि आप अभी बुक करते हैं तो आपको सर्वोत्तम उपलब्ध मूल्य मिलेगा!",
       "subtitle": "कीमतें किसी भी समय बढ़ सकती हैं। अब और प्रतीक्षा न करें!"
     },
-        "roomOnly": "केवल कमरा",
-    "of":"का",
-    "is":"है",
-    "sqft":"वर्ग फुट",
-    "sqm":"वर्ग मीटर",
+    "roomOnly": "केवल कमरा",
+    "of": "का",
+    "is": "है",
+    "sqft": "वर्ग फुट",
+    "sqm": "वर्ग मीटर",
     "videoOverlay": "संपत्ति का दौरा",
     "searchingRooms": "कमरे खोजे जा रहे हैं...",
     "noRoomsHotel": "इस होटल के लिए कोई कमरा उपलब्ध नहीं है।",
@@ -140,7 +142,11 @@
       "alreadyRegistered": "वापसी पर स्वागत है! आप पहले से ही एक लॉयल्टी सदस्य हैं।",
       "registerSuccess": "लॉयल्टी प्रोग्राम के लिए सफलतापूर्वक पंजीकृत!",
       "failedRetry": "पंजीकरण विफल। कृपया पुनः प्रयास करें।"
-    }
+    },
+    "uptoOffPercent": "{{value}}% तक की छूट",
+    "uptoOffCurrency": "{{symbol}} {{value}} तक की छूट",
+    "offPercent": "{{value}}% की छूट",
+    "offCurrency": "{{symbol}} {{value}} की छूट"
   },
   "LoyaltyContainer": {
     "verifying": "सत्यापित किया जा रहा है...",
@@ -168,7 +174,11 @@
       "alreadyRegistered": "वापसी पर स्वागत है! आप पहले से ही एक लॉयल्टी सदस्य हैं।",
       "registerSuccess": "लॉयल्टी प्रोग्राम के लिए सफलतापूर्वक पंजीकृत!",
       "failedRetry": "पंजीकरण विफल। कृपया पुनः प्रयास करें।"
-    }
+    },
+    "uptoOffPercent": "{{value}}% तक की छूट",
+    "uptoOffCurrency": "{{symbol}} {{value}} तक की छूट",
+    "offPercent": "{{value}}% की छूट",
+    "offCurrency": "{{symbol}} {{value}} की छूट"
   },
   "RoomCard": {
     "guests": "मेहमान",
@@ -190,6 +200,7 @@
     "roomOnly": "केवल कमरा",
     "onlyRoomsLeft": "केवल {{count}} कमरा शेष!",
     "onlyRoomsLeftPlural": "केवल {{count}} कमरे शेष!",
+    "mlos": "न्यूनतम {{nights}} रातों का ठहराव",
     "touristTax": {
       "notIncluded": "शामिल नहीं",
       "paidAtHotel": " कमरे की दर में — सीधे होटल में भुगतान किया जाना है।"
@@ -207,34 +218,35 @@
     }
   },
   "RoomDetails": {
-  "roomInformation": "कमरे की जानकारी",
-  "description": "विवरण",
-  "roomType": "कमरे का प्रकार",
-  "roomView": "कमरे का दृश्य",
-  "roomSize": "कमरे का आकार",
-  "bedrooms": "शयनकक्ष",
-  "maxOccupancy": "अधिकतम क्षमता",
-  "guests": "अतिथि",
-  "ratePlanInformation": "रेट प्लान जानकारी",
-  "ratePlan": "रेट प्लान",
-  "currency": "मुद्रा",
-  "includedAddons": "शामिल ऐड-ऑन",
-  "availablePromotions": "उपलब्ध ऑफ़र",
-  "amenities": "सुविधाएँ",
-  "policies": "नीतियाँ",
-  "cancellationPolicy": "रद्दीकरण नीति",
-  "guaranteePolicy": "गारंटी नीति",
-  "depositPolicy": "जमा नीति",
-  "seeMore": "और देखें",
-  "seeLess": "कम देखें",
-  "notAvailable": "उपलब्ध नहीं",
-  "video": "वीडियो",
-  "images": "चित्र",
-  "promotionType": "ऑफ़र का प्रकार",
-  "discount": "छूट",
-  "addonIncluded": "शामिल",
-  "close": "बंद करें"
-},
+    "roomInformation": "कमरे की जानकारी",
+    "description": "विवरण",
+    "roomType": "कमरे का प्रकार",
+    "roomView": "कमरे का दृश्य",
+    "roomSize": "कमरे का आकार",
+    "bedrooms": "शयनकक्ष",
+    "maxOccupancy": "अधिकतम क्षमता",
+    "guests": "अतिथि",
+    "ratePlanInformation": "रेट प्लान जानकारी",
+    "ratePlan": "रेट प्लान",
+    "currency": "मुद्रा",
+    "includedAddons": "शामिल ऐड-ऑन",
+    "availablePromotions": "उपलब्ध ऑफ़र",
+    "amenities": "सुविधाएँ",
+    "policies": "नीतियाँ",
+    "cancellationPolicy": "रद्दीकरण नीति",
+    "guaranteePolicy": "गारंटी नीति",
+    "depositPolicy": "जमा नीति",
+    "seeMore": "और देखें",
+    "seeLess": "कम देखें",
+    "notAvailable": "उपलब्ध नहीं",
+    "video": "वीडियो",
+    "images": "चित्र",
+    "promotionType": "ऑफ़र का प्रकार",
+    "discount": "छूट",
+    "addonIncluded": "शामिल",
+    "close": "बंद करें",
+    "price": "कीमत"
+  },
   "Footer": {
     "defaultAddress": "दुबई, संयुक्त अरब अमीरात",
     "recaptcha": {
@@ -264,7 +276,7 @@
   "GuestForm": {
     "title": "अपनी बुकिंग पूरी करें",
     "adult": "वयस्क",
-    "notAvailable":"उपलब्ध नहीं",
+    "notAvailable": "उपलब्ध नहीं",
     "child": "बच्चा",
     "firstName": "पहला नाम",
     "firstNamePlaceholder": "पहला नाम",
@@ -387,7 +399,7 @@
     "promoInvalid": "अमान्य प्रोमो कोड",
     "promoError": "कुछ गलत हो गया। पुनः प्रयास करें!",
     "payNow": "अभी भुगतान करें",
-    "payAtHotel": "होटल में भुगतान करें"
+    "payathotel": "होटल में भुगतान करें"
   },
   "Fikafi": {
     "preparingPayment": "सुरक्षित भुगतान तैयार किया जा रहा है...",
@@ -432,7 +444,7 @@
       "whatsNext": "आगे क्या?",
       "confirmationEmail": "एक पुष्टिकरण ईमेल भेज दिया गया है।",
       "viewOrCancel": "आप कभी भी बुकिंग देख या रद्द कर सकते हैं।",
-      "needChanges": "बदलाव चाहिए? 24/7 हमसे संपर्क करें।",
+      "needChanges": "बदलाव चाहिए? २४/७ हमसे संपर्क करें।",
       "viewMyBookings": "मेरी बुकिंग देखें",
       "returnHome": "होम पेज पर लौटें",
       "redirecting": "पुनर्निर्देशित किया जा रहा है..."
@@ -510,6 +522,11 @@
     "no": "नहीं",
     "totalActivityCharges": "कुल गतिविधि शुल्क",
     "printItinerary": "यात्रा कार्यक्रम प्रिंट करें",
+    "promoCodeDiscount": "प्रोमो कोड छूट",
+    "loyaltyDiscount": "लॉयल्टी छूट",
+    "amountBeforeTax": "कर से पहले की राशि",
+    "totalTax": "कुल कर राशि",
+    "amountAfterTax": "कर के बाद की राशि",
     "pdf": {
       "title": "बुकिंग पुष्टिकरण",
       "hotelInfo": "होटल की जानकारी",
@@ -618,7 +635,7 @@
     "priceErrorMsg": "अपडेटेड मूल्य लाने में असमर्थ। कृपया पुनः प्रयास करें।",
     "policyNotes": {
       "availability": "• तिथि परिवर्तन उपलब्धता के अधीन हैं",
-      "fees": "• चेक-इन के 72 घंटों के भीतर परिवर्तन पर अतिरिक्त शुल्क लग सकता है",
+      "fees": "• चेक-इन के ७२ घंटों के भीतर परिवर्तन पर अतिरिक्त शुल्क लग सकता है",
       "upgrades": "• कमरे का अपग्रेड उपलब्धता और अतिरिक्त शुल्क के अधीन है",
       "cancellation": "• प्रवास की अवधि कम करना मूल बुकिंग की रद्दीकरण नीति के अधीन हो सकता है"
     },
@@ -652,10 +669,10 @@
     "room": "कमरा",
     "adults": "वयस्क",
     "children": "बच्चे",
-    "childrenAges": "आयु 0 – 15",
+    "childrenAges": "आयु ० – १५",
     "childAgesRequired": "बच्चों की आयु (आवश्यक)",
     "child": "बच्चा",
-    "lessThanOneYear": "< 1 वर्ष",
+    "lessThanOneYear": "< १ वर्ष",
     "year": "वर्ष",
     "years": "वर्ष",
     "guestsOf": "का",
@@ -668,10 +685,10 @@
     "room": "कमरा",
     "adults": "वयस्क",
     "children": "बच्चे",
-    "childrenAges": "आयु 0–17",
+    "childrenAges": "आयु ०–१७",
     "childAge": "बच्चे {{number}} की आयु",
-    "lessThanOneYear": "< 1 वर्ष",
-    "oneYear": "1 वर्ष",
+    "lessThanOneYear": "< १ वर्ष",
+    "oneYear": "१ वर्ष",
     "years": "{{age}} वर्ष",
     "totalSummary": "कुल:",
     "adultsCount": "वयस्क",
@@ -883,7 +900,7 @@
       "signOut": "साइन आउट करें"
     },
     "footer": {
-      "copyright": "© 2024 Revchill। सर्वाधिकार सुरक्षित।",
+      "copyright": "© २०२४ Revchill। सर्वाधिकार सुरक्षित।",
       "terms": "नियम और शर्तें"
     }
   },
@@ -1146,5 +1163,19 @@
     "toast": {
       "uploadFailed": "छवियाँ अपलोड करने में विफल"
     }
-  }
+  },
+  "ModifyBookingModal": {
+    "nights": "रातें",
+    "rooms": "कमरे",
+    "adult": "वयस्क",
+    "children": "बच्चा"
+  },
+  "GroupSearch": {
+    "perNight": "प्रति रात (करों और शुल्कों से पहले)",
+    "viewRoom": "कमरे देखें →",
+    "location": "स्थान",
+    "whereTo": "कहाँ जाना है"
+  },
+  "programTerms": "कार्यक्रम की शर्तें",
+  "specialBenifits": "विशेष लाभ"
 }

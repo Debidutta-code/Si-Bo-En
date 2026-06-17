@@ -4,8 +4,9 @@ import {
     PropertyCustomRequest,
 } from '../../utils/customRequest';
 import { Request, Response } from 'express';
-import {} from '../types';
+import { } from '../types';
 import { AgenticPropertyService } from '../services';
+import { AgencyInterceptor } from '../../multi-language/interceptors/agency/agency.interceptor';
 
 export class AgenticPropertyController {
     private agenticPropertyService: AgenticPropertyService;
@@ -105,11 +106,18 @@ export class AgenticPropertyController {
     ): Promise<Response> {
         try {
             const { id } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             if (!id) {
                 return res.status(400).json(errorResponse('id is required'));
             }
-            const result =
+            let result =
                 await this.agenticPropertyService.getAgenticPropertyDetails(id);
+
+            result = await AgencyInterceptor.interceptGetAgenticPropertyDetails(
+                result,
+                locale
+            );
+
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {

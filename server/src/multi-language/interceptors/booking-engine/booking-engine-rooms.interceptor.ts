@@ -215,6 +215,15 @@ export class BookingEngineRoomsInterceptor {
                 })
             );
         }
+        if (Array.isArray(rp.appliedDiscounts)) {
+            result.appliedDiscounts = await Promise.all(
+                rp.appliedDiscounts.map(async (discount: any) => {
+                    if (!discount?.id) return discount;
+                    const t = await PromotionTranslation.getTranslated(discount.id, locale);
+                    return t ? { ...discount, _translations: t } : discount;
+                })
+            );
+        }
 
         return result;
     }

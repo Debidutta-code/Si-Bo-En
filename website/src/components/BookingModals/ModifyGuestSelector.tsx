@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Minus, Plus, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { formatNumber } from "@/src/utils/numLang";
 
 interface RoomDistribution {
   adults: number;
@@ -274,7 +275,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
           <div className="space-y-3 mb-4">
             {roomDistribution.map((room, roomIdx) => (
               <div key={roomIdx} className="border rounded-xl p-4 bg-white shadow-sm">
-                <p className="font-semibold text-gray-800 mb-3 text-sm">{t("ModifyGuestSelector.room")} {roomIdx + 1}</p>
+                <p className="font-semibold text-gray-800 mb-3 text-sm">{t("ModifyGuestSelector.room")} {formatNumber(roomIdx + 1)}</p>
 
                 {/* Adults per room */}
                 <div className="flex items-center justify-between mb-2">
@@ -312,7 +313,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
                   <div className="mt-2 space-y-1 pl-2 border-l-2 border-indigo-100">
                     {Array.from({ length: room.children }).map((_, childIdx) => (
                       <div key={childIdx} className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">{t("ModifyGuestSelector.childAge", { number: childIdx + 1 })}</span>
+                        <span className="text-xs text-gray-500">{t("ModifyGuestSelector.childAge", { number: formatNumber(childIdx + 1) })}</span>
                         <select
                         disabled={isModificationDisabled}
                           value={room.childAges[childIdx] ?? 0}
@@ -325,7 +326,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
                                 ? t("ModifyGuestSelector.lessThanOneYear")
                                 : age === 1
                                   ? t("ModifyGuestSelector.oneYear")
-                                  : t("ModifyGuestSelector.years", { age })}
+                                  : t("ModifyGuestSelector.years", { age: formatNumber(age) })}
                             </option>
                           ))}
                         </select>
@@ -340,11 +341,11 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
           {/* Summary row */}
           <div className="bg-indigo-50 rounded-lg px-4 py-2 text-sm text-indigo-800 mb-4">
             <span className="font-medium">{t("ModifyGuestSelector.totalSummary")} </span>
-            {roomDistribution.reduce((s, r) => s + r.adults, 0)} {t("ModifyGuestSelector.adultsCount")}
+            {formatNumber(roomDistribution.reduce((s, r) => s + r.adults, 0))} {t("ModifyGuestSelector.adultsCount")}
             {roomDistribution.reduce((s, r) => s + r.children, 0) > 0
-              ? `, ${roomDistribution.reduce((s, r) => s + r.children, 0)} ${t("ModifyGuestSelector.childrenCount")}`
+              ? `, ${formatNumber(roomDistribution.reduce((s, r) => s + r.children, 0))} ${t("ModifyGuestSelector.childrenCount")}`
               : ""}{" "}
-            {t("ModifyGuestSelector.across")} {rooms} {t("ModifyGuestSelector.rooms")}
+            {t("ModifyGuestSelector.across")} {formatNumber(rooms)} {t("ModifyGuestSelector.rooms")}
           </div>
 
           <button onClick={handleApply}
@@ -391,7 +392,7 @@ const Counter: React.FC<{
           <Minus className={iconSize} />
         </button>
         <span className={`font-bold text-gray-900 w-6 text-center ${size === "sm" ? "text-base" : "text-xl"}`}>
-          {value}
+          {formatNumber(value)}
         </span>
         <button
           onClick={onIncrement}

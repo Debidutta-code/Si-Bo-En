@@ -6,12 +6,17 @@ import { MapPin } from "lucide-react";
 import { useSelector } from "react-redux";
 import { IPropertyDetails } from "../../app/(unauth)/properties/interface";
 import { RootState } from "@/src/store/store";
+import { formatNumber } from "../../utils/numLang";
+import { useTranslation } from "react-i18next";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 
 interface PropertyCardProps {
   property: IPropertyDetails;
 }
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const bookingContext = useSelector((state: RootState) => state.booking);
 
@@ -61,15 +66,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         {/* Name */}
         <div>
           <h3 className="text-[17px] font-semibold text-gray-900 truncate">
-            {property.propertyName}
+            {property._translations?property._translations.propertyName:property.propertyName}
           </h3>
           {property.propertyAddress && (
             <div className="flex items-center gap-1.5 mt-0.5 text-[12px] text-[#0E5C60]">
               <MapPin className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">
-                {property.propertyAddress.city}
-                {property.propertyAddress.state ? `, ${property.propertyAddress.state}` : ""}
-                {property.propertyAddress.country ? `, ${property.propertyAddress.country}` : ""}
+                {property.propertyAddress._translations?.city || property.propertyAddress.city}
+                {property.propertyAddress._translations?.state ? `, ${property.propertyAddress._translations?.state}` : ""}
+                {property.propertyAddress._translations?.country ? `, ${property.propertyAddress._translations?.country}` : ""}
               </span>
             </div>
           )}
@@ -78,7 +83,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         {/* Description */}
         {property.description && (
           <p className="text-[13px] text-gray-500 line-clamp-2 leading-relaxed">
-            {property.description}
+            {property._translations?.description||property.description}
           </p>
         )}
 
@@ -86,12 +91,12 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         <div className="flex gap-2 mt-auto">
           {property.propertyCategory && (
             <span className="bg-gray-100 text-gray-600 text-[11px] font-medium px-2 py-0.5 rounded-full">
-              {property.propertyCategory.masterCategory.categoryName}
+              {property.propertyCategory.masterCategory._translations?property.propertyCategory.masterCategory._translations.categoryName:property.propertyCategory.masterCategory.categoryName}
             </span>
           )}
           {property.propertyType && (
             <span className="bg-gray-100 text-gray-600 text-[11px] font-medium px-2 py-0.5 rounded-full">
-              {property.propertyType.masterPropertyType.propertyTypeName}
+              {property.propertyType.masterPropertyType._translations?property.propertyType.masterPropertyType._translations.propertyTypeName:property.propertyType.masterPropertyType.propertyTypeName}
             </span>
           )}
         </div>
@@ -106,11 +111,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
             <>
               <p className="text-[22px] font-semibold text-gray-900 leading-none">
                 <span className="text-[13px] font-normal text-gray-400 mr-0.5">
-                  {property.currencyCode ?? "AED"}
+                  {currencies.find((c: Currency) => c.code === property.currencyCode)?.symbol || property.currencyCode}
                 </span>
-                {property.basePrice.toFixed(2)}
+                {formatNumber(property.basePrice)}
               </p>
-              <p className="text-[11px] text-gray-400 mt-1">Per night before taxes and fees</p>
+              <p className="text-[11px] text-gray-400 mt-1">{t("GroupSearch.perNight")}</p>
             </>
           )}
         </div>
@@ -120,7 +125,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           onClick={handleViewRooms}
           className="w-full bg-[#0E5C60] text-white py-2.5 rounded-lg text-[13px] font-medium hover:bg-[#0a4c50] transition-colors text-center"
         >
-          View Room →
+          {t("GroupSearch.viewRoom")}
         </button>
       </div>
     </div>

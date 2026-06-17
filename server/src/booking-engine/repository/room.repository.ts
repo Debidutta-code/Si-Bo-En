@@ -13,7 +13,9 @@ export class RoomBookingRepository {
                         isSpaModuleEnabled: true,
                         isLoyaltyProgramEnabled: true,
                         showVideo: true,
-                        isB2cAvailable: true
+                        isB2cAvailable: true,
+                                                baseCurrency: true
+
                     }
                 },
                 propertyAddress: true,

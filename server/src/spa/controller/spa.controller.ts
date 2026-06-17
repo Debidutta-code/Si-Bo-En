@@ -151,12 +151,6 @@ export class SpaController {
         res: Response
     ): Promise<Response> {
         try {
-            if (!req.property) {
-                return res.status(500).json(errorResponse('Property configuration not found'));
-            }
-            if (!req.property.propertyConfig?.isSpaModuleEnabled) {
-                return res.status(400).json(errorResponse('Spa module is not enabled for this property'));
-            }
             const spaId = req.params.id;
 
             if (!spaId) {
@@ -253,10 +247,14 @@ export class SpaController {
                         )
                     );
             }
-            const response =
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
+            let response =
                 await this.spaService.getAvailableSpaForinDateRange(
                     bookingCode
                 );
+            
+            response = await SpaInterceptor.intercept(response as any, locale);
+
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

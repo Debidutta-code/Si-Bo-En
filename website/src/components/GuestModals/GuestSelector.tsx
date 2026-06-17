@@ -16,6 +16,7 @@ import {
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
+import { formatNumber } from "@/src/utils/numLang";
 
 interface Room {
   adults: number;
@@ -198,7 +199,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                 >
                   <Minus className="w-5 h-5" />
                 </Button>
-                <span className="text-xl font-bold text-gray-900 w-8 text-center">{totalRooms}</span>
+                <span className="text-xl font-bold text-gray-900 w-8 text-center">{formatNumber(totalRooms)}</span>
                 <Button
                   type="button"
                   variant="outline"
@@ -217,7 +218,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
             {rooms.map((room, index) => (
               <div key={index} className="border border-gray-200 rounded-xl px-4 py-2">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-                  {t("GuestSelector.room")} #{index + 1}
+                  {t("GuestSelector.room")} -{formatNumber(index + 1)}
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -237,7 +238,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                         >
                           <Minus className="w-4 h-4" />
                         </Button>
-                        <span className="text-lg font-bold text-gray-900 w-6 text-center">{room.adults}</span>
+                        <span className="text-lg font-bold text-gray-900 w-6 text-center">{formatNumber(room.adults)}</span>
                         <Button
                           type="button"
                           variant="outline"
@@ -272,7 +273,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                         >
                           <Minus className="w-4 h-4" />
                         </Button>
-                        <span className="text-lg font-bold text-gray-900 w-6 text-center">{room.children}</span>
+                        <span className="text-lg font-bold text-gray-900 w-6 text-center">{formatNumber(room.children)}</span>
                         <Button
                           type="button"
                           variant="outline"
@@ -299,7 +300,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                       {Array.from({ length: room.children }, (_, childIdx) => (
                         <div key={childIdx} className="flex flex-col gap-1">
                           <Label className="text-xs text-gray-500">
-                            {t("GuestSelector.child")} {childIdx + 1}
+                            {t("GuestSelector.child")} {formatNumber(childIdx + 1)}
                           </Label>
                           <select
                             value={room.childAges[childIdx] ?? 0}
@@ -312,7 +313,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                               <option key={age} value={age}>
                                 {age === 0
                                   ? t("GuestSelector.lessThanOneYear")
-                                  : `${age} ${age === 1 ? t("GuestSelector.year") : t("GuestSelector.years")}`}
+                                  : `${formatNumber(age)} ${age === 1 ? t("GuestSelector.year") : t("GuestSelector.years")}`}
                               </option>
                             ))}
                           </select>
@@ -323,7 +324,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                 )}
 
                 <div className="mt-3 text-xs text-gray-500 text-center">
-                  {room.adults + room.children} {t("GuestSelector.guestsOf")} {MAX_GUESTS_PER_ROOM} {t("GuestSelector.guests")}
+                  {formatNumber(room.adults + room.children)} {t("GuestSelector.guestsOf")} {formatNumber(MAX_GUESTS_PER_ROOM)} {t("GuestSelector.guests")}
                 </div>
               </div>
             ))}

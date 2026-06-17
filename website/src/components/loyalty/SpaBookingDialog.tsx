@@ -6,7 +6,9 @@ import {
   getAvailableSpasApi,
   markSlotAsAvailableApi,
 } from "../../app/(auth)/profile/api/profile.api";
-import { format } from "date-fns";
+import { formatNumber, getLocale } from "../../utils/numLang";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 import { Check, Search, Clock, MapPin, Tag, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -80,6 +82,7 @@ interface SelectedAvailability {
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
+import { ISpaWSlots } from "./types/spa.type";
 
 interface SpaBookingDialogProps {
   bookingCode: string;

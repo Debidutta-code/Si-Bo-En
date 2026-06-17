@@ -23,6 +23,9 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
+import { formatNumber } from "../../utils/numLang";
 
 export const LoyaltyProgramBanner = ({
   loyaltyProgram,
@@ -241,17 +244,19 @@ export const LoyaltyProgramBanner = ({
 
   const getDiscountDisplay = (isPreLogin = false) => {
     if (!isPreLogin && isRegistered && discountInfo) {
-      if (discountInfo.type === "percentage") return `${discountInfo.value}% OFF`;
-      return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
+      if (discountInfo.type === "percentage") return t("LoyaltyBanner.offPercent", { value: formatNumber(discountInfo.value) });
+      const currencySymbol = currencies.find((c: Currency) => c.code === discountInfo.currencyCode)?.symbol || discountInfo.currencyCode;
+      return t("LoyaltyBanner.offCurrency", { symbol: currencySymbol, value: formatNumber(discountInfo.value) });
     }
     // Pre-login or not registered — show "Upto X% OFF"
     if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
-      return `Upto ${loyaltyProgram.discountPercentage}% OFF`;
+      return t("LoyaltyBanner.uptoOffPercent", { value: formatNumber(loyaltyProgram.discountPercentage) });
     }
     if (program.loyaltyDiscountType === "percentage") {
-      return `Upto ${program.discountValue}% OFF`;
+      return t("LoyaltyBanner.uptoOffPercent", { value: formatNumber(program.discountValue) });
     }
-    return `Upto ${program.currencyCode} ${program.discountValue} OFF`;
+    const currencySymbol = currencies.find((c: Currency) => c.code === program.currencyCode)?.symbol || program.currencyCode;
+    return t("LoyaltyBanner.uptoOffCurrency", { symbol: currencySymbol, value: formatNumber(program.discountValue) });
   };
 
   return (
@@ -324,21 +329,7 @@ export const LoyaltyProgramBanner = ({
                       {t("LoyaltyBanner.loyaltyProgram")}
                     </span>
                   </div>
-                </div>
-
-                {/* Basic / Premium Badge - right side of header on all screens */}
-                <div className="flex-shrink-0">
-                  {isBasicProgram && (
-                    <span className="px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] sm:text-xs font-semibold whitespace-nowrap">
-                      {t("LoyaltyBanner.basic")}
-                    </span>
-                  )}
-                  {isAdvancedProgram && (
-                    <span className="px-2 py-0.5 bg-purple-500 text-white rounded text-[10px] sm:text-xs font-semibold whitespace-nowrap">
-                      {t("LoyaltyBanner.premium")}
-                    </span>
-                  )}
-                </div>
+                </div>                
               </div>
 
               {/* Program Terms */}
@@ -351,7 +342,7 @@ export const LoyaltyProgramBanner = ({
                         className="w-3 h-3"
                         style={{ color: primaryColor }}
                       />
-                      Program Terms
+                      {t("programTerms")}
                     </h3>
                     <div className="space-y-1 max-h-20 overflow-y-auto custom-scrollbar">
                       {program.loyaltyConditions
@@ -385,7 +376,7 @@ export const LoyaltyProgramBanner = ({
                         className="w-3 h-3"
                         style={{ color: primaryColor }}
                       />
-                      Special Benefits
+                      {t("specialBenifits")}
                     </h3>
                     <div className="space-y-1">
                       {program.loyaltySpecialConditions

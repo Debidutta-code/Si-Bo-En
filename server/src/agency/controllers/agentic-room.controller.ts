@@ -1,8 +1,9 @@
 import { errorResponse } from '../../utils/return';
 import { CustomRequest } from '../../utils/customRequest';
 import { Request, Response } from 'express';
-import {} from '../types';
+import { } from '../types';
 import { AgenticRoomService } from '../services';
+import { AgencyInterceptor } from '../../multi-language/interceptors/agency/agency.interceptor';
 
 export class AgenticRoomController {
     private agenticRoomService: AgenticRoomService;
@@ -56,6 +57,7 @@ export class AgenticRoomController {
     ): Promise<Response> {
         try {
             const { agenticPropertyId, propertyId } = req.params;
+            const locale = req.headers['accept-language']?.slice(0, 2).toLowerCase() || 'en';
             if (!agenticPropertyId) {
                 return res
                     .status(400)
@@ -66,10 +68,16 @@ export class AgenticRoomController {
                     .status(400)
                     .json(errorResponse('property is not choosen'));
             }
-            const result = await this.agenticRoomService.getRoomsForAgencies(
+            let result = await this.agenticRoomService.getRoomsForAgencies(
                 agenticPropertyId,
                 propertyId
             );
+
+            result = await AgencyInterceptor.interceptGetRoomsForAgencies(
+                result,
+                locale
+            );
+
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error) {
             if (error instanceof Error) {

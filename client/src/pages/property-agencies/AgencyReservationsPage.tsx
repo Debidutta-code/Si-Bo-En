@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Loader from '@/components/Loader/Loader';
 import createAxiosInstance from '@/components/axiosInstance';
+import { useTranslation } from 'react-i18next';
 
 // --- Types matching the actual API response ---
 
@@ -168,6 +169,7 @@ const getStatusVariant = (
 // --- Component ---
 
 const AgencyReservationsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { propertyId, agencyId } = useParams<{ propertyId: string; agencyId: string }>();
   const navigate = useNavigate();
 
@@ -239,7 +241,7 @@ const AgencyReservationsPage: React.FC = () => {
   };
 
   if (loading) {
-    return <Loader text="Loading reservations..." />;
+    return <Loader text={t('AgencyReservations.loading')} />;
   }
 
   return (
@@ -255,12 +257,12 @@ const AgencyReservationsPage: React.FC = () => {
         </Button>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
-            {agency?.agencyName ?? 'Agency'} — Reservations
+            {agency?.agencyName ?? 'Agency'} — {t('AgencyReservations.reservationsTitle')}
           </h1>
           <p className="text-gray-500 mt-1">
             {agency?.agencyType && <span>{agency.agencyType} • </span>}
             {agency?.commissionRate != null && (
-              <span>Commission: {agency.commissionRate}%</span>
+              <span>{t('AgencyReservations.commission')}: {agency.commissionRate}%</span>
             )}
           </p>
         </div>
@@ -270,58 +272,58 @@ const AgencyReservationsPage: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t('AgencyReservations.statTotal')}</CardTitle>
             <Calendar className="h-4 w-4 text-gray-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalReservations}</div>
-            <p className="text-xs text-gray-500 mt-1">Reservations</p>
+            <p className="text-xs text-gray-500 mt-1">{t('AgencyReservations.statReservations')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Confirmed</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t('AgencyReservations.statConfirmed')}</CardTitle>
             <Calendar className="h-4 w-4 text-green-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.confirmedCount}</div>
-            <p className="text-xs text-gray-500 mt-1">Active bookings</p>
+            <p className="text-xs text-gray-500 mt-1">{t('AgencyReservations.statActiveBookings')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Cancelled</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t('AgencyReservations.statCancelled')}</CardTitle>
             <Calendar className="h-4 w-4 text-red-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">{stats.cancelledCount}</div>
-            <p className="text-xs text-gray-500 mt-1">Cancelled bookings</p>
+            <p className="text-xs text-gray-500 mt-1">{t('AgencyReservations.statCancelledBookings')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t('AgencyReservations.statRevenue')}</CardTitle>
             <DollarSign className="h-4 w-4 text-gray-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-gray-500 mt-1">Total (AED)</p>
+            <p className="text-xs text-gray-500 mt-1">{t('AgencyReservations.statTotalAed')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Commission</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">{t('AgencyReservations.statCommission')}</CardTitle>
             <DollarSign className="h-4 w-4 text-gray-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
               {stats.totalCommission.toFixed(2)}
             </div>
-            <p className="text-xs text-gray-500 mt-1">Agency earned (AED)</p>
+            <p className="text-xs text-gray-500 mt-1">{t('AgencyReservations.statAgencyEarned')}</p>
           </CardContent>
         </Card>
       </div>
@@ -329,23 +331,23 @@ const AgencyReservationsPage: React.FC = () => {
       {/* Reservations Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Reservations ({reservations.length})</CardTitle>
+          <CardTitle>{t('AgencyReservations.tableTitle', { count: reservations.length })}</CardTitle>
         </CardHeader>
         <CardContent>
           {reservations.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Booking Code</TableHead>
-                  <TableHead>Primary Guest</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Stay Dates</TableHead>
-                  <TableHead>Room</TableHead>
-                  <TableHead>Guests</TableHead>
-                  <TableHead>Total ({reservations[0].countryCode})</TableHead>
-                  <TableHead>Commission ({reservations[0].countryCode})</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>{t('AgencyReservations.colBookingCode')}</TableHead>
+                  <TableHead>{t('AgencyReservations.colPrimaryGuest')}</TableHead>
+                  <TableHead>{t('AgencyReservations.colContact')}</TableHead>
+                  <TableHead>{t('AgencyReservations.colStayDates')}</TableHead>
+                  <TableHead>{t('AgencyReservations.colRoom')}</TableHead>
+                  <TableHead>{t('AgencyReservations.colGuests')}</TableHead>
+                  <TableHead>{t('AgencyReservations.colTotal', { code: reservations[0].countryCode })}</TableHead>
+                  <TableHead>{t('AgencyReservations.colCommission', { code: reservations[0].countryCode })}</TableHead>
+                  <TableHead>{t('AgencyReservations.colPayment')}</TableHead>
+                  <TableHead>{t('AgencyReservations.colStatus')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -387,7 +389,7 @@ const AgencyReservationsPage: React.FC = () => {
                         </div>
                       </TableCell>
 
-                      {/* Stay Dates — use reservationStartDate/EndDate as fallback */}
+                      {/* Stay Dates */}
                       <TableCell>
                         <div className="text-sm">
                           <div>
@@ -453,7 +455,7 @@ const AgencyReservationsPage: React.FC = () => {
           ) : (
             <div className="text-center py-12 text-gray-500">
               <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>No reservations found for this agency</p>
+              <p>{t('AgencyReservations.noReservations')}</p>
             </div>
           )}
         </CardContent>
@@ -462,4 +464,4 @@ const AgencyReservationsPage: React.FC = () => {
   );
 };
 
-export default AgencyReservationsPage;  
+export default AgencyReservationsPage;

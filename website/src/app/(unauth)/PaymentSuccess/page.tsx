@@ -8,6 +8,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import { currencies } from "@/src/components/currencyCode/cuurency";
+import { Currency } from "@/src/components/currencyCode/currency-code.type";
+import { formatNumber } from "@/src/utils/numLang";
 
 const PaymentSuccessPage = () => {
   const bookingData = useSelector((state: RootState) => state.booking);
@@ -84,6 +86,14 @@ const PaymentSuccessPage = () => {
     localConfirmation?.status === "confirmed" ||
     !!urlBookingCode;
 
+  // Helper to format dates correctly
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    if (!year || !month || !day) return dateStr;
+    return `${formatNumber(Number(year))}-${formatNumber(Number(month))}-${formatNumber(Number(day))}`;
+  };
+
   const totalAmount = finalPrice?.totalAmount || 0;
   const nights = finalPrice?.numberOfNights || 0;
 
@@ -99,10 +109,11 @@ const PaymentSuccessPage = () => {
       `/my-trip?propertyCode=${bookingData.PropertyCode}&code=${code}`,
     );
   };
-  const currencyCode =
+  const rawCurrencyCode =
     finalPrice?.currencyCode ||
     finalPrice?.dailyBreakdown?.[0]?.currencyCode ||
     "USD";
+  const currencyCode = currencies.find((c: Currency) => c.code === rawCurrencyCode)?.symbol || rawCurrencyCode;
   return isConfirmed ? (
     <div className="min-h-screen bg-gray-100  py-8 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8 sm:p-10">
@@ -128,21 +139,21 @@ const PaymentSuccessPage = () => {
             </h2>
             <div className="space-y-2 text-sm text-gray-800">
               <p>
-                <strong>{t("PaymentSuccess.confirmed.checkIn")}</strong> {checkIn}
+                <strong>{t("PaymentSuccess.confirmed.checkIn")}</strong> {formatDateString(checkIn)}
               </p>
               <p>
-                <strong>{t("PaymentSuccess.confirmed.checkOut")}</strong> {checkOut}
+                <strong>{t("PaymentSuccess.confirmed.checkOut")}</strong> {formatDateString(checkOut)}
               </p>
               <p>
                 <strong>{t("PaymentSuccess.confirmed.duration")}</strong>{" "}
-                {nights} {nights > 1 ? t("PaymentSuccess.confirmed.nights") : t("PaymentSuccess.confirmed.night")}
+                {formatNumber(nights)} {nights > 1 ? t("PaymentSuccess.confirmed.nights") : t("PaymentSuccess.confirmed.night")}
               </p>
               <p>
                 <strong>{t("PaymentSuccess.confirmed.guests")}</strong>{" "}
-                {rooms} {rooms !== 1 ? t("PaymentSuccess.confirmed.rooms") : t("PaymentSuccess.confirmed.room")} ·{" "}
-                {adults} {adults !== 1 ? t("PaymentSuccess.confirmed.adults") : t("PaymentSuccess.confirmed.adult")}
+                {formatNumber(rooms)} {rooms !== 1 ? t("PaymentSuccess.confirmed.rooms") : t("PaymentSuccess.confirmed.room")} ·{" "}
+                {formatNumber(adults)} {adults !== 1 ? t("PaymentSuccess.confirmed.adults") : t("PaymentSuccess.confirmed.adult")}
                 {children > 0
-                  ? ` · ${children} ${children !== 1 ? t("PaymentSuccess.confirmed.children") : t("PaymentSuccess.confirmed.child")}`
+                  ? ` · ${formatNumber(children)} ${children !== 1 ? t("PaymentSuccess.confirmed.children") : t("PaymentSuccess.confirmed.child")}`
                   : ""}
               </p>
             </div>
@@ -175,7 +186,7 @@ const PaymentSuccessPage = () => {
               <p>
                 <strong>{t("PaymentSuccess.confirmed.paymentMethod")}</strong>{" "}
                 <span className="font-semibold" style={{ color: colors.primaryColor }}>
-                  {formatPaymentMethod(bookingData?.paymentMethod || "pay_at_hotel")}
+                {t(`PriceDetails.${bookingData.paymentMethod?.replace(/_/g, '')}`)}
                 </span>
               </p>
             </div>
@@ -189,7 +200,7 @@ const PaymentSuccessPage = () => {
               {t("PaymentSuccess.confirmed.paymentDetails")}
             </h2>
             <div className="font-bold text-2xl" style={{ color: colors.primaryColor }}>
-              {currencyCode} {totalAmount.toFixed(2)}
+              {currencyCode} {formatNumber(Number(totalAmount.toFixed(2)))}
             </div>
             <p className="text-sm text-gray-500">
               {t("PaymentSuccess.confirmed.payAtHotelNote")}

@@ -520,6 +520,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                   roomDetails={roomDetails}
                                   isLoading={loading}
                                   updateRoomDetails={setRoomDetails}
+                                  isUpdateMode={true}
                                 />
                               </AlertDialogHeader>
                               <AlertDialogFooter className="border-t pt-4">
@@ -854,7 +855,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                     {t("Rooms.updateRoomAmenities")}
                                   </AlertDialogTitle>
                                   <p className="text-sm text-gray-500 mt-1">
-                                    {t("Rooms.modifyAmenitiesFor", { name: room.roomName })}
+                                    {t("Rooms.modifyAmenitiesFor", { name: room._translations?room._translations.roomName: room.roomName })}
                                   </p>
                                 </div>
                                 <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">

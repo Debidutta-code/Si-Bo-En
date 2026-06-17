@@ -15,12 +15,12 @@ import {
 import toast from "react-hot-toast";
 import { setBookingCode, setBookingStatus, setFullBookingDetails } from "@/src/store/bookingSlice";
 import PriceDetails from "@/src/components/payment/PriceDetails";
-import HelpBox from "@/src/components/payment/HelpBox";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import FikafiPaymentButton from "@/src/components/payment/FikafiPaymentButton";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
 import createAxiosInstance from "@/src/components/axiosInstance";
+import { formatNumber } from "@/src/utils/numLang";
 
 // Updated interface to match actual API response
 interface PaymentIntegrationDetail {
@@ -89,6 +89,14 @@ const BookingReviewPage = () => {
   const [promoDetails, setPromoDetails] = useState<any>(null);
 
   const { colors } = useBookingStorage({});
+
+  // Helper to format dates correctly
+  const formatDateString = (dateStr: string) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-");
+    if (!year || !month || !day) return dateStr;
+    return `${formatNumber(Number(year))}-${formatNumber(Number(month))}-${formatNumber(Number(day))}`;
+  };
 
   // Map frontend payment method names to database enum values
   const mapPaymentMethodToEnum = (method: string): string => {
@@ -737,14 +745,14 @@ const BookingReviewPage = () => {
             </h2>
             <div className="text-sm text-gray-800 space-y-1">
               <p>
-                <strong>{t("Payment.stayDates")}</strong> {checkIn} - {checkOut} ({nights}{" "}
+                <strong>{t("Payment.stayDates")}</strong> {formatDateString(checkIn)} - {formatDateString(checkOut)} ({formatNumber(nights)}{" "}
                 night{nights > 1 ? "s" : ""})
               </p>
               <p>
-                <strong>{t("Payment.guests")}</strong> {rooms || 1} {t("Payment.room")} ·{" "}
-                {adults} {adults !== 1 ? t("Payment.adults") : t("Payment.adult")}
+                <strong>{t("Payment.guests")}</strong> {formatNumber(rooms || 1)} {t("Payment.room")} ·{" "}
+                {formatNumber(adults)} {adults !== 1 ? t("Payment.adults") : t("Payment.adult")}
                 {childrenCount > 0
-                  ? ` · ${childrenCount} ${childrenCount !== 1 ? t("Payment.children") : t("Payment.child")}`
+                  ? ` · ${formatNumber(childrenCount)} ${childrenCount !== 1 ? t("Payment.children") : t("Payment.child")}`
                   : ""}
               </p>
               <p>

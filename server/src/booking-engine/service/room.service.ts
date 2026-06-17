@@ -487,8 +487,8 @@ export class RoomBookingService {
         const start = toUTCDate(startDate);
         const end = toUTCDate(endDate);
 
-        const property = await RoomBookingRepository.getPropertyByCode(propertyCode) as any;
-        const currencyCode = property?.propertyConfigs?.baseCurrency || 'AED';
+        const property = await RoomBookingRepository.getPropertyByCode(propertyCode);
+        const currencyCode = property?.propertyConfigs?.baseCurrency;
 
         const charges = await RoomBookingRepository.getPropertyChargesForCalendar(propertyCode, start, end);
 
@@ -1015,7 +1015,7 @@ class RoomDiscountCalculator {
         if (this.ratePlanRule.isAutoApplied) {
             appliedDiscounts.push({
                 id: this.ratePlanRule.id,
-                promotionName: `Minimum ${this.ratePlanRule.minLos} nights stay`,
+                promotionName: `${this.ratePlanRule.minLos}`,
                 promotionType: 'mlos',
                 discountType: this.ratePlanRule.discountType,
                 discountValue: Number(this.ratePlanRule.discountValue),
@@ -1024,7 +1024,7 @@ class RoomDiscountCalculator {
         } else {
             availablePromotions.push({
                 id: this.ratePlanRule.id,
-                promotionName: `Minimum ${this.ratePlanRule.minLos} nights stay`,
+                promotionName: `${this.ratePlanRule.minLos}`,
                 promotionType: 'mlos',
                 discountType: this.ratePlanRule.discountType,
                 discountValue: this.ratePlanRule.discountValue,

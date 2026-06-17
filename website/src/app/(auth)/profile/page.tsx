@@ -8,6 +8,7 @@ import { RootState } from "@/src/store/store";
 import { clearCustomer } from "@/src/store/customerSlice";
 import { getMyProfileApi } from "./api/profile.api";
 import { useRouter } from "next/navigation";
+import { formatNumber } from "../../../utils/numLang";
 
 interface CustomerProfile {
   id: string;
@@ -112,17 +113,17 @@ export default function ProfileHomePage() {
             <div className="flex items-center gap-4 mt-5">
               <div>
                 <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">{t("ProfileHomePage.memberCard.programs")}</p>
-                <p className="text-[13px] font-medium text-white">{profile?.CreationGuest?.length ?? 0}</p>
+                <p className="text-[13px] font-medium text-white">{formatNumber(profile?.CreationGuest?.length ?? 0)}</p>
               </div>
               <div className="w-px h-8 bg-white/20" />
               <div>
                 <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">{t("ProfileHomePage.memberCard.properties")}</p>
-                <p className="text-[13px] font-medium text-white">{profile?.PropertyLoyalityGuests?.length ?? 0}</p>
+                <p className="text-[13px] font-medium text-white">{formatNumber(profile?.PropertyLoyalityGuests?.length ?? 0)}</p>
               </div>
               <div className="w-px h-8 bg-white/20" />
               <div>
                 <p className="text-[10px] uppercase tracking-[0.1em] text-white/60">{t("ProfileHomePage.memberCard.wishlist")}</p>
-                <p className="text-[13px] font-medium text-white">{profile?.WishList?.length ?? 0}</p>
+                <p className="text-[13px] font-medium text-white">{formatNumber(profile?.WishList?.length ?? 0)}</p>
               </div>
             </div>
           </div>
@@ -153,9 +154,9 @@ export default function ProfileHomePage() {
               const properties = config?.PropertyLoyaltyConfig ?? [];
               const programLogo = config?.BasicLoyaltyProgram?.logo?.[0] ?? null;
               const effectiveDiscount = currentLevel
-                ? `${currentLevel.discountPercentage}%`
+                ? `${formatNumber(currentLevel.discountPercentage)}%`
                 : config
-                  ? `${config.discountValue}${config.loyaltyDiscountType === "percentage" ? "%" : ` ${config.currencyCode ?? ""}`}`
+                  ? `${formatNumber(config.discountValue)}${config.loyaltyDiscountType === "percentage" ? "%" : ` ${config.currencyCode ?? ""}`}`
                   : "—";
 
               return (
@@ -181,8 +182,8 @@ export default function ProfileHomePage() {
                     <p className="text-[13px] font-semibold text-black">
                       {config
                         ? config.loyaltyDiscountType === "percentage"
-                          ? t("ProfileHomePage.loyalty.headerPercentage", { value: config.discountValue })
-                          : t("ProfileHomePage.loyalty.headerCurrency", { currency: config.currencyCode, value: config.discountValue })
+                          ? t("ProfileHomePage.loyalty.headerPercentage", { value: formatNumber(config.discountValue) })
+                          : t("ProfileHomePage.loyalty.headerCurrency", { currency: config.currencyCode, value: formatNumber(config.discountValue) })
                         : t("ProfileHomePage.loyalty.fallbackName")}
                     </p>
                   </div>
@@ -202,14 +203,14 @@ export default function ProfileHomePage() {
                         <p className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5">
                           {t("ProfileHomePage.loyalty.stats.level")}
                         </p>
-                        <p className="text-[15px] font-bold text-[#1a1a1a]">{cg.guestLevel} / {totalLevels}</p>
+                        <p className="text-[15px] font-bold text-[#1a1a1a]">{formatNumber(cg.guestLevel)} / {formatNumber(totalLevels)}</p>
                       </div>
                     )}
                     <div>
                       <p className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5">
                         {t("ProfileHomePage.loyalty.stats.bookings")}
                       </p>
-                      <p className="text-[15px] font-bold text-[#1a1a1a]">{cg.noOfBookings}</p>
+                      <p className="text-[15px] font-bold text-[#1a1a1a]">{formatNumber(cg.noOfBookings)}</p>
                     </div>
                   </div>
 
@@ -219,14 +220,14 @@ export default function ProfileHomePage() {
                       <div className="flex justify-between mb-1.5">
                         <span className="text-[10px]" style={{ color: "#bbb" }}>
                           {t("ProfileHomePage.loyalty.progress.currentLevel", {
-                            level: cg.guestLevel,
-                            pct: currentLevel?.discountPercentage,
+                            level: formatNumber(cg.guestLevel),
+                            pct: currentLevel?.discountPercentage ? formatNumber(currentLevel.discountPercentage) : undefined,
                           })}
                         </span>
                         <span className="text-[10px]" style={{ color: "#bbb" }}>
                           {t("ProfileHomePage.loyalty.progress.nextLevel", {
-                            level: nextLevel.level,
-                            pct: nextLevel.discountPercentage,
+                            level: formatNumber(nextLevel.level),
+                            pct: nextLevel.discountPercentage ? formatNumber(nextLevel.discountPercentage) : undefined,
                           })}
                         </span>
                       </div>
@@ -243,11 +244,11 @@ export default function ProfileHomePage() {
                         {nextLevel.noOfReservations === 1
                           ? t("ProfileHomePage.loyalty.progress.bookingsNeeded", {
                               count: nextLevel.noOfReservations,
-                              level: nextLevel.level,
+                              level: formatNumber(nextLevel.level),
                             })
                           : t("ProfileHomePage.loyalty.progress.bookingsNeededPlural", {
                               count: nextLevel.noOfReservations,
-                              level: nextLevel.level,
+                              level: formatNumber(nextLevel.level),
                             })}
                       </p>
                     </div>

@@ -1,4 +1,5 @@
 "use client";
+import { formatNumber, getLocale } from "@/src/utils/numLang";
 
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,7 +8,13 @@ import {
   X,
 } from "lucide-react";
 import GuestSelector from "../GuestModals/GuestSelector";
-import DatePicker from "react-datepicker";
+import DatePicker, { registerLocale } from "react-datepicker";
+import { ar } from "date-fns/locale/ar";
+import { hi } from "date-fns/locale/hi";
+
+// Register locales so react-datepicker renders month names + weekdays in the active language
+registerLocale("ar", ar);
+registerLocale("hi", hi);
 import "react-datepicker/dist/react-datepicker.css";
 import "./styles/custom-datepicker.css";
 import { usePathname, useRouter } from "next/navigation";
@@ -53,7 +60,8 @@ const DatePickerWithHover = ({
   prices,
   currencyCode,
   isPricesLoading,
-  onMonthChange, // ← CHANGED: added prop
+  onMonthChange,
+  locale,
 }: {
   checkIn: Date | null;
   checkOut: Date | null;
@@ -65,7 +73,8 @@ const DatePickerWithHover = ({
   prices: Record<string, number>;
   currencyCode?: string;
   isPricesLoading: boolean;
-  onMonthChange: (date: Date) => void; // ← CHANGED: added prop type
+  onMonthChange: (date: Date) => void;
+  locale: string;
 }) => {
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
 
@@ -91,10 +100,10 @@ const DatePickerWithHover = ({
           onDayMouseLeave();
         }}
       >
-        <span>{day}</span>
+        <span>{formatNumber(day)}</span>
         {price > 0 && (
           <span className="terra-solis-day-price">
-            {currencyCode} {Math.round(price)}
+            {currencies.find((c)=>c.code===currencyCode)?.symbol} {formatNumber(Math.round(price))}
           </span>
         )}
       </div>
@@ -136,7 +145,50 @@ const DatePickerWithHover = ({
       popperClassName="terra-solis-popper"
       dayClassName={getDayClassName}
       renderDayContents={renderDayContents}
-      onMonthChange={onMonthChange} // ← CHANGED: wired up
+      onMonthChange={onMonthChange}
+      locale={locale}
+      renderCustomHeader={({
+        monthDate,
+        customHeaderCount,
+        decreaseMonth,
+        increaseMonth,
+        prevMonthButtonDisabled,
+        nextMonthButtonDisabled,
+      }) => {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+        return (
+          <div className="relative flex justify-center items-center w-full">
+            {customHeaderCount === 0 && (
+              <button
+                type="button"
+                className="absolute left-0 w-8 h-8 flex items-center justify-center hover:bg-[#E8DFC9] rounded-full transition-colors z-10"
+                style={{ top: "0px" }}
+                onClick={decreaseMonth}
+                disabled={prevMonthButtonDisabled}
+              >
+                <span className="w-2 h-2 border-t-2 border-l-2 border-[#5B543F] -rotate-45 ml-1"></span>
+              </button>
+            )}
+            
+            <div className="react-datepicker__current-month">
+              {monthDate.toLocaleDateString(locale || getLocale(), { month: "long" })}{" "}
+              {formatNumber(monthDate.getFullYear())}
+            </div>
+
+            {(customHeaderCount === 1 || (isMobile && customHeaderCount === 0)) && (
+              <button
+                type="button"
+                className="absolute right-0 w-8 h-8 flex items-center justify-center hover:bg-[#E8DFC9] rounded-full transition-colors z-10"
+                style={{ top: "0px" }}
+                onClick={increaseMonth}
+                disabled={nextMonthButtonDisabled}
+              >
+                <span className="w-2 h-2 border-t-2 border-r-2 border-[#5B543F] rotate-45 mr-1"></span>
+              </button>
+            )}
+          </div>
+        );
+      }}
     />
   );
 };
@@ -146,12 +198,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const { t, i18n } = useTranslation();
   const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
 
-  // const formatNumber = (num: number) => {
-  //   if (i18n.language === "ar") {
-  //     return num.toLocaleString("ar-EG");
-  //   }
-  //   return num.toString();
-  // };
 
   const dispatch = useDispatch();
   const [isGuestSelectorOpen, setIsGuestSelectorOpen] = useState(false);
@@ -250,8 +296,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         };
         setGuestInfo(normalizedGuests);
         setGuestSummary(
-          `${totalAdults || 1} adult${totalAdults !== 1 ? "s" : ""} - ${totalChildren || 0
-          } child${totalChildren !== 1 ? "ren" : ""} - ${roomsCount} room${roomsCount !== 1 ? "s" : ""
+          `${formatNumber(totalAdults || 1)} adult${totalAdults !== 1 ? "s" : ""} - ${formatNumber(totalChildren || 0)
+          } child${totalChildren !== 1 ? "ren" : ""} - ${formatNumber(roomsCount)} room${roomsCount !== 1 ? "s" : ""
           }`,
         );
       }
@@ -512,13 +558,13 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* Text */}
                 <div className="flex flex-col min-w-0">
                   <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
-                    LOCATION
+                    {t("GroupSearch.location")}
                   </p>
                   <input
                     type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Where to?"
+                    placeholder={t("GroupSearch.whereTo")}
                     className="text-sm font-semibold bg-transparent focus:outline-none placeholder-[#9B8B6F] w-full leading-none"
                     style={{ color: primaryColor }}
                   />
@@ -538,10 +584,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   {t("SearchWidget.checkIn")}
                 </p>
                 <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
-                  {checkIn?.getDate() ?? 0}
+                  {formatNumber(checkIn?.getDate() ?? 0)}
                 </p>
                 <p className="text-[9px] lg:text-[10px] uppercase tracking-wider  font-medium" style={{ color: primaryColor }}>
-                  {checkIn?.toLocaleDateString( "en-US", { month: "short", year: "numeric" })}
+                  {checkIn?.toLocaleDateString(getLocale(), { weekday: "short", month: "short" })}{" "}{formatNumber(checkIn?.getFullYear() ?? 0)}
                 </p>
               </div>
 
@@ -556,11 +602,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   {t("SearchWidget.checkOut")}
                 </p>
                 <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
-                  {checkOut ? checkOut.getDate() : "--"}
+                  {checkOut ? formatNumber(checkOut.getDate()) : "--"}
                 </p>
                 <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: primaryColor }}>
                   {checkOut
-                    ? checkOut.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+                    ? `${checkOut.toLocaleDateString(getLocale(), { weekday: "short", month: "short" })} ${formatNumber(checkOut.getFullYear())}`
                     : t("SearchWidget.checkOutSelect")}
                 </p>
               </div>
@@ -585,7 +631,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </svg>
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                    {formatNumber(Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1)}
                   </span>
                 </div>
                 {/* Adults */}
@@ -594,9 +640,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     <Users className="w-2.5 h-2.5" style={{ color: "#5B543F" }} />
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {Array.isArray(guestInfo.rooms)
-                      ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
-                      : guestInfo.adults || 1}
+                    {formatNumber(
+                      Array.isArray(guestInfo.rooms)
+                        ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                        : guestInfo.adults || 1
+                    )}
                   </span>
                 </div>
                 {/* Children */}
@@ -608,9 +656,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </svg>
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {Array.isArray(guestInfo.rooms)
-                      ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
-                      : guestInfo.children || 0}
+                    {formatNumber(
+                      Array.isArray(guestInfo.rooms)
+                        ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
+                        : guestInfo.children || 0
+                    )}
                   </span>
                 </div>
               </div>
@@ -663,6 +713,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   prices={prices}
                   isPricesLoading={isPricesLoading}
                   currencyCode={bookingContext.currency}
+                  locale={getLocale().split("-")[0]}
                   onDateSelect={(date: Date) => {
                     if (selectionMode === "checkin") {
                       setCheckIn(date);
@@ -691,7 +742,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   }}
                   onDayMouseLeave={() => setTemporaryCheckOut(null)}
                   isSelectingRange={isSelectingRange}
-                  onMonthChange={handleMonthChange} // ← CHANGED: passed down
+                  onMonthChange={handleMonthChange}
                 />
               </div>
             </div>
