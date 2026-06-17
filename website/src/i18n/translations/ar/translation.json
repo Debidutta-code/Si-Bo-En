@@ -142,7 +142,11 @@
       "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو ولاء.",
       "registerSuccess": "تم التسجيل في برنامج الولاء بنجاح!",
       "failedRetry": "فشل التسجيل. يرجى المحاولة مرة أخرى."
-    }
+    },
+    "uptoOffPercent": "حتى {{value}}% خصم",
+    "uptoOffCurrency": "حتى {{symbol}} {{value}} خصم",
+    "offPercent": "{{value}}% خصم",
+    "offCurrency": "{{symbol}} {{value}} خصم"
   },
   "LoyaltyContainer": {
     "verifying": "جاري التحقق...",
@@ -170,7 +174,11 @@
       "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو ولاء.",
       "registerSuccess": "تم التسجيل في برنامج الولاء بنجاح!",
       "failedRetry": "فشل التسجيل. يرجى المحاولة مرة أخرى."
-    }
+    },
+    "uptoOffPercent": "حتى {{value}}% خصم",
+    "uptoOffCurrency": "حتى {{symbol}} {{value}} خصم",
+    "offPercent": "{{value}}% خصم",
+    "offCurrency": "{{symbol}} {{value}} خصم"
   },
   "RoomCard": {
     "guests": "الضيوف",
@@ -192,6 +200,7 @@
     "roomOnly": "غرفة فقط",
     "onlyRoomsLeft": "تبقت {{count}} غرفة فقط!",
     "onlyRoomsLeftPlural": "تبقت {{count}} غرف فقط!",
+    "mlos": "الحد الأدنى للإقامة {{nights}} ليالٍ",
     "touristTax": {
       "notIncluded": "غير مشمولة",
       "paidAtHotel": " في سعر الغرفة — سيتم دفعها مباشرة في الفندق."
@@ -235,7 +244,8 @@
     "promotionType": "نوع العرض",
     "discount": "الخصم",
     "addonIncluded": "مشمول",
-    "close": "إغلاق"
+    "close": "إغلاق",
+    "price": "سعر"
   },
   "Footer": {
     "defaultAddress": "دبي، الإمارات العربية المتحدة",
@@ -512,11 +522,11 @@
     "no": "لا",
     "totalActivityCharges": "إجمالي رسوم الأنشطة",
     "printItinerary": "طباعة المسار",
-      "promoCodeDiscount": "خصم رمز القسيمة",
-  "loyaltyDiscount": "خصم الولاء",
-  "amountBeforeTax": "المبلغ قبل الضريبة",
-  "totalTax": "إجمالي مبلغ الضريبة",
-  "amountAfterTax": "المبلغ بعد الضريبة",
+    "promoCodeDiscount": "خصم رمز القسيمة",
+    "loyaltyDiscount": "خصم الولاء",
+    "amountBeforeTax": "المبلغ قبل الضريبة",
+    "totalTax": "إجمالي مبلغ الضريبة",
+    "amountAfterTax": "المبلغ بعد الضريبة",
     "pdf": {
       "title": "تأكيد الحجز",
       "hotelInfo": "معلومات الفندق",
@@ -1155,10 +1165,17 @@
     }
   },
   "ModifyBookingModal": {
-  "nights": "ليالٍ",
-  "rooms": "غرف",
+    "nights": "ليالٍ",
+    "rooms": "غرف",
     "adult": "بالغ",
-  "children": "طفل"
-
-}
+    "children": "طفل"
+  },
+  "GroupSearch": {
+    "perNight": "لكل ليلة قبل الضرائب والرسوم",
+    "viewRoom": "عرض الغرف ←",
+    "location": "الموقع",
+    "whereTo": "إلى أين"
+  },
+  "programTerms": "شروط البرنامج",
+  "specialBenifits": "المزايا الخاصة"
 }

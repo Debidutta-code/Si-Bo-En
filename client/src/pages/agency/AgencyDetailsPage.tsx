@@ -297,7 +297,7 @@ const AgencyDetailsPage: React.FC = () => {
                 {properties.map((property) => (
                   <TableRow key={property.id}>
                     <TableCell className="font-medium">
-                      {property.propertyName}
+                      {property._translations?property._translations.propertyName:property.propertyName}
                     </TableCell>
                     <TableCell>
                       {agency.commissionType === 'percentage'

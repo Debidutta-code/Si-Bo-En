@@ -57,13 +57,13 @@ export default function DeleteConfirmDialog({
           <div className="grid grid-cols-1 gap-4 py-4">
             {ratePlans && (
               <div className="space-y-2">
-                <Label>Rate Plan</Label>
+                <Label>{t("Management.ratePlan")}</Label>
                 <select
                   className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   value={selectedRatePlanId || ""}
                   onChange={(e) => onRatePlanChange?.(e.target.value)}
                 >
-                  <option value="">Select a Rate Plan</option>
+                  <option value="">{t("Policies.selectRatePlanPlaceholder")}</option>
                   {ratePlans.map((rp) => (
                     <option key={rp.id} value={rp.id}>
                       {rp._translations?.ratePlanName ?? rp.ratePlanName}

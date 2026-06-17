@@ -4,6 +4,8 @@ import { Check } from "lucide-react";
 import Loader from "@/components/Loader/Loader";
 import { getAmenities } from "../api/create/propertyAmenity"; // shared endpoint
 import z from "zod";
+import type { IURoomAmenity } from "./types/types";
+import { useTranslation } from "react-i18next";
 
 type AmenityKey = string;
 type AmenityState = Record<AmenityKey, boolean>;
@@ -25,24 +27,21 @@ export default function RoomAmenities({
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [_apiError, setApiError] = useState<string | null>(null);
-  const [availableAmenities, setAvailableAmenities] = useState<string[]>([]);
+  const [availableAmenities, setAvailableAmenities] = useState<IURoomAmenity[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<AmenityState>({});
-
+  const { t } = useTranslation();
   useEffect(() => {
     const fetchAmenities = async () => {
       try {
         const res = await getAmenities("room");
         if (res.success && Array.isArray(res.data)) {
-          const cleanedAmenities = res.data
-            .map((a: { amenityName: string }) => a.amenityName)
-            .filter(Boolean);
 
-          setAvailableAmenities(cleanedAmenities);
+          setAvailableAmenities(res.data);
 
           // Build initial selected state based on propAvailableAmenities (already selected names)
           const initialSelected: AmenityState = {};
-          for (const name of cleanedAmenities) {
-            initialSelected[name] = propAvailableAmenities.includes(name);
+          for (const name of res.data) {
+            initialSelected[name.amenityName] = propAvailableAmenities.includes(name.amenityName);
           }
 
           setSelectedAmenities(initialSelected);
@@ -64,10 +63,10 @@ export default function RoomAmenities({
 
 
   // --- TOGGLE HANDLER ---
-  const handleToggle = (name: string) => {
+  const handleToggle = (amenity:IURoomAmenity) => {
     // console.log(name)
-    const newValue = !selectedAmenities[name];
-    const newState = { ...selectedAmenities, [name]: newValue };
+    const newValue = !selectedAmenities[amenity.amenityName];
+    const newState = { ...selectedAmenities, [amenity.amenityName]: newValue };
     propSetSelectedAmenities(newState);
     setSelectedAmenities(newState);
     if (errors) setErrors(null);
@@ -75,20 +74,21 @@ export default function RoomAmenities({
   };
 
   if (isLoading) {
-    return <Loader text="Loading Room Amenities..." />;
+    return <Loader text={t("PropertyUpdate.roomAmenity.loading")} />;
   }
 
   return (
     <div className="max-h-[90vh] w-full overflow-y-auto px-2 py-1">
       {/* Amenity Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-        {availableAmenities.map((name) => {
-          const isSelected = selectedAmenities[name] ;
+        {availableAmenities.map((amenity) => {
+          const { id, amenityName } = amenity;
+          const isSelected = selectedAmenities[amenityName];
           return (
             <button
-              key={name}
+              key={id}
               type="button"
-              onClick={() => handleToggle(name)}
+              onClick={() => handleToggle(amenity)}
               className={cn(
                 "relative flex flex-col items-center px-10 py-4 rounded-xl border-2 transition-all",
                 isSelected
@@ -97,7 +97,7 @@ export default function RoomAmenities({
               )}
             >
               <span className="text-xs font-medium capitalize text-center">
-                {name.replace(/_/g, " ")}
+                {amenity._translations?amenity._translations.amenityName:amenity.amenityName}
               </span>
               <div
                 className={cn(

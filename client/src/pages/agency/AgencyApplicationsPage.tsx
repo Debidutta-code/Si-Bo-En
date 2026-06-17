@@ -236,7 +236,7 @@ const AgencyApplicationsPage: React.FC = () => {
                 <TableHead>{t('AgencyApplication.email')}</TableHead>
                 <TableHead>{t('AgencyApplication.phone')}</TableHead>
                 <TableHead>{t('AgencyApplication.status')}</TableHead>
-                <TableHead>{t('AgencyApplication.actions')}</TableHead>
+                <TableHead>{t('Common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -328,7 +328,7 @@ const AgencyApplicationsPage: React.FC = () => {
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
               >
-                {t('AgencyApplication.previous')}
+                {t('AgencyApplication.next')}
               </Button>
             </div>
           </div>

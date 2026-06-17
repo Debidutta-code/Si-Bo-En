@@ -9,6 +9,9 @@ import {
     DialogTitle,
 } from '@/src/components/ui/dialog';
 import { useTranslation } from "react-i18next";
+import { formatNumber, getLocale } from "../../utils/numLang";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 
 export interface AddonAvailability {
     id: string;
@@ -86,6 +89,8 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
     const [selectedAddons, setSelectedAddons] = useState<Record<string, SelectedAddon>>({});
     const [showAllAddons, setShowAllAddons] = useState(false);
     const { t } = useTranslation();
+
+    const currencySymbol = currencies.find((c: Currency) => c.code === currencyCode)?.symbol || currencyCode;
 
     const groupedAddons = groupAddonsByAddonId(addons);
 
@@ -210,21 +215,21 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                                                 >
                                                                     <div className="flex-1">
                                                                         <p className="text-xs font-medium text-gray-800">
-                                                                            {new Date(availability.date).toLocaleDateString('en-US', {
+                                                                            {new Date(availability.date).toLocaleDateString(getLocale(), {
                                                                                 weekday: 'short',
                                                                                 month: 'short',
                                                                                 day: 'numeric'
                                                                             })}
                                                                         </p>
                                                                         <p className="text-xs text-gray-600">
-                                                                            {currencyCode} {availability.price} {t("AddonModal.each")}
+                                                                            {currencySymbol} {formatNumber(availability.price)} {t("AddonModal.each")}
                                                                         </p>
                                                                     </div>
 
                                                                     <div className="flex items-center gap-2">
                                                                         {currentQuantity > 0 && (
                                                                             <span className="text-xs font-semibold text-orange-600">
-                                                                                {currencyCode} {(availability.price * currentQuantity).toLocaleString()}
+                                                                                {currencySymbol} {formatNumber(availability.price * currentQuantity)}
                                                                             </span>
                                                                         )}
                                                                         <div className="flex items-center">
@@ -242,7 +247,7 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                                                                 <Minus size={12} />
                                                                             </button>
                                                                             <span className="w-8 text-center font-bold text-sm text-gray-900">
-                                                                                {currentQuantity}
+                                                                                {formatNumber(currentQuantity)}
                                                                             </span>
                                                                             <button
                                                                                 onClick={() =>
@@ -271,7 +276,7 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                     onClick={() => setShowAllAddons(!showAllAddons)}
                                     className="mt-4 text-orange-600 hover:text-orange-700 font-semibold text-sm flex items-center gap-1 hover:underline"
                                 >
-                                    {showAllAddons ? t("AddonModal.showLess") : t("AddonModal.seeMoreAddons", { count: groupedAddons.length - 4 })}
+                                    {showAllAddons ? t("AddonModal.showLess") : t("AddonModal.seeMoreAddons", { count: formatNumber(groupedAddons.length - 4) as any })}
                                     <ChevronRight
                                         size={14}
                                         className={`transform transition-transform ${showAllAddons ? 'rotate-90' : ''}`}
@@ -287,12 +292,12 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                     <div className="text-sm text-gray-700">
                         {totalAddonsCount > 0 ? (
                             <span>
-                                <span className="font-semibold">{totalAddonsCount}</span>{" "}
+                                <span className="font-semibold">{formatNumber(totalAddonsCount)}</span>{" "}
                                 {totalAddonsCount > 1
                                     ? t("AddonModal.addonsSelectedPlural")
                                     : t("AddonModal.addonsSelected")}{" "}•
                                 <span className="font-bold text-orange-600 ml-1">
-                                    {currencyCode} {totalAddonsPrice.toLocaleString()}
+                                    {currencySymbol} {formatNumber(totalAddonsPrice)}
                                 </span>
                             </span>
                         ) : (
@@ -310,8 +315,8 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                         <button onClick={handleContinue} style={{ backgroundColor: primaryColor, color: buttonTextColor }} className="px-5 py-2.5 rounded-lg font-medium text-sm transition-all shadow hover:shadow-md hover:opacity-90">
                             {totalAddonsCount > 0
                                 ? totalAddonsCount > 1
-                                    ? t("AddonModal.continueWithPlural", { count: totalAddonsCount })
-                                    : t("AddonModal.continueWith", { count: totalAddonsCount })
+                                    ? t("AddonModal.continueWithPlural", { count: formatNumber(totalAddonsCount) as any })
+                                    : t("AddonModal.continueWith", { count: formatNumber(totalAddonsCount) as any })
                                 : t("AddonModal.continue")}
                         </button>
                     </div>

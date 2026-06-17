@@ -210,7 +210,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     });
   }, [selectedAddons, expandedRatePlan, latestPrice, onPriceUpdate, room]);
   const handleBookNowClick = async (ratePlan: IRoomPrice) => {
-    const loadingKey = `${ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}`;
+    const loadingKey = `${ratePlan._translations ? ratePlan._translations.ratePlanName : ratePlan.ratePlanName}`;
     setLoadingPriceFor(loadingKey);
     setPendingRatePlan(ratePlan);
 
@@ -242,7 +242,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     ratePlan: IRoomPrice,
     selectedAddonsList: ISelectedAddon[]
   ) => {
-    const loadingKey = `${ratePlan._translations?ratePlan._translations.ratePlanName:ratePlan.ratePlanName}`;
+    const loadingKey = `${ratePlan._translations ? ratePlan._translations.ratePlanName : ratePlan.ratePlanName}`;
     setLoadingPriceFor(loadingKey);
 
     try {
@@ -364,7 +364,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
             </div>
 
             <p className="text-xs md:text-sm text-gray-700 mb-3 leading-relaxed line-clamp-3">
-              {room._translations?room._translations.description: room.description}
+              {room._translations ? room._translations.description : room.description}
             </p>
 
             <div className="flex flex-wrap gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3">
@@ -425,7 +425,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 <div className="flex items-center justify-between p-2 sm:px-4 sm:py-3 border-b border-gray-100">
                   <div className="flex items-center gap-2 flex-wrap min-w-0">
                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
-                      {firstCombo._translations?firstCombo._translations.ratePlanName: firstCombo.ratePlanName}
+                      {firstCombo._translations ? firstCombo._translations.ratePlanName : firstCombo.ratePlanName}
                     </h3>
                     {selectedPromotions[ratePlanCode]?.length > 0 && (
                       <span className="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded">
@@ -490,12 +490,12 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                   [ratePlanCode]: already
                                     ? current.filter((p) => p.id !== promo.id)
                                     : [...current, {
-                                        id: promo.id,
-                                        promotionType: promo.promotionType,
-                                        promotionName: promo.promotionName,
-                                        discountValue: promo.discountValue,
-                                        discountType: promo.discountType,
-                                      }],
+                                      id: promo.id,
+                                      promotionType: promo.promotionType,
+                                      promotionName: promo.promotionName,
+                                      discountValue: promo.discountValue,
+                                      discountType: promo.discountType,
+                                    }],
                                 };
                               });
                             }}
@@ -504,16 +504,18 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             <div className="flex items-center gap-2 min-w-0">
                               <span className="text-sm">{promoEmoji[promo.promotionType] ?? "🏷"}</span>
                               <div className="min-w-0">
-                                <p className="text-xs font-semibold text-orange-900 truncate">{promo.promotionName}</p>
+                                <p className="text-xs font-semibold text-orange-900 truncate">{promo.promotionType === "mlos" ?`${t("RoomCard.mlos", { nights: formatNumber(parseInt(promo.promotionName)) })}` : promo?._translations?promo._translations.promotionName:promo.promotionName}</p>
                                 <p className="text-[10px] text-orange-600">
                                   {promo.promotionType === "mlos"
-                                    ? `Min. ${formatNumber(promo.minLos)} nights`
+                                    ? `${t("RoomCard.mlos", { nights: formatNumber(parseInt(promo.promotionName)) })}`
                                     : promo.promotionType === "early_bird"
                                       ? t("RoomCard.promotions.bookDaysInAdvance", { count: promo.advanceBookingDays })
+
                                       : t("RoomCard.promotions.specialOffer")}
                                   {promo.validTo && ` · Until ${new Date(promo.validTo).toLocaleDateString()}`}
                                 </p>
                               </div>
+
                             </div>
                             <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                               <span className="px-1.5 py-0.5 bg-orange-500 text-white text-[9px] font-bold rounded">
@@ -533,7 +535,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     </div>
                     {(selectedPromotions[ratePlanCode]?.length ?? 0) > 0 && (
                       <p className="mt-2 text-[10px] text-orange-600 font-medium text-center">
-                        ✓ {formatNumber(selectedPromotions[ratePlanCode].length)} offer(s) selected — applied at checkout
+                        ✓ {formatNumber(selectedPromotions[ratePlanCode].length)} {t("RoomCard.offersSelected")}
                       </p>
                     )}
                   </div>
@@ -548,17 +550,17 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     const rawLabel = match ? match[1] : labelStr;
                     const isOnlyRoomOnly = combos.length === 1 && rawLabel === "Room Only";
 
-                    const translatedLabel = typeof combo.comboLabel === 'object' && combo.comboLabel !== null && combo.comboLabel.id==="room_only"?t("Rooms.roomOnly") : combo.comboLabel?._translations?combo.comboLabel?._translations.name:combo.comboLabel.label;
+                    const translatedLabel = typeof combo.comboLabel === 'object' && combo.comboLabel !== null && combo.comboLabel.id === "room_only" ? t("Rooms.roomOnly") : combo.comboLabel?._translations ? combo.comboLabel?._translations.name : combo.comboLabel.label;
 
                     const subLabel = translatedLabel
                       ? translatedLabel
                       : isOnlyRoomOnly
-                      ? combo.ratePlanName
-                      : rawLabel === "Room Only"
-                        ? "Room Only"
-                        : rawLabel.startsWith("+")
-                          ? rawLabel.split("+").filter(Boolean).map((s) => s.trim()).join(" & ")
-                          : rawLabel;
+                        ? combo.ratePlanName
+                        : rawLabel === "Room Only"
+                          ? "Room Only"
+                          : rawLabel.startsWith("+")
+                            ? rawLabel.split("+").filter(Boolean).map((s) => s.trim()).join(" & ")
+                            : rawLabel;
 
                     const comboBase = combo.totalAmount ?? 0;
                     const includedAddonsTotal = combo.addons?.reduce((sum, a) => sum + (a.price ?? 0), 0) ?? 0;
@@ -659,7 +661,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                               {combo.appliedDiscounts?.map((discount) => (
                                 <div key={discount.id} className="flex items-center gap-1">
                                   <span className="text-[10px] text-green-700 truncate max-w-[120px]">
-                                    {discount.promotionType === "mlos" ? `🌙 ${discount.promotionName}` : `✓ ${discount.promotionName}`}
+                                    {discount.promotionType === "mlos" ? `${t("RoomCard.mlos", { nights: formatNumber(parseInt(discount.promotionName)) })}` : discount?._translations?discount._translations.promotionName:discount.promotionName}
                                   </span>
                                   <span className="text-[10px] font-bold text-green-600 whitespace-nowrap">
                                     -{currency} {formatNumber(Number(discount.calculatedDiscountAmount.toFixed(2)))}
@@ -686,9 +688,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
                   <div className="px-4 py-2 border-t border-amber-100 bg-amber-50 flex items-center justify-center gap-1.5">
                     <span className="text-amber-400 text-xs">ℹ️</span>
                     <p className="text-[11px] text-amber-800 text-center">
-                      <span className="font-semibold">{firstCombo.touristTax?._translations? firstCombo.touristTax?._translations.name:firstCombo.touristTax?.name?? t("RoomCard.taxNotIncluded")}</span>
+                      <span className="font-semibold">{firstCombo.touristTax?._translations ? firstCombo.touristTax?._translations.name : firstCombo.touristTax?.name ?? t("RoomCard.taxNotIncluded")}</span>
                       {" "}{t("Rooms.of")}{" "}
-                      <span className="font-semibold">{firstCombo.touristTax?.currencyCode ?? currency} {formatNumber(Number((firstCombo.touristTax?.calculatedTaxAmount ?? 0).toFixed(2)))}</span>
+                      <span className="font-semibold">{currencies.find((c: Currency) => c.code === firstCombo.currencyCode)?.symbol}{" "}{formatNumber(Number((firstCombo.touristTax?.calculatedTaxAmount ?? 0).toFixed(2)))}</span>
                       {" "}{t("Rooms.is")}{" "}
                       <span className="font-semibold text-amber-900">{t("RoomCard.touristTax.notIncluded")}</span>
                       {" "}{t("RoomCard.touristTax.paidAtHotel")}

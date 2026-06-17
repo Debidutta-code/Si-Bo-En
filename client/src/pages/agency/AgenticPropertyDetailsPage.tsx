@@ -57,14 +57,13 @@ const AgenticPropertyDetailsPage: React.FC = () => {
 
             if (agencyResponse.success) {
                 setAgency(agencyResponse.data);
-
                 // Find the specific agentic property to get its ID
+                console.log(agencyResponse)
                 const foundProperty = agencyResponse.data?.AgenticProperties?.find(
                     (ap: any) => ap.propertyId === propertyId
                 );
 
                 if (foundProperty) {
-                    // Fetch property details and reservations
                     const [propertyDetails, reservationsResponse] = await Promise.all([
                         getAgenticPropertyById(foundProperty.id),
                         getReservationsByAgenticPropertyId(agencyId, propertyId),
@@ -72,7 +71,6 @@ const AgenticPropertyDetailsPage: React.FC = () => {
 
                     if (propertyDetails.success) {
                         setAgenticProperty(propertyDetails.data);
-                        // Use AgenticRooms from the property details (already allocated rooms)
                         setRooms(propertyDetails.data?.AgenticRooms || []);
                     }
 
@@ -136,7 +134,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold">{agenticProperty.propertyName}</h1>
+                        <h1 className="text-3xl font-bold">{agenticProperty._translations?agenticProperty._translations.propertyName:agenticProperty.propertyName}</h1>
                         <p className="text-gray-500 mt-1">
                             {agency.agencyName} • {t('AgenticPropertyDetailsPage.header.subtitle')}
                         </p>
@@ -226,7 +224,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                                 {rooms.map((room) => (
                                     <TableRow key={room.id}>
                                         <TableCell className="font-medium">{room.roomType}</TableCell>
-                                        <TableCell>{room.roomName}</TableCell>
+                                        <TableCell>{room._translations?room._translations.roomName:room.roomName}</TableCell>
                                         <TableCell>
                                             <Badge variant={room.isActive ? 'default' : 'secondary'}>
                                                 {room.isActive
@@ -283,7 +281,7 @@ const AgenticPropertyDetailsPage: React.FC = () => {
                                     <TableRow key={reservation.id}>
                                         <TableCell className="font-medium">{reservation.bookingId}</TableCell>
                                         <TableCell>{reservation.guestName}</TableCell>
-                                        <TableCell>{reservation.roomType}</TableCell>
+                                        <TableCell>{reservation.roomName}</TableCell>
                                         <TableCell>{new Date(reservation.checkIn).toLocaleDateString()}</TableCell>
                                         <TableCell>{new Date(reservation.checkOut).toLocaleDateString()}</TableCell>
                                         <TableCell>

@@ -25,6 +25,8 @@ import { getAvailableSpasApi } from "../../(auth)/profile/api/profile.api";
 import ImageUploadModal from "@/src/components/ImageUploadModal";
 import { setBookingContext } from "@/src/store/bookingSlice";
 import { formatNumber } from "@/src/utils/numLang";
+import { currencies } from "@/src/components/currencyCode/cuurency";
+import { Currency } from "@/src/components/currencyCode/currency-code.type";
 
 type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 
@@ -59,6 +61,9 @@ export default function MyTripPage() {
 
   // Add the hook usage at the component level
   const { colors } = useBookingStorage({}); // You may need to pass actual bookingContext if available
+
+  const rawCurrencyCode = bookingData?.currencyCode || "USD";
+  const currencySymbol = currencies.find((c: Currency) => c.code === rawCurrencyCode)?.symbol || rawCurrencyCode;
 
   // Helper to format dates correctly
   const formatDateString = (dateStr: string) => {
@@ -395,7 +400,7 @@ export default function MyTripPage() {
             <div>
               <p className="text-gray-500 font-medium">{t("MyTrip.rate")}</p>
               <p className="text-blue-700 font-semibold">
-                {bookingData.currencyCode}{" "}
+                {currencySymbol}{" "}
                 {formatNumber(Number((
                   (bookingData.amount || 0) + (bookingData?.PricingBrakeDown?.totalSpa || 0)).toFixed(2)))}            </p>
             </div>
@@ -550,7 +555,7 @@ export default function MyTripPage() {
                   <div>
                     <p className="text-gray-500 text-sm font-medium">{t("MyTrip.rooms")}</p>
                     <p className="text-gray-800 font-medium">
-                      {formatNumber(bookingData.finalPrice?.requestedRooms || 1)}
+                      {formatNumber(new Set(bookingData.PricingBrakeDown?.DailyPriceBrakeDown?.map((d: any) => d.roomNumber) || []).size || 1)}
                     </p>
                   </div>
                   <div>
@@ -562,7 +567,7 @@ export default function MyTripPage() {
                   <div>
                     <p className="text-gray-500 text-sm font-medium">{t("MyTrip.nights")}</p>
                     <p className="text-gray-800 font-medium">
-                      {formatNumber(bookingData.finalPrice?.numberOfNights || 1)}
+                      {formatNumber((bookingData.PricingBrakeDown?.DailyPriceBrakeDown?.length || 0) / (new Set(bookingData.PricingBrakeDown?.DailyPriceBrakeDown?.map((d: any) => d.roomNumber) || []).size || 1) || 1)}
                     </p>
                   </div>
                 </div>
@@ -665,7 +670,7 @@ export default function MyTripPage() {
                   <div className="flex justify-between items-center">
                     <p className="text-gray-600">{t("MyTrip.baseAmount")}</p>
                     <p className="font-medium">
-                      {bookingData.currencyCode}{" "}
+                      {currencySymbol}{" "}
                       {formatNumber(Number(((bookingData.PricingBrakeDown?.amountBeforeTax || 0) -
                         (bookingData.PricingBrakeDown?.totalAddonAmount || 0) +
                         (bookingData.PricingBrakeDown?.totalPromotionAmount || 0)
@@ -691,7 +696,7 @@ export default function MyTripPage() {
                                   ({addon.type === "included" ? "Included" : "Selected"})
                                 </span>
                               </p>
-                              <p className="font-medium">+{bookingData.currencyCode} {formatNumber(Number(addon.totalAmount?.toFixed(2)))}</p>
+                              <p className="font-medium">+{currencySymbol} {formatNumber(Number(addon.totalAmount?.toFixed(2)))}</p>
                             </div>
                           )
                         )}
@@ -709,10 +714,10 @@ export default function MyTripPage() {
                             <p className="text-green-600 flex items-center gap-1">
                               🏷 {promo.name}
                               <span className="text-xs text-gray-400">
-                                ({promo.discountType === "percentage" ? `-${formatNumber(promo.discountValue)}%` : `-${promo.currencyCode || bookingData.currencyCode} ${formatNumber(promo.discountValue)}`})
+                                ({promo.discountType === "percentage" ? `-${formatNumber(promo.discountValue)}%` : `-${currencies.find((c: Currency) => c.code === (promo.currencyCode || rawCurrencyCode))?.symbol || (promo.currencyCode || rawCurrencyCode)} ${formatNumber(promo.discountValue)}`})
                               </span>
                             </p>
-                            <p className="font-medium text-green-600">-{bookingData.currencyCode} {formatNumber(Number(promo.discountAmount?.toFixed(2)))}</p>
+                            <p className="font-medium text-green-600">-{currencySymbol} {formatNumber(Number(promo.discountAmount?.toFixed(2)))}</p>
                           </div>
                         ))}
                     </div>
@@ -722,7 +727,7 @@ export default function MyTripPage() {
                       <p className="text-green-600 flex items-center gap-1">
                         {t("MyTrip.promoCodeDiscount")}
                       </p>
-                      <p className="font-medium text-green-600">-{bookingData.currencyCode} {formatNumber(Number(bookingData.PricingBrakeDown.promoCodeDiscount?.toFixed(2)))}</p>
+                      <p className="font-medium text-green-600">-{currencySymbol} {formatNumber(Number(bookingData.PricingBrakeDown.promoCodeDiscount?.toFixed(2)))}</p>
                     </div>
                   )}
 
@@ -732,7 +737,7 @@ export default function MyTripPage() {
                       <p className="text-green-600 flex items-center gap-1">
                         {t("MyTrip.loyaltyDiscount")}
                       </p>
-                      <p className="font-medium text-green-600">-{bookingData.currencyCode} {formatNumber(Number(bookingData.PricingBrakeDown.loyalityDiscount?.toFixed(2)))}</p>
+                      <p className="font-medium text-green-600">-{currencySymbol} {formatNumber(Number(bookingData.PricingBrakeDown.loyalityDiscount?.toFixed(2)))}</p>
                     </div>
                   )}
 
@@ -742,7 +747,7 @@ export default function MyTripPage() {
                         {t("MyTrip.amountBeforeTax")}
 
                       </p>
-                      <p className="font-medium text-black">{bookingData.currencyCode} {formatNumber(Number(bookingData.PricingBrakeDown.amountBeforeTax?.toFixed(2)))}</p>
+                      <p className="font-medium text-black">{currencySymbol} {formatNumber(Number(bookingData.PricingBrakeDown.amountBeforeTax?.toFixed(2)))}</p>
                     </div>
                   )}
                   {bookingData.PricingBrakeDown.taxedAmount > 0 && (
@@ -750,44 +755,15 @@ export default function MyTripPage() {
                       <p className="flex  text-black font-medium items-center gap-1">
                         {t("MyTrip.totalTax")}
                       </p>
-                      <p className="font-medium text-black">{bookingData.currencyCode} {formatNumber(Number(bookingData.PricingBrakeDown.taxedAmount?.toFixed(2)))}</p>
+                      <p className="font-medium text-black">{currencySymbol} {formatNumber(Number(bookingData.PricingBrakeDown.taxedAmount?.toFixed(2)))}</p>
                     </div>
                   )}
-                  {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (() => {
-                    // Group by name and sum totalAmount
-                    const grouped = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
-                      if (!acc[addon.name]) {
-                        acc[addon.name] = { ...addon, totalAmount: 0 };
-                      }
-                      acc[addon.name].totalAmount += addon.totalAmount;
-                      return acc;
-                    }, {});
-
-                    return (
-                      <div className="space-y-1">
-                        {Object.values(grouped).map((addon: any, i: number) => (
-                          addon.totalAmount > 0 && (
-                            <div key={i} className="flex justify-between items-center">
-                              <p className="text-gray-600">🍽 {addon.name}
-                                <span className="text-xs text-gray-400 ml-1">
-                                  ({addon.type === 'included' ? 'Included' : 'Selected'})
-                                </span>
-                              </p>
-                              <p className="font-medium">
-                                +{bookingData.currencyCode} {formatNumber(Number(addon.totalAmount?.toFixed(2)))}
-                              </p>
-                            </div>
-                          )
-                        ))}
-                      </div>
-                    );
-                  })()}
 
                   {/* 6. Amount After Tax */}
                   <div className="flex justify-between items-center border-t pt-2">
                     <p className="text-gray-700 font-medium">{t("MyTrip.amountAfterTax")}</p>
                     <p className="font-medium">
-                      {bookingData.currencyCode}{" "}
+                      {currencySymbol}{" "}
                       {formatNumber(Number(((bookingData.PricingBrakeDown?.amountBeforeTax || 0) +
                         (bookingData.PricingBrakeDown?.taxedAmount || 0)
                       ).toFixed(2)))}
@@ -805,7 +781,7 @@ export default function MyTripPage() {
                           .map((promo: any, i: number) => (
                             <div key={i} className="flex justify-between items-center">
                               <p className="text-orange-600 flex items-center gap-1">⏳ {promo.name}</p>
-                              <p className="font-medium text-orange-600">+{bookingData.currencyCode} {formatNumber(Number(promo.discountAmount?.toFixed(2)))}</p>
+                              <p className="font-medium text-orange-600">+{currencySymbol} {formatNumber(Number(promo.discountAmount?.toFixed(2)))}</p>
                             </div>
                           ))}
                       </>
@@ -815,7 +791,7 @@ export default function MyTripPage() {
                     {bookingData.PricingBrakeDown?.totalSpa > 0 && (
                       <div className="space-y-1 flex items-center justify-between">
                         <p className="text-purple-600  gap-1">{t("MyTrip.totalActivityCharges")}</p>
-                        <p className="font-medium text-purple-600">+{bookingData.currencyCode} {formatNumber(bookingData.PricingBrakeDown.totalSpa)}</p>
+                        <p className="font-medium text-purple-600">+{currencySymbol} {formatNumber(bookingData.PricingBrakeDown.totalSpa)}</p>
                       </div>
                     )}
 
@@ -824,7 +800,7 @@ export default function MyTripPage() {
                       <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
                         <p className="text-orange-700 font-semibold">{t("MyTrip.amountPayAtHotel")}</p>
                         <p className="text-orange-700 font-bold text-lg">
-                          {bookingData.currencyCode}{" "}
+                          {currencySymbol}{" "}
                           {formatNumber(Number((
                             (bookingData.PricingBrakeDown?.currentChargeableAmount || 0) +
                             (bookingData.PricingBrakeDown?.latterpayableAmount || 0) +
@@ -837,7 +813,7 @@ export default function MyTripPage() {
                         <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
                           <p className="text-green-700 font-semibold">{t("MyTrip.paidOnline")}</p>
                           <p className="text-green-700 font-bold text-lg">
-                            {bookingData.currencyCode}{" "}
+                            {currencySymbol}{" "}
                             {formatNumber(Number(bookingData.PricingBrakeDown?.currentChargeableAmount?.toFixed(2)) || 0)}
                           </p>
                         </div>
@@ -845,7 +821,7 @@ export default function MyTripPage() {
                           <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
                             <p className="text-orange-700 font-semibold">{t("MyTrip.amountPaidLater")}</p>
                             <p className="text-orange-700 font-bold text-lg">
-                              {bookingData.currencyCode}{" "}
+                              {currencySymbol}{" "}
                               {formatNumber(Number((
                                 (bookingData.PricingBrakeDown?.latterpayableAmount || 0) +
                                 (bookingData.PricingBrakeDown?.totalSpa || 0)
@@ -860,7 +836,7 @@ export default function MyTripPage() {
                     <div className="flex justify-between items-center border-t pt-2">
                       <p className="text-gray-800 font-semibold">{t("MyTrip.totalAmount")}</p>
                       <p className="text-blue-700 font-bold text-lg">
-                        {bookingData.currencyCode}{" "}
+                        {currencySymbol}{" "}
                         {formatNumber(Number((
                           (bookingData.PricingBrakeDown?.currentChargeableAmount || 0) +
                           (bookingData.PricingBrakeDown?.latterpayableAmount || 0) +
@@ -874,7 +850,7 @@ export default function MyTripPage() {
                       <div className="flex justify-between items-center">
                         <p className="text-gray-600">{t("MyTrip.paidAmount")}</p>
                         <p className="font-medium text-green-600">
-                          {bookingData.currencyCode} {formatNumber(Number(bookingData.paidAmount?.toFixed(2)))}
+                          {currencySymbol} {formatNumber(Number(bookingData.paidAmount?.toFixed(2)))}
                         </p>
                       </div>
                     )}
@@ -884,7 +860,7 @@ export default function MyTripPage() {
                       <div className="flex justify-between items-center">
                         <p className="text-gray-600">{t("MyTrip.refundableAmount")}</p>
                         <p className="font-medium text-green-600">
-                          {bookingData.currencyCode}{" "}
+                          {currencySymbol}{" "}
                           {formatNumber(Number((
                             (bookingData.extraAmountToPay || 0) -
                             (bookingData.PricingBrakeDown?.latterpayableAmount || 0) -

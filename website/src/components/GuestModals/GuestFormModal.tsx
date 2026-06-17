@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import { useTranslation } from "react-i18next";
+import { currencies } from "../currencyCode/cuurency";
+import { Currency } from "../currencyCode/currency-code.type";
 import { formatNumber } from "@/src/utils/numLang";
 
 interface Guest {
@@ -384,7 +386,7 @@ const GuestFormModal: React.FC<Props> = ({
                       {loyaltyDiscount.type === "percentage"
                         ? t("GuestForm.loyaltyDiscountPercent", { value: formatNumber(loyaltyDiscount.value) })
                         : t("GuestForm.loyaltyDiscountFlat", {
-                          currency: loyaltyDiscount.currencyCode,
+                          currency: currencies.find((c: Currency) => c.code === loyaltyDiscount.currencyCode)?.symbol || loyaltyDiscount.currencyCode,
                           value: formatNumber(loyaltyDiscount.value)
                         })}
                     </span>
@@ -428,7 +430,8 @@ const GuestFormModal: React.FC<Props> = ({
             <CardContent className="p-0">
               {finalPrice && (() => {
 
-                const cur = finalPrice.currencyCode;
+                const curCode = finalPrice.currencyCode;
+                const cur = currencies.find((c: Currency) => c.code === curCode)?.symbol || curCode;
 
                 const formatGuests = (g: any) => {
                   if (!g) return '';
@@ -589,10 +592,12 @@ const GuestFormModal: React.FC<Props> = ({
                         >
                           {deductPromos.map((promo: any, i: number) => {
                             const promoName = promo._translations?.promotionName || promo.name;
+                            const promoCurrencyCode = finalPrice.currencyCode;
+                            const promoCurrencySymbol = currencies.find((c: Currency) => c.code === promoCurrencyCode)?.symbol || promoCurrencyCode;
                             return (
                               <div key={i} className="flex justify-between py-0.5 text-green-700">
                                 <span>{promoName} ({formatNumber(promo.discountValue)}%)</span>
-                                <span>- {(promo.currencyCode || finalPrice.currencyCode)} {formatNumber(promo.discountAmount ?? 0)}</span>
+                                <span>- {promoCurrencySymbol} {formatNumber(promo.discountAmount ?? 0)}</span>
                               </div>
                             );
                           })}
@@ -620,11 +625,13 @@ const GuestFormModal: React.FC<Props> = ({
                       >
                         {finalPrice.taxBrakeDown.map((tax: any, i: number) => {
                           const taxName = tax._translations?.name || tax.name;
+                          const taxCurrencyCode =  finalPrice.currencyCode;
+                          const taxCurrencySymbol = currencies.find((c: Currency) => c.code === taxCurrencyCode)?.symbol || taxCurrencyCode;
                           return (
                             <div key={i} className="flex justify-between py-0.5 text-gray-600">
                               <span>{taxName}</span>
                               <span className="text-gray-900">
-                                {tax.currencyCode || finalPrice.currencyCode} {formatNumber(tax.taxedAmount ?? 0)}
+                                {taxCurrencySymbol} {formatNumber(tax.taxedAmount ?? 0)}
                               </span>
                             </div>
                           );

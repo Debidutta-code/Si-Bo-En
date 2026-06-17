@@ -114,25 +114,25 @@ export default function OffsetFormModal({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {ratePlans && (
                 <div className="space-y-2">
-                  <Label>Rate Plan</Label>
+                  <Label>{t("Management.ratePlan")}</Label>
                   <select
                     className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     value={selectedRatePlanId || ""}
                     onChange={(e) => onRatePlanChange?.(e.target.value)}
                   >
-                    <option value="">Select a Rate Plan</option>
-                   {ratePlans.map((rp) => (
-  <option key={rp.id} value={rp.id}>
-    {rp._translations?.ratePlanName ?? rp.ratePlanName}
-  </option>
-))}
+                    <option value="">{t("Policies.selectRatePlanPlaceholder")}</option>
+                    {ratePlans.map((rp) => (
+                      <option key={rp.id} value={rp.id}>
+                        {rp._translations?.ratePlanName ?? rp.ratePlanName}
+                      </option>
+                    ))}
                   </select>
                 </div>
               )}
               {showDateRange && (
                 <>
                   <div className="space-y-2">
-                {t("BookingOffsetForm.formModal.startDate")}
+                    {t("BookingOffsetForm.formModal.startDate")}
                     <Input
                       type="date"
                       value={startDate}
@@ -140,7 +140,7 @@ export default function OffsetFormModal({
                     />
                   </div>
                   <div className="space-y-2">
-                {t("BookingOffsetForm.formModal.endDate")}
+                    {t("BookingOffsetForm.formModal.endDate")}
                     <Input
                       type="date"
                       value={endDate}
@@ -171,8 +171,8 @@ export default function OffsetFormModal({
                       handleUnitChange(field.key, e.target.value as Unit)
                     }
                   >
-                  <option value="hours">{t("BookingOffsetForm.formModal.units.hours")}</option>
-                  <option value="days">{t("BookingOffsetForm.formModal.units.days")}</option>
+                    <option value="hours">{t("BookingOffsetForm.formModal.units.hours")}</option>
+                    <option value="days">{t("BookingOffsetForm.formModal.units.days")}</option>
                   </select>
                 </div>
               </div>

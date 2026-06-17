@@ -9,6 +9,9 @@ import { setLoyaltyProfile } from "@/src/store/loyaltyUserSlice";
 import { PropertyLoyaltyConfig } from "@/src/store/loyaltyUserTypes";
 import { getMyProfileApi } from "../api/profile.api";
 import ImageUploadModal from "@/src/components/ImageUploadModal";
+import { formatNumber, getLocale } from "../../../../utils/numLang";
+import { currencies } from "@/src/components/currencyCode/cuurency";
+import { Currency } from "@/src/components/currencyCode/currency-code.type";
 
 type userIdentityCardType = "passport" | "drivers_license" | "national_id" | "others";
 
@@ -215,13 +218,13 @@ export default function MyBookingsPage() {
     {
       label: t("MyBookingsPage.details.checkIn"),
       val: (res.checkInDate || res.reservationStartDate)
-        ? new Date(res.checkInDate || res.reservationStartDate).toLocaleDateString()
+        ? new Intl.DateTimeFormat(getLocale(), { month: "short", day: "numeric", year: "numeric" }).format(new Date(res.checkInDate || res.reservationStartDate))
         : "—",
     },
     {
       label: t("MyBookingsPage.details.checkOut"),
       val: (res.checkOutDate || res.reservationEndDate)
-        ? new Date(res.checkOutDate || res.reservationEndDate).toLocaleDateString()
+        ? new Intl.DateTimeFormat(getLocale(), { month: "short", day: "numeric", year: "numeric" }).format(new Date(res.checkOutDate || res.reservationEndDate))
         : "—",
     },
     { label: t("MyBookingsPage.details.roomType"), val: res.roomTypeCode ?? "—" },
@@ -229,7 +232,7 @@ export default function MyBookingsPage() {
     {
       label: t("MyBookingsPage.details.total"),
       val: (res.PricingBrakeDown?.totalAmount ?? res.amount ?? res.finalPrice?.totalAmount) != null
-        ? `${res.currencyCode || res.finalPrice?.currencyCode || ""} ${Number(res.PricingBrakeDown?.totalAmount ?? res.amount ?? res.finalPrice?.totalAmount ?? 0).toLocaleString()}`
+        ? `${(currencies.find((c: Currency) => c.code === (res.currencyCode || res.finalPrice?.currencyCode || ""))?.symbol || res.currencyCode || res.finalPrice?.currencyCode || "")} ${formatNumber(Number(res.PricingBrakeDown?.totalAmount ?? res.amount ?? res.finalPrice?.totalAmount ?? 0))}`
         : "—",
     },
     {

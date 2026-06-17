@@ -538,7 +538,7 @@ export default function page() {
             </div>
             <div className="px-2">
               <DeleteCreationDialog
-                type={t(`CreateEntity.types.${"group"}`) as any}
+                type={"group"}
                 name={creations.groupData._translations ? creations.groupData._translations.name : creations.groupData.name}
                 id={creations.groupData.id}
               />

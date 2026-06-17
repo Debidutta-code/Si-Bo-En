@@ -33,7 +33,7 @@ export default function DeleteCreationDialog({
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const typeName = type.charAt(0).toUpperCase() + type.slice(1);
+  // const typeName = type.charAt(0).toUpperCase() + type.slice(1);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -55,13 +55,12 @@ export default function DeleteCreationDialog({
       setIsDeleting(false);
     }
   };
-
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="destructive" size="sm" className="text-right w-48">
           <Trash2 className="h-4 w-4" />
-          <span className="ml-2">{t("DeleteCreationDialog.triggerButton", { typeName })}</span>
+          <span className="ml-2">{t("DeleteCreationDialog.triggerButton", { typeName: t(`CreateEntity.types.${type}`) })}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
