@@ -203,7 +203,9 @@ export const generateAccountCreatedTemplate = (
     firstName: string,
     lastName: string,
     email: string,
-    password: string
+    password: string,
+    propertyName: string,
+    loginUrl: string
 ): string => {
     return `
         <!DOCTYPE html>
@@ -307,7 +309,7 @@ export const generateAccountCreatedTemplate = (
             <div class="container">
                 <div class="header">
                     <div class="logo">RevChill</div>
-                    <h2>Your Account Has Been Created</h2>
+                    <h2>Your Account Has Been Created for ${propertyName}</h2>
                 </div>
 
                 <div class="content">
@@ -324,9 +326,9 @@ export const generateAccountCreatedTemplate = (
                     <strong>⚠️ For your security, please change this password after your first login.</strong>
                 </div>
 
-                <button class="button-container" onClick=${config.bookingEngineUrl}>
-                    <a href="#" class="change-password-button">Log In &amp; Change Password</a>
-                </button>
+                <div class="button-container">
+                    <a href="${loginUrl}" class="change-password-button">Log In &amp; Change Password</a>
+                </div>
 
                 <div class="content">
                     <p>If you did not expect this email or believe this account was created in error, please contact support immediately.</p>

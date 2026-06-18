@@ -153,7 +153,7 @@ export class NewReservationService {
             throw new Error('Failed to validate or create primary guest');
         }
     }
-    private async validateAndCreateCustomer(firstName: string, lastName: string, bookingUserEmail: string): Promise<string> {
+    private async validateAndCreateCustomer(firstName: string, lastName: string, bookingUserEmail: string,propertyName: string): Promise<string> {
         const existingCustomer = await this.customerRepository.findByEmail(bookingUserEmail);
         if (existingCustomer) {
             return existingCustomer.id;
@@ -175,7 +175,7 @@ export class NewReservationService {
                 password: hashedPassword
             })
             this.reservationEmailService
-            await this.userEmailService.sendAccountCreatedEmail(firstName, lastName, bookingUserEmail, password);
+            await this.userEmailService.sendAccountCreatedEmail(firstName, lastName, bookingUserEmail, password,propertyName);
             return newCustomer.id;
         }
     }
@@ -236,7 +236,7 @@ export class NewReservationService {
                         primaryGuestData.firstName,
                         primaryGuestData.lastName,
                         bookingUserEmail,
-
+                        propertyDetails.propertyName,
                     ),
                     this.generateBookingCode(propertyCode),
                     this.ariManupulationRepo.getRatePlanName(

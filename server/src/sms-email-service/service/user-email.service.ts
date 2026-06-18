@@ -1,12 +1,19 @@
 import {generateAccountCreatedTemplate} from "../templatesss";
 import { emailQueue } from '../../index';
+import { config } from "../../config";
 
 export class UserEmailService {
-    public async sendAccountCreatedEmail( firstName:string,lastName:string, email: string, password: string) {
+    public async sendAccountCreatedEmail(
+        firstName:string,
+        lastName:string,
+         email: string,
+          password: string,
+          propertyName: string,
+        ) {
         try {
 
-            const htmlContent = generateAccountCreatedTemplate(firstName, lastName, email, password);
-            const subject = 'Welcome to RevChill - Your Account Has Been Created';
+            const htmlContent = generateAccountCreatedTemplate(firstName, lastName, email, password, propertyName, `${config.bookingEngineUrl}/login`);
+            const subject = `Your RevChill Account Has Been Created for ${propertyName} `
     
             await emailQueue.enqueueEmail({
                 to: email,
