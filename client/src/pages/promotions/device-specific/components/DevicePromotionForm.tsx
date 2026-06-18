@@ -52,7 +52,7 @@ const defaultPromotion = (
   satApplicable: true,
   sunApplicable: true,
   isActive: true,
-  isAutoApplied: false,
+  isAutoApplied: true,
 });
 
 const DeviceSpecificPromotionForm: React.FC<
@@ -111,7 +111,7 @@ const DeviceSpecificPromotionForm: React.FC<
         satApplicable: editData.applicableDays.saturday,
         sunApplicable: editData.applicableDays.sunday,
         isActive: editData.isActive,
-        isAutoApplied: editData.isAutoApplied,
+        isAutoApplied: true,
       });
       setHasEndDate(!!editData.validTo);
       if (editData.ratePlan.b2bAvailable) {
@@ -631,32 +631,6 @@ const DeviceSpecificPromotionForm: React.FC<
             className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
             required
           />
-        </div>
-
-        <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
-          <input
-            type="checkbox"
-            id="isAutoApplied"
-            checked={devicePromotion.isAutoApplied}
-            onChange={(e) =>
-              setDevicePromotion({
-                ...devicePromotion,
-                isAutoApplied: e.target.checked,
-              })
-            }
-            className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
-          />
-          <label
-            htmlFor="isAutoApplied"
-            className="text-sm font-medium text-foreground cursor-pointer flex-1"
-          >
-            {t("DeviceSpecific.form.autoApply")}
-            <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-              {devicePromotion.isAutoApplied
-                ? t("DeviceSpecific.form.autoAppliedDescription")
-                : t("DeviceSpecific.form.notAutoAppliedDescription")}
-            </span>
-          </label>
         </div>
 
         {/* Status Toggle */}
