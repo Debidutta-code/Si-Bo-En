@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
-import { Plus, Shield, FileText, CreditCard, AlertCircle, MoreVertical, Trash2, Link2, Pencil, Tag } from "lucide-react";
+import { Plus, Shield, FileText, CreditCard, AlertCircle, MoreVertical, Trash2, Link2, Pencil, Tag, Unlink2 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import BackButton from "@/components/shared/BackButton";
 import Loader from "@/components/Loader/Loader";
@@ -56,6 +56,7 @@ import { upsertPolicyTranslationService, getAllPolicyTranslationsService, delete
 import { EditTranslationDialog } from "@/pages/management/components/multilang/ManagementTranslationDialogs";
 import { usePropertyContext } from "@/contexts/PropertyContext";
 import { useTranslation } from "react-i18next";
+import { removePolicyFromRatePlansService } from "./services/policy.services";
 
 interface GroupedPolicy {
     id: string;
@@ -112,6 +113,8 @@ export default function PoliciesPage() {
     const [langLoading, setLangLoading] = useState(false);
     const [langSubmitting, setLangSubmitting] = useState(false);
     const [editLangDialog, setEditLangDialog] = useState<{ open: boolean; locale: string; data: Record<string, any> }>({ open: false, locale: "", data: {} });
+    const [policyToRemove, setPolicyToRemove] = useState<GroupedPolicy | null>(null);
+    const [selectedRatePlansToRemove, setSelectedRatePlansToRemove] = useState<string[]>([]);
 
     const groupedPolicies = useMemo(() => {
         const map = new Map<string, GroupedPolicy>();
@@ -362,11 +365,51 @@ export default function PoliciesPage() {
         }
     };
 
-     
+
     const getTypeLabel = (type: PolicyTypes) => {
         return t(`Policies.${type}`).toUpperCase();
     };
+    const handleRemoveClick = (policy: GroupedPolicy) => {
+        setPolicyToRemove(policy);
+        // Pre-select all linked rate plans (all checked by default)
+        setSelectedRatePlansToRemove(policy.ratePlans.map((rp) => rp.code));
+    };
 
+    const handleConfirmRemove = async () => {
+    if (!policyToRemove) return;
+
+    const ratePlanIds = policyToRemove.ratePlans
+        .filter((rp) => !selectedRatePlansToRemove.includes(rp.code))
+        .map((rp) => ratePlans.find((r) => r.ratePlanCode === rp.code)?.id)
+        .filter(Boolean) as string[];
+
+    if (ratePlanIds.length === 0) {
+        toast.error(t("Policies.noRatePlanDeselected", "Please uncheck at least one rate plan to remove."));
+        return;
+    }
+
+    setIsSubmitting(true);
+    try {
+        const response = await removePolicyFromRatePlansService(policyToRemove.id, ratePlanIds);
+        if (response.success) {
+            toast.success(t("Policies.policyRemoved", "Policy removed from rate plan(s) successfully."));
+            setPolicyToRemove(null);
+            fetchPolicies();
+        } else {
+            toast.error(t("Policies.") + (response.message || t("Policies.errorRemovingPolicy", "Error removing policy from rate plan.")));
+        }
+    } catch (error) {
+        toast.error(t("Policies.errorRemovingPolicy", "Error removing policy from rate plan."));
+    } finally {
+        setIsSubmitting(false);
+    }
+};
+
+    const toggleRatePlanSelection = (code: string) => {
+        setSelectedRatePlansToRemove((prev) =>
+            prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
+        );
+    };
     if (loading.isLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
@@ -536,6 +579,14 @@ export default function PoliciesPage() {
                                                                 <DropdownMenuItem onClick={() => handleAssignClick(policy)} className="cursor-pointer text-sm">
                                                                     <Link2 className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
                                                                     {t("Policies.addToRatePlan")}
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => handleRemoveClick(policy)}
+                                                                    className="cursor-pointer text-sm"
+                                                                    disabled={policy.ratePlans.length === 0}
+                                                                >
+                                                                    <Unlink2 className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
+                                                                    {t("Policies.removeFromRatePlan")}
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem
                                                                     onClick={() => {
@@ -851,7 +902,71 @@ export default function PoliciesPage() {
                         </div>
                     </DialogContent>
                 </Dialog>
+                {/* Remove from Rate Plan Dialog */}
+                <Dialog open={!!policyToRemove} onOpenChange={(open) => !open && setPolicyToRemove(null)}>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>{t("Policies.removeFromRatePlan", "Remove from Rate Plan")}</DialogTitle>
+                            <DialogDescription>
+                                {t("Policies.removeFromRatePlanDesc", "Uncheck the rate plans you want to unlink from")}{" "}
+                                <span className="font-semibold text-[#0f172a]">{policyToRemove?.policyName}</span>.
+                            </DialogDescription>
+                        </DialogHeader>
 
+                        <div className="py-4 space-y-2">
+                            {policyToRemove?.ratePlans.length === 0 ? (
+                                <p className="text-sm text-[#94a3b8] text-center py-4">
+                                    {t("Policies.noRatePlansLinked", "No rate plans linked to this policy.")}
+                                </p>
+                            ) : (
+                                policyToRemove?.ratePlans.map((rp) => (
+                                    <label
+                                        key={rp.code}
+                                        className="flex items-center gap-3 rounded-lg border border-[#e2e8f0] px-4 py-3 cursor-pointer hover:bg-[#f8fafc] transition-colors"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 accent-primary rounded"
+                                            checked={selectedRatePlansToRemove.includes(rp.code)}
+                                            onChange={() => toggleRatePlanSelection(rp.code)}
+                                        />
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium text-[#0f172a]">
+                                                {rp._translations ? rp._translations.ratePlanName : rp.name}
+                                            </span>
+                                            <span className="text-xs text-[#94a3b8]">{rp.code}</span>
+                                        </div>
+                                    </label>
+                                ))
+                            )}
+                        </div>
+
+                        {policyToRemove && policyToRemove.ratePlans.length > 0 && (
+                            <p className="text-xs text-[#94a3b8] -mt-2 mb-2">
+                                {t("Policies.uncheckToRemove", "Unchecked rate plans will be unlinked when you save.")}
+                            </p>
+                        )}
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => setPolicyToRemove(null)}
+                                disabled={isSubmitting}
+                            >
+                                {t("Policies.cancel")}
+                            </Button>
+                            <Button
+                                onClick={handleConfirmRemove}
+                                disabled={isSubmitting || policyToRemove?.ratePlans.length === 0}
+                                className="bg-red-600 text-white hover:bg-red-700"
+                            >
+                                {isSubmitting
+                                    ? t("Policies.removing", "Removing...")
+                                    : t("Policies.saveChanges", "Save Changes")}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
                 {/* Edit Policy Translation Dialog */}
                 {selectedPolicyId && (
                     <EditTranslationDialog

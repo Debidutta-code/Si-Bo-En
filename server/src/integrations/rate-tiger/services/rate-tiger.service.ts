@@ -12,6 +12,7 @@ import {
 import { RateTigerDao } from '../dao';
 import { config } from '../../../config';
 import { toGMTExpiryString } from '../utils/time.utils';
+import { LogBuilder } from '../../../logs/services/service-log.service';
 
 export class RateTigerService {
     public static async generateAuthToken(
@@ -37,13 +38,37 @@ export class RateTigerService {
 
     public static async getRoomTypeRatePlanMapping(
         hotelCode: string,
-        requestId: string
+        requestId: string,
+        log?: LogBuilder
     ): Promise<RateTigerOTAHotelAvailRS> {
         try {
             // Verify property exists
-            const propertyExists = await RateTigerDao.propertyExists(hotelCode);
+            let propertyExists = false;
+            const t0 = Date.now();
+            try {
+                propertyExists = await RateTigerDao.propertyExists(hotelCode);
+                log?.addRepoCall({
+                    repoName: 'RateTigerDao',
+                    method: 'propertyExists',
+                    input: { hotelCode },
+                    response: { exists: propertyExists },
+                    success: true,
+                    durationMs: Date.now() - t0,
+                });
+            } catch (err: any) {
+                log?.addRepoCall({
+                    repoName: 'RateTigerDao',
+                    method: 'propertyExists',
+                    input: { hotelCode },
+                    success: false,
+                    durationMs: Date.now() - t0,
+                    error: { message: err?.message },
+                });
+                throw err;
+            }
 
             if (!propertyExists) {
+                log?.pushMessage(`Property ${hotelCode} not found`, 'error');
                 return {
                     otaHotelAvailRS: {
                         hotelCode,
@@ -60,9 +85,38 @@ export class RateTigerService {
             }
 
             // Get mapping data
-            const mappingData =
-                await RateTigerDao.getPropertyMappingData(hotelCode);
+            let mappingData: any = null;
+            const t1 = Date.now();
+            try {
+                mappingData = await RateTigerDao.getPropertyMappingData(hotelCode);
+                log?.addRepoCall({
+                    repoName: 'RateTigerDao',
+                    method: 'getPropertyMappingData',
+                    input: { hotelCode },
+                    response: mappingData
+                        ? {
+                            roomTypesCount: mappingData.roomTypes?.length ?? 0,
+                            ratePlansCount: mappingData.ratePlans?.length ?? 0,
+                            roomRatesCount: mappingData.roomRates?.length ?? 0,
+                        }
+                        : undefined,
+                    success: !!mappingData,
+                    durationMs: Date.now() - t1,
+                });
+            } catch (err: any) {
+                log?.addRepoCall({
+                    repoName: 'RateTigerDao',
+                    method: 'getPropertyMappingData',
+                    input: { hotelCode },
+                    success: false,
+                    durationMs: Date.now() - t1,
+                    error: { message: err?.message },
+                });
+                throw err;
+            }
+
             if (!mappingData) {
+                log?.pushMessage(`Failed to fetch mapping data for property ${hotelCode}`, 'error');
                 return {
                     otaHotelAvailRS: {
                         hotelCode,
@@ -88,36 +142,36 @@ export class RateTigerService {
                     requestId: requestId,
                     roomStays: {
                         // 1. Rate Plans array
-                        ratePlans: mappingData.ratePlans.map(ratePlan => ({
+                        ratePlans: mappingData.ratePlans.map((ratePlan: any) => ({
                             ratePlanCode: ratePlan.ratePlanCode,
                             ratePlanName: ratePlan.ratePlanName,
                             effectiveDate: ratePlan.effectiveDate
                                 ? ratePlan.effectiveDate
-                                      .toISOString()
-                                      .split('T')[0]
+                                    .toISOString()
+                                    .split('T')[0]
                                 : currentDate,
                             expireDate: ratePlan.expireDate
                                 ? ratePlan.expireDate
-                                      .toISOString()
-                                      .split('T')[0]
+                                    .toISOString()
+                                    .split('T')[0]
                                 : new Date(
-                                      Date.now() + 365 * 24 * 60 * 60 * 1000
-                                  )
-                                      .toISOString()
-                                      .split('T')[0],
+                                    Date.now() + 365 * 24 * 60 * 60 * 1000
+                                )
+                                    .toISOString()
+                                    .split('T')[0],
                             ratePlanType: '',
                             roomPricingType: '',
                         })),
 
                         // 2. Room Rates array (the mapping!)
-                        roomRates: mappingData.roomRates.map(roomRate => ({
+                        roomRates: mappingData.roomRates.map((roomRate : any) => ({
                             ratePlanCode: roomRate.ratePlanCode,
                             roomTypeCode: roomRate.roomTypeCode,
                             status: 'Active',
                         })),
 
                         // 3. Room Types array
-                        roomTypes: mappingData.roomTypes.map(roomType => ({
+                        roomTypes: mappingData.roomTypes.map((roomType : any) => ({
                             defaultOccupancy: '1',
                             maxAdultOccupancy:
                                 roomType.maxNumberOfAdults.toString(),
@@ -153,11 +207,36 @@ export class RateTigerService {
     public static async getInventoryPull(
         hotelCode: string,
         requestId: string,
-        hotelAvailRequests: RateTigerHotelAvailRequest[]
+        hotelAvailRequests: RateTigerHotelAvailRequest[],
+        log?: LogBuilder
     ): Promise<RateTigerOTAHotelAvailGetRS> {
         try {
-            const propertyExists = await RateTigerDao.propertyExists(hotelCode);
+            let propertyExists = false;
+            const t0 = Date.now();
+            try {
+                propertyExists = await RateTigerDao.propertyExists(hotelCode);
+                log?.addRepoCall({
+                    repoName: 'RateTigerDao',
+                    method: 'propertyExists',
+                    input: { hotelCode },
+                    response: { exists: propertyExists },
+                    success: true,
+                    durationMs: Date.now() - t0,
+                });
+            } catch (err: any) {
+                log?.addRepoCall({
+                    repoName: 'RateTigerDao',
+                    method: 'propertyExists',
+                    input: { hotelCode },
+                    success: false,
+                    durationMs: Date.now() - t0,
+                    error: { message: err?.message },
+                });
+                throw err;
+            }
+
             if (!propertyExists) {
+                log?.pushMessage(`Property ${hotelCode} not found`, 'error');
                 return {
                     otaHotelAvailGetRS: {
                         requestId,
@@ -183,23 +262,65 @@ export class RateTigerService {
                 // 1. Get MinLOS/MaxLOS rule
                 let losRule = null;
                 if (request.sendLengthsOfStay && ratePlanCode) {
-                    losRule = await RateTigerDao.getRatePlanRules(
-                        hotelCode,
-                        ratePlanCode,
-                        startDate,
-                        endDate
-                    );
+                    const t1 = Date.now();
+                    try {
+                        losRule = await RateTigerDao.getRatePlanRules(
+                            hotelCode,
+                            ratePlanCode,
+                            startDate,
+                            endDate
+                        );
+                        log?.addRepoCall({
+                            repoName: 'RateTigerDao',
+                            method: 'getRatePlanRules',
+                            input: { hotelCode, ratePlanCode, startDate, endDate },
+                            response: {losRule},
+                            success: true,
+                            durationMs: Date.now() - t1,
+                        });
+                    } catch (err: any) {
+                        log?.addRepoCall({
+                            repoName: 'RateTigerDao',
+                            method: 'getRatePlanRules',
+                            input: { hotelCode, ratePlanCode, startDate, endDate },
+                            success: false,
+                            durationMs: Date.now() - t1,
+                            error: { message: err?.message },
+                        });
+                        throw err;
+                    }
                 }
 
                 // 2. Get combined daily data
-                const dailyData =
-                    await RateTigerDao.getDailyInventoryAndRestrictions(
+                let dailyData: any[] = [];
+                const t2 = Date.now();
+                try {
+                    dailyData = await RateTigerDao.getDailyInventoryAndRestrictions(
                         hotelCode,
                         roomTypeCode,
                         ratePlanCode ?? '',
                         startDate,
                         endDate
                     );
+                    log?.addRepoCall({
+                        repoName: 'RateTigerDao',
+                        method: 'getDailyInventoryAndRestrictions',
+                        input: { hotelCode, roomTypeCode, ratePlanCode, startDate, endDate },
+                        response: { count: dailyData.length },
+                        success: true,
+                        durationMs: Date.now() - t2,
+                    });
+                } catch (err: any) {
+                    log?.addRepoCall({
+                        repoName: 'RateTigerDao',
+                        method: 'getDailyInventoryAndRestrictions',
+                        input: { hotelCode, roomTypeCode, ratePlanCode, startDate, endDate },
+                        success: false,
+                        durationMs: Date.now() - t2,
+                        error: { message: err?.message },
+                    });
+                    throw err;
+                }
 
                 if (dailyData.length === 0) continue;
 
@@ -367,11 +488,11 @@ export class RateTigerService {
                 (day.isSaleStopped === currentGroup.isSaleStopped &&
                     day.isClosedToArrival === currentGroup.isClosedToArrival &&
                     day.isClosedToDeparture ===
-                        currentGroup.isClosedToDeparture &&
+                    currentGroup.isClosedToDeparture &&
                     day.minAdvanceBookingDays ===
-                        currentGroup.minAdvanceBookingDays &&
+                    currentGroup.minAdvanceBookingDays &&
                     day.maxAdvanceBookingDays ===
-                        currentGroup.maxAdvanceBookingDays);
+                    currentGroup.maxAdvanceBookingDays);
 
             if (availabilityMatches && restrictionsMatch) {
                 currentGroup.end = dateStr;

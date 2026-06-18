@@ -108,6 +108,51 @@ export class PropertyIntegrationController {
                 );
         }
     }
+    public async updatePropertyIntegrationTaxMode(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const { id } = req.params;
+            const { amountBeforeTax, amountAfterTax } = req.body;
+
+            if (!id) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Integration ID is required'));
+            }
+            if (
+                typeof amountBeforeTax !== 'boolean' ||
+                typeof amountAfterTax !== 'boolean'
+            ) {
+                return res
+                    .status(400)
+                    .json(errorResponse('amountBeforeTax and amountAfterTax must be boolean'));
+            }
+
+            const result =
+                await this.propertyIntegrationService.updatePropertyIntegrationTaxMode(
+                    id,
+                    amountBeforeTax,
+                    amountAfterTax
+                );
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to update property integration tax mode',
+                            error.message
+                        )
+                    );
+            }
+            return res
+                .status(500)
+                .json(errorResponse('Failed to update property integration tax mode'));
+        }
+    }
     public async deletePropertyIntegration(
         req: CustomRequest,
         res: Response

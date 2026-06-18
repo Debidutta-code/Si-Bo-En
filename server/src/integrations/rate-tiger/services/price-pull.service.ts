@@ -8,16 +8,42 @@ import {
     PricePullChargeResult,
 } from '../types/price-pull.types';
 import { PricePullDao } from '../dao';
+import { LogBuilder } from '../../../logs/services/service-log.service';
 
 export class PricePullService {
     public static async getPricePull(
         hotelCode: string,
         requestId: string,
-        ratePlanRequests: RateTigerRatePlanRequest[]
+        ratePlanRequests: RateTigerRatePlanRequest[],
+        log?: LogBuilder
     ): Promise<RateTigerOTAHotelRatePlanRS> {
         try {
-            const propertyExists = await PricePullDao.propertyExists(hotelCode);
+            let propertyExists = false;
+            const t0 = Date.now();
+            try {
+                propertyExists = await PricePullDao.propertyExists(hotelCode);
+                log?.addRepoCall({
+                    repoName: 'PricePullDao',
+                    method: 'propertyExists',
+                    input: { hotelCode },
+                    response: { exists: propertyExists },
+                    success: true,
+                    durationMs: Date.now() - t0,
+                });
+            } catch (err: any) {
+                log?.addRepoCall({
+                    repoName: 'PricePullDao',
+                    method: 'propertyExists',
+                    input: { hotelCode },
+                    success: false,
+                    durationMs: Date.now() - t0,
+                    error: { message: err?.message },
+                });
+                throw err;
+            }
+
             if (!propertyExists) {
+                log?.pushMessage(`Property ${hotelCode} not found`, 'error');
                 return {
                     otaHotelRatePlanRS: {
                         requestId,
@@ -40,12 +66,34 @@ export class PricePullService {
                 const endDate = new Date(ratePlanRequest.end);
 
                 // Fetch all charges for this rate plan and date range
-                const charges = await PricePullDao.getChargesForRatePlan(
-                    hotelCode,
-                    ratePlanRequest.ratePlanCode,
-                    startDate,
-                    endDate
-                );
+                let charges: any[] = [];
+                const t1 = Date.now();
+                try {
+                    charges = await PricePullDao.getChargesForRatePlan(
+                        hotelCode,
+                        ratePlanRequest.ratePlanCode,
+                        startDate,
+                        endDate
+                    );
+                    log?.addRepoCall({
+                        repoName: 'PricePullDao',
+                        method: 'getChargesForRatePlan',
+                        input: { hotelCode, ratePlanCode: ratePlanRequest.ratePlanCode, startDate, endDate },
+                        response: { count: charges.length },
+                        success: true,
+                        durationMs: Date.now() - t1,
+                    });
+                } catch (err: any) {
+                    log?.addRepoCall({
+                        repoName: 'PricePullDao',
+                        method: 'getChargesForRatePlan',
+                        input: { hotelCode, ratePlanCode: ratePlanRequest.ratePlanCode, startDate, endDate },
+                        success: false,
+                        durationMs: Date.now() - t1,
+                        error: { message: err?.message },
+                    });
+                    throw err;
+                }
 
                 if (charges.length === 0) continue;
 

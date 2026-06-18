@@ -2794,6 +2794,7 @@
     "actions": "الإجراءات",
     "editPolicy": "تعديل السياسة",
     "addToRatePlan": "إضافة إلى خطة الأسعار",
+    "removeFromRatePlan": "إزالة من خطة الأسعار",
     "delete": "حذف",
     "deleteConfirmTitle": "هل أنت متأكد؟",
     "deleteConfirmDescription": "سيؤدي هذا إلى حذف \"{{name}}\" بشكل دائم. لا يمكن التراجع عن هذا الإجراء.",

@@ -7,13 +7,17 @@ import {
 export class PropertyIntegrationRepository {
     public async createIntegration(
         propertyId: string,
-        masterIntegrationId: string
+        masterIntegrationId: string,
+        amountAfterTax: boolean,
+        amountBeforeTax: boolean,
     ): Promise<IPropertyIntegration> {
         try {
             return await prisma.propertyIntegrations.create({
                 data: {
                     propertyId,
                     masterIntegrationId,
+                    amountAfterTax,
+                    amountBeforeTax,
                     isActive: true,
                 },
                 include: {
@@ -100,6 +104,27 @@ export class PropertyIntegrationRepository {
             throw new Error('Failed to toggle active property integration');
         }
     }
+    public async updateTaxMode(
+    id: string,
+    amountBeforeTax: boolean,
+    amountAfterTax: boolean
+): Promise<IPropertyIntegration> {
+    try {
+        return await prisma.propertyIntegrations.update({
+            where: { id },
+            data: { amountBeforeTax, amountAfterTax },
+            include: {
+                propertyIntegrationSecrets: {
+                    include: {
+                        RequiredField: true,
+                    },
+                },
+            },
+        });
+    } catch (error) {
+        throw new Error('Failed to update property integration tax mode');
+    }
+}
     public async deleteActiveIntegrations(
         id: string
     ): Promise<IPropertyIntegration> {
@@ -128,6 +153,7 @@ export class PropertyIntegrationRepository {
                     propertyId,
                     masterIntegrationId,
                 },
+
                 include: {
                     propertyIntegrationSecrets: {
                         include: {

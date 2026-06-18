@@ -5,7 +5,8 @@ export interface SiteMinderSecurityHeader {
 }
 
 export interface SiteMinderBaseByGuestAmt {
-    amountAfterTax: number;
+    amountAfterTax?: number;
+    amountBeforeTax?: number;
     currencyCode?: string;
     numberOfGuests?: number;
     ageQualifyingCode?: string;

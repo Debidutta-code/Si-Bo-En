@@ -5,19 +5,44 @@ import {
     RateTigerInventoryUpdateRQ,
     RateTigerInventoryUpdateRS,
 } from '../types/inventory-update.types';
+import { LogBuilder } from '../../../logs/services/service-log.service';
 
 export class InventoryUpdateService {
     public static async processInventoryUpdate(
-        body: RateTigerInventoryUpdateRQ
+        body: RateTigerInventoryUpdateRQ,
+        log?: LogBuilder
     ): Promise<RateTigerInventoryUpdateRS> {
         const { otaHotelAvailNotifRQ } = body;
         const { hotelCode, requestId, availStatusMessages } =
             otaHotelAvailNotifRQ;
 
         try {
-            const propertyExists =
-                await InventoryUpdateDao.propertyExists(hotelCode);
+            let propertyExists = false;
+            const t0 = Date.now();
+            try {
+                propertyExists = await InventoryUpdateDao.propertyExists(hotelCode);
+                log?.addRepoCall({
+                    repoName: 'InventoryUpdateDao',
+                    method: 'propertyExists',
+                    input: { hotelCode },
+                    response: { exists: propertyExists },
+                    success: true,
+                    durationMs: Date.now() - t0,
+                });
+            } catch (err: any) {
+                log?.addRepoCall({
+                    repoName: 'InventoryUpdateDao',
+                    method: 'propertyExists',
+                    input: { hotelCode },
+                    success: false,
+                    durationMs: Date.now() - t0,
+                    error: { message: err?.message },
+                });
+                throw err;
+            }
+
             if (!propertyExists) {
+                log?.pushMessage(`Property ${hotelCode} not found`, 'error');
                 return {
                     otaHotelAvailNotifRS: {
                         hotelCode,
@@ -144,6 +169,10 @@ export class InventoryUpdateService {
                     }
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
+                log?.pushMessage(
+                    `Updated inventory/restrictions for ${ratePlanCode ?? ''}/${roomTypeCode} ${message.start} → ${message.end}`,
+                    'info'
+                );
             }
 
             return {

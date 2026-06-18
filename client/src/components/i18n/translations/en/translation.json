@@ -2796,6 +2796,7 @@
     "actions": "Actions",
     "editPolicy": "Edit Policy",
     "addToRatePlan": "Add to Rate Plan",
+    "removeFromRatePlan": "Remove from Rate Plan",
     "delete": "Delete",
     "deleteConfirmTitle": "Are you sure?",
     "deleteConfirmDescription": "This will permanently delete \"{{name}}\". This action cannot be undone.",

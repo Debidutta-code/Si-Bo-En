@@ -3,8 +3,6 @@
 import { Router } from 'express';
 import { RateTigerMiddleware } from '../middleware/rate-tiger.middleware';
 import {
-    InventoryUpdateController,
-    PricePullController,
     RateTigerController,
 } from '../controllers';
 import { ARIController } from '../controllers/ari-update.controller';

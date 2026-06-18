@@ -9,6 +9,7 @@ import {
     updatePropertyIntegrationStatus,
     getAllPartnerIntegrations
 } from "../api";
+import { updatePropertyIntegrationTaxMode } from "../api/property-config.api";
 import type { IUPropertyConfig } from "../types";
 
 export const updatePropertyConfigService = async (propertyId: string, data: IUPropertyConfig) => {
@@ -219,3 +220,25 @@ export const deletePropertyIntegrationFieldService = async (fieldId: string) => 
         }
     }
 }
+
+export const updatePropertyIntegrationTaxModeService = async (
+    integrationId: string,
+    amountBeforeTax: boolean,
+    amountAfterTax: boolean
+) => {
+    try {
+        if (!integrationId) {
+            return { success: false, message: "Integration ID is required" };
+        }
+        if (amountBeforeTax === amountAfterTax) {
+            return { success: false, message: "Exactly one tax mode must be selected" };
+        }
+        const response = await updatePropertyIntegrationTaxMode(integrationId, amountBeforeTax, amountAfterTax);
+        return response;
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error?.message || "Failed to update tax mode"
+        };
+    }
+};

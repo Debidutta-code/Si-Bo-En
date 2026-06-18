@@ -33,6 +33,8 @@ export interface IpropertyIntegrations {
     id: string;
     propertyId: string;
     masterIntegrationId: string;
+    amountBeforeTax: boolean;
+    amountAfterTax: boolean;
     isActive: boolean;
     createdAt?: string;
     propertyIntegrationSecrets: IpropertyIntegrationSecrets[];

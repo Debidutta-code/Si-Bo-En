@@ -24,7 +24,7 @@ import {
 } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Smartphone, Tablet, Monitor, MoreVertical, Edit, Trash2, Check, X, Plus, Languages } from 'lucide-react';
+import { Smartphone, Tablet, Monitor, MoreVertical, Edit, Trash2, Plus, Languages } from 'lucide-react';
 import { convertBackendToApplicableDays } from './interfaces/mobilePromotion.type';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import BackButton from '@/components/shared/BackButton';
@@ -309,7 +309,6 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                 <TableHead className='text-center'>{t("DeviceSpecific.startDate")}</TableHead>
                 <TableHead className='text-center'>{t("DeviceSpecific.endDate")}</TableHead>
                 <TableHead className='text-center'>{t("DeviceSpecific.activeDays")}</TableHead>
-                <TableHead className='text-center'>{t("DeviceSpecific.autoApplied")}</TableHead>
                 <TableHead className='text-center'>{t("DeviceSpecific.status")}</TableHead>
                 <TableHead className='text-center'>{t("DeviceSpecific.actions")}</TableHead>
               </TableRow>
@@ -359,14 +358,6 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                     <TableCell>
                       <span className="text-xs text-muted-foreground">
                         {getActiveDays(promotion.applicableDays)}
-                      </span>
-                    </TableCell>
-                    <TableCell className='flex items-center justify-center'>
-                      <span className={`px-3 py-1  rounded text-xs ${promotion.isAutoApplied
-                        ? ' text-success '
-                        : ' text-destructive'
-                        }`}>
-                        {promotion.isAutoApplied ? <Check className='h-4 w-4' /> : <X className='h-4 w-4' />}
                       </span>
                     </TableCell>
                     <TableCell>
