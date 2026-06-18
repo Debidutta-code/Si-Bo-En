@@ -125,7 +125,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
     ? room.images
     : ["https://via.placeholder.com/600x400?text=No+Image+Available"];
   const totalMediaCount = images.length + (hasVideo ? 1 : 0);
-
   const prevImage = () => {
     if (showVideo) { setShowVideo(false); setCurrentImageIndex(images.length - 1); }
     else if (currentImageIndex === 0) { if (hasVideo) setShowVideo(true); else setCurrentImageIndex(images.length - 1); }
@@ -217,7 +216,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
               />
             )}
 
-            {totalMediaCount > 1 && (
+            {totalMediaCount > 0 && (
               <>
                 <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1 transition">
                   <ChevronLeft size={18} />
