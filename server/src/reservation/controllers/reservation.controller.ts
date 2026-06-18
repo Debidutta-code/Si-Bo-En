@@ -88,13 +88,11 @@ export class ReservationController {
             const geoLocation = await getGeoLocationDetails(req);
             const countryCode = geoLocation?.country;
             const { deviceType } = getDeviceInfo(req);
-            const loyaltyToken = req.cookies?.loyalty_token;
             const serviceRes = await this.reservationService.createReservation(
                 data,
                 PropertyDetails,
                 countryCode,
                 deviceType,
-                loyaltyToken,
             );
 
             return res.status(serviceRes.success ? 200 : 400).json(serviceRes);

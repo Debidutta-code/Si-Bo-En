@@ -184,7 +184,6 @@ export class NewReservationService {
         propertyDetails: IPropertyDetailsFromMiddleware,
         countryCode: CurrencyCode,
         deviceType: DeviceType,
-        loyaltyToken?: string,
     ): Promise<IApiResponse> {
         try {
             const {
@@ -441,7 +440,7 @@ export class NewReservationService {
                 this.decreaseAri(propertyConfig, ariPayload),
                 this.loyalityGuestRepo.handlePostBookingLoyalty(
                     propertyDetails.id,
-                    loyaltyToken
+                    payload.bookingUserEmail
                 ),
                 this.reservationRepository
                     .getReservaltionByCode(bookingCode, propertyCode)

@@ -269,54 +269,54 @@ export class PricingRepository {
         propertyId: string
     ): Promise<ILoyaltyDiscountData | null> {
         try {
-            const customer = await prisma.customers.findUnique({
-                where: { email: loyalityEmail },
-                include: {
-                    PropertyLoyalityGuests: {
-                        where: {
-                            PropertyLoyalityConfig: { propertyId, Property: { propertyConfigs: { isLoyaltyProgramEnabled: true } } },
-                        },
-                        include: {
-                            PropertyLoyalityConfig: {
-                                include: {
-                                    CreationLoyaltyConfig: {
-                                        include: {
-                                            LoyalityLevels: true,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                    CreationGuest: true, // all program memberships
-                },
-            });
-
-            if (customer) {
-                const propertyEnrollment = customer.PropertyLoyalityGuests[0];
-                const creationConfig =
-                    propertyEnrollment.PropertyLoyalityConfig.CreationLoyaltyConfig;
-
-                if (!creationConfig) {
-                    return null;
-                }
-
-                // Find this guest's level in the specific creation loyalty program
-                const creationGuest = customer.CreationGuest.find(
-                    cg => cg.creationLoyaltyConfigId === creationConfig.id
-                );
-                const guestLevel = creationGuest?.guestLevel ?? null;
-
-                return {
-                    guestLevel,
-                    loyalityLevels: creationConfig.LoyalityLevels ?? [],
-                    fallback:
-                        creationConfig.discountValue != null
-                            ? {
-                                value: creationConfig.discountValue,
-                                type: 'percentage'
+            const pc2 = await prisma.propertyLoyaltyConfig.findFirst({
+                    where: {
+                        propertyId: propertyId,
+                        isActive: true,
+                        Property: {
+                            propertyConfigs: {
+                                isLoyaltyProgramEnabled: true
                             }
-                            : null,
+                        }
+                    },
+                    include: {
+                        CreationLoyaltyConfig: {
+                            include: {
+                                BasicLoyaltyProgram: {
+                                    where: {
+                                        isActive: true,
+                                    }
+                                },
+                                LoyalityLevels: true,
+                                CreationGuest:{
+                                    where:{
+                                        Customer:{
+                                            email:loyalityEmail
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        PropertyLoyalityGuests:{
+                            where: {
+                                Customer: {
+                                    email: loyalityEmail
+                                }
+                            }
+                        }
+                    }
+                })
+            if (pc2&&pc2.CreationLoyaltyConfig.CreationGuest.length>0) {
+                const creationGuest = pc2.CreationLoyaltyConfig.CreationGuest[0];
+                console.log(creationGuest)
+                return {
+                    guestLevel: creationGuest.guestLevel,
+                    loyalityLevels: pc2.CreationLoyaltyConfig.LoyalityLevels ?? [],
+                    fallback: pc2.CreationLoyaltyConfig.discountValue != null
+                        ? {
+                            value: pc2.CreationLoyaltyConfig.discountValue,
+                            type: "percentage"
+                        } : null
                 };
             }
             else {
@@ -353,18 +353,19 @@ export class PricingRepository {
                     )) {
                     return null;
                 }
-                return{
-                    guestLevel:1,
+                return {
+                    guestLevel: 1,
                     loyalityLevels: propertyLoyalty.CreationLoyaltyConfig.LoyalityLevels ?? [],
-                    fallback:propertyLoyalty.CreationLoyaltyConfig.discountValue != null
-                    ? {
-                        value: propertyLoyalty.CreationLoyaltyConfig.discountValue,
-                        type:"percentage"
-                    }:null
+                    fallback: propertyLoyalty.CreationLoyaltyConfig.discountValue != null
+                        ? {
+                            value: propertyLoyalty.CreationLoyaltyConfig.discountValue,
+                            type: "percentage"
+                        } : null
                 }
             }
 
         } catch (error) {
+            console.error(error);
             throw new Error('Failed to fetch loyalty discount data');
         }
     }

@@ -119,7 +119,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   // ─── Media state ────────────────────────────────────────────────────────────
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showVideo, setShowVideo] = useState(true);
+  const [showVideo, setShowVideo] = useState(false);
   const hasVideo = !!room?.roomVideos?.url;
   const images = room.images?.length
     ? room.images
@@ -226,9 +226,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 </button>
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                   {images.map((_, idx) => (
-                    <span key={idx} className={`h-2 w-2 rounded-full ${!showVideo && idx === currentImageIndex ? "bg-white" : "bg-white/50"}`} />
+                    <span key={idx} className={`h-2 w-2 rounded-full`} />
                   ))}
-                  {hasVideo && <span className={`h-2 w-2 rounded-full ${showVideo ? "bg-white" : "bg-white/50"}`} />}
+                  {hasVideo && <span className={`h-2 w-2 rounded-full `} />}
                 </div>
               </>
             )}
