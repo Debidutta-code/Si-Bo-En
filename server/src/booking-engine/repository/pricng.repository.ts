@@ -292,40 +292,78 @@ export class PricingRepository {
                 },
             });
 
-            if (
-                !customer ||
-                customer.PropertyLoyalityGuests.length === 0
-            ) {
-                return null; // not enrolled in any program for this property
+            if (customer) {
+                const propertyEnrollment = customer.PropertyLoyalityGuests[0];
+                const creationConfig =
+                    propertyEnrollment.PropertyLoyalityConfig.CreationLoyaltyConfig;
+
+                if (!creationConfig) {
+                    return null;
+                }
+
+                // Find this guest's level in the specific creation loyalty program
+                const creationGuest = customer.CreationGuest.find(
+                    cg => cg.creationLoyaltyConfigId === creationConfig.id
+                );
+                const guestLevel = creationGuest?.guestLevel ?? null;
+
+                return {
+                    guestLevel,
+                    loyalityLevels: creationConfig.LoyalityLevels ?? [],
+                    fallback:
+                        creationConfig.discountValue != null
+                            ? {
+                                value: creationConfig.discountValue,
+                                type: 'percentage'
+                            }
+                            : null,
+                };
             }
-
-            const propertyEnrollment = customer.PropertyLoyalityGuests[0];
-            const creationConfig =
-                propertyEnrollment.PropertyLoyalityConfig.CreationLoyaltyConfig;
-
-            if (!creationConfig) {
-                return null;
-            }
-
-            // Find this guest's level in the specific creation loyalty program
-            const creationGuest = customer.CreationGuest.find(
-                cg => cg.creationLoyaltyConfigId === creationConfig.id
-            );
-            const guestLevel = creationGuest?.guestLevel ?? null;
-
-            return {
-                guestLevel,
-                loyalityLevels: creationConfig.LoyalityLevels ?? [],
-                fallback:
-                    creationConfig.discountValue != null
-                        ? {
-                            value: creationConfig.discountValue,
-                            type: creationConfig.loyaltyDiscountType as
-                                | 'percentage'
-                                | 'flat',
+            else {
+                const propertyLoyalty = await prisma.propertyLoyaltyConfig.findFirst({
+                    where: {
+                        propertyId: propertyId,
+                        isActive: true,
+                        Property: {
+                            propertyConfigs: {
+                                isLoyaltyProgramEnabled: true
+                            }
                         }
-                        : null,
-            };
+
+                    },
+                    include: {
+
+                        CreationLoyaltyConfig: {
+
+                            include: {
+                                BasicLoyaltyProgram: {
+                                    where: {
+                                        isActive: true,
+
+                                    }
+                                },
+                                LoyalityLevels: true
+                            }
+                        }
+                    }
+                })
+                if (!propertyLoyalty ||
+                    (propertyLoyalty.CreationLoyaltyConfig.BasicLoyaltyProgram &&
+                        propertyLoyalty.CreationLoyaltyConfig.BasicLoyaltyProgram.isActive == false
+                    )) {
+                    return null;
+                }
+                return{
+                    guestLevel:1,
+                    loyalityLevels: propertyLoyalty.CreationLoyaltyConfig.LoyalityLevels ?? [],
+                    fallback:propertyLoyalty.CreationLoyaltyConfig.discountValue != null
+                    ? {
+                        value: propertyLoyalty.CreationLoyaltyConfig.discountValue,
+                        type:"percentage"
+                    }:null
+                }
+            }
+
         } catch (error) {
             throw new Error('Failed to fetch loyalty discount data');
         }

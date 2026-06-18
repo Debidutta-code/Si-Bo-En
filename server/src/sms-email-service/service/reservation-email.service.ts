@@ -9,13 +9,6 @@ import { PropertyEmailRepository } from '../reposititory';
 import { emailQueue } from '../../index';
 
 export class ReservationEmailService {
-    private propertyEmailRepository: PropertyEmailRepository;
-
-    constructor() {
-        this.propertyEmailRepository = new PropertyEmailRepository();
-    }
-
-    // ─── Helper: derive room count from DailyPriceBrakeDown ─────────────────────
     private getNumberOfRooms(reservation: IReservationWithAllDetails): number {
         return (
             new Set(
@@ -49,11 +42,6 @@ export class ReservationEmailService {
         };
     }
 
-    // ─── 1. Booking Confirmation ────────────────────────────────────────────────
-    /**
-     * Send confirmation emails (customer + property) after a reservation is created.
-     * Accepts the full IReservationWithAllDetails so we can read PricingBrakeDown directly.
-     */
     public async reservationConfirmation(
         reservation: IReservationWithAllDetails
     ): Promise<void> {
@@ -133,13 +121,6 @@ export class ReservationEmailService {
         }
     }
 
-    // ─── 2. Booking Amendment ───────────────────────────────────────────────────
-    /**
-     * Send amendment emails after a reservation is modified.
-     * @param existingReservation  – the ORIGINAL reservation (before update)
-     * @param updatePayload        – the IUReservation payload used to update
-     * @param updatedPricingBrakeDown – the freshly saved IPricingBreakDown after update
-     */
     public async reservationUpdatedEmail(
         existingReservation: IReservationWithAllDetails,
         updatePayload: IUReservation
@@ -203,12 +184,6 @@ export class ReservationEmailService {
             console.error('Error sending reservation updated email:', error);
         }
     }
-
-    // ─── 3. Booking Cancellation ─────────────────────────────────────────────────
-    /**
-     * Send cancellation emails after a reservation is cancelled.
-     * Accepts the full IReservationWithAllDetails so PricingBrakeDown is available.
-     */
     public async reservationCancelEmail(
         reservation: IReservationWithAllDetails
     ): Promise<void> {

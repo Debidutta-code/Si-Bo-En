@@ -5,7 +5,7 @@ import { assignCustomerToken } from '../../auth/utills/jwtHelper';
 import { config } from '../../config';
 import { ICustomer } from '../types';
 import {EmailVerificationOTP,IEmailVerificationOTP} from "../../sms-email-service/models/email-verification-otp.model";
-import {EmailService} from "../../sms-email-service/service/email-verification-otp.service"
+import {EmailService} from "../../sms-email-service/service/customer-email.service"
 export class CustomerService {
     private customerRepository: CustomerRepository;
     private emailService: EmailService;

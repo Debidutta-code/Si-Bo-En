@@ -303,21 +303,6 @@ export default function ProfileHomePage() {
           <p className="text-[12.5px]" style={{ color: "#aaa" }}>{t("ProfileHomePage.loyalty.empty.description")}</p>
         </div>
       )}
-
-      {/* ── Wishlist */}
-      {profile?.WishList && profile.WishList.length > 0 && (
-        <div>
-          <h3 className="text-[14px] font-semibold text-[#1a1a1a] mb-3">{t("ProfileHomePage.wishlist.sectionTitle")}</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {profile.WishList.map((w: any) => (
-              <div key={w.id} className="bg-white rounded-2xl p-4" style={{ border: "1px solid #f0f0f0" }}>
-                <p className="text-[13px] font-medium text-[#1a1a1a]">{w.propertyName}</p>
-                <p className="text-[11px] mt-0.5" style={{ color: "#aaa" }}>{w.propertyCode}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

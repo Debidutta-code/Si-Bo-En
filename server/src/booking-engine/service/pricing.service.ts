@@ -120,7 +120,6 @@ export class PricingService {
                     )
                     : Promise.resolve(null),
             ]);
-
             const basePrice = new BasePriceClass(
                 startDate,
                 endDate,
@@ -345,11 +344,6 @@ class BasePriceClass {
             toUTC(this.startDate),
             toUTC(this.endDate)
         );
-        console.log("differnt", {
-            diffInDays,
-            charges: this.charges,
-            len: this.charges.length
-        })
         if (diffInDays != this.charges.length) {
             throw new Error('Charges not found for the given date range');
         }

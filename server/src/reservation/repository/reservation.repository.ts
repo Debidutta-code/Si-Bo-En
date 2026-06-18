@@ -1431,9 +1431,9 @@ export class AriManupulationRepo {
     }
 }
 export class GuestRepository {
-    public async getGuestByEmail(email: string) {
+    public async getGuestByEmail(email: string, propertyId: string) {
         try {
-            return await prisma.guests.findFirst({ where: { email } });
+            return await prisma.guests.findUnique({ where: { propertyId_email:{ propertyId, email } } });
         } catch (error) {
             throw error instanceof Error
                 ? new Error(`Failed to fetch guest: ${error.message}`)
@@ -1442,6 +1442,7 @@ export class GuestRepository {
     }
 
     public async createGuest(data: ICPrimaryGuest) {
+        console.log("Data",data)
         try {
             return await prisma.guests.create({
                 data: {
