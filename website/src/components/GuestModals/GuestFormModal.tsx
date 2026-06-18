@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, Mail, Phone, User, Calendar, Loader2 } from "lucide-react";
+import { X, Mail, Phone, User, Calendar, Loader2, Plus } from "lucide-react";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { currencies } from "../currencyCode/cuurency";
 import { Currency } from "../currencyCode/currency-code.type";
 import { formatNumber } from "@/src/utils/numLang";
+import { IAddonAvailability } from "@/src/app/(unauth)/Rooms/types";
 
 interface Guest {
   type: "adult" | "child";
@@ -28,6 +29,10 @@ interface Props {
   loyaltyMemberEmail?: string;
   loyaltyDiscountInfo?: { type: string; value: number; currencyCode: string } | null;
   propertyId?: string;
+  /** Addons available for the selected rate plan, fetched by the parent after Step 1 completes. */
+  // availableAddons?: IAddonAvailability[];
+  /** Opens the parent-owned AddonSelectionModal on top of this one. */
+  onOpenAddonModal?: () => void;
   onClose: () => void;
   handleGuestDetailChange: (
     index: number,
@@ -35,7 +40,7 @@ interface Props {
     value: string
   ) => void;
   handleContactChange: (field: "email" | "phoneNumber", value: string) => void;
-  /** Called when Step 1 is valid — parent re-fetches price with real email */
+  /** Called when Step 1 is valid — parent fetches addons + price together. Only advance to Step 2 if this resolves. */
   onStepOneComplete: (email: string) => Promise<void>;
   isFetchingStep2: boolean;
   step2Error: string | null;
@@ -50,6 +55,8 @@ const GuestFormModal: React.FC<Props> = ({
   bookingContext,
   loyaltyDiscountInfo,
   propertyId,
+  // availableAddons = [],
+  onOpenAddonModal,
   onClose,
   handleGuestDetailChange,
   handleContactChange,
@@ -157,7 +164,6 @@ const GuestFormModal: React.FC<Props> = ({
 
   const getMaxDOBForChild = () => formatDate(new Date());
 
-  /** Step 1 → Step 2: validate then call parent to re-fetch price with real email */
   const handleStep1Continue = async () => {
     setSubmitError(null);
     const isValid = validate();
@@ -176,8 +182,12 @@ const GuestFormModal: React.FC<Props> = ({
       });
       return;
     }
-    await onStepOneComplete(contactInfo.email);
-    setStep(2);
+    try {
+      await onStepOneComplete(contactInfo.email);
+      setStep(2);
+    } catch {
+      // step2Error is already set by the parent; stay on Step 1 so the user can retry.
+    }
   };
 
   /** Step 2 → confirm & pay */
@@ -456,7 +466,46 @@ const GuestFormModal: React.FC<Props> = ({
                   <AlertDescription>{step2Error}</AlertDescription>
                 </Alert>
               )}
-              <Card className="border-2">
+
+              {/* "Add extras" affordance — only shown if this rate plan actually has addons available.
+                  Opens the AddonSelectionModal, which now lives in the parent (Rooms), on top of this modal. */}
+              {/* {availableAddons.length > 0 && (
+                <Card className="border-2 border-dashed">
+                  <CardContent className="p-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: `${colors.primaryColor}15`, color: colors.primaryColor }}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {t("GuestForm.addExtrasTitle", { defaultValue: "Add extras to your stay" })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("GuestForm.addExtrasSubtitle", {
+                            count: availableAddons.length,
+                            defaultValue: `${formatNumber(availableAddons.length)} add-on${availableAddons.length > 1 ? "s" : ""} available`,
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onOpenAddonModal}
+                      disabled={isFetchingStep2}
+                      style={{ borderColor: colors.primaryColor, color: colors.primaryColor }}
+                    >
+                      {t("GuestForm.addExtrasButton", { defaultValue: "Add extras" })}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )} */}
+
+              <Card className={`border-2 transition-opacity ${isFetchingStep2 ? "opacity-50" : ""}`}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg">{t("GuestForm.priceDetails")}</CardTitle>
                 </CardHeader>
@@ -783,9 +832,9 @@ const GuestFormModal: React.FC<Props> = ({
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={handleConfirmPay}
-                disabled={paymentProcessing}
+                disabled={paymentProcessing || isFetchingStep2}
                 style={{
-                  backgroundColor: paymentProcessing ? '#9ca3af' : colors.primaryColor,
+                  backgroundColor: (paymentProcessing || isFetchingStep2) ? '#9ca3af' : colors.primaryColor,
                   color: colors.buttonTextColor
                 }}
                 className="flex-1 py-4 hover:opacity-90 transition-opacity"

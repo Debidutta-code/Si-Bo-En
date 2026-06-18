@@ -1,3 +1,4 @@
+import { CurrencyCode } from "@/src/components/currencyCode/currency-code.type";
 import { IAmenity, IAppliedDiscounts, IAvailablePromotions, IPolicy, IPostingRhythm, IRoomVideo, IRoomView, ITouristTax, RoomUnit } from "./types";
 
 export interface IPropertyLoyalityWithLoyality {
@@ -104,7 +105,6 @@ export interface ICLoyalitySpecialCondition {
     subTitle: string | null;
 }
 export type DiscountType = "percentage" | "flat";
-export type CurrencyCode = "USD" | "EUR" | "INR";
 
 export interface IRoomPrice {
     ratePlanId: string,

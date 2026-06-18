@@ -126,7 +126,7 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
     const handleContinue = () => {
         const selectedList = Object.values(selectedAddons);
         onContinue(selectedList);
-        setSelectedAddons({});
+        // setSelectedAddons({});
     };
 
     const handleSkip = () => {

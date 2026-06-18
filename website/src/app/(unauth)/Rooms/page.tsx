@@ -12,8 +12,10 @@ import {
   setSenderUrl,
 } from "../../../store/bookingSlice";
 import { useBookingColors } from "../../../hooks/useBookingColors";
+import { useBookingStorage } from "../../../hooks/useBookingStorage";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
 import GuestFormModal from "../../../components/GuestModals/GuestFormModal";
+import AddonSelectionModal from "@/src/components/RoomPage/AddonSelectionModal";
 import { IPropertyLoyalityWithLoyality, IRoomDetails, IRoomPrice } from "./interface";
 import { LoyaltyProgramBanner } from "@/src/components/RoomPage/LoyalityBanner";
 import { LoyaltyContainer } from "../../../components/RoomPage/LoyalityContainer";
@@ -21,11 +23,48 @@ import { useTranslation } from "react-i18next";
 import { Volume2, VolumeX } from "lucide-react";
 
 import { usePropertyContext } from "@/src/components/context/property-context";
-import { IFetchRoomsRequest, IFinalPrice, IGuest, IPriceSummaryData, IPropertyDetails, IRoom, ISelectedAddon, ISelectedPromotion } from "./types";
-import { buildRoomsArrayFallback, fetchRoomsService, normalizePriceBreakdown } from "./services";
+import {
+  IAddonAvailability,
+  IFetchRoomsRequest,
+  IFinalPrice,
+  IGuest,
+  IPriceSummaryData,
+  IPropertyDetails,
+  IRoom,
+  IRoomGuestDetail,
+  ISelectedAddon,
+  ISelectedPromotion,
+} from "./types";
+import {
+  buildPricePayload,
+  buildRoomsArrayFallback,
+  fetchRoomsService,
+  getAvailableAddons,
+  getRoomPrice,
+  normalizePriceBreakdown,
+} from "./services";
 import { BookingConditionsModal, UrgencyBanner } from "./components";
+import { set } from "date-fns";
 
+/** Mirrors the shape Rooms reads off bookingContext for guest-count derivation. Lifted from the old RoomCard — Rooms is now the only place that needs it. */
+const deriveRoomsArray = (ctx: any): IRoomGuestDetail[] => {
+  if (Array.isArray(ctx?.guests?.roomsArray) && ctx.guests.roomsArray.length > 0) {
+    return ctx.guests.roomsArray;
+  }
+  return [{ adults: ctx?.guests?.adults ?? 1, children: ctx?.guests?.children ?? 0, childAges: [] }];
+};
 
+/** Lifted from the old RoomCard — only needed for the AddonSelectionModal, which now renders here. */
+const getDatesBetween = (startDate: string, endDate: string): string[] => {
+  const dates: string[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  while (start < end) {
+    dates.push(new Date(start).toISOString().split("T")[0]);
+    start.setDate(start.getDate() + 1);
+  }
+  return dates;
+};
 
 const Rooms = () => {
   const { t, i18n } = useTranslation();
@@ -36,10 +75,10 @@ const Rooms = () => {
   const { propertyDetails, isLoading: propertyLoading } = usePropertyContext();
   const bookingContext = useSelector((state: RootState) => state.booking);
   const { primaryColor } = useBookingColors();
+  const { colors: bookingColors } = useBookingStorage(bookingContext);
 
   // ─── Rooms state ──────────────────────────────────────────────────────────
   const [roomsData, setRoomsData] = useState<IRoomDetails[]>([]);
-  // const [addons, setAddons] = useState<any[]>([]);
   const [loyaltyProgram, setLoyaltyProgram] =
     useState<IPropertyLoyalityWithLoyality | null>(null);
   const [initialLoading, setInitialLoading] = useState<boolean>(true);
@@ -47,21 +86,24 @@ const Rooms = () => {
   // ─── Booking flow state ───────────────────────────────────────────────────
   const [bookingRoom, setBookingRoom] = useState<IRoom | null>(null);// state for showing selected room for booking
   const [currentRatePlan, setCurrentRatePlan] = useState<IRoomPrice | null>(null);
-  const [selectedAddons, setSelectedAddons] = useState<ISelectedAddon[]>([]);
+
+  const [selectedRatePlanKey, setSelectedRatePlanKey] = useState<string | null>(null);
   const [guestForms, setGuestForms] = useState<IGuest[]>([]);
   const [contactInfo, setContactInfo] = useState({ email: "", phoneNumber: "" });
   const [price, setPrice] = useState<number | null>(null);
   const [finalPrice, setFinalPrice] = useState<IFinalPrice | null>(null);
   const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<ISelectedPromotion[]>([]);
-  // const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
 
-  // ─── Loyalty state ────────────────────────────────────────────────────────
+  const [availableAddons, setAvailableAddons] = useState<IAddonAvailability[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<ISelectedAddon[]>([]);
+  const [addonModalOpen, setAddonModalOpen] = useState(false);
+  const [guestModalOpen, setGuestModalOpen] = useState(false);
+
   const [loyaltyDiscountInfo, setLoyaltyDiscountInfo] = useState<{
     type: string; value: number; currencyCode: string;
   } | null>(null);
   const [loyalityToogle, setLoyaltyToggle] = useState<boolean>(true);
   const [fetchedPropertyDetails, setFetchedPropertyDetails] = useState<IPropertyDetails | null>(null);
-  const reproceedRef = useRef<((email: string) => Promise<void>) | null>(null);
   const [isFetchingStep2, setIsFetchingStep2] = useState(false);
   const [step2Error, setStep2Error] = useState<string | null>(null);
 
@@ -70,9 +112,7 @@ const Rooms = () => {
   const [showPriceSummary, setShowPriceSummary] = useState<boolean>(false);
 
   const isLoadingFromExternal = useRef(false);
-  const bgImage =
-    bookingContext?.bookingEngineColor?.bgImage ||
-    bookingContext?.PropertyDetails?.image?.[0];
+  const loadingRatePlanKey = isFetchingStep2 ? selectedRatePlanKey : null;
 
 
   const handleSearchStart = async (payload: any) => {
@@ -295,23 +335,77 @@ const Rooms = () => {
       handleSearchStart(bookingContext);
     }
   }, [i18n.language]);
-  const handleOpenGuestModal = (
+
+  const handleGuestDetailChange = (index: number, field: keyof IGuest, value: string) => {
+    setGuestForms((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleContactChange = (field: "email" | "phoneNumber", value: string) => {
+    setContactInfo((prev) => ({ ...prev, [field]: value }));
+  };
+  const handleSelectRatePlan = async (
     room: IRoom,
-    ratePlan: any,
-    selectedAddonsList: ISelectedAddon[],
-    selectedPromotionsList: any[]
+    ratePlan: IRoomPrice,
+    selectedPromotionsList: ISelectedPromotion[],
+    ratePlanKey: string
   ) => {
-    setBookingSelectedPromotions(selectedPromotionsList);
-    setBookingRoom(room);
-    setCurrentRatePlan(ratePlan);
-    setSelectedAddons(selectedAddonsList);
+    try {
+      setBookingSelectedPromotions(selectedPromotionsList)
+      setBookingRoom(room)
+      setCurrentRatePlan(ratePlan)
+      const addons = await getAvailableAddons(
+        bookingContext.PropertyCode,
+        bookingContext.startDate,
+        bookingContext.endDate,
+        ratePlan.ratePlanCode
+      )
+      if (addons && addons.length > 0) {
+        setAvailableAddons(addons);
+        setAddonModalOpen(true);
+      } else {
+        const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
+        const allGuests: IGuest[] = [];
+
+        if (Array.isArray(rawRooms)) {
+          rawRooms.forEach((rm) => {
+            for (let i = 0; i < (rm.adults || 0); i++)
+              allGuests.push({ type: "adult", firstName: "", lastName: "", dateOfBirth: "" });
+            for (let i = 0; i < (rm.children || 0); i++)
+              allGuests.push({ type: "child", firstName: "", lastName: "", dateOfBirth: "" });
+          });
+        } else {
+          const adults = bookingContext.guests?.adults || 1;
+          const children = bookingContext.guests?.children || 0;
+          for (let i = 0; i < adults; i++)
+            allGuests.push({ type: "adult", firstName: "", lastName: "", dateOfBirth: "" });
+          for (let i = 0; i < children; i++)
+            allGuests.push({ type: "child", firstName: "", lastName: "", dateOfBirth: "" });
+        }
+
+        setGuestForms(allGuests);
+
+        setGuestModalOpen(true);
+      }
+    } catch (error) {
+    }
+  };
+  const handleOpenAddonModal = () => setAddonModalOpen(true);
+  const handleAddonModalSkip = () => {
+    setAddonModalOpen(false);
+    handleAddonModalContinue([]);
+  }
+  const handleAddonModalContinue = async (addons: ISelectedAddon[]) => {
+    if (!bookingRoom || !currentRatePlan) return;
+    setSelectedAddons(addons);
+    setAddonModalOpen(false);
     setFinalPrice(null);
     setPrice(null);
     setShowPriceSummary(false);
     setStep2Error(null);
-    setContactInfo({ email: "", phoneNumber: "" });
-
-    // Build guest forms from booking context
     const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
     const allGuests: IGuest[] = [];
 
@@ -332,64 +426,63 @@ const Rooms = () => {
     }
 
     setGuestForms(allGuests);
-  };
 
-  const handleBookNow = (
-    room: IRoom,
-    ratePlan: any,
-    selectedAddonsList: ISelectedAddon[],
-    selectedPromotionsList: any[],
-    priceData: any
-  ) => {
-    setBookingSelectedPromotions(selectedPromotionsList);
-    setCurrentRatePlan(ratePlan);
-    setSelectedAddons(selectedAddonsList);
-
-    const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
-    let noOfRooms = 1;
-    if (Array.isArray(rawRooms)) {
-      noOfRooms = rawRooms.length;
-    } else {
-      noOfRooms = typeof bookingContext.guests?.rooms === "number"
-        ? bookingContext.guests.rooms
-        : 1;
-    }
-
-    const normalized = normalizePriceBreakdown(priceData, {
-      noOfRooms,
-      ratePlanCode: ratePlan.ratePlanCode,
-    });
-
-    setFinalPrice(normalized);
-    setPrice(normalized?.totalAmount ?? null);
-  };
-
-  const handleGuestDetailChange = (index: number, field: keyof IGuest, value: string) => {
-    setGuestForms((prev) => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
-      return updated;
-    });
-  };
-
-  const handleContactChange = (field: "email" | "phoneNumber", value: string) => {
-    setContactInfo((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleStep1Complete = async (email: string) => {
-    if (!reproceedRef.current) return;
-    setIsFetchingStep2(true);
-    setStep2Error(null);
-    try {
-      await reproceedRef.current(email);
+    setGuestModalOpen(true);
+    setContactInfo({ email: "", phoneNumber: "" }); try {
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to fetch price";
+      const msg = e instanceof Error ? e.message : "Failed to update price";
       setStep2Error(msg);
     } finally {
       setIsFetchingStep2(false);
     }
   };
 
+  const handleStep1Complete = async (email: string) => {
+    if (!bookingRoom || !currentRatePlan) return;
+    setIsFetchingStep2(true);
+    setStep2Error(null);
+    try {
+      const roomsArray = deriveRoomsArray(bookingContext);
+      const noOfRooms = roomsArray.length || 1;
+      const noOfAdults = roomsArray.reduce((sum, r) => sum + (r.adults || 0), 0);
+      const noOfChildrens = roomsArray.reduce((sum, r) => sum + (r.children || 0), 0);
+
+      const rawPrice = await
+        getRoomPrice(
+          buildPricePayload({
+            propertyCode: bookingContext.PropertyCode,
+            roomType: bookingRoom.roomType,
+            ratePlanCode: currentRatePlan.ratePlanCode,
+            startDate: bookingContext.startDate,
+            endDate: bookingContext.endDate,
+            noOfAdults,
+            noOfChildren: noOfChildrens,
+            noOfRooms,
+            roomsArray,
+            promoCode: bookingContext.promocode ?? "",
+            selectedPromotions: bookingSelectedPromotions,
+            selectedAddons: selectedAddons,
+            includedAddonIds: currentRatePlan.addons?.map((a) => a.id) ?? [],
+            email: loyalityToogle ? email : null,
+          }, loyalityToogle)
+        );
+
+      const normalized = normalizePriceBreakdown(rawPrice, {
+        noOfRooms,
+        ratePlanCode: currentRatePlan.ratePlanCode,
+      });
+
+      setFinalPrice(normalized);
+      setPrice(normalized?.totalAmount ?? null);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to fetch price";
+      setStep2Error(msg);
+      // Re-throw so GuestFormModal knows Step 1 → Step 2 failed and stays on Step 1.
+      throw e;
+    } finally {
+      setIsFetchingStep2(false);
+    }
+  };
   const handleSubmitBooking = () => {
     if (!bookingRoom || !currentRatePlan) return;
 
@@ -433,7 +526,6 @@ const Rooms = () => {
     document.cookie = "can_access_payment=true; path=/; max-age=300";
     router.push(`/Payment?code=${bookingContext.PropertyCode || searchParams.get("code")}`);
   };
-
 
   if (initialLoading || propertyLoading) {
     return (
@@ -599,15 +691,13 @@ const Rooms = () => {
                             room={room}
                             propertyDetails={propertyDetails}
                             bookingContext={bookingContext}
-                            onBookNow={handleBookNow}
-                            onOpenGuestModal={handleOpenGuestModal}
-                            onRegisterReproceed={(fn) => { reproceedRef.current = fn; }}
+                            onSelectRatePlan={handleSelectRatePlan}
                             selectedBoardType="all"
                             loyalty={loyaltyProgram}
                             loyaltyDiscountInfo={loyaltyDiscountInfo}
                             loyaltyToggleOn={loyalityToogle}
                             setLoyaltyToggle={setLoyaltyToggle}
-                            contactInfo={contactInfo}
+                            loadingRatePlanKey={loadingRatePlanKey}
                           />
                         ))}
                     </div>
@@ -627,7 +717,7 @@ const Rooms = () => {
         onOpenChange={setBookingConditionsModal}
       />
 
-      {bookingRoom && (
+      {guestModalOpen && (
         <GuestFormModal
           guestForms={guestForms}
           contactInfo={contactInfo}
@@ -636,11 +726,17 @@ const Rooms = () => {
           bookingContext={bookingContext}
           loyaltyDiscountInfo={loyaltyDiscountInfo}
           propertyId={propertyDetails?.id || ""}
+          // availableAddons={availableAddons}
+          onOpenAddonModal={handleOpenAddonModal}
           onClose={() => {
             setBookingRoom(null);
             setCurrentRatePlan(null);
+            setSelectedRatePlanKey(null);
             setSelectedAddons([]);
+            setAvailableAddons([]);
+            setAddonModalOpen(false);
             setStep2Error(null);
+            setGuestModalOpen(false);
           }}
           handleGuestDetailChange={handleGuestDetailChange}
           handleContactChange={handleContactChange}
@@ -648,6 +744,20 @@ const Rooms = () => {
           isFetchingStep2={isFetchingStep2}
           step2Error={step2Error}
           onSubmit={handleSubmitBooking}
+        />
+      )}
+
+      {addonModalOpen && (
+        <AddonSelectionModal
+          isOpen={addonModalOpen}
+          onClose={() => setAddonModalOpen(false)}
+          addons={availableAddons}
+          bookingDates={getDatesBetween(bookingContext.startDate, bookingContext.endDate)}
+          onContinue={handleAddonModalContinue}
+          onSkip={handleAddonModalSkip}
+          primaryColor={primaryColor}
+          buttonTextColor={bookingColors?.buttonTextColor}
+          currencyCode={currentRatePlan?.currencyCode}
         />
       )}
     </div>
