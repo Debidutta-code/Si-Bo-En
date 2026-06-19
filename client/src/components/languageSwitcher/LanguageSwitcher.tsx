@@ -19,7 +19,7 @@ const languageOptions: LanguageOption[] = Object.values(flags).map((lang) => ({
   flag: lang.flag,
 }));
 
-const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ onLanguageChange }) => {
+const LanguageSwitcher: React.FC<LanguageSwitcherProps> = () => {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -46,11 +46,11 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ onLanguageChange })
   const selectedOption = languageOptions.find((l) => l.code === selectedLanguage);
 
   const handleLanguageChange = (langCode: string) => {
+    window.location.reload();
     setSelectedLanguage(langCode);
     i18next.changeLanguage(langCode);
     localStorage.setItem('i18nextLng', langCode);
     setIsOpen(false);
-    onLanguageChange?.();
   };
 
   useEffect(() => {

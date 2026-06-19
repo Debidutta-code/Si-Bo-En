@@ -44,6 +44,9 @@ import {
     IUReservation,
 } from '../types';
 import { IntegrationDispatcher } from '../../integrations/dispatcher/integration-dispatcher.service';
+import { CustomerRepository } from '../../customer/repository';
+import { createHash } from '../../auth/utills/bcryptHelper';
+import { UserEmailService } from '../../sms-email-service/service';
 export class NewReservationService {
     private reservationRepository: ReservationRepository;
     private promoCodeRepository: PromoCodeRepository;
@@ -57,6 +60,8 @@ export class NewReservationService {
     private agencyPricingRepo: AgencyPricing;
     private paymentRepository: PaymentRepository;
     private reservationEmailService: ReservationEmailService;
+    private customerRepository: CustomerRepository;
+    private userEmailService: UserEmailService;
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.promoCodeRepository = new PromoCodeRepository();
@@ -70,6 +75,8 @@ export class NewReservationService {
         this.agencyPricingRepo = new AgencyPricing();
         this.paymentRepository = new PaymentRepository();
         this.reservationEmailService = new ReservationEmailService();
+        this.customerRepository = new CustomerRepository();
+        this.userEmailService = new UserEmailService();
     }
     private async generateBookingCode(propertyCode: string): Promise<string> {
         const code =
@@ -117,20 +124,72 @@ export class NewReservationService {
         };
         return methodMap[method] || 'pay_at_hotel';
     }
+    private async valiedateAndCreatePrimaryGuest(
+        firstName: string,
+        lastName: string,
+        email: string,
+        propertyId: string,
+        phoneNumber: string
+    ): Promise<string> {
+        try {
+            
+            const existingGuest = await this.guestRepository.getGuestByEmail(email, propertyId);
+            if (existingGuest) {
+                return existingGuest.id;
+            } else {
+                const newGuest = await this.guestRepository.createGuest({
+                    firstName,
+                    lastName,
+                    email,
+                    propertyId,
+                    phoneNumber,
+                    userType: 'adult',
+    
+                });
+                return newGuest.id;
+            }
+        } catch (error) {
+            console.error('Error validating or creating primary guest:', error);
+            throw new Error('Failed to validate or create primary guest');
+        }
+    }
+    private async validateAndCreateCustomer(firstName: string, lastName: string, bookingUserEmail: string,propertyName: string): Promise<string> {
+        const existingCustomer = await this.customerRepository.findByEmail(bookingUserEmail);
+        if (existingCustomer) {
+            return existingCustomer.id;
+        } else {
+            
+            const cleanFirstName = firstName.replace(/[^A-Za-z]/g, "");
+            const formattedName =
+            cleanFirstName.charAt(0).toUpperCase() +
+                cleanFirstName.slice(1).toLowerCase();
+                let password = `${formattedName}@123`;
+                if (password.length < 8) {
+                    password = password + "0".repeat(8 - password.length);
+                }
+                const hashedPassword = await createHash(password);
+            const newCustomer = await this.customerRepository.create({
+                firstName,
+                lastName,
+                email: bookingUserEmail,
+                password: hashedPassword
+            })
+            this.reservationEmailService
+            await this.userEmailService.sendAccountCreatedEmail(firstName, lastName, bookingUserEmail, password,propertyName);
+            return newCustomer.id;
+        }
+    }
     public async createReservation(
         payload: ICReservationS,
         propertyDetails: IPropertyDetailsFromMiddleware,
         countryCode: CurrencyCode,
         deviceType: DeviceType,
-        loyaltyToken?: string,
-        customerId?: string
     ): Promise<IApiResponse> {
         try {
             const {
                 propertyCode,
                 roomTypeCode,
                 ratePlanCode,
-                hotelName,
                 roomName,
                 guestDetails,
                 reservationStartDate,
@@ -163,28 +222,21 @@ export class NewReservationService {
                 }
                 promoCodeId = promoCodeDetails.id;
             }
-            let primaryGuestId: string;
-            const existingGuest =
-                await this.guestRepository.getGuestByEmail(bookingUserEmail);
-
-            if (existingGuest) {
-                primaryGuestId = existingGuest.id;
-            } else {
-                const newGuestPayload: ICPrimaryGuest = {
-                    firstName: primaryGuestData.firstName,
-                    lastName: primaryGuestData.lastName,
-                    email: bookingUserEmail,
-                    phoneNumber: bookingUserPhone || null,
-                    propertyId: propertyDetails.id,
-                    userType: primaryGuestData.type as 'adult',
-                };
-                const newGuest =
-                    await this.guestRepository.createGuest(newGuestPayload);
-                primaryGuestId = newGuest.id;
-            }
-
-            const [bookingCode, rateplan, propertyConfig, roomDetails] =
+            const [primaryGuestId, customerId, bookingCode, rateplan, propertyConfig, roomDetails] =
                 await Promise.all([
+                    this.valiedateAndCreatePrimaryGuest(
+                        primaryGuestData.firstName,
+                        primaryGuestData.lastName,
+                        bookingUserEmail,
+                        propertyDetails.id,
+                        bookingUserPhone
+                    ),
+                    this.validateAndCreateCustomer(
+                        primaryGuestData.firstName,
+                        primaryGuestData.lastName,
+                        bookingUserEmail,
+                        propertyDetails.propertyName,
+                    ),
                     this.generateBookingCode(propertyCode),
                     this.ariManupulationRepo.getRatePlanName(
                         ratePlanCode,
@@ -198,19 +250,12 @@ export class NewReservationService {
                         roomTypeCode
                     ),
                 ]);
+                console.log(primaryGuestId,customerId)
             if (!propertyConfig)
                 return errorResponse('Property config not found');
             const paymentMethods = this.mapPaymentMethod(paymentMethod);
             const reservationStart = new Date(reservationStartDate);
             const reservationEnd = new Date(reservationEndDate);
-            const numberOfNights = Math.max(
-                1,
-                Math.ceil(
-                    (reservationEnd.getTime() - reservationStart.getTime()) /
-                    (24 * 60 * 60 * 1000)
-                )
-            );
-
             if (!rateplan) {
                 return errorResponse('Rate plan not found');
             }
@@ -237,7 +282,6 @@ export class NewReservationService {
                 roomDescription: roomDetails?.description ?? '',
             };
             if (activeIntegration) {
-                console.log("activeIntegration1", activeIntegration)
                 const result = await IntegrationDispatcher.pushCommit(
                     integrationPayload,
                     propertyDetails.id,
@@ -396,7 +440,7 @@ export class NewReservationService {
                 this.decreaseAri(propertyConfig, ariPayload),
                 this.loyalityGuestRepo.handlePostBookingLoyalty(
                     propertyDetails.id,
-                    loyaltyToken
+                    payload.bookingUserEmail
                 ),
                 this.reservationRepository
                     .getReservaltionByCode(bookingCode, propertyCode)

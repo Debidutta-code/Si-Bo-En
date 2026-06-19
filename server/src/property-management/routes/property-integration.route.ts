@@ -20,6 +20,12 @@ propertyPartnerRouter
         )
     );
 
+propertyPartnerRouter.patch(
+    '/property-integration/:id/tax-mode',
+    protect,
+    restrictTo('super_admin'),
+    propertyIntegrationController.updatePropertyIntegrationTaxMode.bind(propertyIntegrationController)
+);
 propertyPartnerRouter
     .route('/field/:id')
     .post(

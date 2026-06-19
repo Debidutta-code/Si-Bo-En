@@ -40,7 +40,12 @@ export class SiteMinderDao {
         if (!room) return 0;
         return Math.max(0, room.maxNumberOfAdults);
     }
-    public static async getProperty(siteMinderPropertyCode: string): Promise<{ propertyId: string; propertyCode: string } | null> {
+    public static async getProperty(siteMinderPropertyCode: string): Promise<{
+        propertyId: string;
+        propertyCode: string;
+        amountBeforeTax: boolean;
+        amountAfterTax: boolean;
+    } | null> {
         try {
             const integration = await prisma.propertyIntegrations.findFirst({
                 where: {
@@ -60,6 +65,8 @@ export class SiteMinderDao {
             return {
                 propertyId: integration.Property.id,       // ← capital P
                 propertyCode: integration.Property.propertyCode, // ← capital P
+                amountBeforeTax: integration.amountBeforeTax,
+                amountAfterTax: integration.amountAfterTax,
             };
         } catch {
             throw new Error('Failed to fetch property');

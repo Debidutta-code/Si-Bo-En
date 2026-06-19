@@ -1,10 +1,8 @@
 // app/layout.tsx
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
 import ClientProviders from './ClientProviders';
 
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Revchill - Find Your Next Adventure',
@@ -21,11 +19,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <body className={` antialiased`}>
         <ClientProviders>
-          {/* <Navbar /> */}
           <main className="min-h-screen">{children}</main>
-          {/* <Footer/> */}
         </ClientProviders>
       </body>
     </html>

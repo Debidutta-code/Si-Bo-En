@@ -2,6 +2,7 @@ import type { PolicyTypes } from "../interfaces";
 import { createPolicy, getPolicies,addPolicyToRatePlan,deletePolicyApi, updatePolicyApi } from "../api"
 import { upsertPolicyTranslationService } from "./policy-multilang.services";
 import type { UpsertPolicyTranslationPayload } from "../interfaces/policy-multilang.interface";
+import { removePolicyFromRatePlansApi } from "../api/policy.api";
 
 export const createPolicyService = async (policyName: string, type: PolicyTypes, propertyId: string, description?: string, translations?: UpsertPolicyTranslationPayload) => {
     if (!policyName || !type) {
@@ -111,3 +112,26 @@ export const updatePolicyDetailsService = async (policyId: string, policyName?: 
         }
     }
 }
+
+export const removePolicyFromRatePlansService = async (policyId: string, ratePlanIds: string[]) => {
+    if (!policyId) {
+        return {
+            success: false,
+            message: "Policy ID is required"
+        };
+    }
+    if (!ratePlanIds || ratePlanIds.length === 0) {
+        return {
+            success: false,
+            message: "At least one Rate Plan ID is required"
+        };
+    }
+    try {
+        return await removePolicyFromRatePlansApi(policyId, ratePlanIds);
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.message
+        };
+    }
+};

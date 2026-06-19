@@ -67,7 +67,8 @@ export const buildPricePayload = (opts: {
   selectedPromotions: ISelectedPromotion[];
   selectedAddons: ISelectedAddon[];
   includedAddonIds: string[];
-}): IGetPricePayload => {
+  email:string|null
+}, loyaltyToggleOn: boolean): IGetPricePayload => {
   const childAges = opts.roomsArray.flatMap((r) => r.childAges ?? []);
 
   const payload: IGetPricePayload = {
@@ -82,6 +83,8 @@ export const buildPricePayload = (opts: {
     childAges,
     promoCode: opts.promoCode,
     guestDistribution: opts.roomsArray,
+    applyLoyaltyDiscount: loyaltyToggleOn,
+    email: opts.email,
   };
 
   if (opts.selectedPromotions.length > 0) {
@@ -144,9 +147,8 @@ export const getAvailableAddons = async (
 
 export const getRoomPrice = async (
   payload: IGetPricePayload,
-  loyaltyToggleOn: boolean
 ): Promise<IFinalPrice> => {
-  const response = await fetchRoomPriceApi(payload, loyaltyToggleOn);
+  const response = await fetchRoomPriceApi(payload);
 
   if (!response.success) {
     throw new Error(response.message || "Failed to fetch price");

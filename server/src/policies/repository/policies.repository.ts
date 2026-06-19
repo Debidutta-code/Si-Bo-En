@@ -339,4 +339,48 @@ export class PolicyRepository {
             );
         }
     }
+    public static async RemovePolicyFromRatePlans(
+        policyId: string,
+        ratePlanIds: string[]
+    ): Promise<void> {
+        try {
+            const policy = await prisma.policy.findUnique({
+                where: { id: toStringId(policyId) },
+            });
+
+            if (!policy) {
+                throw new Error('Policy not found');
+            }
+
+            const policyType = policy.type;
+
+            for (const ratePlanId of ratePlanIds) {
+                const ratePlan = await prisma.ratePlan.findUnique({
+                    where: { id: toStringId(ratePlanId) },
+                });
+
+                if (!ratePlan) {
+                    throw new Error(`Rate Plan with id ${ratePlanId} not found`);
+                }
+
+                const updateData: any = {};
+                if (policyType === 'deposit') {
+                    updateData.depositPolicyId = null;
+                } else if (policyType === 'guarantee') {
+                    updateData.guaranteePolicyId = null;
+                } else if (policyType === 'cancellation') {
+                    updateData.cancellationPolicyId = null;
+                }
+
+                await prisma.ratePlan.update({
+                    where: { id: toStringId(ratePlanId) },
+                    data: updateData,
+                });
+            }
+        } catch (error: any) {
+            throw new Error(
+                `Failed to remove policy from rate plans: ${error.message}`
+            );
+        }
+    }
 }

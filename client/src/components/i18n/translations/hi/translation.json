@@ -2750,6 +2750,7 @@
     "actions": "कार्य",
     "editPolicy": "नीति संपादित करें",
     "addToRatePlan": "दर योजना में जोड़ें",
+    "removeFromRatePlan": "दर योजना से हटाएँ",
     "delete": "हटाएं",
     "deleteConfirmTitle": "क्या आप सुनिश्चित हैं?",
     "deleteConfirmDescription": "यह \"{{name}}\" को स्थायी रूप से हटा देगा। इस क्रिया को पूर्ववत नहीं किया जा सकता है।",

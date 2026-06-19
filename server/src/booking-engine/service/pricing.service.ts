@@ -54,15 +54,14 @@ export class PricingService {
         guestDistribution: IGuestDistribution[],
         children?: number,
         childAges?: number[],
-        customerId?: string,
         userCountryCode?: string,
         detectedDeviceType?: string,
         promotions?: ISelectedPromotion[],
         parsedAddons?: ISelectedAddonsS[],
         promoCode?: string,
-        includedAddons?: string[]
+        includedAddons?: string[],
+        loyalityEmail?: string
     ): Promise<IApiResponse<PriceBrakeDown>> {
-        console.log(customerId)
         try {
             const parsedStartDate: Date =
                 startDate instanceof Date ? startDate : new Date(startDate);
@@ -114,14 +113,13 @@ export class PricingService {
                 promoCode
                     ? this.pricingRepository.findPromoCode(promoCode)
                     : Promise.resolve(null),
-                customerId
+                loyalityEmail
                     ? this.pricingRepository.findLoyaltyDiscountData(
-                        customerId,
+                        loyalityEmail,
                         propertyId
                     )
                     : Promise.resolve(null),
             ]);
-
             const basePrice = new BasePriceClass(
                 startDate,
                 endDate,
@@ -180,7 +178,7 @@ export class PricingService {
                 priceBrakedowns = deviceDiscountClass.findPromoCodeDiscount();
             }
 
-            if (customerId && loyaltyDiscountData) {
+            if (loyalityEmail && loyaltyDiscountData) {
                 const loyalityDiscountClass = new LoyalityDiscountClass(
                     priceBrakedowns,
                     loyaltyDiscountData
@@ -346,11 +344,6 @@ class BasePriceClass {
             toUTC(this.startDate),
             toUTC(this.endDate)
         );
-        console.log("differnt", {
-            diffInDays,
-            charges: this.charges,
-            len: this.charges.length
-        })
         if (diffInDays != this.charges.length) {
             throw new Error('Charges not found for the given date range');
         }

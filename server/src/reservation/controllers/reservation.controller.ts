@@ -84,27 +84,15 @@ export class ReservationController {
                     .status(400)
                     .json(errorResponse('Property details is required'));
             }
-            const customerToken = req.cookies?.customerToken;
-            let customerId = null;
-            if(customerToken){
-                const decoded = await decodeToken(customerToken, config.customerJWTSecret!);
-                if (decoded) {
-                    customerId = decoded.id;
-                }
-
-            }
 
             const geoLocation = await getGeoLocationDetails(req);
             const countryCode = geoLocation?.country;
             const { deviceType } = getDeviceInfo(req);
-            const loyaltyToken = req.cookies?.loyalty_token;
             const serviceRes = await this.reservationService.createReservation(
                 data,
                 PropertyDetails,
                 countryCode,
                 deviceType,
-                loyaltyToken,
-                customerId
             );
 
             return res.status(serviceRes.success ? 200 : 400).json(serviceRes);

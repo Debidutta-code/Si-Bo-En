@@ -28,14 +28,13 @@ export class PricingController {
                 ratePlanCode,
                 parsedAddons,
                 promotions,
-                guestEmail,
+                email,
                 promoCode,
                 includedAddons,
                 childAges,
                 guestDistribution,
+                applyLoyaltyDiscount
             } = req.body;
-            const customerId=req?.cookies?.loyalty_token?.split("split")[0];
-            const LpropertyId=req?.cookies?.loyalty_token?.split("split")[1];
             const propertyId = req.property?.id;
 
             if (!propertyId) {
@@ -105,13 +104,13 @@ export class PricingController {
                 guestDistribution,
                 children ? children : 0,
                 childAges,
-                LpropertyId === propertyId ? customerId : "",
                 userCountryCode ? userCountryCode : '',
                 detectedDeviceType ? detectedDeviceType : '',
                 promotions ? promotions : [],
                 parsedAddons ? parsedAddons : [],
                 promoCode,
                 includedAddons ? includedAddons : [],
+                applyLoyaltyDiscount ? email : ''
 
             );
 

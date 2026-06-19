@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { ExternalLink, Cable, AlertCircle } from 'lucide-react';
 import type { IMasterPartnersWProperty } from '../types';
 import toast from 'react-hot-toast';
@@ -16,10 +17,12 @@ interface IntegrationDialogProps {
     propertyId: string;
     onIntegrationSuccess: () => void;
     onSubmit: (data: {
-        propertyId: string;
-        masterIntegrationId: string;
-        fields: Array<{ requiredFieldId: string; value: string }>;
-    }) => Promise<void>;
+    propertyId: string;
+    masterIntegrationId: string;
+    fields: Array<{ requiredFieldId: string; value: string }>;
+    amountBeforeTax: boolean;
+    amountAfterTax: boolean;
+}) => Promise<void>;
 }
 
 export default function IntegrationDialog({
@@ -34,6 +37,8 @@ export default function IntegrationDialog({
     const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    // Default ON = amount before tax
+    const [useAmountAfterTax, setUseAmountAfterTax] = useState(false);
 
     // Reset state when dialog opens/closes
     const handleOpenChange = (open: boolean) => {
@@ -41,6 +46,7 @@ export default function IntegrationDialog({
             setFieldValues({});
             setErrors({});
             setIsSubmitting(false);
+            setUseAmountAfterTax(false);
             onClose();
         }
     };
@@ -49,7 +55,7 @@ export default function IntegrationDialog({
         if (!value || value.trim() === '') {
             return t('PartnerIntegration.integrationDialog.validationRequired', { fieldName });
         }
-        
+
         // Additional validation based on field name
         if (fieldName.toLowerCase().includes('email')) {
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -57,7 +63,7 @@ export default function IntegrationDialog({
                 return t('PartnerIntegration.integrationDialog.validationEmail');
             }
         }
-        
+
         if (fieldName.toLowerCase().includes('url') || fieldName.toLowerCase().includes('endpoint')) {
             try {
                 new URL(value);
@@ -65,13 +71,13 @@ export default function IntegrationDialog({
                 return t('PartnerIntegration.integrationDialog.validationUrl');
             }
         }
-        
+
         if (fieldName.toLowerCase().includes('api') && fieldName.toLowerCase().includes('key')) {
             if (value.length < 10) {
                 return t('PartnerIntegration.integrationDialog.validationApiKey');
             }
         }
-        
+
         return null;
     };
 
@@ -118,14 +124,17 @@ export default function IntegrationDialog({
                 fields: partner.requiredFieldsForMasterIntegration.map(field => ({
                     requiredFieldId: field.id,
                     value: fieldValues[field.id]
-                }))
+                })),
+                amountBeforeTax: !useAmountAfterTax,
+                amountAfterTax: useAmountAfterTax,
             };
 
             await onSubmit(integrationData);
-            
+
             // Success - reset and close
             setFieldValues({});
             setErrors({});
+            setUseAmountAfterTax(false);
             onIntegrationSuccess();
             onClose();
         } catch (error) {
@@ -193,6 +202,40 @@ export default function IntegrationDialog({
                         </div>
                     )}
 
+                    {/* Pricing Mode Toggle */}
+                    <div className='space-y-2'>
+                        <Label className='text-base font-semibold'>Pricing Mode</Label>
+                        <p className='text-xs text-muted-foreground mb-2'>
+                            Choose whether rates pushed to {partner.name} should be sent as the amount
+                            before tax or the amount after tax.
+                        </p>
+                        <div className='flex items-center justify-between rounded-lg border p-3 bg-gray-50'>
+                            <div>
+                                <p className='text-sm font-medium text-gray-800'>
+                                    {useAmountAfterTax ? 'Amount After Tax' : 'Amount Before Tax'}
+                                </p>
+                                <p className='text-xs text-muted-foreground'>
+                                    {useAmountAfterTax
+                                        ? 'Rates sent will include tax'
+                                        : 'Rates sent will exclude tax (default)'}
+                                </p>
+                            </div>
+                            <div className='flex items-center gap-2'>
+                                <span className={`text-xs ${!useAmountAfterTax ? 'font-semibold text-blue-700' : 'text-gray-500'}`}>
+                                    Before Tax
+                                </span>
+                                <Switch
+                                    checked={useAmountAfterTax}
+                                    onCheckedChange={setUseAmountAfterTax}
+                                    disabled={isSubmitting}
+                                />
+                                <span className={`text-xs ${useAmountAfterTax ? 'font-semibold text-blue-700' : 'text-gray-500'}`}>
+                                    After Tax
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Required Fields Form */}
                     <div className='space-y-4'>
                         <div>
@@ -218,9 +261,9 @@ export default function IntegrationDialog({
                                     onChange={(e) => handleFieldChange(field.id, e.target.value)}
                                     className={errors[field.id] ? 'border-red-500' : ''}
                                     disabled={isSubmitting}
-                                    type={field.name.toLowerCase().includes('password') || 
-                                          field.name.toLowerCase().includes('secret') || 
-                                          field.name.toLowerCase().includes('key') ? 'password' : 'text'}
+                                    type={field.name.toLowerCase().includes('password') ||
+                                        field.name.toLowerCase().includes('secret') ||
+                                        field.name.toLowerCase().includes('key') ? 'password' : 'text'}
                                 />
                                 {errors[field.id] && (
                                     <p className='text-xs text-red-500 flex items-center gap-1'>

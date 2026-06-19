@@ -172,4 +172,34 @@ export class PolicyController {
                 .json(errorResponse('Internal server error', error?.message));
         }
     }
+    public static async removePolicyFromRatePlan(
+    req: CustomRequest,
+    res: Response
+) {
+    try {
+        const { policyId, ratePlanIds } = req.body;
+
+        if (!policyId) {
+            return res
+                .status(400)
+                .json(errorResponse('Policy ID is required'));
+        }
+        if (!ratePlanIds || !Array.isArray(ratePlanIds) || ratePlanIds.length === 0) {
+            return res
+                .status(400)
+                .json(errorResponse('At least one Rate Plan ID is required'));
+        }
+
+        const serRes = await PoliciesServices.RemovePolicyFromRatePlans(
+            policyId,
+            ratePlanIds
+        );
+        const resStatus = serRes.success ? 200 : 400;
+        return res.status(resStatus).json(serRes);
+    } catch (error: any) {
+        return res
+            .status(500)
+            .json(errorResponse('Internal server error', error?.message));
+    }
+}
 }

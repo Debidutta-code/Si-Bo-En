@@ -145,3 +145,25 @@ export const deletePropertyIntegrationField=async(fieldId:string)=>{
         }
     }
 } 
+export const updatePropertyIntegrationTaxMode = async (
+    integrationId: string,
+    amountBeforeTax: boolean,
+    amountAfterTax: boolean
+) => {
+    try {
+        const response = await axiosInstance.patch(
+            `/property-management/property/integration/property-integration/${integrationId}/tax-mode`,
+            { amountBeforeTax, amountAfterTax }
+        );
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            };
+        }
+    }
+};

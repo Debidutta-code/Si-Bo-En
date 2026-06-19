@@ -1,27 +1,73 @@
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Lock, Calendar, CheckCircle2, XCircle, Info, AlertCircle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { ExternalLink, Lock, Calendar, CheckCircle2, XCircle, Info, AlertCircle, Percent } from 'lucide-react';
 import type { IMasterPartnersWProperty } from '../types';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
+import { updatePropertyIntegrationTaxModeService } from '../services/property-config.services';
 
 interface ViewIntegrationDetailsDialogProps {
     isOpen: boolean;
     onClose: () => void;
     partner: IMasterPartnersWProperty | null;
+    onUpdate?: () => void;
 }
 
 export default function ViewIntegrationDetailsDialog({
     isOpen,
     onClose,
-    partner
+    partner,
+    onUpdate
 }: ViewIntegrationDetailsDialogProps) {
     const { t } = useTranslation();
+    const integration = partner?.propertyIntegrations?.[0];
+    const hasIntegration = !!integration;
+
+    // local toggle state: true = after tax, false = before tax (default)
+    const [useAmountAfterTax, setUseAmountAfterTax] = useState(false);
+    const [isUpdatingTaxMode, setIsUpdatingTaxMode] = useState(false);
+
+    // sync local state whenever the integration data changes / dialog opens
+    useEffect(() => {
+        if (integration) {
+            setUseAmountAfterTax(!!integration.amountAfterTax);
+        }
+    }, [integration?.id, integration?.amountAfterTax, integration?.amountBeforeTax, isOpen]);
+
     if (!partner) return null;
 
-    const integration = partner.propertyIntegrations?.[0];
-    const hasIntegration = !!integration;
+    const handleTaxModeToggle = async (checked: boolean) => {
+        if (!integration) return;
+
+        const previous = useAmountAfterTax;
+        setUseAmountAfterTax(checked); // optimistic update
+        setIsUpdatingTaxMode(true);
+
+        try {
+            const result = await updatePropertyIntegrationTaxModeService(
+                integration.id,
+                !checked, // amountBeforeTax
+                checked   // amountAfterTax
+            );
+
+            if (result?.success) {
+                toast.success('Tax mode updated successfully');
+                onUpdate?.();
+            } else {
+                setUseAmountAfterTax(previous); // revert on failure
+                toast.error(result?.message || 'Failed to update tax mode');
+            }
+        } catch (error: any) {
+            setUseAmountAfterTax(previous); // revert on error
+            toast.error(error?.message || 'Failed to update tax mode');
+        } finally {
+            setIsUpdatingTaxMode(false);
+        }
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -91,6 +137,42 @@ export default function ViewIntegrationDetailsDialog({
                             )}
                         </div>
                     </div>
+
+                    {/* Tax Mode Toggle */}
+                    {hasIntegration && (
+                        <div>
+                            <Label className='text-lg font-bold mb-4 flex items-center gap-2'>
+                                <div className='h-8 w-8 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center'>
+                                    <Percent className='h-4 w-4 text-white' />
+                                </div>
+                                Pricing Mode
+                            </Label>
+                            <div className='flex items-center justify-between rounded-xl border-2 border-gray-200 p-4 bg-gradient-to-r from-gray-50 to-slate-50'>
+                                <div>
+                                    <p className='text-sm font-semibold text-gray-800'>
+                                        {useAmountAfterTax ? 'Amount After Tax' : 'Amount Before Tax'}
+                                    </p>
+                                    <p className='text-xs text-muted-foreground mt-1'>
+                                        Rates pushed to {partner.name} will be sent {useAmountAfterTax ? 'inclusive' : 'exclusive'} of tax
+                                        {!useAmountAfterTax && ' (default)'}
+                                    </p>
+                                </div>
+                                <div className='flex items-center gap-3'>
+                                    <span className={`text-xs ${!useAmountAfterTax ? 'font-semibold text-blue-700' : 'text-gray-500'}`}>
+                                        Before Tax
+                                    </span>
+                                    <Switch
+                                        checked={useAmountAfterTax}
+                                        onCheckedChange={handleTaxModeToggle}
+                                        disabled={isUpdatingTaxMode}
+                                    />
+                                    <span className={`text-xs ${useAmountAfterTax ? 'font-semibold text-blue-700' : 'text-gray-500'}`}>
+                                        After Tax
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* API Endpoints */}
                     {partner.masterIntegrationURLFields.length > 0 && (

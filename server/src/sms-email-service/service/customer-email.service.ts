@@ -4,7 +4,7 @@ import {
 } from '../templatesss';
 import { config } from '../../config';
 import { emailQueue } from '../../index';
-import { generateOTPEmailTemplate } from '../templatesss/otp.tempate';
+import { generateOTPEmailTemplate } from '../templatesss/user.tempate';
 
 export class EmailService {
     private otpRepository: EmailOTPRepository;

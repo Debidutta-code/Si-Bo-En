@@ -131,11 +131,7 @@ export class LoyaltyGuestRepository {
                             createdAt: true,
                         },
                     },
-                    Customer: {
-                        include: {
-                            PrimaryGuests: true,
-                        },
-                    },
+                    Customer: true,
                 },
                 skip,
                 take,
@@ -206,14 +202,10 @@ export class LoyaltyGuestRepository {
 
     public async handlePostBookingLoyalty(
         propertyId: string,
-        loyaltyToken?: string
+        email?: string
     ): Promise<void> {
         try {
-            if (!loyaltyToken) return
-            const guestId = loyaltyToken.split("split")[0]
-            const lPropertyId = loyaltyToken.split("split")[1]
-            const shouldUpgrade = lPropertyId === propertyId
-            if (!shouldUpgrade) return
+            if (!email) return
 
             const propertyLoyaltyConfig =
                 await this.getPropertyLoyaltyConfigByPropertyId(propertyId);
@@ -224,7 +216,7 @@ export class LoyaltyGuestRepository {
                 propertyLoyaltyConfig.creationLoyaltyConfigId;
 
             const customer = await prisma.customers.findUnique({
-                where: { id: guestId },
+                where: { email },
             });
             if (!customer) return;
 

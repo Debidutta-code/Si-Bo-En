@@ -12,21 +12,59 @@ import {
   setSenderUrl,
 } from "../../../store/bookingSlice";
 import { useBookingColors } from "../../../hooks/useBookingColors";
+import { useBookingStorage } from "../../../hooks/useBookingStorage";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
-import PriceSummarySidebar from "../../../components/RoomPage/Pricesummerysidebar";
 import GuestFormModal from "../../../components/GuestModals/GuestFormModal";
-import { IPropertyLoyalityWithLoyality } from "./interface";
+import AddonSelectionModal from "@/src/components/RoomPage/AddonSelectionModal";
+import { IPropertyLoyalityWithLoyality, IRoomDetails, IRoomPrice } from "./interface";
 import { LoyaltyProgramBanner } from "@/src/components/RoomPage/LoyalityBanner";
 import { LoyaltyContainer } from "../../../components/RoomPage/LoyalityContainer";
 import { useTranslation } from "react-i18next";
 import { Volume2, VolumeX } from "lucide-react";
 
 import { usePropertyContext } from "@/src/components/context/property-context";
-import { IFetchRoomsRequest, IFinalPrice, IGuest, IPriceSummaryData, IPropertyDetails, IRoom, ISelectedAddon } from "./types";
-import { buildRoomsArrayFallback, fetchRoomsService, normalizePriceBreakdown } from "./services";
+import {
+  IAddonAvailability,
+  IFetchRoomsRequest,
+  IFinalPrice,
+  IGuest,
+  IPriceSummaryData,
+  IPropertyDetails,
+  IRoom,
+  IRoomGuestDetail,
+  ISelectedAddon,
+  ISelectedPromotion,
+} from "./types";
+import {
+  buildPricePayload,
+  buildRoomsArrayFallback,
+  fetchRoomsService,
+  getAvailableAddons,
+  getRoomPrice,
+  normalizePriceBreakdown,
+} from "./services";
 import { BookingConditionsModal, UrgencyBanner } from "./components";
+import { set } from "date-fns";
 
+/** Mirrors the shape Rooms reads off bookingContext for guest-count derivation. Lifted from the old RoomCard — Rooms is now the only place that needs it. */
+const deriveRoomsArray = (ctx: any): IRoomGuestDetail[] => {
+  if (Array.isArray(ctx?.guests?.roomsArray) && ctx.guests.roomsArray.length > 0) {
+    return ctx.guests.roomsArray;
+  }
+  return [{ adults: ctx?.guests?.adults ?? 1, children: ctx?.guests?.children ?? 0, childAges: [] }];
+};
 
+/** Lifted from the old RoomCard — only needed for the AddonSelectionModal, which now renders here. */
+const getDatesBetween = (startDate: string, endDate: string): string[] => {
+  const dates: string[] = [];
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  while (start < end) {
+    dates.push(new Date(start).toISOString().split("T")[0]);
+    start.setDate(start.getDate() + 1);
+  }
+  return dates;
+};
 
 const Rooms = () => {
   const { t, i18n } = useTranslation();
@@ -37,57 +75,45 @@ const Rooms = () => {
   const { propertyDetails, isLoading: propertyLoading } = usePropertyContext();
   const bookingContext = useSelector((state: RootState) => state.booking);
   const { primaryColor } = useBookingColors();
+  const { colors: bookingColors } = useBookingStorage(bookingContext);
 
   // ─── Rooms state ──────────────────────────────────────────────────────────
-  const [roomsData, setRoomsData] = useState<any[]>([]);
-  const [addons, setAddons] = useState<any[]>([]);
+  const [roomsData, setRoomsData] = useState<IRoomDetails[]>([]);
   const [loyaltyProgram, setLoyaltyProgram] =
     useState<IPropertyLoyalityWithLoyality | null>(null);
-  const [errorRooms, setErrorRooms] = useState<string | null>(null);
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState<boolean>(true);
 
   // ─── Booking flow state ───────────────────────────────────────────────────
-  const [bookingRoom, setBookingRoom] = useState<IRoom | null>(null);
-  const [currentRatePlan, setCurrentRatePlan] = useState<any>(null);
-  const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
+  const [bookingRoom, setBookingRoom] = useState<IRoom | null>(null);// state for showing selected room for booking
+  const [currentRatePlan, setCurrentRatePlan] = useState<IRoomPrice | null>(null);
+
+  const [selectedRatePlanKey, setSelectedRatePlanKey] = useState<string | null>(null);
   const [guestForms, setGuestForms] = useState<IGuest[]>([]);
   const [contactInfo, setContactInfo] = useState({ email: "", phoneNumber: "" });
   const [price, setPrice] = useState<number | null>(null);
   const [finalPrice, setFinalPrice] = useState<IFinalPrice | null>(null);
-  const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<any[]>([]);
-  const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
+  const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<ISelectedPromotion[]>([]);
 
-  // ─── Loyalty state ────────────────────────────────────────────────────────
+  const [availableAddons, setAvailableAddons] = useState<IAddonAvailability[]>([]);
+  const [selectedAddons, setSelectedAddons] = useState<ISelectedAddon[]>([]);
+  const [addonModalOpen, setAddonModalOpen] = useState(false);
+  const [guestModalOpen, setGuestModalOpen] = useState(false);
+
   const [loyaltyDiscountInfo, setLoyaltyDiscountInfo] = useState<{
     type: string; value: number; currencyCode: string;
   } | null>(null);
-  const [loyaltyToggleOn, setLoyaltyToggleOn] = useState(false);
-  const [showLoyaltySignup, setShowLoyaltySignup] = useState(false);
-  // Add this state
-  const [roomsPropertyDetails, setRoomsPropertyDetails] = useState<IPropertyDetails | null>(null);
-  // ─── UI state ─────────────────────────────────────────────────────────────
-  const [isMuted, setIsMuted] = useState(true);
-  const [loaded, setLoaded] = useState(false);
-  const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
-  const [showPriceSummary, setShowPriceSummary] = useState(false);
-  const [priceSummaryData, setPriceSummaryData] = useState<IPriceSummaryData | null>(null);
-  const [isExternalRequest, setIsExternalRequest] = useState(false);
+  const [loyalityToogle, setLoyaltyToggle] = useState<boolean>(true);
+  const [fetchedPropertyDetails, setFetchedPropertyDetails] = useState<IPropertyDetails | null>(null);
+  const [isFetchingStep2, setIsFetchingStep2] = useState(false);
+  const [step2Error, setStep2Error] = useState<string | null>(null);
+
+  const [isMuted, setIsMuted] = useState<boolean>(true);//property vedio muted
+  const [bookingConditionsModal, setBookingConditionsModal] = useState<boolean>(false);
+  const [showPriceSummary, setShowPriceSummary] = useState<boolean>(false);
 
   const isLoadingFromExternal = useRef(false);
-  const bgImage =
-    bookingContext?.bookingEngineColor?.bgImage ||
-    bookingContext?.PropertyDetails?.image?.[0];
+  const loadingRatePlanKey = isFetchingStep2 ? selectedRatePlanKey : null;
 
-  useEffect(() => {
-    if (!bgImage) { setLoaded(true); return; }
-    setLoaded(false);
-    const img = new Image();
-    img.src = bgImage;
-    img.onload = () => setLoaded(true);
-    img.onerror = () => setLoaded(true);
-  }, [bgImage]);
-
-  // ─── Core rooms fetch ─────────────────────────────────────────────────────
 
   const handleSearchStart = async (payload: any) => {
     const bookingCtx = payload || bookingContext;
@@ -114,12 +140,9 @@ const Rooms = () => {
     }
 
     setInitialLoading(true);
-    setErrorRooms(null);
     dispatch({ type: "rooms/setRooms", payload: [] });
     setRoomsData([]);
-    setAddons([]);
     setShowPriceSummary(false);
-    setPriceSummaryData(null);
     setLoyaltyProgram(null);
 
     const request: IFetchRoomsRequest = {
@@ -141,7 +164,7 @@ const Rooms = () => {
 
     const data = await fetchRoomsService(request);
 
-    if (!data.success || data.status === "fail") {
+    if (!data.success) {
       toast.error(data.message || t("Rooms.failedToLoad"));
       dispatch({ type: "rooms/setRooms", payload: [] });
       setInitialLoading(false);
@@ -149,7 +172,7 @@ const Rooms = () => {
     }
 
     setLoyaltyProgram(data.data?.propertyDetails?.loyaltyProgramConfig || null);
-    setRoomsPropertyDetails(data.data?.propertyDetails || null); // ← add this
+    setFetchedPropertyDetails(data.data?.propertyDetails);
 
     dispatch(
       setBookingContext({
@@ -160,12 +183,10 @@ const Rooms = () => {
     );
 
     dispatch({ type: "rooms/setRooms", payload: data.data || [] });
-    setRoomsData(data.data?.rooms || []);
-    
+    setRoomsData(data.data.rooms);
+
     setInitialLoading(false);
   };
-
-  // ─── Parse external URL params ────────────────────────────────────────────
 
   const getBookingDataFromParams = () => {
     const code = searchParams.get("code");
@@ -229,141 +250,91 @@ const Rooms = () => {
     };
   };
 
-const hasFetched = useRef(false);
+  const hasFetched = useRef(false);
 
-useEffect(() => {
-  if (hasFetched.current) return;
-  hasFetched.current = true;
+  useEffect(() => {
+    if (hasFetched.current) return;
+    hasFetched.current = true;
 
-  const initBookingContext = async () => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const defaultStartDate = today.toISOString().split("T")[0];
-    const defaultEndDate = tomorrow.toISOString().split("T")[0];
+    const initBookingContext = async () => {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      const defaultStartDate = today.toISOString().split("T")[0];
+      const defaultEndDate = tomorrow.toISOString().split("T")[0];
 
-    const paramsData = getBookingDataFromParams();
+      const paramsData = getBookingDataFromParams();
 
-    if (paramsData) {
-      setIsExternalRequest(true);
-      isLoadingFromExternal.current = true;
-      const contextWithDates = {
-        ...paramsData,
-        startDate: paramsData.startDate || defaultStartDate,
-        endDate: paramsData.endDate || defaultEndDate,
-        numberOfRooms: paramsData.numberOfRooms || 1,
-        location: paramsData.location || "",
-        promocode: paramsData.promocode || "",
-      };
+      if (paramsData) {
+        // setIsExternalRequest(true);
+        isLoadingFromExternal.current = true;
+        const contextWithDates = {
+          ...paramsData,
+          startDate: paramsData.startDate || defaultStartDate,
+          endDate: paramsData.endDate || defaultEndDate,
+          numberOfRooms: paramsData.numberOfRooms || 1,
+          location: paramsData.location || "",
+          promocode: paramsData.promocode || "",
+        };
 
-      dispatch(setBookingSource(paramsData.bookingSource));
-      dispatch(setBookingContext(contextWithDates));
+        dispatch(setBookingSource(paramsData.bookingSource));
+        dispatch(setBookingContext(contextWithDates));
 
-      const referrer = document.referrer;
-      if (referrer) {
-        dispatch(setSenderUrl(referrer));
-        sessionStorage.setItem("senderUrl", referrer);
+        const referrer = document.referrer;
+        if (referrer) {
+          dispatch(setSenderUrl(referrer));
+          sessionStorage.setItem("senderUrl", referrer);
+        }
+
+        await handleSearchStart(contextWithDates);
+        isLoadingFromExternal.current = false;
+
+      } else if (
+        bookingContext?.PropertyCode &&
+        bookingContext?.startDate &&
+        bookingContext?.endDate
+      ) {
+        await handleSearchStart(bookingContext);
+
+      } else {
+        const urlCode = searchParams.get("code") || "4BTXDZ";
+        const defaultContext = {
+          PropertyCode: urlCode,
+          startDate: defaultStartDate,
+          endDate: defaultEndDate,
+          guests: {
+            rooms: 1,
+            adults: 1,
+            children: 0,
+            roomsArray: [{ adults: 1, children: 0, childAges: [] }],
+          },
+          location: "",
+          numberOfRooms: 1,
+          promocode: "",
+        };
+        dispatch(setBookingContext(defaultContext));
+        await handleSearchStart(defaultContext);
       }
+    };
 
-      await handleSearchStart(contextWithDates);
-      isLoadingFromExternal.current = false;
+    initBookingContext();
+  }, []);
+  const isFirstRender = useRef(true);
 
-    } else if (
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (
       bookingContext?.PropertyCode &&
       bookingContext?.startDate &&
       bookingContext?.endDate
     ) {
-      await handleSearchStart(bookingContext);
-
-    } else {
-      const urlCode = searchParams.get("code") || "4BTXDZ";
-      const defaultContext = {
-        PropertyCode: urlCode,
-        startDate: defaultStartDate,
-        endDate: defaultEndDate,
-        guests: {
-          rooms: 1,
-          adults: 1,
-          children: 0,
-          roomsArray: [{ adults: 1, children: 0, childAges: [] }],
-        },
-        location: "",
-        numberOfRooms: 1,
-        promocode: "",
-      };
-      dispatch(setBookingContext(defaultContext));
-      await handleSearchStart(defaultContext);
+      handleSearchStart(bookingContext);
     }
-  };
-
-  initBookingContext();
-}, []); 
-const isFirstRender = useRef(true);
-
-useEffect(() => {
-  if (isFirstRender.current) {
-    isFirstRender.current = false;
-    return;
-  }
-
-  if (
-    bookingContext?.PropertyCode &&
-    bookingContext?.startDate &&
-    bookingContext?.endDate
-  ) {
-    handleSearchStart(bookingContext);
-  }
-}, [i18n.language]);
-  const handleBookNow = (
-    room: IRoom,
-    ratePlan: any,
-    selectedAddonsList: ISelectedAddon[],
-    selectedPromotionsList: any[],
-    priceData: any
-  ) => {
-    setBookingSelectedPromotions(selectedPromotionsList);
-
-    const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
-    let allGuests: IGuest[] = [];
-    let noOfRooms = 1;
-
-    if (Array.isArray(rawRooms)) {
-      noOfRooms = rawRooms.length;
-      rawRooms.forEach((rm) => {
-        for (let i = 0; i < (rm.adults || 0); i++)
-          allGuests.push({ type: "adult", firstName: "", lastName: "", dateOfBirth: "" });
-        for (let i = 0; i < (rm.children || 0); i++)
-          allGuests.push({ type: "child", firstName: "", lastName: "", dateOfBirth: "" });
-      });
-    } else {
-      const noOfAdults = bookingContext.guests?.adults || 1;
-      const noOfChildrens = bookingContext.guests?.children || 0;
-      noOfRooms =
-        typeof bookingContext.guests?.rooms === "number"
-          ? bookingContext.guests.rooms
-          : Array.isArray(bookingContext.guests?.rooms)
-            ? bookingContext.guests.rooms.length
-            : 1;
-      for (let i = 0; i < noOfAdults; i++)
-        allGuests.push({ type: "adult", firstName: "", lastName: "", dateOfBirth: "" });
-      for (let i = 0; i < noOfChildrens; i++)
-        allGuests.push({ type: "child", firstName: "", lastName: "", dateOfBirth: "" });
-    }
-
-    setGuestForms(allGuests);
-
-    const normalized = normalizePriceBreakdown(priceData, {
-      noOfRooms,
-      ratePlanCode: ratePlan.ratePlanCode,
-    });
-
-    setFinalPrice(normalized);
-    setPrice(normalized?.totalAmount ?? null);
-    setBookingRoom(room);
-    setCurrentRatePlan(ratePlan);
-    setSelectedAddons(selectedAddonsList);
-    setShowPriceSummary(false);
-  };
+  }, [i18n.language]);
 
   const handleGuestDetailChange = (index: number, field: keyof IGuest, value: string) => {
     setGuestForms((prev) => {
@@ -376,7 +347,142 @@ useEffect(() => {
   const handleContactChange = (field: "email" | "phoneNumber", value: string) => {
     setContactInfo((prev) => ({ ...prev, [field]: value }));
   };
+  const handleSelectRatePlan = async (
+    room: IRoom,
+    ratePlan: IRoomPrice,
+    selectedPromotionsList: ISelectedPromotion[],
+    ratePlanKey: string
+  ) => {
+    try {
+      setBookingSelectedPromotions(selectedPromotionsList)
+      setBookingRoom(room)
+      setCurrentRatePlan(ratePlan)
+      const addons = await getAvailableAddons(
+        bookingContext.PropertyCode,
+        bookingContext.startDate,
+        bookingContext.endDate,
+        ratePlan.ratePlanCode
+      )
+      if (addons && addons.length > 0) {
+        setAvailableAddons(addons);
+        setAddonModalOpen(true);
+      } else {
+        const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
+        const allGuests: IGuest[] = [];
 
+        if (Array.isArray(rawRooms)) {
+          rawRooms.forEach((rm) => {
+            for (let i = 0; i < (rm.adults || 0); i++)
+              allGuests.push({ type: "adult", firstName: "", lastName: "", dateOfBirth: "" });
+            for (let i = 0; i < (rm.children || 0); i++)
+              allGuests.push({ type: "child", firstName: "", lastName: "", dateOfBirth: "" });
+          });
+        } else {
+          const adults = bookingContext.guests?.adults || 1;
+          const children = bookingContext.guests?.children || 0;
+          for (let i = 0; i < adults; i++)
+            allGuests.push({ type: "adult", firstName: "", lastName: "", dateOfBirth: "" });
+          for (let i = 0; i < children; i++)
+            allGuests.push({ type: "child", firstName: "", lastName: "", dateOfBirth: "" });
+        }
+
+        setGuestForms(allGuests);
+
+        setGuestModalOpen(true);
+      }
+    } catch (error) {
+    }
+  };
+  const handleOpenAddonModal = () => setAddonModalOpen(true);
+  const handleAddonModalSkip = () => {
+    setAddonModalOpen(false);
+    handleAddonModalContinue([]);
+  }
+  const handleAddonModalContinue = async (addons: ISelectedAddon[]) => {
+    if (!bookingRoom || !currentRatePlan) return;
+    setSelectedAddons(addons);
+    setAddonModalOpen(false);
+    setFinalPrice(null);
+    setPrice(null);
+    setShowPriceSummary(false);
+    setStep2Error(null);
+    const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
+    const allGuests: IGuest[] = [];
+
+    if (Array.isArray(rawRooms)) {
+      rawRooms.forEach((rm) => {
+        for (let i = 0; i < (rm.adults || 0); i++)
+          allGuests.push({ type: "adult", firstName: "", lastName: "", dateOfBirth: "" });
+        for (let i = 0; i < (rm.children || 0); i++)
+          allGuests.push({ type: "child", firstName: "", lastName: "", dateOfBirth: "" });
+      });
+    } else {
+      const adults = bookingContext.guests?.adults || 1;
+      const children = bookingContext.guests?.children || 0;
+      for (let i = 0; i < adults; i++)
+        allGuests.push({ type: "adult", firstName: "", lastName: "", dateOfBirth: "" });
+      for (let i = 0; i < children; i++)
+        allGuests.push({ type: "child", firstName: "", lastName: "", dateOfBirth: "" });
+    }
+
+    setGuestForms(allGuests);
+
+    setGuestModalOpen(true);
+    setContactInfo({ email: "", phoneNumber: "" }); try {
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to update price";
+      setStep2Error(msg);
+    } finally {
+      setIsFetchingStep2(false);
+    }
+  };
+
+  const handleStep1Complete = async (email: string) => {
+    if (!bookingRoom || !currentRatePlan) return;
+    setIsFetchingStep2(true);
+    setStep2Error(null);
+    try {
+      const roomsArray = deriveRoomsArray(bookingContext);
+      const noOfRooms = roomsArray.length || 1;
+      const noOfAdults = roomsArray.reduce((sum, r) => sum + (r.adults || 0), 0);
+      const noOfChildrens = roomsArray.reduce((sum, r) => sum + (r.children || 0), 0);
+
+      const rawPrice = await
+        getRoomPrice(
+          buildPricePayload({
+            propertyCode: bookingContext.PropertyCode,
+            roomType: bookingRoom.roomType,
+            ratePlanCode: currentRatePlan.ratePlanCode,
+            startDate: bookingContext.startDate,
+            endDate: bookingContext.endDate,
+            noOfAdults,
+            noOfChildren: noOfChildrens,
+            noOfRooms,
+            roomsArray,
+            promoCode: bookingContext.promocode ?? "",
+            selectedPromotions: bookingSelectedPromotions,
+            selectedAddons: selectedAddons,
+            includedAddonIds: currentRatePlan.addons?.map((a) => a.id) ?? [],
+            email: loyalityToogle ? email : null,
+          }, loyalityToogle)
+        );
+
+      const normalized = normalizePriceBreakdown(rawPrice, {
+        noOfRooms,
+        ratePlanCode: currentRatePlan.ratePlanCode,
+      });
+
+      setFinalPrice(normalized);
+      setPrice(normalized?.totalAmount ?? null);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to fetch price";
+      setStep2Error(msg);
+      // Re-throw so GuestFormModal knows Step 1 → Step 2 failed and stays on Step 1.
+      throw e;
+    } finally {
+      setIsFetchingStep2(false);
+    }
+  };
   const handleSubmitBooking = () => {
     if (!bookingRoom || !currentRatePlan) return;
 
@@ -387,7 +493,7 @@ useEffect(() => {
       guests: bookingContext.guests,
       location: bookingContext.location,
       roomId: bookingRoom.id,
-      currency: currentRatePlan.currencycode,
+      currency: currentRatePlan.currencyCode,
       email: contactInfo.email,
       phone: contactInfo.phoneNumber,
       hotelName: bookingContext.hotelName,
@@ -420,7 +526,6 @@ useEffect(() => {
     document.cookie = "can_access_payment=true; path=/; max-age=300";
     router.push(`/Payment?code=${bookingContext.PropertyCode || searchParams.get("code")}`);
   };
-
 
   if (initialLoading || propertyLoading) {
     return (
@@ -481,22 +586,13 @@ useEffect(() => {
     );
   }
 
-  // ─── Main render ──────────────────────────────────────────────────────────
-
   return (
     <div className="w-full">
-      {!loaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white z-50">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-400 border-t-transparent" />
-        </div>
-      )}
+
 
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
-          }`}
-        onLoad={() => setLoaded(true)}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700`}
       >
-        {/* Search widget */}
         <div className="z-40 bg-white/90 backdrop-blur shadow-sm">
           <SearchWidget
             onSearchStart={(payload) => {
@@ -507,30 +603,29 @@ useEffect(() => {
 
         <div className="px-4 py-3">
           <div className="max-w-7xl mx-auto">
-            {/* Urgency banner — owns its own dismiss state */}
             <UrgencyBanner primaryColor={primaryColor} />
 
-            {/* Video + Loyalty banner row */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              {roomsPropertyDetails?.propertyVideos && roomsPropertyDetails?.propertyVideos !== null && (
+              {fetchedPropertyDetails?.propertyVideos && fetchedPropertyDetails?.propertyVideos !== null && (
                 <div className={loyaltyProgram ? "lg:col-span-7" : "lg:col-span-12"}>
                   <div
-                    className="rounded-xl shadow-md border overflow-hidden h-full"
+                    className="rounded-xl shadow-md border overflow-hidden h-[348px]"
                     style={{ borderColor: `${primaryColor}40` }}
                   >
-                    <div className={`relative w-full ${loyaltyProgram ? "h-[348px]" : "h-[350px]"}`}>
+                    <div className="relative w-full h-full">
                       <video
                         className="w-full h-full object-cover"
                         autoPlay
                         loop
                         muted={isMuted}
                         playsInline
-                        src={roomsPropertyDetails.propertyVideos.url}
+                        src={fetchedPropertyDetails.propertyVideos.url}
                       />
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                         <h3 className="text-white font-semibold text-lg">
-                          {roomsPropertyDetails._translations?roomsPropertyDetails._translations.propertyName :
-                            roomsPropertyDetails.propertyName}{" "}
+                          {fetchedPropertyDetails._translations
+                            ? fetchedPropertyDetails._translations.propertyName
+                            : fetchedPropertyDetails.propertyName}{" "}
                           — {t("Rooms.videoOverlay")}
                         </h3>
                       </div>
@@ -547,10 +642,7 @@ useEffect(() => {
               )}
 
               {loyaltyProgram && (
-                <div
-                  data-loyalty-banner=""
-                  className={roomsPropertyDetails?.propertyVideos ? "lg:col-span-5" : "lg:col-span-12"}
-                >
+                <div className={fetchedPropertyDetails?.propertyVideos ? "lg:col-span-5" : "lg:col-span-12"}>
                   <LoyaltyProgramBanner
                     loyaltyProgram={loyaltyProgram}
                     primaryColor={primaryColor}
@@ -565,11 +657,8 @@ useEffect(() => {
                 <LoyaltyContainer
                   loyaltyProgram={loyaltyProgram}
                   primaryColor={primaryColor}
-                  showSignUpModal={showLoyaltySignup}
-                  onDiscountVerified={setLoyaltyDiscountInfo}
-                  onShowSignUpModalChange={setShowLoyaltySignup}
-                  toggleOn={!!loyaltyToggleOn}
-                  onToggleChange={setLoyaltyToggleOn}
+                  toggleOn={loyalityToogle}
+                  onToggleChange={setLoyaltyToggle}
                 />
               </div>
             )}
@@ -584,40 +673,31 @@ useEffect(() => {
                 className={`flex-1 ${showPriceSummary ? "lg:w-2/3" : "w-full"} transition-all duration-300`}
               >
                 <div className="p-2 sm:p-4 bg-white border border-gray-200 rounded-xl">
-                  {errorRooms ? (
-                    <div className="text-center text-red-600 text-xl py-10 font-medium">
-                      {errorRooms}
-                    </div>
-                  ) : roomsData.length === 0 ? (
+                  {roomsData.length === 0 ? (
                     <div className="text-center text-gray-600 text-xl py-10 font-medium">
                       {t("Rooms.noRoomsHotel")}
                     </div>
-                  ) : roomsData.filter((r: IRoom) => r.hasValidRate).length === 0 ? (
+                  ) : roomsData.filter((r: IRoomDetails) => r.hasValidRate).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       {t("Rooms.noRooms")}
                     </div>
                   ) : (
                     <div className="space-y-8 rounded-xl md:p-4">
                       {roomsData
-                        .filter((room: IRoom) => room.hasValidRate)
-                        .map((room: IRoom) => (
+                        .filter((room: IRoomDetails) => room.hasValidRate)
+                        .map((room: IRoomDetails) => (
                           <RoomCard
                             key={room.id}
                             room={room}
                             propertyDetails={propertyDetails}
-                            addons={addons}
                             bookingContext={bookingContext}
-                            onBookNow={handleBookNow}
-                            loadingBookNow={loadingBookNow}
-                            onPriceUpdate={(data: IPriceSummaryData) => {
-                              setPriceSummaryData(data);
-                              setShowPriceSummary(true);
-                            }}
+                            onSelectRatePlan={handleSelectRatePlan}
                             selectedBoardType="all"
                             loyalty={loyaltyProgram}
                             loyaltyDiscountInfo={loyaltyDiscountInfo}
-                            loyaltyToggleOn={loyaltyToggleOn}
-                            onUnlockLoyalty={() => setShowLoyaltySignup(true)}
+                            loyaltyToggleOn={loyalityToogle}
+                            setLoyaltyToggle={setLoyaltyToggle}
+                            loadingRatePlanKey={loadingRatePlanKey}
                           />
                         ))}
                     </div>
@@ -625,20 +705,7 @@ useEffect(() => {
                 </div>
               </div>
 
-              {showPriceSummary && priceSummaryData && (
-                <div className="hidden lg:block lg:w-82 xl:w-96">
-                  <PriceSummarySidebar
-                    bookingRoom={priceSummaryData.room}
-                    currentRatePlan={priceSummaryData.ratePlan}
-                    selectedAddons={priceSummaryData.selectedAddons}
-                    basePrice={priceSummaryData.basePrice}
-                    totalAddonsPrice={priceSummaryData.totalAddonsPrice}
-                    finalPrice={priceSummaryData.finalprice}
-                    bookingContext={bookingContext}
-                    onClose={() => { setShowPriceSummary(false); setPriceSummaryData(null); }}
-                  />
-                </div>
-              )}
+
             </div>
           </div>
         </div>
@@ -646,12 +713,11 @@ useEffect(() => {
 
       {/* Booking conditions modal */}
       <BookingConditionsModal
-        open={urgencyModalOpen}
-        onOpenChange={setUrgencyModalOpen}
+        open={bookingConditionsModal}
+        onOpenChange={setBookingConditionsModal}
       />
 
-      {/* Guest form modal */}
-      {bookingRoom && price !== null && (
+      {guestModalOpen && (
         <GuestFormModal
           guestForms={guestForms}
           contactInfo={contactInfo}
@@ -660,14 +726,38 @@ useEffect(() => {
           bookingContext={bookingContext}
           loyaltyDiscountInfo={loyaltyDiscountInfo}
           propertyId={propertyDetails?.id || ""}
+          // availableAddons={availableAddons}
+          onOpenAddonModal={handleOpenAddonModal}
           onClose={() => {
             setBookingRoom(null);
             setCurrentRatePlan(null);
+            setSelectedRatePlanKey(null);
             setSelectedAddons([]);
+            setAvailableAddons([]);
+            setAddonModalOpen(false);
+            setStep2Error(null);
+            setGuestModalOpen(false);
           }}
           handleGuestDetailChange={handleGuestDetailChange}
           handleContactChange={handleContactChange}
+          onStepOneComplete={handleStep1Complete}
+          isFetchingStep2={isFetchingStep2}
+          step2Error={step2Error}
           onSubmit={handleSubmitBooking}
+        />
+      )}
+
+      {addonModalOpen && (
+        <AddonSelectionModal
+          isOpen={addonModalOpen}
+          onClose={() => setAddonModalOpen(false)}
+          addons={availableAddons}
+          bookingDates={getDatesBetween(bookingContext.startDate, bookingContext.endDate)}
+          onContinue={handleAddonModalContinue}
+          onSkip={handleAddonModalSkip}
+          primaryColor={primaryColor}
+          buttonTextColor={bookingColors?.buttonTextColor}
+          currencyCode={currentRatePlan?.currencyCode}
         />
       )}
     </div>

@@ -177,7 +177,8 @@ export class SiteMinderXmlParser {
 
         const rawBase: any[] = rate?.BaseByGuestAmts?.BaseByGuestAmt ?? [];
         const baseByGuestAmts: SiteMinderBaseByGuestAmt[] = rawBase.map((b: any) => ({
-            amountAfterTax: parseFloat(b?.['@_AmountAfterTax'] ?? 0),
+            amountAfterTax: b?.['@_AmountAfterTax'] !== undefined ? parseFloat(b['@_AmountAfterTax']) : undefined,
+            amountBeforeTax: b?.['@_AmountBeforeTax'] !== undefined ? parseFloat(b['@_AmountBeforeTax']) : undefined,
             currencyCode: b?.['@_CurrencyCode'],
             numberOfGuests: b?.['@_NumberOfGuests'] !== undefined
                 ? parseInt(b['@_NumberOfGuests'])

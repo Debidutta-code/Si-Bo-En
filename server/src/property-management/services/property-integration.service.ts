@@ -74,7 +74,10 @@ export class PropertyIntegrationService {
             const result =
                 await this.propertyIntegrationRepository.createIntegration(
                     data.propertyId,
-                    data.masterIntegrationId
+                    data.masterIntegrationId,
+                    data.amountAfterTax ?? false,
+                    data.amountBeforeTax ?? true
+                    
                 );
             await this.propertyIntegrationSecretsRepository.createIntegrationSecret(
                 data.fields,
@@ -160,6 +163,44 @@ export class PropertyIntegrationService {
             );
         }
     }
+    public async updatePropertyIntegrationTaxMode(
+    id: string,
+    amountBeforeTax: boolean,
+    amountAfterTax: boolean
+): Promise<IApiResponse> {
+    try {
+        // enforce exactly one mode active
+        if (amountBeforeTax === amountAfterTax) {
+            return errorResponse(
+                'Exactly one of amountBeforeTax or amountAfterTax must be true'
+            );
+        }
+
+        const isExists = await this.propertyIntegrationRepository.getById(id);
+        if (!isExists) {
+            return errorResponse('Property integration not found');
+        }
+
+        const result = await this.propertyIntegrationRepository.updateTaxMode(
+            id,
+            amountBeforeTax,
+            amountAfterTax
+        );
+
+        return successResponse(
+            'Property integration tax mode updated successfully',
+            result
+        );
+    } catch (error) {
+        if (error instanceof Error) {
+            return errorResponse(
+                'Failed to update property integration tax mode',
+                error.message
+            );
+        }
+        return errorResponse('Failed to update property integration tax mode');
+    }
+}
     public async deletePropertyIntegration(id: string): Promise<IApiResponse> {
         try {
             const isExists =
