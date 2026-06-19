@@ -149,20 +149,20 @@ export default function SpaDateCell({
                 </span>
 
                 {!isPast && !isDragActive && (
-                  <div className="absolute inset-0 bg-white/95 backdrop-blur-[1px] flex items-center justify-evenly translate-x-full group-hover/slot:translate-x-0 transition-transform duration-200">
+                  <div className="absolute inset-0 bg-white/95 backdrop-blur-[1px] flex items-stretch translate-x-full group-hover/slot:translate-x-0 transition-transform duration-200">
                     <button
                       onClick={(e) => { e.stopPropagation(); onSlotClick(slot); }}
                       onMouseDown={(e) => e.stopPropagation()}
-                      className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 p-1 rounded"
+                      className="flex-1 flex items-center justify-center text-gray-500 hover:text-blue-600 hover:bg-blue-50"
                       title="View availability"
                     >
                       <Eye className="w-3.5 h-3.5" />
                     </button>
-                    <div className="w-px h-3 bg-gray-200" />
+                    <div className="w-px bg-gray-200 my-1.5" />
                     <button
                       onClick={(e) => { e.stopPropagation(); onRemoveSlot(slot.id); }}
                       onMouseDown={(e) => e.stopPropagation()}
-                      className="text-gray-500 hover:text-red-700 hover:bg-red-50 p-1 rounded"
+                      className="flex-1 flex items-center justify-center text-gray-500 hover:text-red-700 hover:bg-red-50"
                       title="Delete slot"
                     >
                       <Trash2 className="w-3.5 h-3.5" />

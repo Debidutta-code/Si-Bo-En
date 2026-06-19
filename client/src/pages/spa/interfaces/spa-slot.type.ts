@@ -38,6 +38,7 @@ export interface ISlotsAvailable {
     spaSlotId: string;
     status: SlotStatus;
     reservationId: string | null;
+    userName: string | null
 }
 
 export interface ISpaSlotWAvailability extends ISpaSlot {

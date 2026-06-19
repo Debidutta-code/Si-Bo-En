@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Trash2, CheckCircle, XCircle, Loader2, Eye, User, Hash } from 'lucide-react';
 import type { ISpaSlotWAvailability, ISlotsAvailable, SlotStatus } from '../interfaces';
 
 interface Props {
@@ -14,19 +13,62 @@ interface Props {
     onDeleteAvailability: (availabilityId: string) => Promise<void>;
 }
 
-const statusColors: Record<SlotStatus, string> = {
-    active: 'bg-green-100 text-green-700 border-green-200',
-    inactive: 'bg-gray-100 text-gray-600 border-gray-200',
-    booked: 'bg-red-100 text-red-700 border-red-200',
-    completed: 'bg-blue-100 text-blue-700 border-blue-200',
-    cancelled: 'bg-orange-100 text-orange-700 border-orange-200',
+// box fill + border per status
+const statusBox: Record<SlotStatus, string> = {
+    active: 'bg-green-50 border-green-300',
+    inactive: 'bg-gray-50 border-gray-300',
+    booked: 'bg-red-50 border-red-300',
+    completed: 'bg-blue-50 border-blue-300',
+    cancelled: 'bg-orange-50 border-orange-300',
 };
+
+const statusText: Record<SlotStatus, string> = {
+    active: 'text-green-700',
+    inactive: 'text-gray-600',
+    booked: 'text-red-700',
+    completed: 'text-blue-700',
+    cancelled: 'text-orange-700',
+};
+
+// 'active' -> 'Active', 'cancelled' -> 'Cancelled'
+const toCamelCase = (status: string) => status.charAt(0).toUpperCase() + status.slice(1);
+
+// small icon button used inline inside each slot box
+function IconAction({
+    icon, label, onClick, disabled, tone = 'gray',
+}: {
+    icon: React.ReactNode;
+    label: string;
+    onClick: () => void;
+    disabled?: boolean;
+    tone?: 'gray' | 'green' | 'red' | 'blue';
+}) {
+    const toneClasses: Record<string, string> = {
+        gray: 'hover:bg-black/[0.06] text-gray-500',
+        green: 'hover:bg-green-100 text-green-600',
+        red: 'hover:bg-red-100 text-red-600',
+        blue: 'hover:bg-blue-100 text-blue-600',
+    };
+
+    return (
+        <button
+            type="button"
+            disabled={disabled}
+            onClick={onClick}
+            title={label}
+            className={`flex items-center justify-center w-6 h-6 rounded-md transition-colors disabled:opacity-30 disabled:pointer-events-none ${toneClasses[tone]}`}
+        >
+            {icon}
+        </button>
+    );
+}
 
 export default function SpaSlotAvailabilityModal({
     isOpen, onClose, slot, onUpdateStatus, onDeleteAvailability,
 }: Props) {
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [loadingId, setLoadingId] = useState<string | null>(null);
+    const [viewReservation, setViewReservation] = useState<ISlotsAvailable | null>(null);
 
     if (!slot) return null;
 
@@ -52,7 +94,7 @@ export default function SpaSlotAvailabilityModal({
     return (
         <>
             <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle className="text-sm font-semibold">
                             Slot Availability —{' '}
@@ -65,69 +107,86 @@ export default function SpaSlotAvailabilityModal({
                         </p>
                     </DialogHeader>
 
-                    <div className="space-y-2 py-2 max-h-80 overflow-y-auto">
+                    <div className="flex flex-col gap-2 py-2 max-h-96 overflow-y-auto">
                         {slot.slotsAvailable.length === 0 ? (
                             <p className="text-sm text-gray-400 text-center py-4">No availability records</p>
                         ) : (
-                            slot.slotsAvailable.map((avail, idx) => {
+                            slot.slotsAvailable.map((avail) => {
                                 const isLocked = avail.status === 'booked' || avail.status === 'completed' || avail.status === 'cancelled';
                                 const isLoading = loadingId === avail.id;
+                                const isBooked = avail.status === 'booked';
 
                                 return (
                                     <div
                                         key={avail.id}
-                                        className="flex items-center justify-between p-2.5 rounded-lg border bg-white"
+                                        className={`flex items-center justify-between gap-2 px-3 py-2 rounded-lg border ${statusBox[avail.status]}`}
                                     >
-                                        <div className="flex items-center gap-2.5">
-                                            <span className="text-xs text-gray-400 w-4">#{idx + 1}</span>
-                                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${statusColors[avail.status]}`}>
-                                                {avail.status}
-                                            </span>
-                                            {avail.reservationId && (
-                                                <span className="text-[10px] text-gray-400 truncate max-w-[100px]">
-                                                    Res: {avail.reservationId.slice(0, 8)}...
-                                                </span>
-                                            )}
-                                        </div>
+                                        <span className={`text-xs font-medium ${statusText[avail.status]}`}>
+                                            {toCamelCase(avail.status)}
+                                        </span>
 
+                                        {/* icons live inline, right-aligned, no menu */}
                                         <div className="flex items-center gap-1">
-                                            {/* Active/Inactive toggle — only for active or inactive */}
-                                            {!isLocked && (
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    disabled={isLoading}
-                                                    onClick={() => handleStatusToggle(avail)}
-                                                    className="h-7 px-2 text-xs"
-                                                    title={avail.status === 'active' ? 'Mark inactive' : 'Mark active'}
-                                                >
-                                                    {avail.status === 'active' ? (
-                                                        <XCircle className="w-3.5 h-3.5 text-gray-500" />
-                                                    ) : (
-                                                        <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                                            {isLoading ? (
+                                                <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                                            ) : (
+                                                <>
+                                                    {isBooked && (
+                                                        <IconAction
+                                                            icon={<Eye className="w-3.5 h-3.5" />}
+                                                            label="View Reservation"
+                                                            tone="blue"
+                                                            onClick={() => setViewReservation(avail)}
+                                                        />
                                                     )}
-                                                    <span className="ml-1">
-                                                        {avail.status === 'active' ? 'Deactivate' : 'Activate'}
-                                                    </span>
-                                                </Button>
+                                                    {!isLocked && (
+                                                        <IconAction
+                                                            icon={avail.status === 'active' ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                                                            label={avail.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                            tone={avail.status === 'active' ? 'gray' : 'green'}
+                                                            onClick={() => handleStatusToggle(avail)}
+                                                        />
+                                                    )}
+                                                    <IconAction
+                                                        icon={<Trash2 className="w-3.5 h-3.5" />}
+                                                        label="Delete"
+                                                        tone="red"
+                                                        disabled={avail.status === 'booked'}
+                                                        onClick={() => setDeleteTarget(avail.id)}
+                                                    />
+                                                </>
                                             )}
-
-                                            {/* Delete — disabled if booked */}
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                disabled={isLoading || avail.status === 'booked'}
-                                                onClick={() => setDeleteTarget(avail.id)}
-                                                className="h-7 px-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                title={avail.status === 'booked' ? 'Cannot delete a booked slot' : 'Delete'}
-                                            >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                            </Button>
                                         </div>
                                     </div>
                                 );
                             })
                         )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* View reservation dialog */}
+            <Dialog open={!!viewReservation} onOpenChange={(open) => !open && setViewReservation(null)}>
+                <DialogContent className="sm:max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle className="text-sm font-semibold">Reservation Details</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3 py-2">
+                        <div className="flex items-center gap-2.5 p-2.5 rounded-lg border bg-gray-50">
+                            <User className="w-4 h-4 text-gray-500" />
+                            <div>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Customer</p>
+                                {/* NOTE: adjust this field to match your actual reservation/user name field on ISlotsAvailable */}
+                                <p className="text-sm text-gray-800">{viewReservation?.userName ?? 'Unknown'}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2.5 p-2.5 rounded-lg border bg-gray-50">
+                            <Hash className="w-4 h-4 text-gray-500" />
+                            <div>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Reservation ID</p>
+                                <p className="text-sm text-gray-800 break-all">{viewReservation?.reservationId ?? '—'}</p>
+                            </div>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
