@@ -1006,7 +1006,7 @@ const fetchUpdatedPrice = async () => {
                               className={`flex justify-between pl-4 ${isDiscount ? "text-green-600" : isPayLater ? "text-amber-600" : "text-red-500"}`}
                             >
                               <span>
-                                {isDiscount ? "🏷" : isPayLater ? "⏳" : "+"}{" "}
+                                {isDiscount ? "" : isPayLater ? "⏳" : "+"}{" "}
                                 {promo.name}
                                 <span className="text-xs text-gray-400 ml-1">
                                   ({promo.discountType === "percentage"

@@ -21,19 +21,6 @@ import {
 } from "@/src/app/(unauth)/Rooms/types";
 import { currencies } from "../currencyCode/cuurency";
 import { Currency } from "../currencyCode/currency-code.type";
-
-/**
- * RoomCard is now a pure display component. It owns only UI-local state
- * (image carousel, expand/collapse, promotion picking) and fires a single
- * outward callback — onSelectRatePlan — when the user clicks "Add".
- *
- * Everything booking-in-progress related (selected room/rate plan, addon
- * fetch + selection, price fetch, the AddonSelectionModal itself) now lives
- * in Rooms.tsx. This eliminates the old ref-based wiring
- * (onRegisterReproceed / pendingAddonsRef) that caused one RoomCard
- * instance's loading/selection state to bleed into another's.
- */
-
 interface RoomCardProps {
   room: IRoomDetails;
   propertyDetails: unknown;
@@ -356,8 +343,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
                       {firstCombo.availablePromotions!.map((promo) => {
                         const isSelected = selectedPromotions[ratePlanCode]?.some((p) => p.id === promo.id);
                         const promoEmoji: Record<IPromotionType, string> = {
-                          device_specific: "📱", mlos: "🌙", early_bird: "🐦",
-                          offer_for_tonight: "🌙", normal: "🏷",
+                          device_specific: "", mlos: "", early_bird: "",
+                          offer_for_tonight: "", normal: "",
                         };
                         return (
                           <div
@@ -383,7 +370,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             className={`flex items-center justify-between px-3 py-2 rounded-lg border cursor-pointer transition-all ${isSelected ? "border-orange-400 bg-orange-100" : "border-orange-200 bg-white hover:border-orange-300"}`}
                           >
                             <div className="flex items-center gap-2 min-w-0">
-                              <span className="text-sm">{promoEmoji[promo.promotionType] ?? "🏷"}</span>
+                              <span className="text-sm">{promoEmoji[promo.promotionType] ?? ""}</span>
                               <div className="min-w-0">
                                 <p className="text-xs font-semibold text-orange-900 truncate">{promo.promotionType === "mlos" ? `${t("RoomCard.mlos", { nights: formatNumber(parseInt(promo.promotionName)) })}` : promo?._translations ? promo._translations.promotionName : promo.promotionName}</p>
                                 <p className="text-[10px] text-orange-600">
