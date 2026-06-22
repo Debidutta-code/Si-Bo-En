@@ -56,11 +56,6 @@ export class AgencyApplicationService {
                 this.agencyApplicationRepository.getAgentApplicationsByName(data.agencyName),
             ]);
 
-            console.log('exist', existingApplication);
-            console.log('lastAppliedForm', lastAppliedForm);
-            console.log('agent', agent);
-            console.log('existingApplicationByTaxNo', existingApplicationByTaxNo);
-            console.log('existingApplicationByName', existingApplicationByName);
 
             if (existingApplication && existingApplication.status === 'approved') {
                 return successResponse(

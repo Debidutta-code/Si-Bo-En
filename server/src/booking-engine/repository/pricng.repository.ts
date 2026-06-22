@@ -308,7 +308,6 @@ export class PricingRepository {
                 })
             if (pc2&&pc2.CreationLoyaltyConfig.CreationGuest.length>0) {
                 const creationGuest = pc2.CreationLoyaltyConfig.CreationGuest[0];
-                console.log(creationGuest)
                 return {
                     guestLevel: creationGuest.guestLevel,
                     loyalityLevels: pc2.CreationLoyaltyConfig.LoyalityLevels ?? [],

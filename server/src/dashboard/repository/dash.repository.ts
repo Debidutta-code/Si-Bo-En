@@ -407,33 +407,6 @@ export class DashBoardRepository {
             last7DaysTrend,
         };
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     public async getStatisticsComparison(
         propertyIds: string[],
         comparisonType: 'date' | 'month' | 'year',
@@ -441,7 +414,6 @@ export class DashBoardRepository {
         currencyCode: CurrencyCode
     ): Promise<IStatisticsComparison> {
         const targetCurrency = currencyCode;
-        console.log(propertyIds)
         const periods = this.calculateComparisonPeriods(
             comparisonType,
             selectedDate

@@ -712,7 +712,7 @@ export default function MyTripPage() {
                         .map((promo: any, i: number) => (
                           <div key={i} className="flex justify-between items-center">
                             <p className="text-green-600 flex items-center gap-1">
-                              🏷 {promo.name}
+                               {promo.name}
                               <span className="text-xs text-gray-400">
                                 ({promo.discountType === "percentage" ? `-${formatNumber(promo.discountValue)}%` : `-${currencies.find((c: Currency) => c.code === (promo.currencyCode || rawCurrencyCode))?.symbol || (promo.currencyCode || rawCurrencyCode)} ${formatNumber(promo.discountValue)}`})
                               </span>
