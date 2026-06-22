@@ -111,6 +111,16 @@ function LogDetailDialog({
 
   if (!log) return null;
   const { date, time } = formatTs(log.timestamp);
+const handleDownloadTxt = () => {
+    const txt = JSON.stringify(log, null, 2);
+    const blob = new Blob([txt], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `service-log-${log.requestId ?? log._id}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -121,7 +131,15 @@ function LogDetailDialog({
             <span className="font-mono text-sm text-muted-foreground">{log.service}</span>
             <span className="text-muted-foreground">›</span>
             <span className="font-mono text-sm">{log.method}</span>
+          <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadTxt}
+            >
+              ⬇ TXT
+            </Button>
           </DialogTitle>
+
           <DialogDescription>
             {date} {t('ServiceLog.dialog.at')} {time} — {t('ServiceLog.dialog.requestId')}{' '}
             <span className="font-mono">{log.requestId}</span>

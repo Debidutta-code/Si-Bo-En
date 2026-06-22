@@ -606,9 +606,27 @@ export default function LogsPage() {
                   {/* Request Payload */}
                   {selectedLog.requestPayload && (
                     <div>
-                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                        📦 {t('ApiLogs.dialog.requestPayload')}
-                      </h3>
+                      <div className='flex w-3/4 justify-between p-2 rounded-md'>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                          📦 {t('ApiLogs.dialog.requestPayload')}
+                        </h3>
+                        <div className="">
+                          <Button
+                            onClick={() => {
+                              const txt = JSON.stringify(selectedLog.requestPayload, null, 2);
+                              const blob = new Blob([txt], { type: 'text/plain' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = 'request-payload.txt';
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            }}
+                          >
+                            ⬇ TXT
+                          </Button>
+                        </div>
+                      </div>
                       <div className="bg-muted p-4 rounded-lg">
                         <pre className="text-xs overflow-auto">
                           {JSON.stringify(selectedLog.requestPayload, null, 2)}
