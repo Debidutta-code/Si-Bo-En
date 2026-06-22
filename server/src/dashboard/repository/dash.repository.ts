@@ -1776,7 +1776,7 @@ export class DashUtilsRepo {
                         name: propertyCreation?.property?.propertyName,
                         currencyCode: propertyCreation?.property
                             ?.propertyConfigs?.baseCurrency as CurrencyCode,
-                        isLoyaltyProgramEnabled: propertyCreation?.property
+                        isLoyaltyProgramEnabled: propertyCreation?.property?.propertyConfigs?.isLoyaltyProgramEnabled ?? false
                     },
                 ],
             };
