@@ -51,6 +51,9 @@ export class AgentPricingService {
                 guestDistribution,
                 includedAddons,
                 agencyId,
+                deviceType,
+                country,
+                promoCode,
             } = data;
 
             const numberOfNights = differenceInDays(endDate, startDate);
@@ -72,7 +75,6 @@ export class AgentPricingService {
                 );
             }
 
-            // ── Parallel fetch everything else ───────────────────────────────
             const [
                 agency,
                 room,
@@ -80,25 +82,21 @@ export class AgentPricingService {
                 charges,
                 bookingOffset,
                 ratePlanRule,
+                autoAppliedMLOS,
+                autoAppliedPromotions,
+                geoRatePlans,
+                promoCodeData,
             ] = await Promise.all([
                 this.repository.getAgencyDetails(agencyId),
                 this.repository.getRoomByTypeCode(propertyCode, invTypeCode),
-                this.repository.getInventoryForDates(
-                    propertyCode,
-                    invTypeCode,
-                    stayDates
-                ),
-                this.repository.getChargesForDates(
-                    propertyCode,
-                    invTypeCode,
-                    ratePlanCode,
-                    stayDates
-                ),
-                this.repository.getBookingOffset(
-                    ratePlan.id,
-                    toUTCDate(startDate)
-                ),
+                this.repository.getInventoryForDates(propertyCode, invTypeCode, stayDates),
+                this.repository.getChargesForDates(propertyCode, invTypeCode, ratePlanCode, stayDates),
+                this.repository.getBookingOffset(ratePlan.id, toUTCDate(startDate)),
                 this.repository.getRatePlanRule(ratePlan.id),
+                this.repository.getAutoAppliedMLOS(ratePlan.id, toUTCDate(startDate), toUTCDate(endDate)),
+                this.repository.getAutoAppliedPromotions(ratePlan.id, toUTCDate(startDate), toUTCDate(endDate)),
+                this.repository.getGeoRatePlans(ratePlan.id),
+                promoCode ? this.repository.findPromoCode(promoCode) : Promise.resolve(null),
             ]);
 
             if (!agency)
@@ -143,88 +141,85 @@ export class AgentPricingService {
 
             // ── PIPELINE ─────────────────────────────────────────────────────
             // Step 1: Base rate
-            const basePriceResult = this.calculateBasePriceAllRooms(
-                charges,
-                guestDistribution
-            );
-            if (!basePriceResult.success)
-                return errorResponse(basePriceResult.error!);
-            const { totalBaseAmount, totalAdditionalCharges, dailyBreakdown } =
-                basePriceResult.data!;
-            const pureBase = round(totalBaseAmount + totalAdditionalCharges); // ← rename this
+            // ── Step 1: Base price ───────────────────────────────────────────────────
+            const basePriceResult = this.calculateBasePriceAllRooms(charges, guestDistribution);
+            if (!basePriceResult.success) return errorResponse(basePriceResult.error!);
 
-            // Step 2: Agency commission on base rate
-            const commissionDetail = this.calculateCommission(pureBase, agency);
-            const agencyCommissionAmount = round(
-                commissionDetail.commissionAmount
+            const { totalBaseAmount, totalAdditionalCharges, dailyBreakdown } = basePriceResult.data!;
+            const pureBase = round(totalBaseAmount + totalAdditionalCharges);
+
+            // ── Step 2: Discounts on pureBase ────────────────────────────────────────
+            const discountResult = this.calculateDiscounts(
+                pureBase,
+                numberOfNights,
+                startDate,
+                invTypeCode,
+                autoAppliedMLOS,
+                autoAppliedPromotions,
+                geoRatePlans,
+                promoCodeData,
+                deviceType,
+                country
             );
-            const amountBeforeTax = round(pureBase + agencyCommissionAmount);
-            // Step 3: Included addons — only if explicitly provided in payload
+
+            const discountedBase = round(pureBase - discountResult.totalDiscountAmount);
+
+            // ── Step 3: Agency commission on discounted base ──────────────────────────
+            const commissionDetail = this.calculateCommission(pureBase, agency);
+            const agencyCommissionAmount = round(commissionDetail.commissionAmount);
+            const amountBeforeTax = round(discountedBase + agencyCommissionAmount);
+
+            // ── Step 4: Included addons ───────────────────────────────────────────────
             const addonsResult =
                 includedAddons && includedAddons.length > 0
                     ? await this.calculateIncludedAddons(
-                          includedAddons,
-                          stayDates,
-                          guestDistribution,
-                          noOfRooms,
-                          numberOfNights
-                      )
+                        includedAddons,
+                        stayDates,
+                        guestDistribution,
+                        noOfRooms,
+                        numberOfNights
+                    )
                     : { addons: [], totalAmount: 0 };
-            const {
-                addons: includedAddonDetails,
-                totalAmount: totalAddonAmount,
-            } = addonsResult;
 
-            // subtotal = base + commission + addons
+            const { addons: includedAddonDetails, totalAmount: totalAddonAmount } = addonsResult;
+
             const subtotalAmount = round(amountBeforeTax + totalAddonAmount);
 
-            // Step 4: Priority-based tax on subtotal
-            const taxResult = this.calculateTax(ratePlan, subtotalAmount,dailyBreakdown.length);
+            // ── Step 5: Tax on subtotal ───────────────────────────────────────────────
+            const taxResult = this.calculateTax(ratePlan, subtotalAmount, dailyBreakdown.length);
             const taxedAmount = round(taxResult.totalTax);
             const currentChargeableAmount = round(subtotalAmount + taxedAmount);
 
-            // Step 5: Tourist tax (pay later)
+            // ── Step 6: Tourist tax (pay later) ──────────────────────────────────────
             const touristTaxDetail = this.calculateTouristTax(
                 room.TouristTaxs,
-                pureBase,
+                pureBase,      // ← use discountedBase not pureBase
                 numberOfNights,
                 noOfRooms,
                 room.numberOfBedrooms
             );
-            const latterpayableAmount = round(
-                touristTaxDetail?.calculatedAmount ?? 0
-            );
-
-            // Final total
-            const totalAmount = round(
-                currentChargeableAmount + latterpayableAmount
-            );
-
-            const currencyCode =
-                charges[0]?.currencyCode ?? ('USD' as CurrencyCode);
+            const latterpayableAmount = round(touristTaxDetail?.calculatedAmount ?? 0);
+            const totalAmount = round(currentChargeableAmount + latterpayableAmount);
+            const currencyCode = charges[0]?.currencyCode ?? ('USD' as CurrencyCode);
 
             return successResponse('Price calculated successfully', {
                 totalAmount,
                 amountBeforeTax,
                 taxedAmount,
                 totalAddonAmount: round(totalAddonAmount),
-                totalPromotionAmount: 0,
+                totalPromotionAmount: round(discountResult.totalDiscountAmount),  // ← real now
                 currentChargeableAmount,
                 latterpayableAmount,
                 loyalityDiscount: 0,
-                promoCodeDiscount: 0,
+                promoCodeDiscount: discountResult.promoCodeDiscount,              // ← real now
                 currencyCode,
-
-                // ✅ Add these two
                 agencyCommissionAmount,
                 agencyCommission: commissionDetail,
-
                 dailyPriceBrakeDown: dailyBreakdown,
                 taxBrakeDown: taxResult.taxDetails,
                 addonBrakeDown: includedAddonDetails,
-                promotionBrakeDown: [],
+                promotionBrakeDown: discountResult.promotionBrakeDown,            // ← real now
                 touristTax: touristTaxDetail,
-
                 availableRooms,
                 requestedRooms: noOfRooms,
             });
@@ -239,8 +234,187 @@ export class AgentPricingService {
         }
     }
 
-    // ─── Stay Dates ───────────────────────────────────────────────────────────
+    private calculateDiscounts(
+        baseAmount: number,
+        numberOfNights: number,
+        startDate: Date,
+        invTypeCode: string,
+        mlosList: any[],
+        promotions: any[],
+        geoRatePlans: any[],
+        promoCodeData: any | null,
+        deviceType?: string,
+        country?: string
+    ): {
+        totalDiscountAmount: number;
+        promoCodeDiscount: number;
+        promotionBrakeDown: any[];
+    } {
+        const promotionBrakeDown: any[] = [];
+        let totalDiscountAmount = 0;
+        let promoCodeDiscount = 0;
 
+        // ── 1. MLOS ──────────────────────────────────────────────────────────────
+        for (const mlos of mlosList) {
+            const meets =
+                numberOfNights >= mlos.minLos &&
+                (mlos.maxLos === null || numberOfNights <= mlos.maxLos);
+
+            if (!meets) continue;
+
+            const discountAmount =
+                mlos.discountType === 'percentage'
+                    ? (baseAmount * Number(mlos.discountValue)) / 100
+                    : Number(mlos.discountValue);
+
+            totalDiscountAmount += discountAmount;
+            promotionBrakeDown.push({
+                id: mlos.id,
+                promotionType: 'mlos',
+                name: 'MLOS',
+                currencyCode: mlos.currencyCode,
+                discountAmount: round(discountAmount),
+                discountType: mlos.discountType,
+                discountValue: Number(mlos.discountValue),
+                restrictionType: 'decrease',
+                type: 'auto_applied',
+            });
+        }
+
+        // ── 2. Early Bird & Device Specific ──────────────────────────────────────
+        const today = new Date();
+        const dayMap: Record<number, string> = {
+            0: 'sunApplicable', 1: 'monApplicable', 2: 'tueApplicable',
+            3: 'wedApplicable', 4: 'thuApplicable', 5: 'friApplicable',
+            6: 'satApplicable',
+        };
+
+        for (const promo of promotions) {
+            // Day-of-week check
+            if (!promo[dayMap[startDate.getDay()]]) continue;
+
+            // Room type check
+            if (promo.roomType && promo.roomType !== invTypeCode) continue;
+
+            let matched = false;
+
+            if (promo.promotionType === 'early_bird' && promo.advanceBookingDays) {
+                const daysUntilCheckIn = Math.ceil(
+                    (startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+                );
+                matched = daysUntilCheckIn >= promo.advanceBookingDays;
+            } else if (promo.promotionType === 'device_specific' && deviceType) {
+                matched = promo.deviceType?.includes(deviceType) ?? false;
+            }
+
+            if (!matched) continue;
+
+            const discountAmount =
+                promo.discountType === 'percentage'
+                    ? (baseAmount * Number(promo.discountValue)) / 100
+                    : Number(promo.discountValue);
+
+            totalDiscountAmount += discountAmount;
+            promotionBrakeDown.push({
+                id: promo.id,
+                promotionType: promo.promotionType,
+                name: promo.promotionType === 'early_bird' ? 'Early Bird' : 'Device Specific',
+                currencyCode: promo.currencyCode,
+                discountAmount: round(discountAmount),
+                discountType: promo.discountType,
+                discountValue: Number(promo.discountValue),
+                restrictionType: 'decrease',
+                type: 'auto_applied',
+            });
+        }
+
+        // ── 3. Geo Rate Plan ─────────────────────────────────────────────────────
+        if (country) {
+            for (const geo of geoRatePlans) {
+                if (!geo.isActive) continue;
+                if (geo.roomType && geo.roomType !== invTypeCode) continue;
+                if (!geo.countryCode.includes(country)) continue;
+
+                if (geo.restrictionType === 'restricted') {
+                    throw new Error('This room is restricted for your country');
+                }
+
+                const discountAmount =
+                    geo.restrictionType === 'percentage'
+                        ? (baseAmount * Number(geo.restrictionValue)) / 100
+                        : Number(geo.restrictionValue);
+
+                const restrictionType: 'increase' | 'decrease' =
+                    geo.restrictionTypeAction === 'increase' ? 'increase' : 'decrease';
+
+                // increase = surcharge (reduces discount), decrease = actual discount
+                if (restrictionType === 'decrease') {
+                    totalDiscountAmount += discountAmount;
+                } else {
+                    totalDiscountAmount -= discountAmount;
+                }
+
+                promotionBrakeDown.push({
+                    id: geo.id,
+                    promotionType: 'normal',
+                    name: 'Geo Rate Plan',
+                    currencyCode: geo.currencyCode,
+                    discountAmount: round(discountAmount),
+                    discountType: geo.restrictionType,
+                    discountValue: Number(geo.restrictionValue),
+                    restrictionType,
+                    type: 'auto_applied',
+                });
+            }
+        }
+
+        // ── 4. Promo Code ────────────────────────────────────────────────────────
+        if (promoCodeData && deviceType) {
+            const deviceAllowed =
+                (deviceType === 'desktop' && promoCodeData.isApplicableForDesktop) ||
+                (deviceType === 'mobile' && promoCodeData.isApplicableForMobileApp) ||
+                (deviceType === 'tablet' && promoCodeData.isApplicableForTablet);
+
+            const meetsMinAmount =
+                !promoCodeData.minBookingAmount ||
+                baseAmount >= promoCodeData.minBookingAmount;
+
+            if (deviceAllowed && meetsMinAmount) {
+                let codeDiscount =
+                    promoCodeData.discountType === 'percentage'
+                        ? (baseAmount * promoCodeData.discountValue) / 100
+                        : promoCodeData.discountValue;
+
+                if (
+                    promoCodeData.maxDiscountAmount &&
+                    codeDiscount > promoCodeData.maxDiscountAmount
+                ) {
+                    codeDiscount = promoCodeData.maxDiscountAmount;
+                }
+
+                promoCodeDiscount = round(codeDiscount);
+                totalDiscountAmount += promoCodeDiscount;
+
+                promotionBrakeDown.push({
+                    id: promoCodeData.id,
+                    promotionType: 'normal',
+                    name: `Promo: ${promoCodeData.code}`,
+                    currencyCode: promoCodeData.currencyCode ?? 'USD',
+                    discountAmount: promoCodeDiscount,
+                    discountType: promoCodeData.discountType,
+                    discountValue: promoCodeData.discountValue,
+                    restrictionType: 'decrease',
+                    type: 'user_applied',
+                });
+            }
+        }
+
+        return {
+            totalDiscountAmount: round(totalDiscountAmount),
+            promoCodeDiscount,
+            promotionBrakeDown,
+        };
+    }
     private buildStayDates(startDate: Date, endDate: Date): Date[] {
         const dates: Date[] = [];
         let current = toUTCDate(startDate);
@@ -470,7 +644,7 @@ export class AgentPricingService {
                 );
                 const additionalChargesAmount = round(
                     result.additionalAdultCharges +
-                        result.additionalChildCharges
+                    result.additionalChildCharges
                 );
                 const totalAmount = round(
                     baseChargesAmount + additionalChargesAmount
@@ -701,7 +875,7 @@ export class AgentPricingService {
     private calculateTax(
         ratePlan: IRatePlan,
         subtotal: number,
-        totalRoomNights:number
+        totalRoomNights: number
     ): { taxDetails: ITaxBrakeDown[]; totalTax: number } {
         if (!ratePlan.taxGroup?.taxGroupRules?.length) {
             return { taxDetails: [], totalTax: 0 };
@@ -774,21 +948,22 @@ export class AgentPricingService {
     // ─── Tourist Tax ─────────────────────────────────────────────────────────
 
     private calculateTouristTax(
-        touristTaxes: ITouristTaxRaw[],
+        touristTaxes: ITouristTaxRaw,
         baseAmount: number,
         numberOfNights: number,
         noOfRooms: number,
         noOfBedrooms: number
     ): ITouristTaxDetail | null {
-        if (!touristTaxes || touristTaxes.length === 0) return null;
+        console.log(touristTaxes);
+        if (!touristTaxes) return null;
 
-        const tax = touristTaxes[0];
+        const tax = touristTaxes;
 
         const calculatedAmount =
-                 Number(tax.discountValue) *
-                  numberOfNights *
-                  noOfRooms *
-                  noOfBedrooms;
+            Number(tax.discountValue) *
+            numberOfNights *
+            noOfRooms *
+            noOfBedrooms;
 
         return {
             id: tax.id,

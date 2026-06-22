@@ -22,6 +22,9 @@ export interface IAgentPricingRequest {
     guestDistribution: IGuestDistributionEntry[];
     agencyId: string;
     includedAddons: string[];
+    deviceType?: 'desktop' | 'mobile' | 'tablet';
+    country?: string;
+    promoCode?: string;
 }
 
 // ─── Agency ────────────────────────────────────────────────────────────────────
@@ -113,7 +116,7 @@ export interface IRoom {
     maxNumberOfAdults: number;
     maxNumberOfChildren: number;
     numberOfBedrooms: number;
-    TouristTaxs: ITouristTaxRaw[];
+    TouristTaxs: ITouristTaxRaw;
 }
 
 export interface ITouristTaxRaw {

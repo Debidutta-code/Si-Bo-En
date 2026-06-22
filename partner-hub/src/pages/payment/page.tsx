@@ -73,6 +73,7 @@ export default function PaymentSuccessPage() {
   const avgPerNight = uniqueNights > 0
     ? (pricingDetails.currentChargeableAmount / uniqueNights)
     : 0;
+    console.log(bookingData)
   return (
     <div className="min-h-screen bg-gradient-to-br from-success/5 via-background to-accent/5 py-12 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -120,18 +121,6 @@ export default function PaymentSuccessPage() {
               <h2 className="text-xl font-semibold text-foreground">Booking Details</h2>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Property */}
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <p className="font-medium text-foreground">{bookingData.hotelName}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {bookingData.roomTypeCode} · {bookingData.ratePlanCode}
-                  </p>
-                </div>
-              </div>
-
-              <Separator />
 
               {/* Dates */}
               <div className="grid grid-cols-2 gap-4">
@@ -139,14 +128,14 @@ export default function PaymentSuccessPage() {
                   <Calendar className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">Check-in</p>
-                    <p className="font-medium text-foreground">{formatDate(bookingData.checkInDate)}</p>
+                    <p className="font-medium text-foreground">{formatDate(bookingData.reservationStartDate)}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Calendar className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
                   <div>
                     <p className="text-xs text-muted-foreground">Check-out</p>
-                    <p className="font-medium text-foreground">{formatDate(bookingData.checkOutDate)}</p>
+                    <p className="font-medium text-foreground">{formatDate(bookingData.reservationEndDate)}</p>
                   </div>
                 </div>
               </div>

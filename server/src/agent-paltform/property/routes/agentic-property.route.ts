@@ -12,5 +12,4 @@ agenticPartnerRouter
         agenticPropertyController.getProperties.bind(agenticPropertyController)
     );
 
-// agenticPartnerRouter.route("/:agenticPropertyId").get( partnerProtected, agenticPropertyController.getByAgenticPropertyId.bind(agenticPropertyController));
 export { agenticPartnerRouter };

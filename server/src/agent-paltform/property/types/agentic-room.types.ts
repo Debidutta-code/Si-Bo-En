@@ -238,8 +238,21 @@ export interface IRoomPrice {
     addons: IAddonDetail[];
     /** Paid at hotel — not in totalAmount */
     touristTax: ITouristTax | null;
+    totalPromotionAmount:number;
+    promotionBrakeDown:IPromotionBrakeDown[];
 }
 
+interface IPromotionBrakeDown {
+        id: string;
+        promotionType: string;
+        name: string;
+        currencyCode: string | null;
+        discountAmount: number;
+        discountType: string;
+        discountValue: number;
+        restrictionType: 'increase' | 'decrease';
+        type: 'auto_applied' | 'user_applied';
+    }[];
 // ─── Final room output shape ──────────────────────────────────────────────────
 
 export interface IBookingRoom {

@@ -205,8 +205,8 @@ export interface IBookingData {
   hotelName: string;
   roomTypeCode: string;
   ratePlanCode: string;
-  checkInDate: string;
-  checkOutDate: string;
+  reservationStartDate: string;
+  reservationEndDate: string;
   bookedAt: string;
   primaryGuestId: string;
   bookingUserEmail: string;

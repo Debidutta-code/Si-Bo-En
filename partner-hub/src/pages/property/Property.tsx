@@ -64,6 +64,7 @@ export default function PropertyPage() {
   // Location search state
   const [locationInput, setLocationInput] = useState('');
   const [activeLocation, setActiveLocation] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState<string>('');  // full name e.g. "India"
   const [suggestions, setSuggestions] = useState<ICity[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -71,35 +72,35 @@ export default function PropertyPage() {
   const { filters } = useSearch();
   const { hasActiveFilters, activeFilterCount } = useSearchSummary();
 
-const allCitiesRef = useRef<ICity[]>([]);
+  const allCitiesRef = useRef<ICity[]>([]);
 
-// Build city cache once on mount
-useEffect(() => {
-  const cities: ICity[] = [];
-  const countries = csc.getAllCountries();
-  for (const country of countries) {
-    const states = csc.getStatesOfCountry(country.id);
-    for (const state of states) {
-      cities.push(...csc.getCitiesOfState(state.id));
+  // Build city cache once on mount
+  useEffect(() => {
+    const cities: ICity[] = [];
+    const countries = csc.getAllCountries();
+    for (const country of countries) {
+      const states = csc.getStatesOfCountry(country.id);
+      for (const state of states) {
+        cities.push(...csc.getCitiesOfState(state.id));
+      }
     }
-  }
-  allCitiesRef.current = cities;
-}, []);
+    allCitiesRef.current = cities;
+  }, []);
 
-// Suggestions — reads from cache, no API calls
-useEffect(() => {
-  const query = locationInput.trim().toLowerCase();
-  if (query.length < 2) {
-    setSuggestions([]);
-    setShowSuggestions(false);
-    return;
-  }
-  const matched = allCitiesRef.current
-    .filter((city) => city.name.toLowerCase().startsWith(query))
-    .slice(0, 8);
-  setSuggestions(matched);
-  setShowSuggestions(matched.length > 0);
-}, [locationInput]);
+  // Suggestions — reads from cache, no API calls
+  useEffect(() => {
+    const query = locationInput.trim().toLowerCase();
+    if (query.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const matched = allCitiesRef.current
+      .filter((city) => city.name.toLowerCase().startsWith(query))
+      .slice(0, 8);
+    setSuggestions(matched);
+    setShowSuggestions(matched.length > 0);
+  }, [locationInput]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -111,9 +112,9 @@ useEffect(() => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchProperties = async (location?: string) => {
+  const fetchProperties = async (location?: string, country?: string) => {
     setLoading(true);
-    const result = await fetchPropertiesService(location);
+    const result = await fetchPropertiesService(location, country);
     if (result.success && result.data) {
       setProperties(result.data);
     } else {
@@ -129,6 +130,9 @@ useEffect(() => {
   // --- Handlers ---
   const handleSelectCity = (city: ICity) => {
     setLocationInput(city.name);
+    // Resolve full country name from country_id — matches DB storage e.g. "India"
+    const country = csc.getCountryById(city.country_id);
+    setSelectedCountry(country?.name || '');
     setSuggestions([]);
     setShowSuggestions(false);
   };
@@ -137,12 +141,13 @@ useEffect(() => {
     const trimmed = locationInput.trim();
     setActiveLocation(trimmed);
     setShowSuggestions(false);
-    fetchProperties(trimmed || undefined);
+    fetchProperties(trimmed || undefined, selectedCountry || undefined);
   };
 
   const handleClear = () => {
     setLocationInput('');
     setActiveLocation('');
+    setSelectedCountry('');
     setSuggestions([]);
     setShowSuggestions(false);
     fetchProperties();
@@ -184,6 +189,7 @@ useEffect(() => {
               <Badge variant="outline" className="ml-2 text-accent border-accent">
                 <MapPin className="h-3 w-3 mr-1" />
                 {activeLocation}
+                {selectedCountry && ` · ${selectedCountry}`}
               </Badge>
             )}
           </p>
@@ -199,6 +205,7 @@ useEffect(() => {
               value={locationInput}
               onChange={(e) => {
                 setLocationInput(e.target.value);
+                setSelectedCountry(''); // clear country on manual edit
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}

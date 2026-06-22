@@ -267,12 +267,12 @@ export default function BookingPage() {
       }
 
       const bookingPayload: ICreateBookingPayload = {
-        propertyCode: selectedProperty?.propertyCode || "sdf",
+        propertyCode: selectedProperty?.propertyCode,
 
         reservationStartDate: searchCriteria.startDate,
         reservationEndDate: searchCriteria.endDate,
 
-        hotelName: selectedProperty?.name || "sdfbjsfs",
+        hotelName: selectedProperty?.name,
         roomTypeCode: room.roomType,
         ratePlanCode: roomPrice.ratePlanCode,
         roomName: room.roomName,
@@ -325,19 +325,33 @@ export default function BookingPage() {
         })),
       };
       // console.log("bookimg", bookingPayload)
-      const result = await createBookingService(bookingPayload);
+      // Before calling the booking API, store what you need
+      const bookingResult = await createBookingService(bookingPayload);
 
-      if (result.success) {
-        toast.success('Booking confirmed successfully!');
+      if (bookingResult.success) {
         navigate('/payment-success', {
           state: {
-            bookingData: result.data,
-            pricingDetails,
-            guestData,
-          },
+            bookingData: {
+              bookingCode: bookingResult.data.bookingCode,
+              bookingStatus: bookingResult.data.bookingStatus,
+              // Everything else comes from what you already had
+              hotelName: bookingPayload.hotelName,
+              reservationStartDate: bookingPayload.reservationStartDate,
+              reservationEndDate: bookingPayload.reservationEndDate,
+              roomTypeCode: bookingPayload.roomTypeCode,
+              ratePlanCode: bookingPayload.ratePlanCode,
+              bookingUserEmail: bookingPayload.bookingUserEmail,
+              bookingUserPhone: bookingPayload.bookingUserPhone,
+              currencyCode: bookingPayload.currencyCode,
+              paymentMethod: bookingPayload.paymentMethod,
+              amount: bookingPayload.finalPrice.totalAmount,
+            },
+            pricingDetails: bookingPayload.finalPrice,
+            guestData: guestData,
+          }
         });
       } else {
-        toast.error(result.message || 'Failed to create booking');
+        toast.error(bookingResult.message || 'Failed to create booking');
       }
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -356,6 +370,9 @@ export default function BookingPage() {
 
   // subtotal = amountBeforeTax + addons (derived for display)
   const subtotal = pricingDetails.amountBeforeTax + pricingDetails.totalAddonAmount;
+  const pureBase = pricingDetails.amountBeforeTax - pricingDetails.agencyCommissionAmount;
+
+  const baseBeforeDiscounts = Math.round(pureBase + pricingDetails.totalPromotionAmount + pricingDetails.agencyCommissionAmount);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -669,7 +686,6 @@ export default function BookingPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
                   Pricing Summary
                 </CardTitle>
               </CardHeader>
@@ -685,15 +701,57 @@ export default function BookingPage() {
 
                 <Separator />
 
-                {/* Breakdown */}
+                {/* Base Breakdown */}
                 <div className="space-y-2">
-                  {/* Base Amount (includes commission) */}
+
+                  {/* Room Rate — before any discounts */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Base Amount</span>
+                    <span className="text-muted-foreground">Room Rate</span>
                     <span className="font-medium">
-                      {formatCurrency(pricingDetails.amountBeforeTax, currencyCode)}
+                      {formatCurrency(baseBeforeDiscounts, currencyCode)}
                     </span>
                   </div>
+
+                  {/* Each discount line */}
+                  {pricingDetails.promotionBrakeDown.length > 0 && (
+                    <div className="space-y-1">
+                      {pricingDetails.promotionBrakeDown.map((promo, index) => (
+                        <div key={index} className="flex justify-between text-sm">
+                          <span className="text-green-600 flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            {promo.name}
+                          </span>
+                          <span className={cn(
+                            'font-medium',
+                            promo.restrictionType === 'decrease' ? 'text-green-600' : 'text-red-500'
+                          )}>
+                            {promo.restrictionType === 'decrease' ? '-' : '+'}
+                            {formatCurrency(promo.discountAmount, promo.currencyCode ?? currencyCode)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Total savings badge */}
+                  {pricingDetails.totalPromotionAmount > 0 && (
+                    <div className="flex justify-between text-sm px-2 py-1.5 bg-green-50 dark:bg-green-950/30 rounded-md">
+                      <span className="text-green-700 dark:text-green-400 font-medium">Total Savings</span>
+                      <span className="font-bold text-green-700 dark:text-green-400">
+                        -{formatCurrency(pricingDetails.totalPromotionAmount, currencyCode)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Promo code discount */}
+                  {pricingDetails.promoCodeDiscount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600">Promo Code</span>
+                      <span className="font-medium text-green-600">
+                        -{formatCurrency(pricingDetails.promoCodeDiscount, currencyCode)}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Addons */}
                   {pricingDetails.totalAddonAmount > 0 && (
@@ -714,11 +772,9 @@ export default function BookingPage() {
                   )}
 
                   {/* Subtotal */}
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm font-medium pt-1 border-t border-dashed border-border">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">
-                      {formatCurrency(subtotal, currencyCode)}
-                    </span>
+                    <span>{formatCurrency(subtotal, currencyCode)}</span>
                   </div>
                 </div>
 
@@ -727,6 +783,7 @@ export default function BookingPage() {
                   <>
                     <Separator />
                     <div className="space-y-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Taxes & Fees</p>
                       {pricingDetails.taxBrakeDown.map((tax, index) => (
                         <div key={index} className="flex justify-between text-sm">
                           <span className="text-muted-foreground">{tax.name}</span>

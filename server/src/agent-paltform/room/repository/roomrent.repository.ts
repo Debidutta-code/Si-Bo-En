@@ -207,4 +207,89 @@ export class AgentPricingRepository {
             throw new Error('Failed to fetch included addons');
         }
     }
+    public async getAutoAppliedMLOS(
+    ratePlanId: string,
+    startDate: Date,
+    endDate: Date
+) {
+    try {
+        return await prisma.ratePlanRule.findMany({
+            where: {
+                isAutoApplied: true,
+                isActive: true,
+                ratePlanId,
+                OR: [
+                    { startDate: null },
+                    { startDate: { lte: startDate } },
+                ],
+                AND: [
+                    {
+                        OR: [
+                            { endDate: null },
+                            { endDate: { gt: endDate } },
+                        ],
+                    },
+                ],
+            },
+        });
+    } catch (error) {
+        throw new Error('Failed to get auto applied MLOS');
+    }
+}
+
+public async getAutoAppliedPromotions(
+    ratePlanId: string,
+    startDate: Date,
+    endDate: Date
+) {
+    try {
+        return await prisma.promotion.findMany({
+            where: {
+                ratePlanId,
+                isActive: true,
+                isAutoApplied: true,
+                OR: [
+                    { validFrom: null },
+                    { validFrom: { lte: startDate } },
+                ],
+                AND: [
+                    {
+                        OR: [
+                            { validTo: null },
+                            { validTo: { gte: startDate } },
+                        ],
+                    },
+                ],
+            },
+        });
+    } catch (error) {
+        throw new Error('Failed to get auto applied promotions');
+    }
+}
+
+public async getGeoRatePlans(ratePlanId: string) {
+    try {
+        return await prisma.geoRatePlan.findMany({
+            where: {
+                ratePlanId,
+                isActive: true,
+            },
+        });
+    } catch (error) {
+        throw new Error('Failed to get geo rate plans');
+    }
+}
+
+public async findPromoCode(code: string) {
+    try {
+        return await prisma.promoCode.findUnique({
+            where: {
+                code,
+                isActive: true,
+            },
+        });
+    } catch (error) {
+        throw new Error('Failed to fetch promo code');
+    }
+}
 }
