@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '@/contexts/SearchContext';
 import { useSearchSummary } from '@/hooks/useSearchFilters';
@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader } from '@/components/Loader';
 import type { IProperty } from './interface/agentic-property.types';
+import csc from 'countries-states-cities';
+import type { ICity } from 'countries-states-cities';
 import {
   Building2,
   MapPin,
@@ -24,9 +26,9 @@ import {
   Coffee,
   Flame,
   Mountain,
-  CalendarDays,
   ChevronRight,
-  Filter
+  Filter,
+  X,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { setSelectedProperty } from '@/redux/slices/propertySlice';
@@ -54,12 +56,99 @@ const amenityIcons: Record<string, React.ElementType> = {
 
 export default function PropertyPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+
   const [properties, setProperties] = useState<IProperty[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Location search state
+  const [locationInput, setLocationInput] = useState('');
+  const [activeLocation, setActiveLocation] = useState('');
+  const [suggestions, setSuggestions] = useState<ICity[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
   const { filters } = useSearch();
   const { hasActiveFilters, activeFilterCount } = useSearchSummary();
-  const dispatch = useAppDispatch();
+
+const allCitiesRef = useRef<ICity[]>([]);
+
+// Build city cache once on mount
+useEffect(() => {
+  const cities: ICity[] = [];
+  const countries = csc.getAllCountries();
+  for (const country of countries) {
+    const states = csc.getStatesOfCountry(country.id);
+    for (const state of states) {
+      cities.push(...csc.getCitiesOfState(state.id));
+    }
+  }
+  allCitiesRef.current = cities;
+}, []);
+
+// Suggestions — reads from cache, no API calls
+useEffect(() => {
+  const query = locationInput.trim().toLowerCase();
+  if (query.length < 2) {
+    setSuggestions([]);
+    setShowSuggestions(false);
+    return;
+  }
+  const matched = allCitiesRef.current
+    .filter((city) => city.name.toLowerCase().startsWith(query))
+    .slice(0, 8);
+  setSuggestions(matched);
+  setShowSuggestions(matched.length > 0);
+}, [locationInput]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchProperties = async (location?: string) => {
+    setLoading(true);
+    const result = await fetchPropertiesService(location);
+    if (result.success && result.data) {
+      setProperties(result.data);
+    } else {
+      toast.error(result.message || 'Failed to fetch properties');
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  // --- Handlers ---
+  const handleSelectCity = (city: ICity) => {
+    setLocationInput(city.name);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const handleSearch = () => {
+    const trimmed = locationInput.trim();
+    setActiveLocation(trimmed);
+    setShowSuggestions(false);
+    fetchProperties(trimmed || undefined);
+  };
+
+  const handleClear = () => {
+    setLocationInput('');
+    setActiveLocation('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+    fetchProperties();
+  };
+
+  // --- Client-side filter on top of API results ---
   const filteredProperties = useMemo(() => {
     return properties.filter((property) => {
       if (filters.searchQuery) {
@@ -67,38 +156,11 @@ export default function PropertyPage() {
         const matchesName = property.propertyName?.toLowerCase().includes(query);
         const matchesCity = property.propertyAddress?.city?.toLowerCase().includes(query);
         const matchesState = property.propertyAddress?.state?.toLowerCase().includes(query);
-
-        if (!matchesName && !matchesCity && !matchesState) {
-          return false;
-        }
+        if (!matchesName && !matchesCity && !matchesState) return false;
       }
       return true;
     });
   }, [properties, filters]);
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      setLoading(true);
-      const result = await fetchPropertiesService();
-
-      if (result.success && result.data) {
-        setProperties(result.data);
-      } else {
-        toast.error(result.message || 'Failed to fetch properties');
-      }
-      setLoading(false);
-    };
-
-    fetchProperties();
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  };
 
   if (loading) {
     return <Loader fullScreen text="Loading properties..." />;
@@ -118,7 +180,67 @@ export default function PropertyPage() {
                 {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
               </Badge>
             )}
+            {activeLocation && (
+              <Badge variant="outline" className="ml-2 text-accent border-accent">
+                <MapPin className="h-3 w-3 mr-1" />
+                {activeLocation}
+              </Badge>
+            )}
           </p>
+        </div>
+
+        {/* Location Search */}
+        <div className="flex items-center gap-2">
+          <div className="relative w-64" ref={wrapperRef}>
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search by city..."
+              value={locationInput}
+              onChange={(e) => {
+                setLocationInput(e.target.value);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+              className="pl-9 pr-4 py-2 text-sm border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent w-full"
+            />
+
+            {/* Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-input rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+                {suggestions.map((city) => (
+                  <button
+                    key={city.id}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleSelectCity(city)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-accent/10 transition-colors"
+                  >
+                    <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
+                    <span className="text-foreground">{city.name}</span>
+                    <span className="text-muted-foreground text-xs ml-auto">{city.country_code}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <Button
+            onClick={handleSearch}
+            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+          >
+            Search
+          </Button>
+
+          {activeLocation && (
+            <Button
+              variant="ghost"
+              onClick={handleClear}
+              className="text-muted-foreground gap-1"
+            >
+              <X className="h-4 w-4" />
+              Clear
+            </Button>
+          )}
         </div>
       </div>
 
@@ -155,7 +277,6 @@ export default function PropertyPage() {
                         {property.propertyType?.masterPropertyType?.propertyTypeName || 'N/A'}
                       </Badge>
                     </div>
-
                   </div>
 
                   {/* Property Details */}
@@ -200,7 +321,9 @@ export default function PropertyPage() {
                           </div>
                           <div>
                             <p className="text-xs text-muted-foreground">Location</p>
-                            <p className="text-sm font-medium text-foreground">{property.propertyAddress?.location || 'N/A'}</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {property.propertyAddress?.location || 'N/A'}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -272,7 +395,8 @@ export default function PropertyPage() {
                           onClick={() => {
                             dispatch(setSelectedProperty(property as any));
                             navigate(`/property/${property.id}/rooms`);
-                          }}                        >
+                          }}
+                        >
                           View Rooms
                           <ChevronRight className="h-4 w-4 ml-1" />
                         </Button>
