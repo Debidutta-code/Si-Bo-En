@@ -280,7 +280,7 @@ const Report = () => {
                                 <Label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                                     <DollarSign className="w-4 h-4" />
                                     {t('Report.reportSettings.convertCurrency')}
-                                    <span className="text-xs font-normal text-muted-foreground ml-1">(optional)</span>
+                                    <span className="text-xs font-normal text-muted-foreground ml-1">({t('AmendReservation.guestDetailsForm.optional')})</span>
                                 </Label>
                                 <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
                                     <SelectTrigger className="w-full h-12 text-base">

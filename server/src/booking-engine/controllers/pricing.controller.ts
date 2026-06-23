@@ -102,6 +102,7 @@ export class PricingController {
                 rooms,
                 adults,
                 guestDistribution,
+                includedAddons ? includedAddons : [],
                 children ? children : 0,
                 childAges,
                 userCountryCode ? userCountryCode : '',
@@ -109,7 +110,6 @@ export class PricingController {
                 promotions ? promotions : [],
                 parsedAddons ? parsedAddons : [],
                 promoCode,
-                includedAddons ? includedAddons : [],
                 applyLoyaltyDiscount ? email : ''
 
             );

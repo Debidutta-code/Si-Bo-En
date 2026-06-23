@@ -328,7 +328,7 @@
     "processing": "Processing...",
     "cancel": "Cancel",
     "continueToPriceDetails": "Continue to Price Details →",
-    "back": "← Back",
+    "back": " Back",
     "stepIndicator": "Step {{current}} of {{total}}",
     "loading": "Loading...",
     "roomCharges": "Total Room Charges",

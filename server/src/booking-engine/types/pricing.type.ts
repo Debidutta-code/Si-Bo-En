@@ -69,7 +69,7 @@ export interface IRatePlan {
     b2bAvailable: boolean;
     b2cAvailable: boolean;
     charges: ICharge[];
-    Addons: IRatePlanWithAddon[];
+    // Addons: IRatePlanWithAddon[];
     geoRatePlans: IGeoRatePlanWithoutRatePlan[];
     bookingOffsets: IBookingOffset[];
 }

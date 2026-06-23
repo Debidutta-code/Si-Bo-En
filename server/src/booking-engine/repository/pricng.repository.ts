@@ -15,7 +15,7 @@ export class PricingRepository {
         roomTypeCode: string,
         startDate: Date,
         endDate: Date,
-        includedAddons: string[]
+        // includedAddons: string[]
     ): Promise<IRatePlan | null> {
         try {
             return await prisma.ratePlan.findUnique({
@@ -35,28 +35,28 @@ export class PricingRepository {
                             },
                         },
                     },
-                    Addons: {
-                        where: {
-                            addonId: {
-                                in: includedAddons,
-                            },
-                        },
-                        include: {
-                            addon: {
-                                include: {
-                                    availability: {
-                                        where: {
-                                            date: {
-                                                gte: startDate,
-                                                lt: endDate,
-                                            },
-                                        },
-                                    },
-                                    ChildAddons: true,
-                                },
-                            },
-                        },
-                    },
+                    // Addons: {
+                    //     where: {
+                    //         addonId: {
+                    //             in: includedAddons,
+                    //         },
+                    //     },
+                    //     include: {
+                    //         addon: {
+                    //             include: {
+                    //                 availability: {
+                    //                     where: {
+                    //                         date: {
+                    //                             gte: startDate,
+                    //                             lt: endDate,
+                    //                         },
+                    //                     },
+                    //                 },
+                    //                 ChildAddons: true,
+                    //             },
+                    //         },
+                    //     },
+                    // },
 
                     bookingOffsets: {
                         where: {
@@ -105,6 +105,29 @@ export class PricingRepository {
             });
         } catch (error) {
             throw new Error('Failed to get geo rate plan');
+        }
+    }
+    public async getIncludedAddons(includedAddons: string[], startDate: Date, endDate: Date): Promise<IAddOn[]> {
+        try {
+            return await prisma.addon.findMany({
+                where: {
+                    id: { in: includedAddons },
+                    isActive: true,
+                },
+                include: {
+                    availability: {
+                        where: {
+                            date: {
+                                gte: startDate,
+                                lt: endDate,
+                            },
+                        }
+                    },
+                    ChildAddons: true,
+                }
+            });
+        } catch (error) {
+            throw new Error("Failed to fetch included addons")
         }
     }
     public async getPromotions(promotionIds: string[]): Promise<ICEbDsOftc[]> {
@@ -270,43 +293,43 @@ export class PricingRepository {
     ): Promise<ILoyaltyDiscountData | null> {
         try {
             const pc2 = await prisma.propertyLoyaltyConfig.findFirst({
-                    where: {
-                        propertyId: propertyId,
-                        isActive: true,
-                        Property: {
-                            propertyConfigs: {
-                                isLoyaltyProgramEnabled: true
+                where: {
+                    propertyId: propertyId,
+                    isActive: true,
+                    Property: {
+                        propertyConfigs: {
+                            isLoyaltyProgramEnabled: true
+                        }
+                    }
+                },
+                include: {
+                    CreationLoyaltyConfig: {
+                        include: {
+                            BasicLoyaltyProgram: {
+                                where: {
+                                    isActive: true,
+                                }
+                            },
+                            LoyalityLevels: true,
+                            CreationGuest: {
+                                where: {
+                                    Customer: {
+                                        email: loyalityEmail
+                                    }
+                                }
                             }
                         }
                     },
-                    include: {
-                        CreationLoyaltyConfig: {
-                            include: {
-                                BasicLoyaltyProgram: {
-                                    where: {
-                                        isActive: true,
-                                    }
-                                },
-                                LoyalityLevels: true,
-                                CreationGuest:{
-                                    where:{
-                                        Customer:{
-                                            email:loyalityEmail
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        PropertyLoyalityGuests:{
-                            where: {
-                                Customer: {
-                                    email: loyalityEmail
-                                }
+                    PropertyLoyalityGuests: {
+                        where: {
+                            Customer: {
+                                email: loyalityEmail
                             }
                         }
                     }
-                })
-            if (pc2&&pc2.CreationLoyaltyConfig.CreationGuest.length>0) {
+                }
+            })
+            if (pc2 && pc2.CreationLoyaltyConfig.CreationGuest.length > 0) {
                 const creationGuest = pc2.CreationLoyaltyConfig.CreationGuest[0];
                 return {
                     guestLevel: creationGuest.guestLevel,

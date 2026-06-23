@@ -52,6 +52,7 @@ export class PricingService {
         rooms: number,
         adults: number,
         guestDistribution: IGuestDistribution[],
+        includedAddons: string[],
         children?: number,
         childAges?: number[],
         userCountryCode?: string,
@@ -59,7 +60,6 @@ export class PricingService {
         promotions?: ISelectedPromotion[],
         parsedAddons?: ISelectedAddonsS[],
         promoCode?: string,
-        includedAddons?: string[],
         loyalityEmail?: string
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
@@ -71,18 +71,18 @@ export class PricingService {
             endDate = parsedEndDate;
 
             // ─── Phase 1: fetch ratePlan + room + addons + user promotions ───
-            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom] =
+            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom,includedAddonsRes] =
                 await Promise.all([
                     this.pricingRepository.validateRatePlan(
                         ratePlanCode,
                         invTypeCode,
                         toUTC(startDate),
                         toUTC(endDate),
-                        includedAddons ? includedAddons : []
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
                     this.roomRepo.findByRoomType(propertyId, invTypeCode),
+                    this.pricingRepository.getIncludedAddons(includedAddons, toUTC(startDate), toUTC(endDate))
                 ]);
 
             if (!ratePlan) {
@@ -135,7 +135,7 @@ export class PricingService {
 
             const addOnPrice = new AddOnPriceClass(
                 selectedAddons,
-                ratePlan.Addons,
+                includedAddonsRes,
                 priceBrakedowns,
                 rooms,
                 Math.ceil(
@@ -546,7 +546,7 @@ class BasePriceClass {
 }
 class AddOnPriceClass {
     addons: IAddOn[] | null;
-    addonsWithRatePlans: IRatePlanWithAddon[] | null;
+    addonsWithRatePlans: IAddOn[] | null;
     priceBrakedowns: PriceBrakeDown;
     numberOfRooms: number;
     noOfDays: number;
@@ -557,7 +557,7 @@ class AddOnPriceClass {
     childAges: number[] | null;
     constructor(
         addons: IAddOn[] | null,
-        ratePlanAddons: IRatePlanWithAddon[] | null,
+        ratePlanAddons: IAddOn[] | null,
         priceBrakedowns: PriceBrakeDown,
         numberOfRooms: number,
         noOfDays: number,
@@ -669,12 +669,12 @@ class AddOnPriceClass {
         const addonBrakeDown: AddOnBrakeDown[] = [];
 
         this.addonsWithRatePlans.forEach(addon => {
-            if (addon.addon.availability.length === 0) return;
+            if (addon.availability.length === 0) return;
 
-            addon.addon.availability.forEach((avail, index) => {
+            addon.availability.forEach((avail, index) => {
                 const amount = Number(avail.price);
                 let quantityForDate = 1;
-                switch (addon.addon.postingRhythm) {
+                switch (addon.postingRhythm) {
                     case 'per_night':
                         quantityForDate = 1;
                         break;
@@ -704,13 +704,13 @@ class AddOnPriceClass {
 
                 const totalAmount = amount * quantityForDate;
                 addonBrakeDown.push({
-                    addonId: addon.addon.id,
-                    name: addon.addon.name,
+                    addonId: addon.id,
+                    name: addon.name,
                     amount,
                     quantity: quantityForDate,
                     totalAmount,
                     type: 'included',
-                    currencyCode: addon.addon.availability[0]
+                    currencyCode: addon.availability[0]
                         .currencyCode as CurrencyCode,
                     date: new Date(avail.date).toDateString(),
                 });
@@ -719,7 +719,7 @@ class AddOnPriceClass {
             // calculate child addon prices if childAges exist
             if (this.childAges && this.childAges.length > 0) {
                 const childAddonBreakdowns = this.calculateChildAddonPrice(
-                    addon.addon,
+                    addon,
                     this.childAges,
                     'included'
                 );

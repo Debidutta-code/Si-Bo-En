@@ -119,6 +119,9 @@ export interface IRoomPrice {
     comboLabel: {
         id: string;
         label: string;
+                isCustomizableDeal: boolean;
+        customizableDealId: string | null;
+
         _translations: {
             name: string;
             description: string;

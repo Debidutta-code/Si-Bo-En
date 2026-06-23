@@ -187,12 +187,22 @@ export class BookingEngineRoomsInterceptor {
                 }
             }
         }
-        //Addons
+        //Combo label
         if(rp.comboLabel){
             const comboLabelTranslation = await AddonTranslation.getTranslated(rp.comboLabel.id, locale);
             if (comboLabelTranslation) {
                 result.comboLabel = { ...rp.comboLabel, _translations: comboLabelTranslation };
             }
+        }
+        //Addons
+        if (Array.isArray(rp.addons)) {
+            result.addons = await Promise.all(
+                rp.addons.map(async (addon: any) => {
+                    if (!addon?.id) return addon;
+                    const t = await AddonTranslation.getTranslated(addon.id, locale);
+                    return t ? { ...addon, _translations: t } : addon;
+                })
+            );
         }
         // Tourist tax
         if (rp.touristTax?.id) {
