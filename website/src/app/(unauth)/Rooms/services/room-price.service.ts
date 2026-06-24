@@ -1,4 +1,5 @@
 import {
+  CustomDlApllied,
   IAddonAvailability,
   IAvailableAddonsResponse,
   IFinalPrice,
@@ -68,6 +69,7 @@ export const buildPricePayload = (opts: {
   selectedAddons: ISelectedAddon[];
   includedAddonIds: string[];
   email:string|null
+  customizableDeals:CustomDlApllied
 }, loyaltyToggleOn: boolean): IGetPricePayload => {
   const childAges = opts.roomsArray.flatMap((r) => r.childAges ?? []);
 
@@ -85,6 +87,7 @@ export const buildPricePayload = (opts: {
     guestDistribution: opts.roomsArray,
     applyLoyaltyDiscount: loyaltyToggleOn,
     email: opts.email,
+    customizableDeals:opts.customizableDeals
   };
 
   if (opts.selectedPromotions.length > 0) {

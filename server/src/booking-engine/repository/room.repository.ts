@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { prisma } from '../../config';
 import { toUTCDate } from '../../utils';
-import { IPromotion } from '../types';
+import { CustomizableDealsApplicableAddons, ICustomizableDeal, IPromotion } from '../types';
 
 export class RoomBookingRepository {
     public static async getPropertyByCode(propertyCode: string) {
@@ -342,5 +342,50 @@ export class RoomBookingRepository {
                 isActive: true,
             },
         });
+    }
+    public static async getCustomizableDeals(propertyId: string, roomId: string, ratePlanId: string, startDate: Date, endDate: Date): Promise<ICustomizableDeal[]> {
+        try {
+            return prisma.customizableDeal.findMany({
+                where: {
+                    propertyId,
+                    roomId,
+                    ratePlanId,
+                    isActive: true,
+                    startDate: {
+                        lte: endDate,
+                    },
+                    endDate: {
+                        gte: startDate,
+                    },
+                },
+                include: {
+                    CustomizableDealsApplicableAddons: {
+                        include: {
+                            AddOn: {
+                                include: {
+                                    addonVariant: true,
+                                    category: true,
+                                    subCategory: true,
+                                    // availability: {
+                                    //     where: {
+                                    //         date: {
+                                    //             gte: startDate,
+                                    //             lte: endDate,
+                                    //         },
+                                    //         isAvailable: true
+                                    //     }
+                                    // },
+                                    ChildAddons: true
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+
+        } catch {
+            return [];
+        }
     }
 }

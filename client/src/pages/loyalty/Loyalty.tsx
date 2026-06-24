@@ -45,7 +45,7 @@ export default function Loyalty() {
   });
 
   const [creationLoyalty, setCreationLoyalty] = useState<ICreationLoyality | null>(null);
-  const [hasCreationLoyalty, setHasCreationLoyalty] = useState(false);
+  const [hasCreationLoyalty, setHasCreationLoyalty] = useState<boolean>(false);
 
   const [basicProgram, setBasicProgram] = useState<ICloyaltyProgram | null>(null);
   // const [advanceProgram, setAdvanceProgram] = useState<IAdvanceLoyaltyprogram | null>(null);

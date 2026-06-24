@@ -467,43 +467,6 @@ const GuestFormModal: React.FC<Props> = ({
                 </Alert>
               )}
 
-              {/* "Add extras" affordance — only shown if this rate plan actually has addons available.
-                  Opens the AddonSelectionModal, which now lives in the parent (Rooms), on top of this modal. */}
-              {/* {availableAddons.length > 0 && (
-                <Card className="border-2 border-dashed">
-                  <CardContent className="p-4 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="h-9 w-9 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ backgroundColor: `${colors.primaryColor}15`, color: colors.primaryColor }}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">
-                          {t("GuestForm.addExtrasTitle", { defaultValue: "Add extras to your stay" })}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("GuestForm.addExtrasSubtitle", {
-                            count: availableAddons.length,
-                            defaultValue: `${formatNumber(availableAddons.length)} add-on${availableAddons.length > 1 ? "s" : ""} available`,
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={onOpenAddonModal}
-                      disabled={isFetchingStep2}
-                      style={{ borderColor: colors.primaryColor, color: colors.primaryColor }}
-                    >
-                      {t("GuestForm.addExtrasButton", { defaultValue: "Add extras" })}
-                    </Button>
-                  </CardContent>
-                </Card>
-              )} */}
 
               <Card className={`border-2 transition-opacity ${isFetchingStep2 ? "opacity-50" : ""}`}>
                 <CardHeader className="pb-3">
@@ -666,6 +629,9 @@ const GuestFormModal: React.FC<Props> = ({
                         {/* 3. Discounts */}
                         {(deductPromos.length > 0 ||
                           (finalPrice.loyalityDiscount ?? 0) > 0 ||
+                          (finalPrice.customizableDealDiscount ?? 0) > 0 ||
+                                                    (finalPrice.customizableDealDiscount ?? 0) > 0 ||
+
                           (finalPrice.promoCodeDiscount ?? 0) > 0) && (
                             <AccordionSection
                               sectionKey="discounts"
@@ -694,6 +660,13 @@ const GuestFormModal: React.FC<Props> = ({
                                 <div className="flex justify-between py-0.5 text-green-700">
                                   <span>{t("GuestForm.promoCodeDiscount")}</span>
                                   <span>- {cur} {formatNumber(finalPrice.promoCodeDiscount)}</span>
+                                </div>
+                              )}
+                              {/* 5. Customizable Deal Discount */}
+                              {finalPrice.customizableDealDiscount > 0 && (
+                                <div className="flex justify-between py-0.5 text-green-700">
+                                  <span>{t("GuestForm.customizableDealDiscount")}</span>
+                                  <span>- {cur} {formatNumber(finalPrice.customizableDealDiscount)}</span>
                                 </div>
                               )}
                             </AccordionSection>

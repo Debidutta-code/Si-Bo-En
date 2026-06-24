@@ -187,7 +187,6 @@ export class CustomizableDealService {
                         : exists.currencyCode),
                 startDate: dealData.startDate ?? exists.startDate,
                 endDate: dealData.endDate ?? exists.endDate,
-                isAutoApplied: dealData.isAutoApplied ?? exists.isAutoApplied,
                 isActive: dealData.isActive ?? exists.isActive,
                 roomId: room?.id ?? exists.roomId,
                 roomType: room?.roomType ?? exists.roomType,

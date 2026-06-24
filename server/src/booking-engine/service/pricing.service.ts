@@ -14,9 +14,11 @@ import {
 import { PricingRepository } from '../repository';
 import {
     AddOnBrakeDown,
+    CustomDlApllied,
     DailyPriceBrakeDown,
     IAddOn,
     ICharge,
+    ICustomizableDeal,
     IGuestDistribution,
     IIncludedAddons,
     IRatePlanWithAddon,
@@ -52,6 +54,7 @@ export class PricingService {
         rooms: number,
         adults: number,
         guestDistribution: IGuestDistribution[],
+        includedAddons: string[],
         children?: number,
         childAges?: number[],
         userCountryCode?: string,
@@ -59,8 +62,8 @@ export class PricingService {
         promotions?: ISelectedPromotion[],
         parsedAddons?: ISelectedAddonsS[],
         promoCode?: string,
-        includedAddons?: string[],
-        loyalityEmail?: string
+        loyalityEmail?: string,
+        customizableDealParams?: CustomDlApllied
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
             const parsedStartDate: Date =
@@ -71,18 +74,19 @@ export class PricingService {
             endDate = parsedEndDate;
 
             // ─── Phase 1: fetch ratePlan + room + addons + user promotions ───
-            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom] =
+            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom,includedAddonsRes,customizableDeal] =
                 await Promise.all([
                     this.pricingRepository.validateRatePlan(
                         ratePlanCode,
                         invTypeCode,
                         toUTC(startDate),
                         toUTC(endDate),
-                        includedAddons ? includedAddons : []
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
                     this.roomRepo.findByRoomType(propertyId, invTypeCode),
+                    this.pricingRepository.getIncludedAddons(includedAddons, toUTC(startDate), toUTC(endDate)),
+                    this.fetchCustomizableDeals(customizableDealParams)
                 ]);
 
             if (!ratePlan) {
@@ -135,7 +139,7 @@ export class PricingService {
 
             const addOnPrice = new AddOnPriceClass(
                 selectedAddons,
-                ratePlan.Addons,
+                includedAddonsRes,
                 priceBrakedowns,
                 rooms,
                 Math.ceil(
@@ -184,6 +188,15 @@ export class PricingService {
                     loyaltyDiscountData
                 );
                 priceBrakedowns = loyalityDiscountClass.findLoyalityDiscount();
+            }
+
+            if (customizableDeal) {
+                const customizableDealClass = new CustomizableDealClass(
+                    priceBrakedowns,
+                    customizableDeal
+                );
+                priceBrakedowns =
+                    customizableDealClass.applyCustomizableDealDiscount();
             }
 
             priceBrakedowns = {
@@ -290,6 +303,23 @@ export class PricingService {
             throw new Error('Failed to fetch promotions');
         }
     }
+    private async fetchCustomizableDeals(
+        customizableDeal?: CustomDlApllied
+    ): Promise<ICustomizableDeal | null> {
+        try {
+            if (!customizableDeal || !customizableDeal.isApplied) {
+                return null;
+            }
+            if (!customizableDeal.customizableDealId) {
+                throw new Error("Customizable deal is required when the deal is applied");
+            }
+            const customizableDeals =
+                await this.pricingRepository.findCustomizableDeal(customizableDeal.customizableDealId);
+            return customizableDeals;
+        } catch (error) {
+            throw new Error('Failed to fetch customizable deals');
+        }
+    }
 }
 class BasePriceClass {
     startDate: Date;
@@ -366,6 +396,7 @@ class BasePriceClass {
             latterpayableAmount: 0,
             loyalityDiscount: 0,
             promoCodeDiscount: 0,
+            customizableDealDiscount: 0,
             currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
             dailyPriceBrakeDown,
             taxBrakeDown: [],
@@ -544,9 +575,53 @@ class BasePriceClass {
         return { totalAmount: basePrice, dailyPriceBrakeDown };
     }
 }
+class CustomizableDealClass {
+    private customizableDeal: ICustomizableDeal;
+    private priceBrakedown: PriceBrakeDown;
+
+    constructor(
+        priceBrakedown: PriceBrakeDown,
+        customizableDeal: ICustomizableDeal
+    ) {
+        this.priceBrakedown = priceBrakedown;
+        this.customizableDeal = customizableDeal;
+    }
+
+    public applyCustomizableDealDiscount(): PriceBrakeDown {
+        const { discountType, discountValue } = this.customizableDeal;
+
+        if (!discountValue || discountValue <= 0) {
+            return this.priceBrakedown;
+        }
+
+        let discountAmount = 0;
+
+        if (discountType === 'percentage') {
+            discountAmount =
+                (this.priceBrakedown.amountBeforeTax * discountValue) / 100;
+        } else if (discountType === 'flat') {
+            discountAmount = Math.min(
+                discountValue,
+                this.priceBrakedown.amountBeforeTax
+            );
+        }
+
+        if (discountAmount <= 0) {
+            return this.priceBrakedown;
+        }
+
+        return {
+            ...this.priceBrakedown,
+            customizableDealDiscount: discountAmount,
+            currentChargeableAmount:
+                this.priceBrakedown.currentChargeableAmount - discountAmount,
+            totalAmount: this.priceBrakedown.totalAmount - discountAmount,
+        };
+    }
+}
 class AddOnPriceClass {
     addons: IAddOn[] | null;
-    addonsWithRatePlans: IRatePlanWithAddon[] | null;
+    addonsWithRatePlans: IAddOn[] | null;
     priceBrakedowns: PriceBrakeDown;
     numberOfRooms: number;
     noOfDays: number;
@@ -557,7 +632,7 @@ class AddOnPriceClass {
     childAges: number[] | null;
     constructor(
         addons: IAddOn[] | null,
-        ratePlanAddons: IRatePlanWithAddon[] | null,
+        ratePlanAddons: IAddOn[] | null,
         priceBrakedowns: PriceBrakeDown,
         numberOfRooms: number,
         noOfDays: number,
@@ -669,12 +744,12 @@ class AddOnPriceClass {
         const addonBrakeDown: AddOnBrakeDown[] = [];
 
         this.addonsWithRatePlans.forEach(addon => {
-            if (addon.addon.availability.length === 0) return;
+            if (addon.availability.length === 0) return;
 
-            addon.addon.availability.forEach((avail, index) => {
+            addon.availability.forEach((avail, index) => {
                 const amount = Number(avail.price);
                 let quantityForDate = 1;
-                switch (addon.addon.postingRhythm) {
+                switch (addon.postingRhythm) {
                     case 'per_night':
                         quantityForDate = 1;
                         break;
@@ -704,13 +779,13 @@ class AddOnPriceClass {
 
                 const totalAmount = amount * quantityForDate;
                 addonBrakeDown.push({
-                    addonId: addon.addon.id,
-                    name: addon.addon.name,
+                    addonId: addon.id,
+                    name: addon.name,
                     amount,
                     quantity: quantityForDate,
                     totalAmount,
                     type: 'included',
-                    currencyCode: addon.addon.availability[0]
+                    currencyCode: addon.availability[0]
                         .currencyCode as CurrencyCode,
                     date: new Date(avail.date).toDateString(),
                 });
@@ -719,7 +794,7 @@ class AddOnPriceClass {
             // calculate child addon prices if childAges exist
             if (this.childAges && this.childAges.length > 0) {
                 const childAddonBreakdowns = this.calculateChildAddonPrice(
-                    addon.addon,
+                    addon,
                     this.childAges,
                     'included'
                 );
@@ -1588,3 +1663,4 @@ class TaxClass {
         };
     }
 }
+

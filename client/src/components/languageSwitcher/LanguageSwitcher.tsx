@@ -49,7 +49,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = () => {
     window.location.reload();
     setSelectedLanguage(langCode);
     i18next.changeLanguage(langCode);
-    localStorage.setItem('i18nextLng', langCode);
+    localStorage.setItem('exlang', langCode);
     setIsOpen(false);
   };
 

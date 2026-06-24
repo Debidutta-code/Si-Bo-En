@@ -201,6 +201,8 @@
     "onlyRoomsLeft": "Only {{count}} Room Left!",
     "onlyRoomsLeftPlural": "Only {{count}} Rooms Left!",
     "mlos": "Minimum {{nights}} nights stay",
+    "customizableDeal": "Special Offer {{number}}",
+    "customizableDealOffer": "Special Offer",
     "touristTax": {
       "notIncluded": "not included",
       "paidAtHotel": " in the room rate — to be paid directly at the hotel."
@@ -210,6 +212,7 @@
       "deviceExclusive": "Device exclusive offer",
       "bookDaysInAdvance": "Book {{count}} days in advance",
       "specialOffer": "Special offer",
+      "customizableDeal": "Special discount offer",
       "validUntil": "Valid until"
     },
     "errors": {
@@ -274,6 +277,7 @@
     "continueWithPlural": "Continue with {{count}} Add-ons"
   },
   "GuestForm": {
+    "customizableDealDiscount": "Special Discount",
     "title": "Complete Your Booking",
     "adult": "Adult",
     "child": "Child",
@@ -328,7 +332,7 @@
     "processing": "Processing...",
     "cancel": "Cancel",
     "continueToPriceDetails": "Continue to Price Details →",
-    "back": "← Back",
+    "back": " Back",
     "stepIndicator": "Step {{current}} of {{total}}",
     "loading": "Loading...",
     "roomCharges": "Total Room Charges",
@@ -544,6 +548,7 @@
       "paidAmount": "Paid Amount:",
       "refundable": "Refundable Amount:"
     },
+    "customizableDealDiscount": "Special Discount",
     "promoCodeDiscount": "Promocode Discount",
     "loyaltyDiscount": "Loyalty Discount",
     "amountBeforeTax": "Amount Before Tax",

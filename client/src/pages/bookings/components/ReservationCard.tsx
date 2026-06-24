@@ -137,7 +137,7 @@ export default function ReservationCard({
                   onClick={() => onAmend?.(reservation.id)}
                   variant="outline"
                   size="icon"
-                  title="Amend Reservation"
+                  title={t('Bookings.reservationCard.amendReservation')}
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
@@ -145,7 +145,7 @@ export default function ReservationCard({
                   onClick={() => onCancel?.(reservation.id)}
                   variant="outline"
                   size="icon"
-                  title="Cancel Reservation"
+                  title={t('Bookings.reservationCard.cancelReservation')}
                   className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -193,7 +193,7 @@ export default function ReservationCard({
               )}
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <User className="w-4 h-4 flex-shrink-0" />
-                <span>{reservation.guests.length} {t('Bookings.reservationCard.guestInformation')}</span>
+                <span>{reservation.guests.length} {t('Bookings.reservationCard.guests')}</span>
               </div>
             </div>
           </div>
@@ -302,7 +302,7 @@ export default function ReservationCard({
                     {/* Room charges */}
                     {dailyRows.length > 0 && (
                       <div className="p-4 border-b border-gray-100">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Room charges</p>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">{t('Bookings.reservationCard.roomCharges')}</p>
                         <div className="space-y-2">
                           {dailyRows.map((day: any, i: number) => (
                             <div key={i} className="flex justify-between">
@@ -321,7 +321,7 @@ export default function ReservationCard({
                     {/* Add-ons */}
                     {addonRows.length > 0 && (
                       <div className="p-4 border-b border-gray-100">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Add-ons</p>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">{t('Bookings.reservationCard.addOns')}</p>
                         <div className="space-y-2">
                           {addonRows.map((addon: any, i: number) => (
                             <div key={i} className="flex justify-between items-start gap-2">
@@ -347,7 +347,7 @@ export default function ReservationCard({
                       .length > 0 && (
                         <div className="p-4 border-b border-gray-100">
                           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-                            Discounts applied
+                            {t('Bookings.reservationCard.discountsApplied')}
                           </p>
 
                           <div className="space-y-2">
@@ -367,11 +367,30 @@ export default function ReservationCard({
                           </div>
                         </div>
                       )}
+                      {pb.customizableDealDiscount > 0 && (
+                        <div className="p-4 border-b border-gray-100">
+                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                            {t('Bookings.reservationCard.specialDiscounts')}
+                          </p>
+
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-green-700">
+                                {t('Bookings.reservationCard.specialDiscount')}
+                              </span>
+
+                              <span className="text-green-700">
+                                - {currency} {pb.customizableDealDiscount?.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                     {/* Tax */}
                     {taxRows.length > 0 && (
                       <div className="p-4 border-b border-gray-100">
-                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Tax</p>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">{t('Bookings.reservationCard.tax')}</p>
                         <div className="space-y-2">
                           {taxRows.map((tax: any, i: number) => (
                             <div key={i} className="flex justify-between">
@@ -389,13 +408,13 @@ export default function ReservationCard({
                       <div className="p-4 border-b border-gray-100 space-y-2">
                         {(pb?.loyalityDiscount ?? 0) > 0 && (
                           <div className="flex justify-between text-green-700">
-                            <span>Loyalty discount</span>
+                            <span>{t('Bookings.reservationCard.loyaltyDiscount')}</span>
                             <span>-{currency} {pb.loyalityDiscount.toFixed(2)}</span>
                           </div>
                         )}
                         {(pb?.promoCodeDiscount ?? 0) > 0 && (
                           <div className="flex justify-between text-green-700">
-                            <span>Promo code discount</span>
+                            <span>{t('Bookings.reservationCard.promoCodeDiscount')}</span>
                             <span>-{currency} {pb.promoCodeDiscount.toFixed(2)}</span>
                           </div>
                         )}
@@ -419,7 +438,7 @@ export default function ReservationCard({
                       {laterPayable > 0 && (
                         <>
                           <div className="flex justify-between text-gray-600">
-                            <span>Pay at hotel</span>
+                            <span>{t('Bookings.reservationCard.payAtHotel')}</span>
                             <span>{currency} {laterPayable.toFixed(2)}</span>
                           </div>
                         </>
@@ -430,7 +449,7 @@ export default function ReservationCard({
                           <div className="space-y-2">
                             <div className="flex justify-between items-start gap-2">
                               <span className="text-gray-600">
-                                Total Activity Charges
+                                {t('Bookings.reservationCard.totalActivityCharges')}
                               </span>
 
                               <span className="text-gray-900 whitespace-nowrap">
@@ -441,7 +460,7 @@ export default function ReservationCard({
                         </div>
                       )}
                       <div className="flex justify-between font-medium text-gray-900 pt-2 border-t border-gray-200">
-                        <span>Total (incl. tax)</span>
+                        <span>{t('Bookings.reservationCard.totalInclTaxFull')}</span>
                         <span>{currency} {(totalAmount).toFixed(2)}</span>
                       </div>
                     </div>

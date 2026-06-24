@@ -24,6 +24,7 @@ import { Volume2, VolumeX } from "lucide-react";
 
 import { usePropertyContext } from "@/src/components/context/property-context";
 import {
+  CustomDlApllied,
   IAddonAvailability,
   IFetchRoomsRequest,
   IFinalPrice,
@@ -110,7 +111,10 @@ const Rooms = () => {
   const [isMuted, setIsMuted] = useState<boolean>(true);//property vedio muted
   const [bookingConditionsModal, setBookingConditionsModal] = useState<boolean>(false);
   const [showPriceSummary, setShowPriceSummary] = useState<boolean>(false);
-
+  const [isCustomizableDealsApplied,setCustomizableDealsApplied] = useState<CustomDlApllied>({
+    customizableDealId:null,
+    isApplied:false,
+  });
   const isLoadingFromExternal = useRef(false);
   const loadingRatePlanKey = isFetchingStep2 ? selectedRatePlanKey : null;
 
@@ -351,9 +355,11 @@ const Rooms = () => {
     room: IRoom,
     ratePlan: IRoomPrice,
     selectedPromotionsList: ISelectedPromotion[],
-    ratePlanKey: string
+    customizableDealsApplied:CustomDlApllied
   ) => {
     try {
+      console.log(customizableDealsApplied)
+      setCustomizableDealsApplied(customizableDealsApplied)
       setBookingSelectedPromotions(selectedPromotionsList)
       setBookingRoom(room)
       setCurrentRatePlan(ratePlan)
@@ -464,6 +470,7 @@ const Rooms = () => {
             selectedAddons: selectedAddons,
             includedAddonIds: currentRatePlan.addons?.map((a) => a.id) ?? [],
             email: loyalityToogle ? email : null,
+            customizableDeals:isCustomizableDealsApplied
           }, loyalityToogle)
         );
 

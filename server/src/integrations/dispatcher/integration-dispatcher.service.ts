@@ -6,6 +6,8 @@ import { SiteMinderReservationService } from '../site-minder/services/site-minde
 import { ICReservationS } from '../../reservation/types';
 import { ExistingReservation, RTUpdatePayload } from '../rate-tiger/types';
 import { SMIntegrationDao } from '../site-minder/dao';
+import { ChannexDao } from '../channex/dao/channex.dao';
+import { ChannexReservationPushService } from '../channex/services/channex-reservation-push.service';
 
 
 export interface ActiveIntegrationInfo {
@@ -59,7 +61,21 @@ export class IntegrationDispatcher {
                     smConfig.reservationUrl
                 );
             }
-
+            if (activeIntegration.name === 'Channex') {
+                const channexConfig = await ChannexDao.getChannexConfig(
+                    propertyId,
+                    activeIntegration.type
+                );
+                if (!channexConfig) {
+                    return { success: false, message: 'Channex config not found' };
+                }
+                return ChannexReservationPushService.pushCommit(
+                    payload,
+                    countryCode,
+                    bookingCode,
+                    channexConfig
+                );
+            }
             return { success: false, message: `Unsupported integration: ${activeIntegration.name}` };
         } catch (error: any) {
             return { success: false, message: error?.message ?? 'Dispatcher commit error' };
@@ -112,6 +128,20 @@ export class IntegrationDispatcher {
                     smConfig.reservationUrl
                 );
             }
+            if (activeIntegration.name === 'Channex') {
+                const channexConfig = await ChannexDao.getChannexConfig(
+                    propertyId,
+                    activeIntegration.type
+                );
+                if (!channexConfig) {
+                    return { success: false, message: 'Channex config not found' };
+                }
+                return ChannexReservationPushService.pushModify(
+                    existingReservation,
+                    updatePayload,
+                    channexConfig
+                );
+            }
 
             return { success: false, message: `Unsupported integration: ${activeIntegration.name}` };
         } catch (error: any) {
@@ -123,7 +153,7 @@ export class IntegrationDispatcher {
     public static async pushCancel(
         existingReservation: ExistingReservation,
         propertyId: string,
-        roomDescription:string,
+        roomDescription: string,
         activeIntegration: ActiveIntegrationInfo
     ): Promise<{ success: boolean; message: string }> {
         try {
@@ -149,7 +179,7 @@ export class IntegrationDispatcher {
                 if (!smConfig) {
                     return { success: false, message: 'Site Minder config not found' };
                 }
-                const smPayload = IntegrationDispatcher.buildSMPayloadFromExisting(existingReservation , roomDescription);
+                const smPayload = IntegrationDispatcher.buildSMPayloadFromExisting(existingReservation, roomDescription);
                 return SiteMinderReservationService.pushCancel(
                     smPayload,
                     existingReservation.bookingCode,
@@ -160,7 +190,19 @@ export class IntegrationDispatcher {
                     smConfig.reservationUrl
                 );
             }
-
+if (activeIntegration.name === 'Channex') {
+                const channexConfig = await ChannexDao.getChannexConfig(
+                    propertyId,
+                    activeIntegration.type
+                );
+                if (!channexConfig) {
+                    return { success: false, message: 'Channex config not found' };
+                }
+                return ChannexReservationPushService.pushCancel(
+                    existingReservation,
+                    channexConfig
+                );
+            }
             return { success: false, message: `Unsupported integration: ${activeIntegration.name}` };
         } catch (error: any) {
             return { success: false, message: error?.message ?? 'Dispatcher cancel error' };
@@ -290,7 +332,7 @@ export class IntegrationDispatcher {
 
     private static buildSMPayloadFromExisting(
         existing: ExistingReservation,
-        description?:string,
+        description?: string,
     ): ICReservationS {
         const finalPrice = IntegrationDispatcher.normalizeFinalPriceFromDB(existing);
         return {

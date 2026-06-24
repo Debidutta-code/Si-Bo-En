@@ -24,6 +24,8 @@ import {
     IRatePlanAddon,
     IAddonWithRelations,
     IAddonAvailability,
+    ICustomizableDeal,
+    ITotalCustomizableDealAddons,
 } from '../types';
 import {
     CurrencyCode,
@@ -248,6 +250,7 @@ export class RoomBookingService {
             devicePromotion,
             touristTaxData,
             bookingOffset,
+            customizableDeals,
         ] = await Promise.all([
             RoomBookingRepository.getCharges(
                 property.propertyCode,
@@ -289,8 +292,14 @@ export class RoomBookingService {
                 ratePlan.id,
                 toUTCDate(checkInDate)
             ) as Promise<IRoomBookingOffset | null>,
+            RoomBookingRepository.getCustomizableDeals(
+                property.id,
+                room.id,
+                ratePlan.id,
+                checkInDate,
+                checkOutDate
+            )
         ]);
-
         const chargeValidator = new ChargeValidator(charges, dates);
         if (!chargeValidator.validate()) return null;
 
@@ -398,11 +407,27 @@ export class RoomBookingService {
                 ...sharedFields,
                 comboLabel: {
                     id: 'room_only',
-                    label: 'Room Only'
+                    label: 'Room Only',
+                    isCustomizableDeal: false,
+                    customizableDealId: null
                 },
                 addons: [],
                 totalAmount: baseAmount - totalAutoDiscount,
             });
+
+        } else {
+            combos.push({
+                ...sharedFields,
+                comboLabel: {
+                    id: 'room_only_false',
+                    label: ratePlan.ratePlanName,
+                    isCustomizableDeal: false,
+                    customizableDealId: null
+
+                },
+                addons: [],
+                totalAmount: baseAmount - totalAutoDiscount,
+            })
         }
 
         for (const addon of availableAddonDetails) {
@@ -410,16 +435,59 @@ export class RoomBookingService {
                 ...sharedFields,
                 comboLabel: {
                     id: `${addon.id}`,
-                    label: `${addon.name}`
+                    label: `${addon.name}`,
+                    isCustomizableDeal: false,
+                    customizableDealId: null
+
                 },
                 addons: [addon],
                 totalAmount: baseAmount - totalAutoDiscount + addon.price,
             });
         }
-
+        if (customizableDeals.length > 0) {
+            const customizableDealsObj = new CustomizableDeals(
+                numberOfNights,
+                totalGuests,
+                numberOfRooms,
+                customizableDeals,
+                totalAutoDiscount,
+                dates,
+                roomsArray
+            );
+            const customizableDealsResults = await customizableDealsObj.getCustomizableDeals(baseAmount);
+            for (let i = 0; i < customizableDealsResults.length; i++) {
+                const deal = customizableDeals[i];
+                const dealAmount = customizableDealsResults[i];
+                combos.push({
+                    ...sharedFields,
+                    comboLabel: {
+                        id: customizableDealsResults.length > 1 ? `customizable_deal_${i + 1}` : `customizable_deal`,
+                        label: customizableDealsResults.length > 1 ? `Special Offer ${i + 1}` : `Special Offer`,
+                        isCustomizableDeal: true,
+                        customizableDealId: deal.id
+                    },
+                    appliedDiscounts: [
+                        ...sharedFields.appliedDiscounts,
+                        {
+                            id: deal.id,
+                            promotionName: `Special Offer ${i + 1}`,
+                            promotionType: 'customizableDiscount',
+                            discountType: deal.discountType,
+                            discountValue: deal.discountValue,
+                            calculatedDiscountAmount: RoomBookingService.calculateDiscount(
+                                baseAmount,
+                                deal.discountType,
+                                deal.discountValue
+                            ),
+                        },
+                    ],
+                    addons: dealAmount.addons,
+                    totalAmount: dealAmount.totalPrice,
+                });
+            }
+        }
         return combos.sort((a, b) => a.totalAmount - b.totalAmount);
     }
-
     static calculateDiscount(
         baseAmount: number,
         discountType: string,
@@ -1289,5 +1357,71 @@ class RoomAddonCalculator {
             default:
                 return 0;
         }
+    }
+}
+class CustomizableDeals {
+    private numberOfNights: number;
+    private totalGuests: number;
+    private numberOfRooms: number;
+    private customizableDeals: ICustomizableDeal[];
+    private totalDiscount: number;
+    private dates: Date[];
+    private roomsArray: {
+        adults: number;
+        children: number;
+        childAges: number[];
+    }[];
+
+    constructor(
+        numberOfNights: number,
+        totalGuests: number,
+        numberOfRooms: number,
+        customizableDeals: ICustomizableDeal[],
+        totalDiscount: number,
+        dates: Date[],
+        roomsArray: {
+            adults: number;
+            children: number;
+            childAges: number[];
+        }[]
+    ) {
+        this.numberOfNights = numberOfNights;
+        this.totalGuests = totalGuests;
+        this.numberOfRooms = numberOfRooms;
+        this.customizableDeals = customizableDeals;
+        this.totalDiscount = totalDiscount;
+        this.dates = dates;
+        this.roomsArray = roomsArray;
+    }
+    public async getCustomizableDeals(basePrice: number): Promise<ITotalCustomizableDealAddons[]> {
+        if (this.customizableDeals.length === 0) return [];
+        const totalCustomizableDeals: ITotalCustomizableDealAddons[] = [];
+        for (const deal of this.customizableDeals) {
+            const ratePlanAddOns: IRatePlanAddon[] = [];
+            deal.CustomizableDealsApplicableAddons.forEach(addon => {
+                ratePlanAddOns.push({
+                    addonId: addon.AddOn.id,
+                    addon: addon.AddOn,
+                });
+            });
+            const roomAddonCalculatorObj = new RoomAddonCalculator(
+                ratePlanAddOns,
+                this.dates,
+                this.numberOfNights,
+                this.totalGuests,
+                this.numberOfRooms,
+                this.roomsArray
+            );
+            const addonDetails = await roomAddonCalculatorObj.calculate();
+            totalCustomizableDeals.push(this.calculateTotalPrice(addonDetails, basePrice));
+        }
+        return totalCustomizableDeals;
+    }
+    private calculateTotalPrice(addonDetails: IAddonDetail[], basePrice: number): ITotalCustomizableDealAddons {
+        const totalAddons = addonDetails.reduce((sum, addon) => sum + addon.price, 0);
+        return {
+            totalPrice: totalAddons + basePrice - this.totalDiscount,
+            addons: addonDetails
+        };
     }
 }

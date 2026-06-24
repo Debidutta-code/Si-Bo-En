@@ -211,6 +211,7 @@ export class CreationLoyalityService {
                 default:
                     return errorResponse('Invalid creation level');
             }
+            console.log(daoRes);
             if (!daoRes.success) {
                 return errorResponse(
                     daoRes.message || 'Failed to fetch properties'

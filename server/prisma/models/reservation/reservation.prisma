@@ -52,6 +52,7 @@ model Reservation {
   isPromoUsed Boolean @default(false) @map("is_promo_used")
   promoId     String? @map("promo_id")
 
+isCustomizableDiscountApplied Boolean @default(false) @map("is_customizable_discount_applied")
   cancelledAt DateTime? @map("cancelled_at")
   agencyId    String?   @map("agency_id")
 

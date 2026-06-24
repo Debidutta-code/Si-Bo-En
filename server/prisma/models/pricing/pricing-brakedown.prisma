@@ -9,6 +9,7 @@ model PricingBreakdown {
   currentChargeableAmount Float                 @map("current_chargeable_amount")
   latterpayableAmount     Float                 @map("latterpayable_amount")
   promoCodeDiscount       Float                 @map("promo_code_discount")
+  customizableDealDiscount Float @default(0) @map("customizable_deal_discount")
   currencyCode            CurrencyCode          @map("currency_code")
   loyalityDiscount        Float                 @map("loyality_discount")
   totalSpa                Float                 @default(0) @map("total_spa_tax")

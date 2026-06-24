@@ -66,10 +66,10 @@ export interface IRoom {
     roomSize: number;
     roomUnit: RoomUnit;
     priority: number;
-    roomView: IRoomView|null;
+    roomView: IRoomView | null;
     numberOfBedrooms: number;
     maxOccupancy: number;
-    description: string|null;
+    description: string | null;
     images: string[];
     // amenities: IAmenity[];
     hasValidRate: boolean;
@@ -113,6 +113,8 @@ export interface IRoomPrice {
     comboLabel: {
         id: string;
         label: string;
+        isCustomizableDeal: boolean;
+        customizableDealId: string | null;
         _translations: {
             name: string;
             description: string;
@@ -126,7 +128,7 @@ export interface IRoomPrice {
         comboLabel?: string;
     };
 }
-export type IPromotionType = "mlos" | "normal" | "early_bird" | "device_specific" | "offer_for_tonight";
+export type IPromotionType = "mlos" | "normal" | "early_bird" | "device_specific" | "offer_for_tonight" | "customizableDiscount";
 
 export interface IAvailablePromotions {
     id: string;
@@ -177,6 +179,10 @@ export interface IAddonsWithRatePlan {
     category: IAddonCategory;
     subCategory: IAddonSubCategory;
     addonVariant: IAddonVariant;
+    _translations?: {
+        name: string;
+        description: string;
+    }
 }
 export type IPostingRhythm =
     | 'per_night'
@@ -210,8 +216,8 @@ export interface ITouristTax {
     discountValue: number;
     currencyCode: CurrencyCode;
     calculatedTaxAmount: number;
-    _translations?:{
-        name:string
+    _translations?: {
+        name: string
     }
 }
 export type IDiscountType = "flat" | "percentage"
@@ -226,11 +232,11 @@ export interface IPolicyDetails {
     type: IPolicyType;
     description: string;
     propertyId: string;
-    _translations?:IPolicyTranslation;
+    _translations?: IPolicyTranslation;
 }
 export interface IPolicyTranslation {
-  policyName: string;
-  description: string;
+    policyName: string;
+    description: string;
 }
 export type IPolicyType = "deposit" | "cancellation" | "guarantee"
 export interface IBaseByGuestAmts {
@@ -390,6 +396,7 @@ export interface IRawPriceBreakdown {
     currentChargeableAmount: number;
     latterpayableAmount: number;
     promoCodeDiscount: number;
+    customizableDealDiscount:number;
     loyalityDiscount: number;
     currencyCode: string;
     dailyPriceBrakeDown: IDailyPriceBreakdown[];
@@ -436,6 +443,10 @@ export interface ISelectedPromotion {
     discountValue: number;
     discountType: IDiscountType;
 }
+export interface CustomDlApllied {
+    isApplied: boolean;
+    customizableDealId: string | null;
+}
 
 export interface IPricePayloadPromotion {
     id: string;
@@ -467,8 +478,9 @@ export interface IGetPricePayload {
     promotions?: IPricePayloadPromotion[];
     parsedAddons?: IParsedAddon[];
     includedAddons?: string[];
-    applyLoyaltyDiscount:boolean;
-    email:string|null
+    applyLoyaltyDiscount: boolean;
+    email: string | null
+    customizableDeals:CustomDlApllied
 }
 
 export interface IAvailableAddonAvailability {

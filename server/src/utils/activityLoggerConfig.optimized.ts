@@ -242,7 +242,7 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
     {
         pattern:
             /\/api\/v1\/property-management\/property\/[^/]+\/room\/[^/]+$/,
-        method: 'PUT',
+        method: ['PUT', 'PATCH'],
         config: createCRUDConfig(ActivityEntity.ROOM, 'roomName')[1],
     },
     {

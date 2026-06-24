@@ -232,6 +232,10 @@ export interface IChildAddon {
     discountAmount: number | null;
 }
 
+export interface ITotalCustomizableDealAddons{
+    totalPrice: number;
+    addons:IAddonDetail[]
+}
 export interface IAddonWithRelations {
     id: string;
     name: string;
@@ -309,6 +313,8 @@ export interface IRoomPrice {
     comboLabel: {
         id:string;
         label:string;
+        isCustomizableDeal: boolean;
+        customizableDealId: string | null;
     };
     totalAmount: number;
     currencyCode: string;
@@ -322,6 +328,24 @@ export interface IRoomPrice {
     availablePromotions: IPromotion[];
     appliedDiscounts: IAppliedDiscount[];
     touristTax?: ITouristTax | null;
+}
+export interface ICustomizableDeal {
+    id: string;
+    discountType: "percentage"|"flat";
+    discountValue: number;
+    currencyCode: CurrencyCode | null;
+    startDate: Date;
+    endDate: Date;
+    isActive: boolean;
+    roomType: string;
+    roomId: string;
+    ratePlanId: string;
+    ratePlanCode: string;
+    CustomizableDealsApplicableAddons: CustomizableDealsApplicableAddons[];
+
+}
+export interface CustomizableDealsApplicableAddons{
+    AddOn: IAddonWithRelations ;
 }
 export interface IRoomAmenityDetail {
     id: string;
