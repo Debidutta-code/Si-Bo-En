@@ -1431,6 +1431,18 @@
       "marking": "جاري وضع العلامة..."
     },
     "reservationCard": {
+      "roomCharges": "رسوم الغرفة",
+      "tax": "الضريبة",
+      "discountsApplied": "الخصومات المطبقة",
+      "specialDiscounts": "الخصومات الخاصة",
+      "specialDiscount": "خصم خاص",
+      "promoCodeDiscount": "خصم رمز العرض الترويجي",
+      "payAtHotel": "الدفع في الفندق",
+      "totalActivityCharges": "إجمالي رسوم الأنشطة",
+      "totalInclTaxFull": "الإجمالي (شامل الضريبة)",
+      "guests": "الضيوف",
+      "amendReservation": "تعديل الحجز",
+      "cancelReservation": "إلغاء الحجز",
       "guestInformation": "معلومات الضيف",
       "bookingDetails": "تفاصيل الحجز",
       "checkIn": "تسجيل الوصول",

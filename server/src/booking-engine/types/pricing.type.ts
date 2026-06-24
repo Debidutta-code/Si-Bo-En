@@ -19,23 +19,23 @@ import {
 import { IBookingOffset } from '../../ari/types';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 
-export interface ICustomizableDeal {
-    id: string;
-    propertyId: string;
-    propertyCode: string;
-    discountType: DiscountType;
-    discountValue: number | null;
-    currencyCode: CurrencyCode | null;
-    startDate: Date;
-    endDate: Date;
-    roomId: string;
-    roomType: string;
-    ratePlanId: string;
-    ratePlanCode: string;
-    isAutoApplied: boolean;
-    isActive: boolean;
-    CustomizableDealsApplicableAddons: ICustomizableDealApplicableAddon[];
-}
+// export interface ICustomizableDeal {
+//     id: string;
+//     propertyId: string;
+//     propertyCode: string;
+//     discountType: DiscountType;
+//     discountValue: number | null;
+//     currencyCode: CurrencyCode | null;
+//     startDate: Date;
+//     endDate: Date;
+//     roomId: string;
+//     roomType: string;
+//     ratePlanId: string;
+//     ratePlanCode: string;
+//     isAutoApplied: boolean;
+//     isActive: boolean;
+//     CustomizableDealsApplicableAddons: ICustomizableDealApplicableAddon[];
+// }
 
 export interface ICustomizableDealApplicableAddon {
     id: string;
@@ -118,15 +118,15 @@ export interface IAddOn {
     availability: IAddonAvailability[];
     ChildAddons: IChildAddon[];
 }
-export interface ICustomizableDeal {
-    id: string;
-    propertyId: string;
-    propertyCode: string;
-    discountType: DiscountType;
-    discountValue: number | null;
-    currencyCode: CurrencyCode | null;
-    isAutoApplied: boolean;
-}
+// export interface ICustomizableDeal {
+//     id: string;
+//     propertyId: string;
+//     propertyCode: string;
+//     discountType: DiscountType;
+//     discountValue: number | null;
+//     currencyCode: CurrencyCode | null;
+//     isAutoApplied: boolean;
+// }
 export interface ICharge {
     id: string;
     propertyCode: string;

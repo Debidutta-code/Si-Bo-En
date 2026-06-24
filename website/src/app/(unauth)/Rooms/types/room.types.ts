@@ -396,6 +396,7 @@ export interface IRawPriceBreakdown {
     currentChargeableAmount: number;
     latterpayableAmount: number;
     promoCodeDiscount: number;
+    customizableDealDiscount:number;
     loyalityDiscount: number;
     currencyCode: string;
     dailyPriceBrakeDown: IDailyPriceBreakdown[];

@@ -201,6 +201,8 @@
     "onlyRoomsLeft": "केवल {{count}} कमरा शेष!",
     "onlyRoomsLeftPlural": "केवल {{count}} कमरे शेष!",
     "mlos": "न्यूनतम {{nights}} रातों का ठहराव",
+    "customizableDeal": "विशेष ऑफर {{number}}",
+    "customizableDealOffer": "विशेष ऑफर",
     "touristTax": {
       "notIncluded": "शामिल नहीं",
       "paidAtHotel": " कमरे की दर में — सीधे होटल में भुगतान किया जाना है।"
@@ -210,6 +212,7 @@
       "deviceExclusive": "डिवाइस विशेष ऑफर",
       "bookDaysInAdvance": "{{count}} दिन पहले बुक करें",
       "specialOffer": "विशेष ऑफर",
+      "customizableDeal": "विशेष छूट ऑफर",
       "validUntil": "वैध"
     },
     "errors": {
@@ -274,6 +277,7 @@
     "continueWithPlural": "{{count}} ऐड-ऑन के साथ जारी रखें"
   },
   "GuestForm": {
+      "customizableDealDiscount": "विशेष छूट",
     "title": "अपनी बुकिंग पूरी करें",
     "adult": "वयस्क",
     "notAvailable": "उपलब्ध नहीं",
@@ -526,6 +530,7 @@
     "no": "नहीं",
     "totalActivityCharges": "कुल गतिविधि शुल्क",
     "printItinerary": "यात्रा कार्यक्रम प्रिंट करें",
+          "customizableDealDiscount": "विशेष छूट",
     "promoCodeDiscount": "प्रोमो कोड छूट",
     "loyaltyDiscount": "लॉयल्टी छूट",
     "amountBeforeTax": "कर से पहले की राशि",

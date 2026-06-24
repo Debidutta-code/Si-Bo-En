@@ -433,7 +433,7 @@ export default function MyTripPage() {
               >
                 <HiOutlineViewGridAdd className="inline mr-2" /> {t("MyTrip.viewBooking")}
               </button>
-              {bookingData.bookingStatus === "confirmed" && (
+              {bookingData.bookingStatus === "confirmed"&&(
                 <button
                   onClick={() => setIsCheckinDialogOpen(true)}
                   className="px-4 py-2 rounded-md text-white font-medium hover:opacity-90 flex-1"
@@ -455,10 +455,10 @@ export default function MyTripPage() {
             {/* Modify & Cancel Buttons */}
             {(bookingData.bookingStatus === "confirmed" ||
               bookingData.bookingStatus === "modified") && (
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className={`flex flex-col sm:flex-row gap-4 `}>
                   <button
                     onClick={() => setShowUpdateModal(true)}
-                    className="border px-4 py-2 rounded-md font-medium border-blue-500 hover:bg-blue-50 w-full"
+                    className={`border px-4 py-2 rounded-md font-medium border-blue-500 hover:bg-blue-50 w-full ${bookingData.isCustomizableDiscountApplied&&"hidden"}`}
                     style={{
                       color: colors.primaryColor,
                       borderColor: colors.primaryColor
@@ -468,7 +468,7 @@ export default function MyTripPage() {
                   </button>
                   <button
                     onClick={() => setShowCancelModal(true)}
-                    className="border px-4 py-2 rounded-md font-medium text-red-600 border-red-500 hover:bg-red-50 w-full"
+                    className={`border px-4 py-2 rounded-md font-medium text-red-600 border-red-500 hover:bg-red-50 w-full ${bookingData.isCustomizableDiscountApplied&&"flex-1"}`}
                   >
                     <GiCancel className="inline mr-2 mb-1" />
                     {t("MyTrip.cancel")}
@@ -650,7 +650,7 @@ export default function MyTripPage() {
                       {t("MyTrip.paymentMethod")}
                     </p>
                     <p className="capitalize text-gray-800">
-                {t(`PriceDetails.${bookingData.paymentMethod?.replace(/_/g, '')}`)}
+                      {t(`PriceDetails.${bookingData.paymentMethod?.replace(/_/g, '')}`)}
                     </p>
                   </div>
 
@@ -712,7 +712,7 @@ export default function MyTripPage() {
                         .map((promo: any, i: number) => (
                           <div key={i} className="flex justify-between items-center">
                             <p className="text-green-600 flex items-center gap-1">
-                               {promo.name}
+                              {promo.name}
                               <span className="text-xs text-gray-400">
                                 ({promo.discountType === "percentage" ? `-${formatNumber(promo.discountValue)}%` : `-${currencies.find((c: Currency) => c.code === (promo.currencyCode || rawCurrencyCode))?.symbol || (promo.currencyCode || rawCurrencyCode)} ${formatNumber(promo.discountValue)}`})
                               </span>
@@ -728,6 +728,14 @@ export default function MyTripPage() {
                         {t("MyTrip.promoCodeDiscount")}
                       </p>
                       <p className="font-medium text-green-600">-{currencySymbol} {formatNumber(Number(bookingData.PricingBrakeDown.promoCodeDiscount?.toFixed(2)))}</p>
+                    </div>
+                  )}
+                  {bookingData.PricingBrakeDown.customizableDealDiscount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <p className="text-green-600 flex items-center gap-1">
+                        {t("MyTrip.customizableDealDiscount")}
+                      </p>
+                      <p className="font-medium text-green-600">-{currencySymbol} {formatNumber(Number(bookingData.PricingBrakeDown.customizableDealDiscount?.toFixed(2)))}</p>
                     </div>
                   )}
 

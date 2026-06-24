@@ -67,6 +67,7 @@ export class ReservationRepository {
                     platforms: data.platforms,
                     bookingUserPhone: data.bookingUserPhone,
                     customerId: data.customerId,
+                    isCustomizableDiscountApplied: data.isCustomizableDiscountApplied,
                 },
             });
             return {
@@ -330,6 +331,7 @@ export class ReservationRepository {
                     isPromoUsed: true,
                     Customers: true,
                     paymentImages: true,
+                    isCustomizableDiscountApplied:true,
                     paymentMethod: true,
                     SpaSlot: true,
                     roomTypeCode: true,
