@@ -14,9 +14,11 @@ import {
 import { PricingRepository } from '../repository';
 import {
     AddOnBrakeDown,
+    CustomDlApllied,
     DailyPriceBrakeDown,
     IAddOn,
     ICharge,
+    ICustomizableDeal,
     IGuestDistribution,
     IIncludedAddons,
     IRatePlanWithAddon,
@@ -60,7 +62,8 @@ export class PricingService {
         promotions?: ISelectedPromotion[],
         parsedAddons?: ISelectedAddonsS[],
         promoCode?: string,
-        loyalityEmail?: string
+        loyalityEmail?: string,
+        customizableDealParams?: CustomDlApllied
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
             const parsedStartDate: Date =
@@ -71,7 +74,7 @@ export class PricingService {
             endDate = parsedEndDate;
 
             // ─── Phase 1: fetch ratePlan + room + addons + user promotions ───
-            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom,includedAddonsRes] =
+            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom,includedAddonsRes,customizableDeal] =
                 await Promise.all([
                     this.pricingRepository.validateRatePlan(
                         ratePlanCode,
@@ -82,7 +85,8 @@ export class PricingService {
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
                     this.roomRepo.findByRoomType(propertyId, invTypeCode),
-                    this.pricingRepository.getIncludedAddons(includedAddons, toUTC(startDate), toUTC(endDate))
+                    this.pricingRepository.getIncludedAddons(includedAddons, toUTC(startDate), toUTC(endDate)),
+                    this.fetchCustomizableDeals(customizableDealParams)
                 ]);
 
             if (!ratePlan) {
@@ -184,6 +188,15 @@ export class PricingService {
                     loyaltyDiscountData
                 );
                 priceBrakedowns = loyalityDiscountClass.findLoyalityDiscount();
+            }
+
+            if (customizableDeal) {
+                const customizableDealClass = new CustomizableDealClass(
+                    priceBrakedowns,
+                    customizableDeal
+                );
+                priceBrakedowns =
+                    customizableDealClass.applyCustomizableDealDiscount();
             }
 
             priceBrakedowns = {
@@ -290,6 +303,23 @@ export class PricingService {
             throw new Error('Failed to fetch promotions');
         }
     }
+    private async fetchCustomizableDeals(
+        customizableDeal?: CustomDlApllied
+    ): Promise<ICustomizableDeal | null> {
+        try {
+            if (!customizableDeal || !customizableDeal.isApplied) {
+                return null;
+            }
+            if (!customizableDeal.customizableDealId) {
+                throw new Error("Customizable deal is required when the deal is applied");
+            }
+            const customizableDeals =
+                await this.pricingRepository.findCustomizableDeal(customizableDeal.customizableDealId);
+            return customizableDeals;
+        } catch (error) {
+            throw new Error('Failed to fetch customizable deals');
+        }
+    }
 }
 class BasePriceClass {
     startDate: Date;
@@ -366,6 +396,7 @@ class BasePriceClass {
             latterpayableAmount: 0,
             loyalityDiscount: 0,
             promoCodeDiscount: 0,
+            customizableDealDiscount: 0,
             currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
             dailyPriceBrakeDown,
             taxBrakeDown: [],
@@ -542,6 +573,50 @@ class BasePriceClass {
         });
 
         return { totalAmount: basePrice, dailyPriceBrakeDown };
+    }
+}
+class CustomizableDealClass {
+    private customizableDeal: ICustomizableDeal;
+    private priceBrakedown: PriceBrakeDown;
+
+    constructor(
+        priceBrakedown: PriceBrakeDown,
+        customizableDeal: ICustomizableDeal
+    ) {
+        this.priceBrakedown = priceBrakedown;
+        this.customizableDeal = customizableDeal;
+    }
+
+    public applyCustomizableDealDiscount(): PriceBrakeDown {
+        const { discountType, discountValue } = this.customizableDeal;
+
+        if (!discountValue || discountValue <= 0) {
+            return this.priceBrakedown;
+        }
+
+        let discountAmount = 0;
+
+        if (discountType === 'percentage') {
+            discountAmount =
+                (this.priceBrakedown.amountBeforeTax * discountValue) / 100;
+        } else if (discountType === 'flat') {
+            discountAmount = Math.min(
+                discountValue,
+                this.priceBrakedown.amountBeforeTax
+            );
+        }
+
+        if (discountAmount <= 0) {
+            return this.priceBrakedown;
+        }
+
+        return {
+            ...this.priceBrakedown,
+            customizableDealDiscount: discountAmount,
+            currentChargeableAmount:
+                this.priceBrakedown.currentChargeableAmount - discountAmount,
+            totalAmount: this.priceBrakedown.totalAmount - discountAmount,
+        };
     }
 }
 class AddOnPriceClass {
@@ -1588,3 +1663,4 @@ class TaxClass {
         };
     }
 }
+

@@ -1,5 +1,5 @@
 import { prisma } from '../../config';
-import { IAddOn, IRatePlan, ISelectedAddonsR } from '../types';
+import { IAddOn, ICustomizableDeal, IRatePlan, ISelectedAddonsR } from '../types';
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
@@ -389,6 +389,36 @@ export class PricingRepository {
         } catch (error) {
             console.error(error);
             throw new Error('Failed to fetch loyalty discount data');
+        }
+    }
+    public async findCustomizableDeal(
+        customizableDealId: string
+    ): Promise<ICustomizableDeal | null> {
+        try {
+            const deals = await prisma.customizableDeal.findUnique({
+                where: {
+                    id: customizableDealId
+                },
+                include:{
+                    CustomizableDealsApplicableAddons:{
+                        include:{
+                            AddOn:{
+                                include:{
+                                    availability:true,
+                                    ChildAddons:true,
+                                    category:true,
+                                    addonVariant:true,
+                                    subCategory:true
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            return deals;
+        } catch (error) {
+            console.error(error);
+            throw new Error('Failed to fetch customizable deals');
         }
     }
 }

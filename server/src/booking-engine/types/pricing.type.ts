@@ -197,6 +197,7 @@ export interface PriceBrakeDown {
     promotionBrakeDown?: PromotionBrakeDown[];
     // spaPricingBrakeDowns?: ISpaPricing[];
     loyalityDiscount: number;
+    customizableDealDiscount: number;
 }
 
 export interface DailyPriceBrakeDown {
@@ -248,4 +249,8 @@ export interface IRoomDetails {
     adults: number;
     children: number;
     childAges: number[];
+}
+export interface CustomDlApllied {
+    isApplied: boolean;
+    customizableDealId: string | null;
 }

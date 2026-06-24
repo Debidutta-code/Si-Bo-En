@@ -33,7 +33,8 @@ export class PricingController {
                 includedAddons,
                 childAges,
                 guestDistribution,
-                applyLoyaltyDiscount
+                applyLoyaltyDiscount,
+                customizableDeals
             } = req.body;
             const propertyId = req.property?.id;
 
@@ -110,8 +111,8 @@ export class PricingController {
                 promotions ? promotions : [],
                 parsedAddons ? parsedAddons : [],
                 promoCode,
-                applyLoyaltyDiscount ? email : ''
-
+                applyLoyaltyDiscount ? email : '',
+                customizableDeals
             );
 
             const locale = req.headers['accept-language']?.slice(0, 2) || 'en';
