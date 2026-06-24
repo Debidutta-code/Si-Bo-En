@@ -65,7 +65,7 @@ export interface IFinalPrice {
   amountBeforeTax: number;
   currencyCode: string;
   taxBrakeDown: ITaxBreakdown[];
-  addonBrakeDown: any[];
+  addonBrakeDown: IPricingAddonBreakdown[];
   dailyPriceBrakeDown: IDailyPriceBreakdown[];
   promotionBrakeDown: any[];
   agencyCommission?: IAgencyCommission;
@@ -130,8 +130,29 @@ export interface IPricingBreakdown {
   DailyPriceBrakeDown?: IPricingDailyBreakdown[];
   taxBrakeDown?: IPricingTaxBreakdown[];
   AddonBrakeDowns?: IPricingAddonBreakdown[];
-  promotionBrakeDown?: any[];
+  promotionBrakeDown?: IPromotionBrakeDown[];
 }
+
+export interface IPromotionBrakeDown {
+    id: string;
+    name: string;
+    promotionType: ReservationPromotionType;
+    promotionId?: string | null;
+    restrictionType: PromotionrestrictionType;
+    type: PromotionBrakeDownType;
+    currencyCode: CurrencyCode | null;
+    discountAmount: number;
+    discountType: DiscountType;
+    discountValue: number;
+}
+export type ReservationPromotionType =
+    | 'early_bird'
+    | 'mlos'
+    | 'device_specific'
+    | 'offer_for_tonight'
+    | 'normal';
+export type PromotionrestrictionType = 'decrease' | 'payLater' | 'increase';
+export type PromotionBrakeDownType = 'auto_applied' | 'user_applied';
 
 export interface IAgencyCommissionRecord {
   id: string;

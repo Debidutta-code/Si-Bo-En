@@ -45,7 +45,7 @@ export const getAgentPricing = async (pricingData: {
     includedAddons?: string[];
 }) => {
     try {
-        const response = await axiosInstance.post('/agent-platform/pricing/get-pricing', pricingData);
+        const response = await axiosInstance.post('/booking-engine/pricing/get-price', pricingData);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {

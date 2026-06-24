@@ -7,231 +7,47 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
-import {
   AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
-  CalendarCheck, Search, ChevronLeft, ChevronRight, X, Eye,
-  XCircle, CheckCircle, Clock, Calendar, Building2, User, CreditCard,
-  DollarSign, Percent
+  CalendarCheck, Search, ChevronLeft, ChevronRight, X, Eye, Pencil,
+  XCircle, CheckCircle, Clock, Calendar,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+
 import { fetchReservationsService, cancelReservationService } from './services/agent-reservation.service';
+// import { checkAmendPrice, amendReservationApi } from './api'; // adjust path as needed
 import type {
-  IReservation, BookingStatus, IReservationFilters, IPricingBreakdown, IAgencyCommissionRecord
+  IReservation, BookingStatus, IReservationFilters,
 } from './interfaces/agent-reservation.interfaces';
 import { ButtonLoader } from '@/components/Loader';
+import ReservationViewModal from './components/ReservationViewModal';
+import ReservationModifyModal from './components/ReservationModifyModal';
 
 const statusColors: Record<BookingStatus, { bg: string; text: string; icon: any }> = {
-  confirmed:    { bg: 'bg-green-50',  text: 'text-green-700',  icon: CheckCircle },
-  pending:      { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock },
-  cancelled:    { bg: 'bg-red-50',    text: 'text-red-700',    icon: XCircle },
-  modified:     { bg: 'bg-blue-50',   text: 'text-blue-700',   icon: Calendar },
-  no_show:      { bg: 'bg-gray-50',   text: 'text-gray-700',   icon: XCircle },
-  checked_in:   { bg: 'bg-teal-50',   text: 'text-teal-700',   icon: CheckCircle },
-  checked_out:  { bg: 'bg-purple-50', text: 'text-purple-700', icon: CheckCircle },
-  expired:      { bg: 'bg-gray-50',   text: 'text-gray-700',   icon: XCircle },
+  confirmed:   { bg: 'bg-green-50',  text: 'text-green-700',  icon: CheckCircle },
+  pending:     { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock },
+  cancelled:   { bg: 'bg-red-50',    text: 'text-red-700',    icon: XCircle },
+  modified:    { bg: 'bg-blue-50',   text: 'text-blue-700',   icon: Calendar },
+  no_show:     { bg: 'bg-gray-50',   text: 'text-gray-700',   icon: XCircle },
+  checked_in:  { bg: 'bg-teal-50',   text: 'text-teal-700',   icon: CheckCircle },
+  checked_out: { bg: 'bg-purple-50', text: 'text-purple-700', icon: CheckCircle },
+  expired:     { bg: 'bg-gray-50',   text: 'text-gray-700',   icon: XCircle },
 };
 
 const ITEMS_PER_PAGE = 10;
 
-const formatDate = (dateString: string | null): string => {
-  if (!dateString) return 'N/A';
-  return new Date(dateString).toLocaleDateString('en-IN', {
-    day: '2-digit', month: 'short', year: 'numeric',
-  });
-};
+const formatDate = (d: string | null) =>
+  d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
 
-const formatCurrency = (amount: number, currency = 'AED'): string => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 2,
-  }).format(amount);
-};
+const formatCurrency = (amount: number, currency = 'AED') =>
+  new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 2 }).format(amount);
 
-// ─── Details Dialog ───────────────────────────────────────────────────────────
+const MODIFIABLE: BookingStatus[] = ['confirmed', 'pending', 'modified'];
+const CANCELLABLE: BookingStatus[] = ['confirmed', 'pending'];
 
-function ReservationDetailsDialog({
-  reservation,
-  open,
-  onClose,
-}: {
-  reservation: IReservation | null;
-  open: boolean;
-  onClose: () => void;
-}) {
-  if (!reservation) return null;
-  const r = reservation;
-  const commission = r.AgencyCommission;
-  const pricing = r.PricingBrakeDown;
-
-  return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Reservation Details</DialogTitle>
-          <DialogDescription>Booking Code: {r.bookingCode.split("-")[1]}</DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6 text-sm">
-
-          {/* ── Guest & Booking ── */}
-          <Section title="Booking Info" icon={<User className="h-4 w-4" />}>
-            <Grid>
-              <Field label="Guest Name"
-                value={r.primaryGuest ? `${r.primaryGuest.firstName} ${r.primaryGuest.lastName}` : 'N/A'} />
-              <Field label="Email"        value={r.bookingUserEmail} />
-              <Field label="Phone"        value={r.bookingUserPhone || 'N/A'} />
-              <Field label="Booking Code" value={r.bookingCode.split("-")[1]} />
-              <Field label="Booked At"    value={formatDate(r.bookedAt)} />
-              <Field label="Source"       value={r.bookingSource} />
-              <Field label="Device"       value={r.deviceTypes} />
-              <Field label="Platform"     value={r.platforms} />
-            </Grid>
-          </Section>
-
-          {/* ── Property & Room ── */}
-          <Section title="Property & Room" icon={<Building2 className="h-4 w-4" />}>
-            <Grid>
-              <Field label="Hotel"       value={r.property?.propertyName || 'N/A'} />
-              <Field label="Property Code" value={r.propertyCode || 'N/A'} />
-              <Field label="Room"        value={r.roomName || 'N/A'} />
-              <Field label="Room Type"   value={r.roomTypeCode || 'N/A'} />
-              <Field label="Rate Plan"   value={r.ratePlanName || r.ratePlanCode || 'N/A'} />
-              <Field label="Country"     value={r.countryCode} />
-            </Grid>
-          </Section>
-
-          {/* ── Dates ── */}
-          <Section title="Stay Dates" icon={<Calendar className="h-4 w-4" />}>
-            <Grid>
-              {/* reservationStartDate / End are the booked dates */}
-              <Field label="Check-in (booked)"  value={formatDate(r.reservationStartDate)} />
-              <Field label="Check-out (booked)" value={formatDate(r.reservationEndDate)} />
-              {/* checkInDate / checkOutDate are set only after actual check-in/out */}
-              <Field label="Actual Check-in"  value={formatDate(r.checkInDate)} />
-              <Field label="Actual Check-out" value={formatDate(r.checkOutDate)} />
-            </Grid>
-          </Section>
-
-          {/* ── Financial ── */}
-          <Section title="Financial Summary" icon={<DollarSign className="h-4 w-4" />}>
-            <Grid>
-              <Field label="Total Amount"    value={formatCurrency(r.amount, r.currencyCode)} />
-              <Field label="Paid Amount"     value={formatCurrency(r.paidAmount, r.currencyCode)} />
-              <Field label="Extra to Pay"    value={formatCurrency(r.extraAmountToPay, r.currencyCode)} />
-              <Field label="Refund Amount"   value={formatCurrency(r.refundAmount, r.currencyCode)} />
-              <Field label="Payment Method"  value={r.paymentMethod.replace(/_/g, ' ')} />
-              <Field label="Currency"        value={r.currencyCode} />
-            </Grid>
-          </Section>
-
-
-          {/* ── Pricing Breakdown ── */}
-          {pricing && (
-            <Section title="Pricing Breakdown" icon={<CreditCard className="h-4 w-4" />}>
-              <Grid>
-                <Field label="Before Tax"   value={formatCurrency(pricing.amountBeforeTax, pricing.currencyCode)} />
-                <Field label="Tax"          value={formatCurrency(pricing.taxedAmount, pricing.currencyCode)} />
-                <Field label="Total"        value={formatCurrency(pricing.totalAmount, pricing.currencyCode)} />
-                <Field label="Chargeable"   value={formatCurrency(pricing.currentChargeableAmount, pricing.currencyCode)} />
-                <Field label="Pay Later"    value={formatCurrency(pricing.latterpayableAmount, pricing.currencyCode)} />
-                <Field label="Promo Disc."  value={formatCurrency(pricing.promoCodeDiscount, pricing.currencyCode)} />
-              </Grid>
-
-              {(pricing.taxBrakeDown ?? []).length > 0 && (
-                <div className="mt-3">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Tax Breakdown</p>
-                  <div className="space-y-1">
-                    {pricing.taxBrakeDown!.map((t, i) => (
-                      <div key={i} className="flex justify-between text-xs">
-                        <span>{t.name}</span>
-                        <span>{formatCurrency(t.taxedAmount, t.currencyCode)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {(pricing.DailyPriceBrakeDown ?? []).length > 0 && (
-                <div className="mt-3">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">Daily Breakdown</p>
-                  <div className="space-y-1">
-                    {pricing.DailyPriceBrakeDown!.map((d, i) => (
-                      <div key={i} className="flex justify-between text-xs">
-                        <span>{formatDate(d.date)} — Room {d.roomNumber}</span>
-                        <span>{formatCurrency(d.totalAmount, d.currencyCode)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </Section>
-          )}
-
-          {/* ── Guests List ── */}
-          {Array.isArray(r.guests) && r.guests.length > 0 && (
-            <Section title="Guests" icon={<User className="h-4 w-4" />}>
-              <div className="space-y-2">
-                {r.guests.map((g, i) => (
-                  <div key={i} className="flex items-center gap-3 text-xs border rounded p-2">
-                    <Badge variant="outline" className="capitalize">{g.type}</Badge>
-                    <span>{g.firstName || '—'} {g.lastName || '—'}</span>
-                    {g.dateOfBirth && <span className="text-muted-foreground">{g.dateOfBirth}</span>}
-                  </div>
-                ))}
-              </div>
-            </Section>
-          )}
-
-          {/* ── Cancellation ── */}
-          {r.cancellationReason && (
-            <Section title="Cancellation" icon={<XCircle className="h-4 w-4 text-red-500" />}>
-              <p className="text-muted-foreground">{r.cancellationReason}</p>
-              {r.cancelledAt && (
-                <p className="text-xs text-muted-foreground mt-1">Cancelled on {formatDate(r.cancelledAt)}</p>
-              )}
-            </Section>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ─── Small helpers ────────────────────────────────────────────────────────────
-
-function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="flex items-center gap-2 mb-3 pb-1 border-b">
-        {icon}
-        <p className="font-semibold text-foreground">{title}</p>
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function Grid({ children }: { children: React.ReactNode }) {
-  return <div className="grid grid-cols-2 gap-3">{children}</div>;
-}
-
-function Field({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="font-medium capitalize">{value}</p>
-    </div>
-  );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ReservationsPage() {
   const navigate = useNavigate();
@@ -245,8 +61,9 @@ export default function ReservationsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   const [selectedReservation, setSelectedReservation] = useState<IReservation | null>(null);
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [modifyOpen, setModifyOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
 
@@ -260,7 +77,6 @@ export default function ReservationsPage() {
       ...(statusFilter !== 'all' && { bookingStatus: statusFilter as BookingStatus }),
       ...(searchTerm && { bookingCode: searchTerm }),
     };
-
     const response = await fetchReservationsService(filters);
     if (response.success && response.data) {
       setReservations(response.data.reservations);
@@ -275,16 +91,19 @@ export default function ReservationsPage() {
 
   const handleSearch = () => { setCurrentPage(1); fetchReservations(); };
 
+  // ── Cancel ──
   const handleCancelReservation = async () => {
     if (!selectedReservation || !cancellationReason.trim()) {
       toast.error('Please provide a cancellation reason');
       return;
     }
     setIsCancelling(true);
-    const response = await cancelReservationService(selectedReservation.id, { cancellationReason: cancellationReason.trim() });
+    const response = await cancelReservationService(selectedReservation.id, {
+      cancellationReason: cancellationReason.trim(),
+    });
     if (response.success) {
       toast.success('Reservation cancelled successfully');
-      setCancelDialogOpen(false);
+      setCancelOpen(false);
       setSelectedReservation(null);
       setCancellationReason('');
       fetchReservations();
@@ -294,29 +113,38 @@ export default function ReservationsPage() {
     setIsCancelling(false);
   };
 
-  const openDetailsDialog = (r: IReservation) => { setSelectedReservation(r); setDetailsDialogOpen(true); };
-  const openCancelDialog  = (r: IReservation) => { setSelectedReservation(r); setCancellationReason(''); setCancelDialogOpen(true); };
+  // ── Open handlers ──
+  const openView   = (r: IReservation) => { setSelectedReservation(r); setViewOpen(true); };
+  const openModify = (r: IReservation) => { setSelectedReservation(r); setModifyOpen(true); };
+  const openCancel = (r: IReservation) => { setSelectedReservation(r); setCancellationReason(''); setCancelOpen(true); };
 
   useEffect(() => { fetchReservations(); }, [currentPage, statusFilter]);
+
+  function amendReservationApi(bookingCode: string, payload: any): Promise<{ success: boolean; message?: string; }> {
+    throw new Error('Function not implemented.');
+  }
+
+  function checkAmendPrice(payload: any): Promise<{ success: boolean; data?: any; message?: string; }> {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <div className="space-y-6">
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Reservations</h1>
           <p className="text-muted-foreground">Manage and view all your property reservations</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => navigate('/property')}>
-          <CalendarCheck className="h-4 w-4 mr-2" />
-          New Booking
+          <CalendarCheck className="h-4 w-4 mr-2" /> New Booking
         </Button>
       </div>
 
-      {/* ── Filters ── */}
+      {/* Filters */}
       <Card>
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -350,7 +178,7 @@ export default function ReservationsPage() {
         </CardContent>
       </Card>
 
-      {/* ── Table ── */}
+      {/* Table */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12"><ButtonLoader /></div>
       ) : (
@@ -368,12 +196,12 @@ export default function ReservationsPage() {
                   </thead>
                   <tbody className="bg-card divide-y divide-border">
                     <AnimatePresence mode="wait">
-                      {reservations.map((reservation, index) => {
-                        const StatusIcon = statusColors[reservation.bookingStatus]?.icon ?? CheckCircle;
-                        const commission = reservation.AgencyCommission;
+                      {reservations.map((r, index) => {
+                        const cfg = statusColors[r.bookingStatus] ?? statusColors.pending;
+                        const StatusIcon = cfg.icon;
                         return (
                           <motion.tr
-                            key={reservation.id}
+                            key={r.id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
@@ -381,56 +209,71 @@ export default function ReservationsPage() {
                             className="hover:bg-muted/50 transition-colors"
                           >
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <span className="text-sm font-medium">{reservation.bookingCode.split("-")[1]}</span>
+                              <span className="text-sm font-medium">{r.bookingCode.split('-')[1]}</span>
                             </td>
                             <td className="px-4 py-3">
                               <p className="text-sm font-medium">
-                                {reservation.primaryGuest
-                                  ? `${reservation.primaryGuest.firstName} ${reservation.primaryGuest.lastName}`
-                                  : reservation.bookingUserEmail}
+                                {r.primaryGuest
+                                  ? `${r.primaryGuest.firstName} ${r.primaryGuest.lastName}`
+                                  : r.bookingUserEmail}
                               </p>
-                              <p className="text-xs text-muted-foreground">{reservation.bookingUserPhone}</p>
+                              <p className="text-xs text-muted-foreground">{r.bookingUserPhone}</p>
                             </td>
                             <td className="px-4 py-3">
-                              <p className="text-sm">{reservation.property?.propertyName}</p>
-                              <p className="text-xs text-muted-foreground">{reservation.roomName}</p>
-                            </td>
-                            {/* ── Use reservationStartDate / End ── */}
-                            <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground">
-                              {formatDate(reservation.reservationStartDate)}
+                              <p className="text-sm">{r.property?.propertyName}</p>
+                              <p className="text-xs text-muted-foreground">{r.roomName}</p>
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground">
-                              {formatDate(reservation.reservationEndDate)}
+                              {formatDate(r.reservationStartDate)}
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap text-sm text-muted-foreground">
+                              {formatDate(r.reservationEndDate)}
                             </td>
                             <td className="px-4 py-3 whitespace-nowrap">
-                              <p className="text-sm font-medium">{formatCurrency(reservation.amount, reservation.currencyCode)}</p>
+                              <p className="text-sm font-medium">{formatCurrency(r.amount, r.currencyCode)}</p>
                             </td>
-                            {/* <td className="px-4 py-3 whitespace-nowrap">
-                              {commission ? (
-                                <div>
-                                  <p className="text-sm font-medium">{formatCurrency(commission.commissionAmount, commission.currencyCode)}</p>
-                                  <p className="text-xs text-muted-foreground">{commission.commissionValue}{commission.commissionType === 'percentage' ? '%' : ''}</p>
-                                </div>
-                              ) : (
-                                <span className="text-xs text-muted-foreground">—</span>
-                              )}
-                            </td> */}
                             <td className="px-4 py-3">
-                              <Badge className={`${statusColors[reservation.bookingStatus]?.bg} ${statusColors[reservation.bookingStatus]?.text} capitalize border-0 flex items-center gap-1 w-fit`}>
+                              <Badge className={`${cfg.bg} ${cfg.text} capitalize border-0 flex items-center gap-1 w-fit`}>
                                 <StatusIcon className="h-3 w-3" />
-                                {reservation.bookingStatus.replace('_', ' ')}
+                                {r.bookingStatus.replace('_', ' ')}
                               </Badge>
                             </td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1">
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetailsDialog(reservation)}>
+
+                                {/* View */}
+                                <Button
+                                  variant="ghost" size="icon" className="h-8 w-8"
+                                  title="View Details"
+                                  onClick={() => openView(r)}
+                                >
                                   <Eye className="h-4 w-4" />
                                 </Button>
-                                {(reservation.bookingStatus === 'confirmed' || reservation.bookingStatus === 'pending') && (
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50" onClick={() => openCancelDialog(reservation)}>
+
+                                {/* Modify */}
+                                {MODIFIABLE.includes(r.bookingStatus) && (
+                                  <Button
+                                    variant="ghost" size="icon"
+                                    className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                    title="Modify Reservation"
+                                    onClick={() => openModify(r)}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                )}
+
+                                {/* Cancel */}
+                                {CANCELLABLE.includes(r.bookingStatus) && (
+                                  <Button
+                                    variant="ghost" size="icon"
+                                    className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    title="Cancel Reservation"
+                                    onClick={() => openCancel(r)}
+                                  >
                                     <X className="h-4 w-4" />
                                   </Button>
                                 )}
+
                               </div>
                             </td>
                           </motion.tr>
@@ -445,13 +288,15 @@ export default function ReservationsPage() {
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <CalendarCheck className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="font-semibold">No reservations found</h3>
-                  <p className="text-muted-foreground">{searchTerm ? 'Try a different search term' : 'Create your first booking'}</p>
+                  <p className="text-muted-foreground">
+                    {searchTerm ? 'Try a different search term' : 'Create your first booking'}
+                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* ── Pagination ── */}
+          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground">
@@ -459,11 +304,13 @@ export default function ReservationsPage() {
                 {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of {totalCount} results
               </p>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                <Button variant="outline" size="icon"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm font-medium px-4">Page {currentPage} of {totalPages}</span>
-                <Button variant="outline" size="icon" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+                <Button variant="outline" size="icon"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -472,20 +319,34 @@ export default function ReservationsPage() {
         </>
       )}
 
-      {/* ── Details Dialog ── */}
-      <ReservationDetailsDialog
+      {/* ── View Modal ── */}
+      <ReservationViewModal
         reservation={selectedReservation}
-        open={detailsDialogOpen}
-        onClose={() => setDetailsDialogOpen(false)}
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
       />
 
+      {/* ── Modify Modal ── */}
+      {selectedReservation && modifyOpen && (
+        <ReservationModifyModal
+          open={modifyOpen}
+          reservation={selectedReservation}  
+          onClose={() => setModifyOpen(false)}
+          onSuccess={() => { setModifyOpen(false); fetchReservations(); }}
+          checkAmendPrice={checkAmendPrice}
+          amendReservationApi={amendReservationApi}
+        />
+      )}
+
       {/* ── Cancel Dialog ── */}
-      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Cancel Reservation</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel <strong>{selectedReservation?.bookingCode.split("-")[1]}</strong>? Please provide a reason.
+              Are you sure you want to cancel{' '}
+              <strong>{selectedReservation?.bookingCode.split('-')[1]}</strong>?
+              Please provide a reason below.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
@@ -508,6 +369,7 @@ export default function ReservationsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
     </div>
   );
 }

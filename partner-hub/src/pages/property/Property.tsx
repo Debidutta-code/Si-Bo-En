@@ -179,12 +179,6 @@ export default function PropertyPage() {
           <h1 className="text-2xl font-bold text-foreground">My Properties</h1>
           <p className="text-muted-foreground">
             {filteredProperties.length} of {properties.length} properties
-            {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-2">
-                <Filter className="h-3 w-3 mr-1" />
-                {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
-              </Badge>
-            )}
             {activeLocation && (
               <Badge variant="outline" className="ml-2 text-accent border-accent">
                 <MapPin className="h-3 w-3 mr-1" />

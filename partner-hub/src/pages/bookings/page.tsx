@@ -280,13 +280,17 @@ export default function BookingPage() {
         bookingUserEmail: guestData.primaryEmail,
         bookingUserPhone: guestData.primaryPhone,
 
-        numberOfRooms: pricingDetails.requestedRooms,
+        numberOfRooms: new Set(
+          pricingDetails.dailyPriceBrakeDown.map(item => item.roomNumber)
+        ).size,
         finalPrice: pricingDetails,
         currencyCode: pricingDetails.currencyCode,
         agencyId: user.agencyId,
         agentId: user.id,
         guests: {
-          rooms: pricingDetails.requestedRooms,
+          rooms: new Set(
+            pricingDetails.dailyPriceBrakeDown.map(item => item.roomNumber)
+          ).size,
           adults: totalAdults,
           children: totalChildren,
           roomsArray: [
@@ -302,7 +306,7 @@ export default function BookingPage() {
           selectedPaymentMethod === 'payAtHotel'
             ? 'pay_at_hotel'
             : 'payment_gateway',
-        selectedAddons: pricingDetails.addonBrakeDown.map((a) => ({
+        selectedAddons: pricingDetails.addonBrakeDowns.map((a) => ({
           addonCode: a.addonId,
           addonId: a.addonId,
           addonName: a.name,
@@ -324,8 +328,6 @@ export default function BookingPage() {
           dateOfBirth: guest.dateOfBirth || "",
         })),
       };
-      // console.log("bookimg", bookingPayload)
-      // Before calling the booking API, store what you need
       const bookingResult = await createBookingService(bookingPayload);
 
       if (bookingResult.success) {
@@ -369,8 +371,8 @@ export default function BookingPage() {
   const uniqueNights = new Set(pricingDetails.dailyPriceBrakeDown.map(d => d.date)).size;
 
   // subtotal = amountBeforeTax + addons (derived for display)
-  const subtotal = pricingDetails.amountBeforeTax + pricingDetails.totalAddonAmount;
-  const pureBase = pricingDetails.amountBeforeTax - pricingDetails.agencyCommissionAmount;
+  const subtotal = pricingDetails.amountBeforeTax;
+  const pureBase = pricingDetails.amountBeforeTax - (pricingDetails.agencyCommissionAmount + pricingDetails.totalAddonAmount);
 
   const baseBeforeDiscounts = Math.round(pureBase + pricingDetails.totalPromotionAmount + pricingDetails.agencyCommissionAmount);
 
@@ -715,21 +717,23 @@ export default function BookingPage() {
                   {/* Each discount line */}
                   {pricingDetails.promotionBrakeDown.length > 0 && (
                     <div className="space-y-1">
-                      {pricingDetails.promotionBrakeDown.map((promo, index) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span className="text-green-600 flex items-center gap-1">
-                            <DollarSign className="h-3 w-3" />
-                            {promo.name}
-                          </span>
-                          <span className={cn(
-                            'font-medium',
-                            promo.restrictionType === 'decrease' ? 'text-green-600' : 'text-red-500'
-                          )}>
-                            {promo.restrictionType === 'decrease' ? '-' : '+'}
-                            {formatCurrency(promo.discountAmount, promo.currencyCode ?? currencyCode)}
-                          </span>
-                        </div>
-                      ))}
+                      {pricingDetails.promotionBrakeDown
+                        .filter((promo) => promo.restrictionType !== 'payLater')
+                        .map((promo, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span className="text-green-600 flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" />
+                              {promo.name}
+                            </span>
+                            <span className={cn(
+                              'font-medium',
+                              promo.restrictionType === 'decrease' ? 'text-green-600' : 'text-red-500'
+                            )}>
+                              {promo.restrictionType === 'decrease' ? '-' : '+'}
+                              {formatCurrency(promo.discountAmount, promo.currencyCode ?? currencyCode)}
+                            </span>
+                          </div>
+                        ))}
                     </div>
                   )}
 
@@ -762,7 +766,7 @@ export default function BookingPage() {
                           {formatCurrency(pricingDetails.totalAddonAmount, currencyCode)}
                         </span>
                       </div>
-                      {pricingDetails.addonBrakeDown.map((addon) => (
+                      {pricingDetails.addonBrakeDowns.map((addon) => (
                         <div key={addon.addonId} className="flex justify-between text-xs text-muted-foreground pl-3">
                           <span>• {addon.name}</span>
                           <span>{formatCurrency(addon.totalAmount, addon.currencyCode)}</span>
@@ -818,17 +822,26 @@ export default function BookingPage() {
                     </span>
                   </div>
 
-                  {pricingDetails.latterpayableAmount > 0 && pricingDetails.touristTax && (
-                    <div className="flex justify-between items-center px-3 py-2.5 bg-amber-50 dark:bg-amber-950/30">
-                      <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1.5">
-                        🏛 {pricingDetails.touristTax.name}
-                        <span className="font-normal text-xs">(pay at hotel)</span>
-                      </span>
-                      <span className="font-bold text-amber-800 dark:text-amber-300">
-                        {formatCurrency(pricingDetails.latterpayableAmount, pricingDetails.touristTax.currencyCode)}
-                      </span>
-                    </div>
-                  )}
+                  {/* Pay at Hotel / Later Payable */}
+                  {(pricingDetails.latterpayableAmount > 0 ||
+                    pricingDetails.promotionBrakeDown.some(p => p.restrictionType === 'payLater')) && (
+                      <div className="flex justify-between items-center px-3 py-2.5 bg-amber-50 dark:bg-amber-950/30">
+                        <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1.5">
+                          {pricingDetails.touristTax ? `🏛 ${pricingDetails.touristTax.name}` : '🏨 Pay at Hotel'}
+                          <span className="font-normal text-xs">(pay at hotel)</span>
+                        </span>
+                        <span className="font-bold text-amber-800 dark:text-amber-300">
+                          {formatCurrency(
+                            pricingDetails.latterpayableAmount > 0
+                              ? pricingDetails.latterpayableAmount
+                              : pricingDetails.promotionBrakeDown
+                                .filter(p => p.restrictionType === 'payLater')
+                                .reduce((sum, p) => sum + p.discountAmount, 0),
+                            pricingDetails.touristTax?.currencyCode ?? currencyCode
+                          )}
+                        </span>
+                      </div>
+                    )}
                 </div>
 
                 <div className="text-center text-xs text-muted-foreground">

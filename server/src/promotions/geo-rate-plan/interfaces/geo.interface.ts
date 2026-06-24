@@ -80,13 +80,3 @@ export interface IGeoRatePlanFilter {
     countryCode?: string;
     isActive?: boolean;
 }
-
-// export interface IBulkCreateResponse {
-//   totalCreated: number;
-//   createdRecords: any[];
-//   summary: {
-//     totalRooms: number;
-//     totalRatePlans: number;
-//     totalCombinations: number;
-//   };
-// }

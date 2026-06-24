@@ -113,6 +113,7 @@ export class ReservationRepository {
                                 currentChargeableAmount: true,
                                 latterpayableAmount: true,
                                 promoCodeDiscount: true,
+                                promotionBrakeDown:true,
                                 currencyCode: true,
                                 loyalityDiscount: true,
                                 DailyPriceBrakeDown: true,
@@ -231,7 +232,7 @@ export class ReservationRepository {
                         },
                     },
                     addOns: true,
-                    AgencyCommission: true, // 👈 added
+                    AgencyCommission: true,
                 },
             });
 

@@ -381,7 +381,8 @@ export class AgenticRoomService {
             baseAmount,
             numberOfNights,
             effectiveRoomsArray.length,
-            room.numberOfBedrooms
+            room.numberOfBedrooms,
+            charges[0].currencyCode
         );
 
         const addonCalc = new AgenticAddonCalculator(
@@ -698,41 +699,41 @@ export class AgenticRoomService {
         return { calculatedCommissionAmount, appliedCommission };
     }
 
-    private calculateTouristTax(
-        touristTaxData: IRoomTouristTaxData | null,
-        baseAmount: number,
-        numberOfNights: number,
-        numberOfRooms: number,
-        numberOfBedrooms: number
-    ): ITouristTax | null {
-        if (!touristTaxData) return null;
-        const calculatedTaxAmount =
-            touristTaxData.discountType === 'percentage'
-                ? Number(
-                    (
-                        baseAmount *
-                        (Number(touristTaxData.discountValue) / 100)
-                    ).toFixed(2)
-                )
-                : Number(
-                    (
-                        Number(touristTaxData.discountValue) *
-                        numberOfNights *
-                        numberOfRooms *
-                        numberOfBedrooms
-                    ).toFixed(2)
-                );
+  private calculateTouristTax(
+    touristTaxData: IRoomTouristTaxData | null,
+    baseAmount: number,
+    numberOfNights: number,
+    numberOfRooms: number,
+    numberOfBedrooms: number,
+    baseCurrency: string
+): ITouristTax | null {
+    if (!touristTaxData) return null;
+    const calculatedTaxAmount =
+        touristTaxData.discountType === 'percentage'
+            ? Number(
+                (
+                    baseAmount *
+                    (Number(touristTaxData.discountValue) / 100)*numberOfBedrooms
+                ).toFixed(2)
+            )
+            : Number(
+                (
+                    Number(touristTaxData.discountValue) *
+                    numberOfNights *
+                    numberOfRooms *
+                    numberOfBedrooms  
+                ).toFixed(2)
+            );
 
-        return {
-            id: touristTaxData.id,
-            name: touristTaxData.name ?? '',
-            discountType: touristTaxData.discountType as DiscountType,
-            discountValue: touristTaxData.discountValue,
-            currencyCode: (touristTaxData.currencyCode ??
-                'USD') as CurrencyCode,
-            calculatedTaxAmount,
-        };
-    }
+    return {
+        id: touristTaxData.id,
+        name: touristTaxData.name ?? '',
+        discountType: touristTaxData.discountType as DiscountType,
+        discountValue: touristTaxData.discountValue,
+        currencyCode:baseCurrency as CurrencyCode,
+        calculatedTaxAmount,
+    };
+}
 
     private isDateRangeWithinPeriod(
         startDate: string,
