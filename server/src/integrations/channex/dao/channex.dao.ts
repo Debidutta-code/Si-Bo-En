@@ -299,17 +299,31 @@ export class ChannexDao {
 
             // Update price if rates are passed
             if (rateArray.length > 0) {
-                // Delete existing baseGuestAmounts and recreate
-                await client.chargeBaseByGuest.deleteMany({
-                    where: { chargeId: existing.id },
-                });
-                await client.chargeBaseByGuest.createMany({
-                    data: rateArray.map(r => ({
-                        chargeId: existing.id,
-                        numberOfGuests: r.occupancy || 1,
-                        amountBeforeTax: r.rate,
-                    })),
-                });
+                // Upsert each incoming occupancy rate individually so other occupancies remain untouched
+                for (const r of rateArray) {
+                    const occupancy = r.occupancy || 1;
+                    const existingGuestAmount = await client.chargeBaseByGuest.findFirst({
+                        where: {
+                            chargeId: existing.id,
+                            numberOfGuests: occupancy,
+                        },
+                    });
+
+                    if (existingGuestAmount) {
+                        await client.chargeBaseByGuest.update({
+                            where: { id: existingGuestAmount.id },
+                            data: { amountBeforeTax: r.rate },
+                        });
+                    } else {
+                        await client.chargeBaseByGuest.create({
+                            data: {
+                                chargeId: existing.id,
+                                numberOfGuests: occupancy,
+                                amountBeforeTax: r.rate,
+                            },
+                        });
+                    }
+                }
                 if (currencyCode) {
                     await client.charge.update({
                         where: { id: existing.id },
