@@ -544,8 +544,16 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                           parseInt(promo.promotionName)
                                         ),
                                       })
-                                      : promo._translations?.promotionName ??
-                                      promo.promotionName}
+                                      : promo.promotionType === "customizableDiscount"
+                                        ? promo._translations?.promotionName ??
+                                          (() => {
+                                            const m = promo.promotionName?.match(/(\d+)$/);
+                                            return m
+                                              ? t("RoomCard.customizableDeal", { number: m[1] })
+                                              : t("RoomCard.customizableDealOffer");
+                                          })()
+                                        : promo._translations?.promotionName ??
+                                          promo.promotionName}
                                   </p>
                                   <p className="text-[10px] text-orange-400 mt-0.5">
                                     {promo.promotionType === "mlos"
@@ -561,7 +569,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                             count: promo.advanceBookingDays,
                                           }
                                         )
-                                        : t("RoomCard.promotions.specialOffer")}
+                                        : promo.promotionType === "customizableDiscount"
+                                          ? t("RoomCard.promotions.customizableDeal")
+                                          : t("RoomCard.promotions.specialOffer")}
                                     {promo.validTo &&
                                       ` · Until ${new Date(
                                         promo.validTo
@@ -630,13 +640,29 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     const isOnlyRoomOnly =
                       combos.length === 1 && rawLabel === "Room Only";
 
+                    const getCustomizableDealLabel = (id: string): string => {
+                      const match = id.match(/^customizable_deal_(\d+)$/);
+                      if (match) {
+                        return t("RoomCard.customizableDeal", { number: match[1] });
+                      }
+                      if (id.startsWith("customizable_deal")) {
+                        return t("RoomCard.customizableDealOffer");
+                      }
+                      return "";
+                    };
+
                     const translatedLabel =
                       typeof combo.comboLabel === "object" &&
-                        combo.comboLabel !== null &&
-                        combo.comboLabel.id === "room_only"
-                        ? t("Rooms.roomOnly")
-                        : combo.comboLabel?._translations?.name ??
-                        combo.comboLabel?.label;
+                        combo.comboLabel !== null
+                        ? combo.comboLabel.id === "room_only"
+                          ? t("Rooms.roomOnly")
+                          : combo.comboLabel.id?.startsWith("customizable_deal")
+                            ? getCustomizableDealLabel(combo.comboLabel.id)
+                            : combo.comboLabel._translations?.name ??
+                              combo.comboLabel.label
+                        : typeof combo.comboLabel === "string"
+                          ? combo.comboLabel
+                          : "";
 
                     const subLabel = translatedLabel
                       ? translatedLabel

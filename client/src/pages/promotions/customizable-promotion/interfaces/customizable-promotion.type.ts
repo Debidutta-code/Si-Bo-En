@@ -11,8 +11,7 @@ export interface CreateCustomizableDeal {
   roomId: string;
   ratePlanId: string;
   applicableAddons: string[];
-  isAutoApplied: boolean;
-  isActive?: boolean;
+  isActive: boolean;
 }
 
 export interface DealApplicableAddon {
@@ -38,7 +37,7 @@ export interface CustomizableDeal {
   roomType: string;
   ratePlanId: string;
   ratePlanCode: string;
-  isAutoApplied: boolean;
+  // isAutoApplied: boolean;
   isActive: boolean;
   createdAt: string;
   Room: {
@@ -75,6 +74,6 @@ export interface ICCustomizableDeals {
   roomId: string;
   ratePlanId: string;
   applicableAddons: string[];
-  isAutoApplied: boolean;
+  // isAutoApplied: boolean;
   isActive: boolean;
 }

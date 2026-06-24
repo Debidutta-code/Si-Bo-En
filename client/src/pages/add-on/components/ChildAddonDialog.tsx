@@ -173,16 +173,16 @@ export default function ChildAddonDialog({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Baby className="w-5 h-5 text-primary" />
-              {t("childAddonDialog.title")}
+              {t("Addon.childAddonDialog.title")}
             </DialogTitle>
             <DialogDescription>
-              {t("childAddonDialog.description")}
+              {t("Addon.childAddonDialog.description")}
             </DialogDescription>
           </DialogHeader>
 
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
-              <Loader text={t("childAddonDialog.loader.loading")} />
+              <Loader text={t("Addon.childAddonDialog.loader.loading")} />
             </div>
           ) : (
             <div className="space-y-6 py-4">
@@ -191,7 +191,7 @@ export default function ChildAddonDialog({
               {childAddons.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-semibold text-gray-700">
-                    {t("childAddonDialog.list.existingAgeGroups", { count: childAddons.length })}
+                    {t("Addon.childAddonDialog.list.existingAgeGroups", { count: childAddons.length })}
                   </h4>
                   <div className="space-y-2 max-h-[200px] overflow-y-auto">
                     {childAddons.map((child) => (
@@ -207,7 +207,7 @@ export default function ChildAddonDialog({
                           <Baby className="w-4 h-4 text-gray-400" />
                           <div>
                             <p className="text-sm font-medium text-gray-900">
-                              {t("childAddonDialog.list.ageRange", {
+                              {t("Addon.childAddonDialog.list.ageRange", {
                                 min: child.minAge,
                                 max: child.maxAge,
                               })}
@@ -229,7 +229,7 @@ export default function ChildAddonDialog({
                                 </Badge>
                               ) : (
                                 <Badge variant="secondary" className="text-xs">
-                                  {t("childAddonDialog.list.noDiscount")}
+                                  {t("Addon.childAddonDialog.list.noDiscount")}
                                 </Badge>
                               )}
                             </div>
@@ -266,8 +266,8 @@ export default function ChildAddonDialog({
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-semibold text-gray-700">
                     {editingChildAddon
-                      ? t("childAddonDialog.form.editAgeGroup")
-                      : t("childAddonDialog.form.addAgeGroup")}
+                      ? t("Addon.childAddonDialog.form.editAgeGroup")
+                      : t("Addon.childAddonDialog.form.addAgeGroup")}
                   </h4>
                   {editingChildAddon && (
                     <Button
@@ -277,7 +277,7 @@ export default function ChildAddonDialog({
                       className="text-gray-500"
                     >
                       <X className="w-4 h-4 mr-1" />
-                      {t("childAddonDialog.form.cancelEdit")}
+                      {t("Addon.childAddonDialog.form.cancelEdit")}
                     </Button>
                   )}
                 </div>
@@ -285,12 +285,12 @@ export default function ChildAddonDialog({
                 {/* Age Range */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="child-min-age">{t("childAddonDialog.form.minAge")}</Label>
+                    <Label htmlFor="child-min-age">{t("Addon.childAddonDialog.form.minAge")}</Label>
                     <Input
                       id="child-min-age"
                       type="number"
                       min={0}
-                      placeholder={t("childAddonDialog.form.minAgePlaceholder")}
+                      placeholder={t("Addon.childAddonDialog.form.minAgePlaceholder")}
                       value={formData.minAge}
                       onChange={(e) =>
                         setFormData({ ...formData, minAge: Number(e.target.value) })
@@ -298,12 +298,12 @@ export default function ChildAddonDialog({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="child-max-age">{t("childAddonDialog.form.maxAge")}</Label>
+                    <Label htmlFor="child-max-age">{t("Addon.childAddonDialog.form.maxAge")}</Label>
                     <Input
                       id="child-max-age"
                       type="number"
                       min={1}
-                      placeholder={t("childAddonDialog.form.maxAgePlaceholder")}
+                      placeholder={t("Addon.childAddonDialog.form.maxAgePlaceholder")}
                       value={formData.maxAge}
                       onChange={(e) =>
                         setFormData({ ...formData, maxAge: Number(e.target.value) })
@@ -314,7 +314,7 @@ export default function ChildAddonDialog({
 
                 {formData.minAge >= formData.maxAge && formData.maxAge > 0 && (
                   <p className="text-xs text-red-500">
-                    {t("childAddonDialog.form.ageValidationError")}
+                    {t("Addon.childAddonDialog.form.ageValidationError")}
                   </p>
                 )}
 
@@ -322,10 +322,10 @@ export default function ChildAddonDialog({
                 <div className="flex items-center justify-between p-3 rounded-lg border border-gray-200">
                   <div>
                     <Label htmlFor="discount-applicable" className="text-sm font-medium">
-                      {t("childAddonDialog.form.customPricingLabel")}
+                      {t("Addon.childAddonDialog.form.customPricingLabel")}
                     </Label>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {t("childAddonDialog.form.customPricingDescription")}
+                      {t("Addon.childAddonDialog.form.customPricingDescription")}
                     </p>
                   </div>
                   <Switch
@@ -347,7 +347,7 @@ export default function ChildAddonDialog({
                 {formData.discountApplicable && (
                   <div className="space-y-4 p-4 rounded-lg bg-gray-50 border border-gray-200">
                     <div className="space-y-2">
-                      <Label htmlFor="discount-type">{t("childAddonDialog.form.discountType")}</Label>
+                      <Label htmlFor="discount-type">{t("Addon.childAddonDialog.form.discountType")}</Label>
                       <Select
                         value={formData.discountType || ""}
                         onValueChange={(value) =>
@@ -359,19 +359,19 @@ export default function ChildAddonDialog({
                         }
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder={t("childAddonDialog.form.discountTypePlaceholder")} />
+                          <SelectValue placeholder={t("Addon.childAddonDialog.form.discountTypePlaceholder")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="percentage">
                             <span className="flex items-center gap-2">
                               <Percent className="w-3.5 h-3.5" />
-                              {t("childAddonDialog.form.discountTypePercentage")}
+                              {t("Addon.childAddonDialog.form.discountTypePercentage")}
                             </span>
                           </SelectItem>
                           <SelectItem value="flat">
                             <span className="flex items-center gap-2">
                               <DollarSign className="w-3.5 h-3.5" />
-                              {t("childAddonDialog.form.discountTypeFlat")}
+                              {t("Addon.childAddonDialog.form.discountTypeFlat")}
                             </span>
                           </SelectItem>
                         </SelectContent>
@@ -381,10 +381,10 @@ export default function ChildAddonDialog({
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="discount-amount">
-                          {t("childAddonDialog.form.discountAmount")}
+                          {t("Addon.childAddonDialog.form.discountAmount")}
                           {formData.discountType === "percentage" && (
                             <span className="text-gray-400 ml-1">
-                              {t("childAddonDialog.form.discountAmountRange")}
+                              {t("Addon.childAddonDialog.form.discountAmountRange")}
                             </span>
                           )}
                         </Label>
@@ -393,7 +393,7 @@ export default function ChildAddonDialog({
                           type="number"
                           min={0}
                           max={formData.discountType === "percentage" ? 100 : undefined}
-                          placeholder={t("childAddonDialog.form.discountAmountPlaceholder")}
+                          placeholder={t("Addon.childAddonDialog.form.discountAmountPlaceholder")}
                           value={formData.discountAmount ?? ""}
                           onChange={(e) =>
                             setFormData({
@@ -407,7 +407,7 @@ export default function ChildAddonDialog({
                       {formData.discountType === "flat" && (
                         <div className="space-y-2">
                           <Label htmlFor="currencyCode">
-                            {t("childAddonDialog.form.currencyCode")}
+                            {t("Addon.childAddonDialog.form.currencyCode")}
                           </Label>
                           <Select
                             value={formData.currencyCode || "AED"}
@@ -437,18 +437,18 @@ export default function ChildAddonDialog({
 
           <DialogFooter>
             <Button variant="outline" onClick={handleClose}>
-              {t("childAddonDialog.buttons.close")}
+              {t("Addon.childAddonDialog.buttons.close")}
             </Button>
             <Button onClick={handleSubmit} disabled={!isFormValid() || isLoading}>
               {editingChildAddon ? (
                 <>
                   <Pencil className="w-4 h-4 mr-2" />
-                  {t("childAddonDialog.buttons.update")}
+                  {t("Addon.childAddonDialog.buttons.update")}
                 </>
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  {t("childAddonDialog.buttons.addAgeGroup")}
+                  {t("Addon.childAddonDialog.buttons.addAgeGroup")}
                 </>
               )}
             </Button>
@@ -465,18 +465,18 @@ export default function ChildAddonDialog({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("childAddonDialog.deleteDialog.title")}</AlertDialogTitle>
+            <AlertDialogTitle>{t("Addon.childAddonDialog.deleteDialog.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t("childAddonDialog.deleteDialog.description")}
+              {t("Addon.childAddonDialog.deleteDialog.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("childAddonDialog.buttons.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{t("Addon.childAddonDialog.buttons.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700"
             >
-              {t("childAddonDialog.buttons.delete")}
+              {t("Addon.childAddonDialog.buttons.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

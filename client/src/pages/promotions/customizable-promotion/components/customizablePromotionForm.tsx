@@ -60,7 +60,6 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
     roomId: "",
     ratePlanId: "",
     applicableAddons: [],
-    isAutoApplied: false,
     isActive: true,
   });
 
@@ -78,7 +77,6 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
         roomId: editData.roomId,
         ratePlanId: editData.ratePlanId,
         applicableAddons: editData.CustomizableDealsApplicableAddons.map((a) => a.addOnId),
-        isAutoApplied: editData.isAutoApplied,
         isActive: editData.isActive,
       });
     }
@@ -125,7 +123,6 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
       roomId: customizableDeal.roomId,
       ratePlanId: customizableDeal.ratePlanId,
       applicableAddons: customizableDeal.applicableAddons,
-      isAutoApplied: customizableDeal.isAutoApplied,
       isActive: customizableDeal.isActive,
     };
 
@@ -468,23 +465,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
 
         {/* Auto Apply + Active */}
         <div className="space-y-3">
-          <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
-            <input
-              type="checkbox"
-              id="isAutoApplied"
-              checked={customizableDeal.isAutoApplied}
-              onChange={(e) => setCustomizableDeal({ ...customizableDeal, isAutoApplied: e.target.checked })}
-              className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
-            />
-            <label htmlFor="isAutoApplied" className="text-sm font-medium text-foreground cursor-pointer flex-1">
-              {t("CustomizableDeals.form.autoApply")}
-              <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-                {customizableDeal.isAutoApplied
-                  ? t("CustomizableDeals.form.autoApplyDeal")
-                  : t("CustomizableDeals.form.notAutoApplied")}
-              </span>
-            </label>
-          </div>
+          
 
           <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
             <input

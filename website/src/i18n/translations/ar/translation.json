@@ -201,6 +201,8 @@
     "onlyRoomsLeft": "تبقت {{count}} غرفة فقط!",
     "onlyRoomsLeftPlural": "تبقت {{count}} غرف فقط!",
     "mlos": "الحد الأدنى للإقامة {{nights}} ليالٍ",
+    "customizableDeal": "عرض خاص {{number}}",
+    "customizableDealOffer": "عرض خاص",
     "touristTax": {
       "notIncluded": "غير مشمولة",
       "paidAtHotel": " في سعر الغرفة — سيتم دفعها مباشرة في الفندق."
@@ -210,6 +212,7 @@
       "deviceExclusive": "عرض حصري للجهاز",
       "bookDaysInAdvance": "احجز قبل {{count}} يوماً",
       "specialOffer": "عرض خاص",
+      "customizableDeal": "عرض خصم خاص",
       "validUntil": "صالح حتى"
     },
     "errors": {
@@ -274,6 +277,7 @@
     "continueWithPlural": "متابعة مع {{count}} إضافات"
   },
   "GuestForm": {
+    
     "title": "أكمل حجزك",
     "adult": "بالغ",
     "child": "طفل",
@@ -319,6 +323,7 @@
     "promotions": "العروض والتعديلات:",
     "payAtHotel": "(الدفع في الفندق)",
     "loyaltyDiscount": "خصم الولاء:",
+      "customizableDealDiscount": "خصم خاص",
     "promoCodeDiscount": "خصم الرمز الترويجي:",
     "taxesAndFees": "الضرائب والرسوم:",
     "amountPaidLater": "المبلغ الواجب دفعه لاحقاً:",
@@ -526,6 +531,7 @@
     "no": "لا",
     "totalActivityCharges": "إجمالي رسوم الأنشطة",
     "printItinerary": "طباعة المسار",
+      "customizableDealDiscount": "خصم خاص",
     "promoCodeDiscount": "خصم رمز القسيمة",
     "loyaltyDiscount": "خصم الولاء",
     "amountBeforeTax": "المبلغ قبل الضريبة",

@@ -185,7 +185,6 @@ export const CustomizableDealList: React.FC = () => {
                 <TableHead>{t("CustomizableDeals.ratePlan")}</TableHead>
                 <TableHead>{t("CustomizableDeals.period")}</TableHead>
                 <TableHead>{t("CustomizableDeals.addons")}</TableHead>
-                <TableHead className="text-center">{t("CustomizableDeals.autoApply")}</TableHead>
                 <TableHead className="text-center">{t("CustomizableDeals.active")}</TableHead>
                 <TableHead>{t("CustomizableDeals.actions")}</TableHead>
               </TableRow>
@@ -241,11 +240,7 @@ export const CustomizableDealList: React.FC = () => {
                       )}
                     </TableCell>
 
-                    <TableCell className="text-center">
-                      {deal.isAutoApplied
-                        ? <Check className="h-4 w-4 text-success mx-auto" />
-                        : <X className="h-4 w-4 text-destructive mx-auto" />}
-                    </TableCell>
+                    
 
                     <TableCell className="text-center">
                       {deal.isActive

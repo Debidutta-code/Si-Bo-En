@@ -250,7 +250,6 @@ export class NewReservationService {
                         roomTypeCode
                     ),
                 ]);
-                console.log(primaryGuestId,customerId)
             if (!propertyConfig)
                 return errorResponse('Property config not found');
             const paymentMethods = this.mapPaymentMethod(paymentMethod);
@@ -325,11 +324,13 @@ export class NewReservationService {
                         (payload.selectedPromotions &&
                             payload.selectedPromotions.length > 0)
                     ),
+                    
                     promoId: promoCodeId || null,
                     agencyId: agencyId || null,
                     platforms: platforms || 'web',
                     paymentMethod: paymentMethods,
                     customerId: customerId ? customerId : null,
+                    isCustomizableDiscountApplied: finalPrice.customizableDealDiscount>0?true:false
                 });
             if (promoCode && promoCodeDetails) {
                 this.reservationRepository.createReservationPromoCode({
@@ -365,6 +366,7 @@ export class NewReservationService {
                 currencyCode: finalPrice.currencyCode,
                 loyalityDiscount: finalPrice.loyalityDiscount,
                 totalSpa: 0,
+                customizableDealDiscount: finalPrice.customizableDealDiscount || 0,
             };
             await Promise.all([
 
@@ -881,7 +883,11 @@ export class NewReservationService {
                     'Cannot change room type for existing reservation'
                 );
             }
-
+            if(existingReservation.isCustomizableDiscountApplied){
+                return errorResponse(
+                    'Modifications are not available happened with special offer'
+                );
+            }
             if (
                 existingReservation.ratePlanCode !== updatePayload.ratePlanCode
             ) {
@@ -1154,6 +1160,7 @@ export class NewReservationService {
                 loyalityDiscount:
                     updatePayload.finalPrice.loyalityDiscount || 0,
                 totalSpa: existingReservation.PricingBrakeDown?.totalSpa || 0,
+                    customizableDealDiscount:0
 
             };
 

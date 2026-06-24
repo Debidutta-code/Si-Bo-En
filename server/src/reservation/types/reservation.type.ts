@@ -74,6 +74,7 @@ export interface ICReservationR {
     platforms: Platforms;
     customerId: string | null;
     paymentMethod: PaymentMethod;
+    isCustomizableDiscountApplied:boolean
 }
 
 export interface IReservation extends ICReservationR {
@@ -202,6 +203,7 @@ export interface ICPricingBreakDown {
     totalAddonAmount: number;
     totalPromotionAmount: number;
     currentChargeableAmount: number;
+    customizableDealDiscount:number;
     latterpayableAmount: number;
     promoCodeDiscount: number;
     currencyCode: CurrencyCode;
@@ -472,6 +474,8 @@ export interface IFinalPrice {
     dailyPriceBrakeDown: IDailyPriceBrakeDown[];
     latterpayableAmount: number;
     loyalityDiscount: number;
+        customizableDealDiscount:number;
+
     numberOfNights: number;
     promoCodeDiscount: number;
     promotionBrakeDown: PromotionBrakeDown[];

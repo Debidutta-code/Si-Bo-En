@@ -269,6 +269,7 @@ export interface IPricingBreakdown {
   totalAddonAmount: number;
   totalPromotionAmount: number;
   currentChargeableAmount: number;
+  customizableDealDiscount:number;
   latterpayableAmount: number;
   promoCodeDiscount: number;
   currencyCode: string;

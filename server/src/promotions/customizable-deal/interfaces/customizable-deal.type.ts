@@ -11,7 +11,7 @@ export interface ICCreateCustomizableDealS {
     roomId: string;
     ratePlanId: string;
     applicableAddons: string[];
-    isAutoApplied: boolean;
+    // isAutoApplied: boolean;
     isActive?: boolean;
 }
 
@@ -24,7 +24,7 @@ export interface IUCustomizableDealS {
     roomId?: string;
     ratePlanId?: string;
     applicableAddons?: string[];
-    isAutoApplied?: boolean;
+    // isAutoApplied?: boolean;
     isActive?: boolean;
 }
 
@@ -39,7 +39,7 @@ export interface ICCreateCustomizableDealR {
     ratePlanId: string;
     ratePlanCode: string;
     applicableAddons: IAddOn[];
-    isAutoApplied: boolean;
+    // isAutoApplied: boolean;
     isActive?: boolean;
 }
 
@@ -56,7 +56,7 @@ export interface ICustomizableDeals {
     roomType: string;
     ratePlanId: string;
     ratePlanCode: string;
-    isAutoApplied: boolean;
+    // isAutoApplied: boolean;
     isActive: boolean;
     createdAt: Date;
 }
