@@ -28,7 +28,7 @@ export class ChannexAriPushService {
         endDate: Date,
         config: ChannexDynamicConfig
     ): Promise<{ success: boolean; message: string }> {
-        const log = logger.start('pushAvailability');
+        const log = logger.start('ChannexpushAvailability');
         try {
             const inventories = await ChannexDao.getDailyInventory(propertyCode, roomTypeCode, startDate, endDate);
 
@@ -80,7 +80,7 @@ export class ChannexAriPushService {
         endDate: Date,
         config: ChannexDynamicConfig
     ): Promise<{ success: boolean; message: string }> {
-        const log = logger.start('pushRestrictions');
+        const log = logger.start('ChannexpushRestrictions');
         try {
             const charges = await ChannexDao.getDailyCharges(propertyCode, roomTypeCode, ratePlanCode, startDate, endDate);
 

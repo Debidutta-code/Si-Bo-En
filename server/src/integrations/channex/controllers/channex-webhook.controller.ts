@@ -46,7 +46,7 @@ export class ChannexWebhookController {
     }
 
     public static async handleWebhook(req: Request, res: Response) {
-        const log = logger.start('handleWebhook');
+        const log = logger.start('ChannexhandleWebhook');
         const body = req.body;
 
         log.setIncoming({ headers: req.headers, body });
@@ -361,7 +361,7 @@ export class ChannexWebhookController {
      * Expose configured room types and rate plans for mapping inside Channex UI
      */
     public static async getMappingDetails(req: Request, res: Response) {
-        const log = logger.start('getMappingDetails');
+        const log = logger.start('ChannexgetMappingDetails');
         const hotelCode = req.query.hotel_code as string;
 
         try {
@@ -441,7 +441,7 @@ export class ChannexWebhookController {
      * Callback receiving Availability, Price, and Restrictions updates pushed from Channex
      */
     public static async handleAriPush(req: Request, res: Response) {
-        const log = logger.start('handleAriPush');
+        const log = logger.start('ChannexhandleAriPush');
         const body = req.body;
         log.setIncoming(body);
 
@@ -580,7 +580,7 @@ export class ChannexWebhookController {
      * Callback handler for Full Sync requests from Channex
      */
     public static async handleSync(req: Request, res: Response) {
-        const log = logger.start('handleSync');
+        const log = logger.start('ChannexhandleSync');
         const hotelCode = (req.query.hotel_code || req.body.hotel_code) as string;
 
         try {

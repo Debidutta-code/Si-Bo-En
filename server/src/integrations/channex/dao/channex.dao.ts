@@ -50,7 +50,11 @@ export class ChannexDao {
             }
 
             const urlFields = propertyIntegration.MasterIntegration.masterIntegrationURLFields;
-            const baseUrl = urlFields.find(f => f.name === 'Base URL')?.url ?? 'https://staging.channex.io';
+            let baseUrl;
+             baseUrl = urlFields.find(f => f.name === 'Base URL')?.url;
+             if(!baseUrl){
+                throw new Error('Base URL not configured for Channex integration');
+             }
 
             return {
                 apiKey,

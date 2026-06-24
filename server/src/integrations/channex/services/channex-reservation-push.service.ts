@@ -9,9 +9,7 @@ import { ServiceLogger } from '../../../logs/services/service-log.service';
 const logger = new ServiceLogger('ChannexReservationPushService');
 
 export class ChannexReservationPushService {
-    /**
-     * Map Date/String helper
-     */
+
     private static toDateString(date: string | Date): string {
         if (date instanceof Date) {
             const y = date.getFullYear();
@@ -81,7 +79,7 @@ export class ChannexReservationPushService {
         bookingCode: string,
         config: ChannexDynamicConfig
     ): Promise<{ success: boolean; message: string }> {
-        const log = logger.start('pushCommit');
+        const log = logger.start('ChanneXpushCommit');
         try {
             const checkInDate = ChannexReservationPushService.toDateString(incomingPayload.reservationStartDate);
             const checkOutDate = ChannexReservationPushService.toDateString(incomingPayload.reservationEndDate);
