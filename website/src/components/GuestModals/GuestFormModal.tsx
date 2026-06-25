@@ -636,7 +636,7 @@ const GuestFormModal: React.FC<Props> = ({
                             <AccordionSection
                               sectionKey="discounts"
                               label={t("GuestForm.discountsApplied")}
-                              amount={`- ${cur} ${formatNumber(totalPromoDiscount + (finalPrice.loyalityDiscount || 0) + (finalPrice.promoCodeDiscount || 0))}`}
+                              amount={`- ${cur} ${formatNumber(totalPromoDiscount + (finalPrice.loyalityDiscount || 0) + (finalPrice.promoCodeDiscount || 0)+(finalPrice.customizableDealDiscount || 0))}`}
                               amountClass="text-green-700"
                             >
                               {deductPromos.map((promo: any, i: number) => {
