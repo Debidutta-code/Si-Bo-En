@@ -55,17 +55,3 @@ export const getCancellationDeadlineUTC = (
         .minus({ hours: cancelHoursBefore })
         .toUTC();
 };
-
-export const convertUTCToPropertyTime = (
-    utcDate: string | Date | DateTime,
-    propertyTimeZone: string
-): DateTime => {
-    if (DateTime.isDateTime(utcDate)) {
-        return utcDate.toUTC().setZone(propertyTimeZone);
-    }
-
-    return DateTime.fromJSDate(
-        typeof utcDate === 'string' ? new Date(utcDate) : utcDate,
-        { zone: 'utc' }
-    ).setZone(propertyTimeZone);
-};

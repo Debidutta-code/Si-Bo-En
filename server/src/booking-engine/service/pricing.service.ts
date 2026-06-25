@@ -202,6 +202,7 @@ export class PricingService {
             priceBrakedowns = {
                 ...priceBrakedowns,
                 amountBeforeTax: priceBrakedowns.currentChargeableAmount,
+                
             };
 
             const diffInDays = this.differenceReservationDays(
