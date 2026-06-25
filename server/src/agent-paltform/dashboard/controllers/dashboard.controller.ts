@@ -4,6 +4,7 @@ import { AgentRequest } from '../../utils';
 import { AgentDashboardService } from '../services';
 import { IAgentDashboardFilters } from '../types';
 import { BookingStatus } from '../../../reservation/types';
+import { CurrencyCode } from '../../../tax-system/interfaces';
 
 export class AgentDashboardController {
     private dashboardService: AgentDashboardService;
@@ -49,10 +50,12 @@ export class AgentDashboardController {
             if (req.query.endDate) {
                 filters.endDate = new Date(req.query.endDate as string);
             }
+            const targetCurrency = (req.query.targetCurrency as CurrencyCode) || 'USD';
 
             const result = await this.dashboardService.getAgencyAnalytics(
                 agencyId,
                 agentId,
+                targetCurrency,
                 filters
             );
 

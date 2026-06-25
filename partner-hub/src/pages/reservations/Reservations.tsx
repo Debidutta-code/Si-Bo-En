@@ -17,8 +17,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
-import { fetchReservationsService, cancelReservationService } from './services/agent-reservation.service';
-// import { checkAmendPrice, amendReservationApi } from './api'; // adjust path as needed
+import { fetchReservationsService, cancelReservationService, amendReservationService, checkAmendPriceService } from './services/agent-reservation.service';
 import type {
   IReservation, BookingStatus, IReservationFilters,
 } from './interfaces/agent-reservation.interfaces';
@@ -27,14 +26,14 @@ import ReservationViewModal from './components/ReservationViewModal';
 import ReservationModifyModal from './components/ReservationModifyModal';
 
 const statusColors: Record<BookingStatus, { bg: string; text: string; icon: any }> = {
-  confirmed:   { bg: 'bg-green-50',  text: 'text-green-700',  icon: CheckCircle },
-  pending:     { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock },
-  cancelled:   { bg: 'bg-red-50',    text: 'text-red-700',    icon: XCircle },
-  modified:    { bg: 'bg-blue-50',   text: 'text-blue-700',   icon: Calendar },
-  no_show:     { bg: 'bg-gray-50',   text: 'text-gray-700',   icon: XCircle },
-  checked_in:  { bg: 'bg-teal-50',   text: 'text-teal-700',   icon: CheckCircle },
+  confirmed: { bg: 'bg-green-50', text: 'text-green-700', icon: CheckCircle },
+  pending: { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock },
+  cancelled: { bg: 'bg-red-50', text: 'text-red-700', icon: XCircle },
+  modified: { bg: 'bg-blue-50', text: 'text-blue-700', icon: Calendar },
+  no_show: { bg: 'bg-gray-50', text: 'text-gray-700', icon: XCircle },
+  checked_in: { bg: 'bg-teal-50', text: 'text-teal-700', icon: CheckCircle },
   checked_out: { bg: 'bg-purple-50', text: 'text-purple-700', icon: CheckCircle },
-  expired:     { bg: 'bg-gray-50',   text: 'text-gray-700',   icon: XCircle },
+  expired: { bg: 'bg-gray-50', text: 'text-gray-700', icon: XCircle },
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -46,7 +45,7 @@ const formatCurrency = (amount: number, currency = 'AED') =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 2 }).format(amount);
 
 const MODIFIABLE: BookingStatus[] = ['confirmed', 'pending', 'modified'];
-const CANCELLABLE: BookingStatus[] = ['confirmed', 'pending'];
+const CANCELLABLE: BookingStatus[] = ['confirmed', 'pending','modified'];
 
 
 export default function ReservationsPage() {
@@ -114,19 +113,12 @@ export default function ReservationsPage() {
   };
 
   // ── Open handlers ──
-  const openView   = (r: IReservation) => { setSelectedReservation(r); setViewOpen(true); };
+  const openView = (r: IReservation) => { setSelectedReservation(r); setViewOpen(true); };
   const openModify = (r: IReservation) => { setSelectedReservation(r); setModifyOpen(true); };
   const openCancel = (r: IReservation) => { setSelectedReservation(r); setCancellationReason(''); setCancelOpen(true); };
 
   useEffect(() => { fetchReservations(); }, [currentPage, statusFilter]);
 
-  function amendReservationApi(bookingCode: string, payload: any): Promise<{ success: boolean; message?: string; }> {
-    throw new Error('Function not implemented.');
-  }
-
-  function checkAmendPrice(payload: any): Promise<{ success: boolean; data?: any; message?: string; }> {
-    throw new Error('Function not implemented.');
-  }
 
   return (
     <div className="space-y-6">
@@ -327,14 +319,44 @@ export default function ReservationsPage() {
       />
 
       {/* ── Modify Modal ── */}
+      {/* ── Modify Modal ── */}
       {selectedReservation && modifyOpen && (
         <ReservationModifyModal
           open={modifyOpen}
-          reservation={selectedReservation}  
+          reservation={selectedReservation}
           onClose={() => setModifyOpen(false)}
           onSuccess={() => { setModifyOpen(false); fetchReservations(); }}
-          checkAmendPrice={checkAmendPrice}
-          amendReservationApi={amendReservationApi}
+          checkAmendPrice={(payload) =>
+            checkAmendPriceService({
+              propertyCode: payload.propertyCode,
+              invTypeCode: payload.invTypeCode,
+              startDate: payload.startDate,
+              endDate: payload.endDate,
+              ratePlanCode: payload.ratePlanCode,
+              noOfAdults: payload.noOfAdults,
+              noOfChildren: payload.noOfChildren,
+              noOfRooms: payload.noOfRooms,
+              agencyId: selectedReservation.agencyId ?? '',
+              roomsArray: payload.guestDistribution,
+              includedAddons: selectedReservation.PricingBrakeDown?.AddonBrakeDowns
+                ?.filter(a => a.type === 'included')
+                .map(a => a.addonId) ?? [],
+            })
+          }
+          amendReservationApi={(bookingCode, payload) =>
+            amendReservationService(bookingCode, {
+              ...payload,
+              agencyId: selectedReservation.agencyId ?? undefined,
+              agentId: selectedReservation.AgencyCommission?.agentId ?? null,
+              guests: payload.guests.map((g: any) => ({
+                type: g.type,
+                firstName: g.firstName,
+                lastName: g.lastName,
+                age: g.age ?? null,
+                dateOfBirth: g.dob || null,
+              })),
+            })
+          }
         />
       )}
 

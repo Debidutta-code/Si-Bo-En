@@ -10,14 +10,14 @@ import { BookingStatus, IReservation } from '../interfaces/agent-reservation.int
 // ─── Status config (local to avoid coupling) ─────────────────────────────────
 
 const statusColors: Record<BookingStatus, { bg: string; text: string; icon: any }> = {
-  confirmed:   { bg: 'bg-green-50',  text: 'text-green-700',  icon: CheckCircle },
-  pending:     { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock },
-  cancelled:   { bg: 'bg-red-50',    text: 'text-red-700',    icon: XCircle },
-  modified:    { bg: 'bg-blue-50',   text: 'text-blue-700',   icon: Calendar },
-  no_show:     { bg: 'bg-gray-50',   text: 'text-gray-700',   icon: XCircle },
-  checked_in:  { bg: 'bg-teal-50',   text: 'text-teal-700',   icon: CheckCircle },
+  confirmed: { bg: 'bg-green-50', text: 'text-green-700', icon: CheckCircle },
+  pending: { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock },
+  cancelled: { bg: 'bg-red-50', text: 'text-red-700', icon: XCircle },
+  modified: { bg: 'bg-blue-50', text: 'text-blue-700', icon: Calendar },
+  no_show: { bg: 'bg-gray-50', text: 'text-gray-700', icon: XCircle },
+  checked_in: { bg: 'bg-teal-50', text: 'text-teal-700', icon: CheckCircle },
   checked_out: { bg: 'bg-purple-50', text: 'text-purple-700', icon: CheckCircle },
-  expired:     { bg: 'bg-gray-50',   text: 'text-gray-700',   icon: XCircle },
+  expired: { bg: 'bg-gray-50', text: 'text-gray-700', icon: XCircle },
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -209,7 +209,88 @@ export default function ReservationViewModal({ reservation, open, onClose }: Pro
                   </div>
                 </div>
               )}
+              {(pricing.promotionBrakeDown ?? []).length > 0 && (
+                <div className="mt-3 p-3 bg-muted/30 rounded-md">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Promotions Applied</p>
+                  <div className="space-y-1.5">
+                    {pricing.promotionBrakeDown!.map((p, i) => (
+                      <div key={i} className="flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className={
+                            p.restrictionType === 'decrease'
+                              ? 'text-green-600 font-medium'
+                              : p.restrictionType === 'payLater'
+                                ? 'text-amber-600 font-medium'
+                                : 'text-foreground font-medium'
+                          }>
+                            {p.name}
+                          </span>
+                          <span className="text-muted-foreground bg-muted px-1.5 py-0.5 rounded text-[10px]">
+                            {p.restrictionType === 'payLater' ? 'Pay Later' : p.discountValue + '%'}
+                          </span>
+                        </div>
+                        <span className={
+                          p.restrictionType === 'decrease'
+                            ? 'font-medium text-green-600'
+                            : p.restrictionType === 'payLater'
+                              ? 'font-medium text-amber-600'
+                              : 'font-medium'
+                        }>
+                          {p.restrictionType === 'decrease' ? '-' : ''}
+                          {formatCurrency(p.discountAmount, p.currencyCode ?? pricing.currencyCode)}
+                        </span>
+                      </div>
+                    ))}
 
+                    {/* Total savings from decrease promos */}
+                    {pricing.totalPromotionAmount > 0 && (
+                      <div className="flex justify-between text-xs border-t pt-1.5 mt-1">
+                        <span className="text-green-700 font-semibold">Total Savings</span>
+                        <span className="font-semibold text-green-700">
+                          -{formatCurrency(
+                            pricing.promotionBrakeDown!
+                              .filter(p => p.restrictionType === 'decrease')
+                              .reduce((sum, p) => sum + p.discountAmount, 0),
+                            pricing.currencyCode
+                          )}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Pay later amount */}
+                    {pricing.latterpayableAmount > 0 && (
+                      <div className="flex justify-between text-xs border-t pt-1.5 mt-1">
+                        <span className="text-amber-700 font-semibold">🏨 Pay at Hotel</span>
+                        <span className="font-semibold text-amber-700">
+                          {formatCurrency(pricing.latterpayableAmount, pricing.currencyCode)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {(pricing.AddonBrakeDowns ?? []).length > 0 && (
+                <div className="mt-3 p-3 bg-muted/30 rounded-md">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Add-ons</p>
+                  <div className="space-y-1.5">
+                    {pricing.AddonBrakeDowns!.map((a, i) => (
+                      <div key={i} className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">
+                          {a.name}
+                          <span className="ml-1 text-[10px] bg-muted px-1.5 py-0.5 rounded">
+                            x{a.quantity}
+                          </span>
+                        </span>
+                        <span className="font-medium">{formatCurrency(a.totalAmount, a.currencyCode)}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between text-xs border-t pt-1.5 mt-1">
+                      <span className="text-muted-foreground font-semibold">Total Add-ons</span>
+                      <span className="font-semibold">{formatCurrency(pricing.totalAddonAmount, pricing.currencyCode)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
               {(pricing.DailyPriceBrakeDown ?? []).length > 0 && (
                 <div className="mt-3 p-3 bg-muted/30 rounded-md">
                   <p className="text-xs font-semibold text-muted-foreground mb-2">Daily Breakdown</p>

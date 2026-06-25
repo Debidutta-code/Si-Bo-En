@@ -144,7 +144,146 @@ export class ReservationRepository {
             throw new Error('Failed to fetch reservations');
         }
     }
+   public async getReservationsByAgentAndAgencyId(
+    agencyId: string,
+    agentId: string,
+    filters: IReservationFilters
+): Promise<{
+    data: IReservationResponse[];
+    total: number;
+    page: number;
+    limit: number;
+}> {
+    try {
+        const {
+            bookingStatus,
+            bookingSource,
+            propertyId,
+            propertyCode,
+            roomTypeCode,
+            ratePlanCode,
+            checkInDateFrom,
+            checkInDateTo,
+            checkOutDateFrom,
+            checkOutDateTo,
+            bookingCode,
+            guestEmail,
+            guestPhone,
+            page = 1,
+            limit = 10,
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+        } = filters;
 
+        const whereClause = {
+            agencyId,
+            AgencyCommission: { is: { agentId } },  // filter by agent
+            ...(bookingStatus && { bookingStatus }),
+            ...(bookingSource && { bookingSource }),
+            ...(propertyId && { propertyId }),
+            ...(propertyCode && { propertyCode }),
+            ...(roomTypeCode && { roomTypeCode }),
+            ...(ratePlanCode && { ratePlanCode }),
+            ...(bookingCode && {
+                bookingCode: {
+                    contains: bookingCode,
+                    mode: 'insensitive' as const,
+                },
+            }),
+            ...(guestEmail && {
+                bookingUserEmail: {
+                    contains: guestEmail,
+                    mode: 'insensitive' as const,
+                },
+            }),
+            ...(guestPhone && {
+                bookingUserPhone: {
+                    contains: guestPhone,
+                    mode: 'insensitive' as const,
+                },
+            }),
+            ...(checkInDateFrom || checkInDateTo
+                ? {
+                      checkInDate: {
+                          ...(checkInDateFrom && { gte: checkInDateFrom }),
+                          ...(checkInDateTo && { lte: checkInDateTo }),
+                      },
+                  }
+                : {}),
+            ...(checkOutDateFrom || checkOutDateTo
+                ? {
+                      checkOutDate: {
+                          ...(checkOutDateFrom && { gte: checkOutDateFrom }),
+                          ...(checkOutDateTo && { lte: checkOutDateTo }),
+                      },
+                  }
+                : {}),
+        };
+
+        const [total, reservations] = await Promise.all([
+            prisma.reservation.count({ where: whereClause }),
+            prisma.reservation.findMany({
+                where: whereClause,
+                include: {
+                    primaryGuest: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            phoneNumber: true,
+                        },
+                    },
+                    property: {
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                        },
+                    },
+                    PricingBrakeDown: {
+                        select: {
+                            id: true,
+                            reservationId: true,
+                            totalAmount: true,
+                            amountBeforeTax: true,
+                            taxedAmount: true,
+                            totalAddonAmount: true,
+                            totalPromotionAmount: true,
+                            currentChargeableAmount: true,
+                            latterpayableAmount: true,
+                            promoCodeDiscount: true,
+                            promotionBrakeDown: true,
+                            currencyCode: true,
+                            loyalityDiscount: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            AddonBrakeDowns: true,
+                        },
+                    },
+                    AgencyCommission: true,
+                },
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { [sortBy]: sortOrder },
+            }),
+        ]);
+
+        return {
+            data: reservations,
+            total,
+            page,
+            limit,
+        };
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(`Failed to fetch reservations: ${error.message}`);
+        }
+        throw new Error('Failed to fetch reservations');
+    }
+}
     public async getReservationById(
         reservationId: string,
         agencyId: string

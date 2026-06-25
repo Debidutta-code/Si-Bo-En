@@ -1,7 +1,8 @@
+import { CurrencyCode } from "@/components/currencyCode/currency-code.type";
+
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'modified' | 'no_show' | 'checked_in' | 'checked_out' | 'expired';
 export type BookingSource = 'direct' | 'google' | 'trip_adviser' | 'trivago' | 'social_media' | 'agency';
 export type PaymentMethod = 'pay_at_hotel' | 'net_banking' | 'upi' | 'payment_gateway';
-export type CurrencyCode = 'USD' | 'EUR' | 'INR' | 'AED' | string;
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 export type CommissionType = 'percentage' | 'fixed';
 export type DiscountType = 'percentage' | 'fixed';
@@ -238,7 +239,6 @@ export interface IReservation {
   updatedAt: string;
 }
 
-// ─── Filters & API Responses ─────────────────────────────────────────────────
 
 export interface IReservationFilters {
   bookingStatus?: BookingStatus;
@@ -288,4 +288,38 @@ export interface IReservationDetailsResponse {
   success: boolean;
   message: string;
   data?: { reservation: IReservation };
+}
+
+
+export interface IUReservation {
+    propertyCode: string;
+    checkInDate: string;
+    checkOutDate: string;
+    requestedRooms: number;
+    rooms: Array<{
+        adults: number;
+        children: number;
+        childAges: number[];
+    }>;
+    previousRooms: number;
+    guests: ICReservationGuest[];
+    roomTypeCode: string;
+    ratePlanCode: string;
+    amount: number;
+    finalPrice: IFinalPrice;
+    currencyCode: CurrencyCode;
+    bookingUserEmail: string;
+    bookingUserPhone: string;
+    status: 'Modified';
+    extraAmountToPay: number;
+    refundAmount: number;
+    agencyId?: string;
+    agentId: string | null;
+}
+export interface ICReservationGuest {
+  type: 'adult' | 'child' | 'infant';
+  firstName: string;
+  lastName: string;
+  age?: number | null;
+  dateOfBirth?: string | null;
 }

@@ -1,3 +1,4 @@
+import { CurrencyCode } from '../../../tax-system/interfaces';
 import { successResponse, errorResponse } from '../../../utils/return';
 import { IApiResponse } from '../../../utils/return.types';
 import { AgentDashboardRepository } from '../repository';
@@ -13,7 +14,8 @@ export class AgentDashboardService {
     public async getAgencyAnalytics(
         agencyId: string,
         agentId: string,
-        filters?: IAgentDashboardFilters
+        targetCurrency: CurrencyCode,
+        filters?: IAgentDashboardFilters,
     ): Promise<IApiResponse> {
         try {
             if (!agencyId && !agentId) {
@@ -26,7 +28,8 @@ export class AgentDashboardService {
             const result = await this.dashboardRepository.getAgencyAnalytics(
                 agencyId,
                 agentId,
-                filters
+                targetCurrency,
+                filters,
             );
 
             if (!result.success) {
