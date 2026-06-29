@@ -1,3 +1,4 @@
+import { prisma } from '../../config';
 import { getCurrencyConverter } from '../../currency-maping/utils';
 import { SpaEmailService } from '../../sms-email-service/service/spa.email.service';
 import { IApiResponse, successResponse, errorResponse } from '../../utils';
@@ -211,7 +212,7 @@ export class SpaService {
 
             // Backend restriction for inclusive slots
             if (inclusiveSlotsCountInRequest > 0 && reservation) {
-                const reservationWithGuests = await this.spaRepository['prisma'].reservation.findUnique({
+                const reservationWithGuests = await prisma.reservation.findUnique({
                     where: { id: reservation.id },
                     include: {
                         reservationGuests: true,
@@ -233,7 +234,7 @@ export class SpaService {
                 });
                 const totalGuestsAllowed = (reservationWithGuests?.reservationGuests?.length || 0) + 1; // +1 for primary guest
 
-                const alreadyBookedInclusiveCount = reservationWithGuests?.SlotsAvailable?.filter(sa =>
+                const alreadyBookedInclusiveCount = (reservationWithGuests?.SlotsAvailable as any[])?.filter((sa: any) =>
                     sa.spaSlot?.spaDate?.spaModule?.isInclusive
                 ).length || 0;
 

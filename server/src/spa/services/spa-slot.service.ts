@@ -1,3 +1,4 @@
+import { prisma } from '../../config';
 import {
     IApiResponse,
     successResponse,
@@ -272,7 +273,7 @@ public async markSlotAvailibilityAsBooked(
 
         // Restriction for inclusive slots
         if (inclusiveCountInRequest > 0) {
-            const reservationWithGuests = await this.spaRepo['prisma'].reservation.findUnique({
+            const reservationWithGuests = await prisma.reservation.findUnique({
                 where: { id: reservationId },
                 include: {
                     reservationGuests: true,
@@ -298,7 +299,7 @@ public async markSlotAvailibilityAsBooked(
             }
 
             const totalGuestsAllowed = (reservationWithGuests.reservationGuests?.length || 0) + 1;
-            const alreadyBookedInclusiveCount = reservationWithGuests.SlotsAvailable?.filter(sa =>
+            const alreadyBookedInclusiveCount = (reservationWithGuests.SlotsAvailable as any[])?.filter((sa: any) =>
                 sa.spaSlot?.spaDate?.spaModule?.isInclusive
             ).length || 0;
 
