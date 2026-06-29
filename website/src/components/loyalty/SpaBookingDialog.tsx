@@ -80,6 +80,9 @@ interface SelectedAvailability {
   dateLabel: string;
   spaName: string;
   spaId: string;
+  guestName?: string;
+  guestEmail?: string;
+  isInclusive?: boolean;
 }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -178,6 +181,8 @@ export default function SpaBookingDialog({
   const [cancelTarget, setCancelTarget] = useState<{ availabilityId: string; label: string } | null>(null);
 
   const [userName, setUserName] = useState(guestName || "");
+  const [guestDetails, setGuestDetails] = useState<Record<string, { name: string; email: string }>>({});
+  const [formErrors, setFormErrors] = useState<Record<string, { name?: string; email?: string }>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -282,16 +287,44 @@ export default function SpaBookingDialog({
           dateLabel: dateLabel(spaDate.date),
           spaName: spa.name,
           spaId: spa.id,
+          isInclusive: spa.isInclusive,
         },
       ];
     });
   };
 
+  const validateGuestField = (availabilityId: string, field: "name" | "email", value: string, isInclusive: boolean) => {
+    let error: string | undefined;
+    const trimmed = value.trim();
+
+    if (field === "name") {
+      if (!trimmed) error = t("SpaClient.validation.nameRequired");
+    }
+    if (field === "email") {
+      if (!isInclusive && !trimmed) error = t("SpaClient.validation.emailRequired");
+      else if (trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) error = t("SpaClient.validation.emailInvalid");
+    }
+
+    setFormErrors(prev => ({
+      ...prev,
+      [availabilityId]: { ...prev[availabilityId], [field]: error }
+    }));
+    return !error;
+  };
+
   const handleConfirmBooking = async () => {
     if (selectedAvailabilities.length === 0) return;
-    if (!userName.trim()) {
-      toast.error(t("SpaBookingDialog.toast.enterGuestName"));
-      nameInputRef.current?.focus();
+
+    let allValid = true;
+    selectedAvailabilities.forEach((s) => {
+      const details = guestDetails[s.availabilityId] || { name: "", email: "" };
+      const nValid = validateGuestField(s.availabilityId, "name", details.name, !!s.isInclusive);
+      const eValid = validateGuestField(s.availabilityId, "email", details.email, !!s.isInclusive);
+      if (!nValid || !eValid) allValid = false;
+    });
+
+    if (!allValid) {
+      toast.error(t("SpaClient.toast.fixFields"));
       return;
     }
 
@@ -304,6 +337,8 @@ export default function SpaBookingDialog({
           availabilityId: s.availabilityId,
           slotId: s.slotId,
           spaId: s.spaId,
+          userName: guestDetails[s.availabilityId]?.name,
+          userEmail: guestDetails[s.availabilityId]?.email,
         })),
       };
 
@@ -573,7 +608,7 @@ export default function SpaBookingDialog({
 
                   {/* ── Confirm booking panel ── */}
                   {confirmOpen && !cancelTarget && selectedAvailabilities.length > 0 && (
-                    <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-2">
+                    <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-3">
                       <p className="text-xs font-medium text-gray-700">
                         {selectedAvailabilities.length === 1
                           ? t("SpaBookingDialog.confirmPanel.activitySelected", {
@@ -584,28 +619,39 @@ export default function SpaBookingDialog({
                           })}
                       </p>
 
-                      {/* Selected summary */}
-                      <div className="flex flex-col gap-0.5 max-h-20 overflow-y-auto">
+                      {/* Selected summary with inputs */}
+                      <div className="flex flex-col gap-3 max-h-48 overflow-y-auto pr-1">
                         {selectedAvailabilities.map((s) => (
-                          <p key={s.availabilityId} className="text-[10px] text-gray-500">
-                            {s.spaName} · {s.dateLabel} · {formatTime(s.startTime)}
-                          </p>
+                          <div key={s.availabilityId} className="bg-white/60 p-2 rounded-lg border border-blue-100 space-y-2">
+                            <p className="text-[10px] font-semibold text-gray-600">
+                              {s.spaName} · {s.dateLabel} · {formatTime(s.startTime)}
+                            </p>
+                            <div className="space-y-1.5">
+                              <input
+                                type="text"
+                                value={guestDetails[s.availabilityId]?.name || ""}
+                                onChange={(e) => {
+                                  setGuestDetails(prev => ({ ...prev, [s.availabilityId]: { ...prev[s.availabilityId], name: e.target.value } }));
+                                  if (formErrors[s.availabilityId]?.name) validateGuestField(s.availabilityId, "name", e.target.value, !!s.isInclusive);
+                                }}
+                                onBlur={(e) => validateGuestField(s.availabilityId, "name", e.target.value, !!s.isInclusive)}
+                                placeholder={t("SpaBookingDialog.confirmPanel.guestNamePlaceholder")}
+                                className={`w-full h-7 px-2 text-[10px] rounded border ${formErrors[s.availabilityId]?.name ? 'border-red-400 bg-red-50' : 'border-gray-200'} outline-none focus:border-teal-400`}
+                              />
+                              <input
+                                type="email"
+                                value={guestDetails[s.availabilityId]?.email || ""}
+                                onChange={(e) => {
+                                  setGuestDetails(prev => ({ ...prev, [s.availabilityId]: { ...prev[s.availabilityId], email: e.target.value } }));
+                                  if (formErrors[s.availabilityId]?.email) validateGuestField(s.availabilityId, "email", e.target.value, !!s.isInclusive);
+                                }}
+                                onBlur={(e) => validateGuestField(s.availabilityId, "email", e.target.value, !!s.isInclusive)}
+                                placeholder={t("SpaClient.modal.placeholders.email") + (s.isInclusive ? ` (${t("SpaClient.optional")})` : "")}
+                                className={`w-full h-7 px-2 text-[10px] rounded border ${formErrors[s.availabilityId]?.email ? 'border-red-400 bg-red-50' : 'border-gray-200'} outline-none focus:border-teal-400`}
+                              />
+                            </div>
+                          </div>
                         ))}
-                      </div>
-
-                      <div>
-                        <label className="text-[11px] text-gray-500 mb-1 block">
-                          {t("SpaBookingDialog.confirmPanel.guestNameLabel")}
-                        </label>
-                        <input
-                          ref={nameInputRef}
-                          type="text"
-                          value={userName}
-                          onChange={(e) => setUserName(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === "Enter") handleConfirmBooking(); }}
-                          placeholder={t("SpaBookingDialog.confirmPanel.guestNamePlaceholder")}
-                          className="w-full h-8 px-2.5 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-teal-400"
-                        />
                       </div>
 
                       <div className="flex gap-2">

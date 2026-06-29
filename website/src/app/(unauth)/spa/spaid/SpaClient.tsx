@@ -31,6 +31,9 @@ interface SelectedSlot {
   startTime: string;
   endTime: string;
   amount: number;
+  guestName?: string;
+  guestEmail?: string;
+  isInclusive?: boolean;
 }
 
 export default function SpaClient() {
@@ -45,7 +48,8 @@ export default function SpaClient() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
+  const [guestDetails, setGuestDetails] = useState<Record<string, { name: string; email: string }>>({});
+  const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; phone?: string; guests?: Record<string, { name?: string; email?: string }> }>({});
   const [submitting, setSubmitting] = useState(false);
   const [cancellingSlotId, setCancellingSlotId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
@@ -102,12 +106,18 @@ export default function SpaClient() {
       const next = new Map(prev);
       if (next.has(uniqueId)) {
         next.delete(uniqueId);
+        setGuestDetails(prevGuests => {
+          const updated = { ...prevGuests };
+          delete updated[uniqueId];
+          return updated;
+        });
       } else {
         next.set(uniqueId, {
           id: uniqueId, spaId: spa.id || spaId as string, slotId: slot.id,
           spaDateId: spaDate.id, date: spaDate.date, spaName: spa.name,
           dateLabel: new Intl.DateTimeFormat(getLocale(), { timeZone: "UTC", weekday: "long", month: "short", day: "2-digit", year: "numeric" }).format(new Date(spaDate.date)),
           startTime: slot.startTime, endTime: slot.endTime || slot.startTime, amount,
+          isInclusive: spa.isInclusive,
         });
       }
       return next;
@@ -145,11 +155,40 @@ export default function SpaClient() {
     return !error;
   };
 
+  const validateGuestField = (uniqueId: string, field: "name" | "email", value: string, isInclusive: boolean) => {
+    let error: string | undefined;
+    const trimmed = value.trim();
+
+    if (field === "name") {
+      if (!trimmed) error = t("SpaClient.validation.nameRequired");
+    }
+    if (field === "email") {
+      if (!isInclusive && !trimmed) error = t("SpaClient.validation.emailRequired");
+      else if (trimmed && !isValidEmail(trimmed)) error = t("SpaClient.validation.emailInvalid");
+    }
+
+    setFormErrors(prev => {
+      const guests = { ...prev.guests } || {};
+      guests[uniqueId] = { ...guests[uniqueId], [field]: error };
+      return { ...prev, guests };
+    });
+    return !error;
+  };
+
   const validateBookingForm = () => {
     const nameValid = validateField("name", customerName);
     const emailValid = validateField("email", customerEmail);
     const phoneValid = validateField("phone", customerPhone);
-    return nameValid && emailValid && phoneValid;
+
+    let guestsValid = true;
+    selectedSlots.forEach((slot, uniqueId) => {
+      const details = guestDetails[uniqueId] || { name: "", email: "" };
+      const gNameValid = validateGuestField(uniqueId, "name", details.name, !!slot.isInclusive);
+      const gEmailValid = validateGuestField(uniqueId, "email", details.email, !!slot.isInclusive);
+      if (!gNameValid || !gEmailValid) guestsValid = false;
+    });
+
+    return nameValid && emailValid && phoneValid && guestsValid;
   };
 
   const handleConfirmBooking = async () => {
@@ -169,7 +208,11 @@ export default function SpaClient() {
     setSubmitting(true);
     try {
       const slotsData = Array.from(selectedSlots.values()).map(s => ({
-        spaId: s.spaId, spaSlotId: s.slotId, amount: s.amount,
+        spaId: s.spaId,
+        slotsAvailableId: s.slotId,
+        amount: s.amount,
+        userName: guestDetails[s.id]?.name,
+        userEmail: guestDetails[s.id]?.email,
       }));
       const response = await createSpaReservationApi({
         userEmail: customerEmail.trim(),
@@ -177,6 +220,7 @@ export default function SpaClient() {
         slots: slotsData,
         userName: customerName,
         currencyCode: spa?.currencyCode as CurrencyCode || "AED",
+        bookingCode: searchParams.get("bookingCode") || "",
       });
       if (response.success) {
         toast.success(t("SpaClient.toast.bookSuccess", { count: selectedSlots.size }));
@@ -483,7 +527,7 @@ export default function SpaClient() {
                   <p className="text-xs font-semibold uppercase tracking-widest text-stone-500 mb-3">
                     {t("SpaClient.modal.selectedSlotsLabel")}
                   </p>
-                  <div className="max-h-[200px] overflow-y-auto space-y-2 pr-1">
+                  <div className="max-h-[400px] overflow-y-auto space-y-4 pr-1">
                     {Array.from(selectedSlots.values()).map(slot => (
                       <div key={slot.id} className="rounded-xl border border-stone-100 bg-stone-50 p-3">
                         <div className="flex items-start justify-between">
@@ -504,6 +548,49 @@ export default function SpaClient() {
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
+                        </div>
+
+                        {/* Guest details for each slot */}
+                        <div className="mt-3 space-y-2 border-t border-stone-200 pt-3">
+                          <p className="text-[10px] font-bold uppercase text-stone-400">{t("SpaClient.modal.guestDetails")}</p>
+                          <div>
+                            <input
+                              type="text"
+                              value={guestDetails[slot.id]?.name || ""}
+                              onChange={e => {
+                                setGuestDetails(prev => ({ ...prev, [slot.id]: { ...prev[slot.id], name: e.target.value } }));
+                                if (formErrors.guests?.[slot.id]?.name) validateGuestField(slot.id, "name", e.target.value, !!slot.isInclusive);
+                              }}
+                              onBlur={e => validateGuestField(slot.id, "name", e.target.value, !!slot.isInclusive)}
+                              placeholder={t("SpaClient.modal.placeholders.fullName")}
+                              className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition focus:ring-2 ${formErrors.guests?.[slot.id]?.name
+                                ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                                : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                                } text-stone-900`}
+                            />
+                            {formErrors.guests?.[slot.id]?.name && (
+                              <p className="mt-1 text-[10px] text-red-600">{formErrors.guests[slot.id].name}</p>
+                            )}
+                          </div>
+                          <div>
+                            <input
+                              type="email"
+                              value={guestDetails[slot.id]?.email || ""}
+                              onChange={e => {
+                                setGuestDetails(prev => ({ ...prev, [slot.id]: { ...prev[slot.id], email: e.target.value } }));
+                                if (formErrors.guests?.[slot.id]?.email) validateGuestField(slot.id, "email", e.target.value, !!slot.isInclusive);
+                              }}
+                              onBlur={e => validateGuestField(slot.id, "email", e.target.value, !!slot.isInclusive)}
+                              placeholder={t("SpaClient.modal.placeholders.email") + (slot.isInclusive ? ` (${t("SpaClient.optional")})` : "")}
+                              className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition focus:ring-2 ${formErrors.guests?.[slot.id]?.email
+                                ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                                : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                                } text-stone-900`}
+                            />
+                            {formErrors.guests?.[slot.id]?.email && (
+                              <p className="mt-1 text-[10px] text-red-600">{formErrors.guests[slot.id].email}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

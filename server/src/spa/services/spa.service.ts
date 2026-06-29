@@ -171,28 +171,86 @@ export class SpaService {
         try {
             let totalAmount = 0;
             const processedSlots = [];
+            let reservation: any = null;
 
+            if (data.bookingCode) {
+                reservation = await this.spaRepository.getReservationByCode(data.bookingCode);
+            }
+
+            // Fetch all Spas at once to avoid N+1
+            const uniqueSpaIds = [...new Set(data.slots.map(s => s.spaId))];
+            const spaMap = new Map();
+            for (const id of uniqueSpaIds) {
+                const spa = await this.spaRepository.getById(id);
+                if (spa) spaMap.set(id, spa);
+            }
+
+            let inclusiveSlotsCountInRequest = 0;
             for (const slot of data.slots) {
-                const spa = await this.spaRepository.getById(slot.spaId);
+                const spa = spaMap.get(slot.spaId);
                 if (!spa) return errorResponse(`Spa not found: ${slot.spaId}`);
+
+                if (spa.isInclusive) {
+                    inclusiveSlotsCountInRequest++;
+                    if (!reservation) {
+                        return errorResponse('Inclusive spa services require a valid hotel reservation.');
+                    }
+                }
 
                 const slotAmount = !spa.isInclusive ? (spa.discountValue || 0) : 0;
                 totalAmount += slotAmount;
 
                 processedSlots.push({
                     spaId: slot.spaId,
-                    slotsAvailableId: slot.slotsAvailableId,  // ← updated
+                    slotsAvailableId: slot.slotsAvailableId,
                     amount: slotAmount,
+                    userName: slot.userName,
+                    userEmail: slot.userEmail,
                 });
+            }
+
+            // Backend restriction for inclusive slots
+            if (inclusiveSlotsCountInRequest > 0 && reservation) {
+                const reservationWithGuests = await this.spaRepository['prisma'].reservation.findUnique({
+                    where: { id: reservation.id },
+                    include: {
+                        reservationGuests: true,
+                        SlotsAvailable: {
+                            where: { status: 'booked' },
+                            include: {
+                                spaSlot: {
+                                    include: {
+                                        spaDate: {
+                                            include: {
+                                                spaModule: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                });
+                const totalGuestsAllowed = (reservationWithGuests?.reservationGuests?.length || 0) + 1; // +1 for primary guest
+
+                const alreadyBookedInclusiveCount = reservationWithGuests?.SlotsAvailable?.filter(sa =>
+                    sa.spaSlot?.spaDate?.spaModule?.isInclusive
+                ).length || 0;
+
+                if (inclusiveSlotsCountInRequest + alreadyBookedInclusiveCount > totalGuestsAllowed) {
+                    return errorResponse(`You can only book up to ${totalGuestsAllowed} inclusive spa slots in total for your stay. You have already booked ${alreadyBookedInclusiveCount}.`);
+                }
             }
 
             const booking = await this.spaRepository.createSpaBooking(
                 {
-                    userEmail: data.userEmail,
+                    userEmail: reservation?.bookingUserEmail || data.userEmail, // Prioritize reservation email as per instructions
+                    userName: data.userName,
                     userContactNumber: data.userContactNumber,
                     userId: data.userId,
                     totalAmount,
                     currencyCode: data.currencyCode,
+                    reservationId: reservation?.id,
                 },
                 processedSlots
             );
@@ -207,7 +265,7 @@ export class SpaService {
                 const emailSlots = await Promise.all(
                     processedSlots.map(async (ps) => {
                         const spa = await this.spaRepository.getById(ps.spaId);
-                        const slot = await this.spaRepository.getSlotById(ps.slotsAvailableId); // ← updated
+                        const slot = await this.spaRepository.getSlotById(ps.slotsAvailableId);
                         return {
                             spaName: spa?.name ?? 'Spa Service',
                             date: slot?.spaDate?.date
@@ -227,19 +285,42 @@ export class SpaService {
                                 : null,
                             amount: ps.amount,
                             currencyCode: data.currencyCode,
+                            guestName: ps.userName || data.userName,
+                            guestEmail: ps.userEmail || data.userEmail,
                         };
                     })
                 );
 
+                // Send confirmation to primary user (reservation email preferred)
+                const primaryEmail = reservation?.bookingUserEmail || data.userEmail;
+
                 await this.spaEmailService.bookingConfirmed({
                     userName: data.userName,
-                    userEmail: data.userEmail,
+                    userEmail: primaryEmail,
                     bookingId: booking.id,
                     managerEmails,
                     slots: emailSlots,
                     totalAmount,
                     currencyCode: data.currencyCode,
                 });
+
+                // Send separate confirmations to other guests if they have emails
+                for (const ps of processedSlots) {
+                    if (ps.userEmail && ps.userEmail !== primaryEmail) {
+                        const guestSlot = emailSlots.find(s => s.guestEmail === ps.userEmail);
+                        if (guestSlot) {
+                            await this.spaEmailService.bookingConfirmed({
+                                userName: ps.userName || 'Guest',
+                                userEmail: ps.userEmail,
+                                bookingId: booking.id,
+                                managerEmails: [], // Don't spam managers
+                                slots: [guestSlot],
+                                totalAmount: ps.amount,
+                                currencyCode: data.currencyCode,
+                            });
+                        }
+                    }
+                }
             } catch (emailError) {
                 console.error('Spa confirmation email failed:', emailError);
             }

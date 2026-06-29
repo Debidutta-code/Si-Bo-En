@@ -35,13 +35,13 @@ model SlotsAvailable {
   spaSlot   SpaSlots @relation(fields: [spaSlotId], references: [id], onDelete: Cascade)
 
   status SlotStatus @default(active) @map("status")
-   userName      String?       @map("user_name")
+  userName  String?    @map("user_name")
+  userEmail String?    @map("user_email")
 
   reservationId String?      @map("reservation_id")
   reservation   Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
 
   slotBooking SlotBooking?
 
- 
   @@map("slots_available")
 }

@@ -296,25 +296,27 @@ export class SpaSlotsRepo {
         }
     }
     public async markSlotAvailabilitiesAsBooked(
-        slotsAvailableIds: string[],
+        availabilities: { availabilityId: string; userName?: string; userEmail?: string }[],
         reservationId: string,
         userName: string,
     ): Promise<ISlotsAvailable[]> {
         try {
-            await prisma.slotsAvailable.updateMany({
-                where: {
-                    id: { in: slotsAvailableIds },
-                    status: 'active',
-                },
-                data: {
-                    status: 'booked',
-                    reservationId,
-                    userName,
-                },
-            });
+            await prisma.$transaction(
+                availabilities.map((a) =>
+                    prisma.slotsAvailable.update({
+                        where: { id: a.availabilityId, status: 'active' },
+                        data: {
+                            status: 'booked',
+                            reservationId,
+                            userName: a.userName || userName,
+                            userEmail: a.userEmail,
+                        },
+                    })
+                )
+            );
 
             return await prisma.slotsAvailable.findMany({
-                where: { id: { in: slotsAvailableIds } },
+                where: { id: { in: availabilities.map((a) => a.availabilityId) } },
             });
         } catch (error) {
             throw new Error('Error occurred while marking spa slots as booked');

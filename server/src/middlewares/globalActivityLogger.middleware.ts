@@ -13,6 +13,7 @@ export const globalActivityLogger = (req: Request, res: Response, next: NextFunc
     '/api/activities',
     '/api/v1/booking-engine/fetch-rooms',
     '/api/v1/booking-engine/calendar-prices',
+    '/api/v1/spa/available',
     '/room/inv-setup'
   ];
   

@@ -12,6 +12,7 @@ export function templateSpaBookingConfirmation(data: {
         endTime: string | null;
         amount: number;
         currencyCode: string;
+        guestName?: string;
     }[];
     totalAmount: number;
     currencyCode: string;
@@ -22,7 +23,10 @@ export function templateSpaBookingConfirmation(data: {
 
     const slotsHtml = data.slots.map(slot => `
         <tr>
-          <td style="padding:8px 0;font-size:13px;color:#1E293B;">${slot.spaName}</td>
+          <td style="padding:8px 0;font-size:13px;color:#1E293B;">
+            ${slot.spaName}
+            ${slot.guestName ? `<br/><span style="font-size:11px;color:#64748B;">Guest: ${slot.guestName}</span>` : ''}
+          </td>
           <td style="padding:8px 0;font-size:13px;color:#1E293B;">${slot.date}</td>
           <td style="padding:8px 0;font-size:13px;color:#1E293B;">
             ${slot.startTime}${slot.endTime ? ` – ${slot.endTime}` : ''}

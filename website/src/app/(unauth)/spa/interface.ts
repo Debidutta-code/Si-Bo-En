@@ -65,14 +65,17 @@ export interface ISpa {
 
 export interface ICreateSpaReservationSlot {
   spaId: string;
-  spaSlotId: string;
+  slotsAvailableId: string;
   amount: number;
+  userName?: string;
+  userEmail?: string;
 }
 
 export interface ICreateSpaReservationRequest {
   userEmail: string;
   userContactNumber: string;
-  userName:string;
+  userName: string;
   slots: ICreateSpaReservationSlot[];
-  currencyCode:CurrencyCode;
+  currencyCode: CurrencyCode;
+  bookingCode?: string;
 }

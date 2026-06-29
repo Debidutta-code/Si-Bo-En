@@ -251,29 +251,77 @@ public async markSlotAvailibilityAsBooked(
         }
 
         // Fetch the spa for each availability to check isInclusive
-        const spas = await Promise.all(
-            availabilities.map((a) => this.spaRepo.getById(a.spaId))
-        );
+        const uniqueSpaIds = [...new Set(availabilities.map(a => a.spaId))];
+        const spaMap = new Map();
+        for (const id of uniqueSpaIds) {
+            const spa = await this.spaRepo.getById(id);
+            if (spa) spaMap.set(id, spa);
+        }
 
-        for (let i = 0; i < spas.length; i++) {
-            if (!spas[i]) {
+        let inclusiveCountInRequest = 0;
+        for (let i = 0; i < availabilities.length; i++) {
+            const spa = spaMap.get(availabilities[i].spaId);
+            if (!spa) {
                 return errorResponse(
                     'Spa not found',
                     `Spa ID ${availabilities[i].spaId} not found`
                 );
             }
+            if (spa.isInclusive) inclusiveCountInRequest++;
+        }
+
+        // Restriction for inclusive slots
+        if (inclusiveCountInRequest > 0) {
+            const reservationWithGuests = await this.spaRepo['prisma'].reservation.findUnique({
+                where: { id: reservationId },
+                include: {
+                    reservationGuests: true,
+                    SlotsAvailable: {
+                        where: { status: 'booked' },
+                        include: {
+                            spaSlot: {
+                                include: {
+                                    spaDate: {
+                                        include: {
+                                            spaModule: true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+            });
+
+            if (!reservationWithGuests) {
+                return errorResponse('Reservation not found');
+            }
+
+            const totalGuestsAllowed = (reservationWithGuests.reservationGuests?.length || 0) + 1;
+            const alreadyBookedInclusiveCount = reservationWithGuests.SlotsAvailable?.filter(sa =>
+                sa.spaSlot?.spaDate?.spaModule?.isInclusive
+            ).length || 0;
+
+            if (inclusiveCountInRequest + alreadyBookedInclusiveCount > totalGuestsAllowed) {
+                return errorResponse(`You can only book up to ${totalGuestsAllowed} inclusive spa slots in total for your stay. You have already booked ${alreadyBookedInclusiveCount}.`);
+            }
         }
 
         // Mark all slots as booked in one DB call
         await this.spaSlotsRepo.markSlotAvailabilitiesAsBooked(
-            availabilities.map((a) => a.availabilityId),
+            availabilities.map((a) => ({
+                availabilityId: a.availabilityId,
+                userName: a.userName,
+                userEmail: a.userEmail,
+            })),
             reservationId,
             userName
         );
 
       
         for (let i = 0; i < existingSlots.length; i++) {
-            if (spas[i]!.isInclusive) continue;
+            const spa = spaMap.get(availabilities[i].spaId);
+            if (spa!.isInclusive) continue;
 
             const pricingResult = await this.spaPricingService.createSpaPricing({
                 reservationId,
