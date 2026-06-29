@@ -78,22 +78,29 @@ function RatePlanRow({
 }) {
   const [expanded, setExpanded] = useState(false);
   const isLoading = bookingLoading === `${rp.ratePlanCode}-${rp.comboLabel}`;
-
   const isOnlyRoomOnly =
     allCombos.length === 1 && rp.comboLabel?.toLowerCase() === "room only";
   const displayLabel = isOnlyRoomOnly ? rp.ratePlanName : (rp.comboLabel || rp.ratePlanName);
 
-  const hasAddons = rp.addons?.filter((a) => a.price > 0).length > 0;
-  const hasTax = (rp.touristTax?.calculatedTaxAmount ?? 0) > 0;
-  const hasExpandable = hasAddons || hasTax;
   const getCurrencySymbol = (code: string) =>
     currencies.find((c) => c.code === code)?.symbol ?? code;
+
+  const hasAddons = rp.addons?.filter((a) => a.price > 0).length > 0;
+  const hasTax = (rp.touristTax?.calculatedTaxAmount ?? 0) > 0;
+  const visiblePromotions = rp.promotionBrakeDown?.filter(
+    (p) => p.restrictionType !== "payLater"
+  ) ?? [];
+  const hasPromotions = visiblePromotions.length > 0;
+  const hasExpandable = hasAddons || hasTax || hasPromotions;
+
+  const baseWithCommission =
+    rp.baseAmount + (rp.appliedCommission?.calculatedCommissionAmount ?? 0);
 
   return (
     <div>
       {/* Main row */}
       <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 hover:bg-blue-50/40 transition-colors">
-        {/* Left: label toggle */}
+        {/* Left: label + toggle */}
         <button
           onClick={() => hasExpandable && setExpanded((e) => !e)}
           className={`flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-700 transition-colors ${hasExpandable ? "hover:text-blue-600 cursor-pointer" : "cursor-default"}`}
@@ -113,15 +120,21 @@ function RatePlanRow({
               + {rp.addons.length} add-on{rp.addons.length > 1 ? "s" : ""}
             </span>
           )}
+          {hasPromotions && (
+            <span className="ml-1 px-1.5 py-0.5 bg-green-50 border border-green-200 text-green-700 text-[9px] font-bold rounded-full">
+              {visiblePromotions.length} offer{visiblePromotions.length > 1 ? "s" : ""}
+            </span>
+          )}
         </button>
 
         {/* Right: price + book */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-center gap-0.5 text-sm sm:text-base font-bold text-slate-900">
-            <span className="text-xs font-semibold text-slate-500">{getCurrencySymbol(rp.currencyCode)}</span>
+            <span className="text-xs font-semibold text-slate-500">
+              {getCurrencySymbol(rp.currencyCode)}
+            </span>
             <span>{rp.totalAmount}</span>
           </div>
-
           <button
             onClick={onBookNow}
             disabled={isLoading}
@@ -143,26 +156,34 @@ function RatePlanRow({
       {expanded && hasExpandable && (
         <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-            {/* Base rate */}
-            {(() => {
-              const addonTotal = rp.addons?.reduce((sum, a) => sum + (a.price ?? 0), 0) ?? 0;
-              const baseRate = rp.totalAmount - addonTotal;
-              return (
-                <div className="flex items-center gap-1">
-                  <span className="text-[10px] text-slate-400 uppercase font-semibold">Base Rate:</span>
-                  <span className="text-xs font-bold text-slate-800">
-                    {rp.currencyCode} {baseRate}
-                  </span>
-                </div>
-              );
-            })()}
+
+            {/* Base + commission */}
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-slate-400 uppercase font-semibold">Base rate:</span>
+              <span className="text-xs font-bold text-slate-800">
+                {rp.currencyCode} {baseWithCommission.toFixed(2)}
+              </span>
+            </div>
+
+            {/* Promotion discounts — payLater excluded */}
+            {visiblePromotions.map((promo, i) => (
+              <div key={i} className="flex items-center gap-1">
+                <span className="text-slate-300 text-xs">|</span>
+                <span className="text-[10px] text-green-700 truncate max-w-[120px]">
+                  {promo.name}
+                </span>
+                <span className="text-[10px] font-bold text-green-700">
+                  -{rp.currencyCode} {promo.discountAmount.toFixed(2)}
+                </span>
+              </div>
+            ))}
 
             {/* Included addons */}
             {rp.addons?.filter((a) => a.price > 0).map((addon) => (
               <div key={addon.id} className="flex items-center gap-1">
                 <span className="text-slate-300 text-xs">|</span>
                 <span className="text-[10px] text-blue-700 truncate max-w-[120px]">
-                  🍽 {addon.name}
+                  {addon.name}
                 </span>
                 <span className="text-[10px] font-bold text-blue-600">
                   +{rp.currencyCode} {addon.price}
@@ -170,15 +191,15 @@ function RatePlanRow({
               </div>
             ))}
 
-            {/* Tourist tax */}
+            {/* Tourist tax — shown here too as a hint */}
             {hasTax && (
               <div className="flex items-center gap-1">
                 <span className="text-slate-300 text-xs">|</span>
                 <span className="text-[10px] text-amber-600">
-                  🏛 {rp.touristTax.name}:
+                  {rp.touristTax!.name} (pay at hotel):
                 </span>
                 <span className="text-[10px] font-bold text-amber-700">
-                  +{rp.currencyCode} {rp.touristTax.calculatedTaxAmount}
+                  {rp.touristTax!.currencyCode} {rp.touristTax!.calculatedTaxAmount.toFixed(2)}
                 </span>
               </div>
             )}
@@ -313,31 +334,13 @@ function RoomCard({
                     <span className="text-[11px] text-slate-600 font-medium capitalize">{room.roomView} view</span>
                   </div>
                 )}
-                {room.maxNumberOfAdults > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <Users size={13} className="text-slate-400 shrink-0" />
-                    <span className="text-[11px] text-slate-500">{room.maxNumberOfAdults}A / {room.maxNumberOfChildren}C</span>
-                  </div>
-                )}
-                {room.numberOfBedrooms > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-slate-400">🛏</span>
-                    <span className="text-[11px] text-slate-500">{room.numberOfBedrooms} Bedroom{room.numberOfBedrooms > 1 ? "s" : ""}</span>
-                  </div>
-                )}
-                {room.floor > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-slate-400">🏢</span>
-                    <span className="text-[11px] text-slate-500">Floor {room.floor}</span>
-                  </div>
-                )}
               </div>
 
               {room.amenities?.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {room.amenities.slice(0, 4).map((amenity, i) => (
                     <div key={i} className="text-[10px] text-slate-600 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200 font-medium">
-                      {amenity.amenityName}
+                      {amenity.amenity.amenityName}
                     </div>
                   ))}
                   {room.amenities.length > 4 && (

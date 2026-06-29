@@ -1,5 +1,7 @@
 // ─── Payment ──────────────────────────────────────────────────────────────────
 
+import { CurrencyCode } from "@/components/currencyCode/currency-code.type";
+
 export interface IPaymentDetails {
   id: string;
   payAtHotel: boolean;
@@ -40,13 +42,13 @@ export interface IAgencyCommissionDetail {
   commissionType: 'percentage' | 'fixed';
   commissionValue: number;
   commissionAmount: number;
-  commissionCurrency: string;
+  commissionCurrency: CurrencyCode;
 }
 
 export interface ITaxBrakeDown {
   name: string;
   taxedAmount: number;
-  currencyCode: string;
+  currencyCode: CurrencyCode;
 }
 
 export interface ITouristTaxDetail {
@@ -64,7 +66,7 @@ export interface IAddonBrakeDown {
   amount: number;
   quantity: number;
   totalAmount: number;
-  currencyCode: string;
+  currencyCode: CurrencyCode;
   date: string;
   type: 'included';
 }
@@ -104,35 +106,31 @@ export interface IDailyPriceBrakeDown {
   additionalChargesAmount: number;
   addOnBrakeDown: IAddonBrakeDown[];
   totalAmount: number;
-  currencyCode: string;
+  currencyCode: CurrencyCode;
 }
 
 export interface IAgentFinalPriceResponse {
-  currencyCode: string;
-  totalAmount: number;                // currentChargeableAmount + latterpayableAmount
-  amountBeforeTax: number;            // pureBase + agencyCommission (what agent pays before tax)
-  taxedAmount: number;                // tax on subtotal
-  totalAddonAmount: number;           // included addons total
-  totalPromotionAmount: number;       // 0 for agent
-  currentChargeableAmount: number;    // subtotal + taxedAmount
-  latterpayableAmount: number;        // tourist tax — paid at property
-  loyalityDiscount: number;           // 0 for agent
-  promoCodeDiscount: number;          // 0 for agent
+  currencyCode: CurrencyCode;
+  totalAmount: number;               
+  amountBeforeTax: number;          
+  taxedAmount: number;               
+  totalAddonAmount: number;     
+  totalPromotionAmount: number;     
+  currentChargeableAmount: number;   
+  latterpayableAmount: number;       
+  loyalityDiscount: number;      
+  promoCodeDiscount: number;       
+  dailyPriceBrakeDown: IDailyPriceBrakeDown[];
+  taxBrakeDown: ITaxBrakeDown[];
 
   agencyCommissionAmount: number;
   agencyCommission: IAgencyCommissionDetail;
 
-  dailyPriceBrakeDown: IDailyPriceBrakeDown[];
-  taxBrakeDown: ITaxBrakeDown[];
-  addonBrakeDown: IAddonBrakeDown[];
+  addonBrakeDowns: IAddonBrakeDown[];
   promotionBrakeDown: IPromotionBrakeDown[];
   touristTax: ITouristTaxDetail | null;
-
-  availableRooms: number;
-  requestedRooms: number;
 }
 
-// ─── Booking Payload ──────────────────────────────────────────────────────────
 
 export interface ICreateBookingPayload {
   propertyCode: string;
@@ -205,8 +203,8 @@ export interface IBookingData {
   hotelName: string;
   roomTypeCode: string;
   ratePlanCode: string;
-  checkInDate: string;
-  checkOutDate: string;
+  reservationStartDate: string;
+  reservationEndDate: string;
   bookedAt: string;
   primaryGuestId: string;
   bookingUserEmail: string;

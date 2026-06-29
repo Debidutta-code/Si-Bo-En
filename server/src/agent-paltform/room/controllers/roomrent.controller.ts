@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { errorResponse } from '../../../utils/return';
 import { AgentRequest } from '../../utils';
 import { AgentPricingService } from '../services';
-import { toUTC } from '../../../utils';
+import { getDeviceInfo, getGeoLocationDetails, toUTC } from '../../../utils';
 import { IAgentPricingRequest, IGuestDistributionEntry } from '../types';
 
 export class AgentPricingController {
@@ -41,9 +41,9 @@ export class AgentPricingController {
                 guestDistribution,
                 agencyId,
                 includedAddons,
+                promoCode
             } = req.body;
 
-            // ── Required field validation ────────────────────────────────────
             if (!propertyCode) {
                 return res
                     .status(400)
@@ -75,7 +75,6 @@ export class AgentPricingController {
                     .json(errorResponse('Agency ID is required'));
             }
 
-            // Agency must match the authenticated agent's agency
             if (agencyId !== agentAgencyId) {
                 return res
                     .status(403)
@@ -87,7 +86,6 @@ export class AgentPricingController {
                     );
             }
 
-            // ── Guest count validation ────────────────────────────────────────
             const adults = Number(noOfAdults);
             const children = Number(noOfChildren);
             const rooms = Number(noOfRooms);
@@ -145,8 +143,12 @@ export class AgentPricingController {
                         };
                     }
                 );
+            const geoDetails = await getGeoLocationDetails(req);
+            const country =
+                geoDetails.country !== 'Unknown' ? geoDetails.country : undefined;
 
-            // ── includedAddons — always an array, never undefined ────────────
+            const deviceInfo = getDeviceInfo(req);
+            const deviceType = deviceInfo.deviceType as 'desktop' | 'mobile' | 'tablet' | undefined;
             const typedIncludedAddons: string[] = Array.isArray(includedAddons)
                 ? includedAddons.filter((id: unknown) => typeof id === 'string')
                 : [];
@@ -164,6 +166,9 @@ export class AgentPricingController {
                 guestDistribution: typedGuestDistribution,
                 agencyId: String(agencyId),
                 includedAddons: typedIncludedAddons,
+                deviceType,                                        // ← auto-detected
+                country,                                           // ← auto-detected
+                promoCode: promoCode ? String(promoCode) : undefined,
             };
 
             const result = await this.pricingService.getAgentPricing(payload);

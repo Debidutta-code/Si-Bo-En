@@ -11,6 +11,8 @@ import {
     IAgencyProperty,
 } from '../types';
 import { BookingStatus } from '../../../reservation/types/reservation.type';
+import { CurrencyCode } from '../../../tax-system/interfaces';
+import { convertCurrency, getCurrencyConverter } from '../../../currency-maping/utils';
 
 interface IAnalyticsSuccess {
     success: true;
@@ -56,7 +58,8 @@ export class AgentDashboardRepository {
     public async getAgencyAnalytics(
         agencyId: string,
         agentId: string,
-        filters?: IAgentDashboardFilters
+        targetCurrency: CurrencyCode,
+        filters?: IAgentDashboardFilters,
     ): Promise<IAnalyticsSuccess | IAnalyticsError> {
         try {
             const baseWhere = this.buildBaseWhere(agencyId, agentId, filters);
@@ -69,10 +72,10 @@ export class AgentDashboardRepository {
                 propertiesBreakdown,
             ] = await Promise.all([
                 this.getReservationAnalytics(baseWhere),
-                this.getRevenueAnalytics(agencyId, agentId, baseWhere),
+                this.getRevenueAnalytics(agencyId, agentId, baseWhere, targetCurrency),
                 this.getGuestAnalytics(baseWhere),
                 this.getBookingSourceAnalytics(baseWhere),
-                this.getPropertiesBreakdown(agencyId, agentId, baseWhere),
+                this.getPropertiesBreakdown(agencyId, agentId, baseWhere, targetCurrency),
             ]);
 
             return {
@@ -180,61 +183,101 @@ export class AgentDashboardRepository {
     private async getRevenueAnalytics(
         agencyId: string,
         agentId: string,
-        baseWhere: ReturnType<AgentDashboardRepository['buildBaseWhere']>
+        baseWhere: ReturnType<AgentDashboardRepository['buildBaseWhere']>,
+        targetCurrency: CurrencyCode
     ): Promise<IAgentRevenueAnalytics> {
-        const [revenueData, paymentMethodBreakdown, commissionData] =
-            await Promise.all([
-                prisma.reservation.aggregate({
-                    where: baseWhere,
-                    _sum: {
-                        amount: true,
-                        paidAmount: true,
-                        extraAmountToPay: true,
-                        refundAmount: true,
-                    },
-                    _avg: { amount: true },
-                }),
 
-                prisma.reservation.groupBy({
-                    by: ['paymentMethod'],
-                    where: baseWhere,
-                    _sum: { amount: true },
-                    _count: { _all: true },
-                }),
+        const [reservations, commissionData] = await Promise.all([
+            prisma.reservation.findMany({
+                where: baseWhere,
+                select: {
+                    amount: true,
+                    paidAmount: true,
+                    extraAmountToPay: true,
+                    refundAmount: true,
+                    currencyCode: true,
+                    paymentMethod: true,
+                },
+            }),
+            prisma.agencyCommission.aggregate({
+                where: { agentId, agencyId },
+                _sum: { commissionAmount: true },
+                _avg: { commissionAmount: true },
+            }),
+        ]);
 
-                // ── agent's actual commission earned ──
-                prisma.agencyCommission.aggregate({
-                    where: { agentId, agencyId },
-                    _sum: { commissionAmount: true },
-                    _avg: { commissionAmount: true },
-                }),
-            ]);
+        let totalRevenue = 0;
+        let paidAmount = 0;
+        let pendingAmount = 0;
+        let refundedAmount = 0;
+        const revenueByPaymentMethod = {
+            pay_at_hotel: 0,
+            net_banking: 0,
+            upi: 0,
+            payment_gateway: 0,
+        };
 
-        const revenueByPaymentMethod: IAgentRevenueAnalytics['revenueByPaymentMethod'] =
-            {
-                pay_at_hotel: 0,
-                net_banking: 0,
-                upi: 0,
-                payment_gateway: 0,
-            };
+        await Promise.all(
+            reservations.map(async (r) => {
+                try {
+                    const from = r.currencyCode as CurrencyCode;
+                    const to = targetCurrency as CurrencyCode;
 
-        paymentMethodBreakdown.forEach(pm => {
-            const method =
-                pm.paymentMethod as keyof typeof revenueByPaymentMethod;
-            if (method in revenueByPaymentMethod) {
-                revenueByPaymentMethod[method] = pm._sum?.amount ?? 0;
-            }
-        });
+                    const [
+                        convertedAmount,
+                        convertedPaid,
+                        convertedPending,
+                        convertedRefund,
+                    ] = await Promise.all([
+                        convertCurrency(r.amount, from, to),
+                        convertCurrency(r.paidAmount, from, to),
+                        convertCurrency(r.extraAmountToPay, from, to),
+                        convertCurrency(r.refundAmount, from, to),
+                    ]);
+
+                    totalRevenue += convertedAmount;
+                    paidAmount += convertedPaid;
+                    pendingAmount += convertedPending;
+                    refundedAmount += convertedRefund;
+
+                    const method = r.paymentMethod as keyof typeof revenueByPaymentMethod;
+                    if (method in revenueByPaymentMethod) {
+                        revenueByPaymentMethod[method] += convertedAmount;
+                    }
+                } catch {
+                    // fallback if rate not in Redis — add raw
+                    totalRevenue += r.amount;
+                    paidAmount += r.paidAmount;
+                    pendingAmount += r.extraAmountToPay;
+                    refundedAmount += r.refundAmount;
+
+                    const method = r.paymentMethod as keyof typeof revenueByPaymentMethod;
+                    if (method in revenueByPaymentMethod) {
+                        revenueByPaymentMethod[method] += r.amount;
+                    }
+                }
+            })
+        );
+
+        // Commission is always stored in USD per your AgencyCommission table
+        const rawCommission = commissionData._sum?.commissionAmount ?? 0;
+        const rawAvgCommission = commissionData._avg?.commissionAmount ?? 0;
+
+        const [totalCommissionEarned, averageCommissionPerBooking] = await Promise.all([
+            convertCurrency(rawCommission, 'USD', targetCurrency as CurrencyCode),
+            convertCurrency(rawAvgCommission, 'USD', targetCurrency as CurrencyCode),
+        ]).catch(() => [rawCommission, rawAvgCommission]);
 
         return {
-            totalRevenue: revenueData._sum?.amount ?? 0,
-            paidAmount: revenueData._sum?.paidAmount ?? 0,
-            pendingAmount: revenueData._sum?.extraAmountToPay ?? 0,
-            refundedAmount: revenueData._sum?.refundAmount ?? 0,
-            averageBookingValue: revenueData._avg?.amount ?? 0,
-            totalCommissionEarned: commissionData._sum?.commissionAmount ?? 0,
-            averageCommissionPerBooking:
-                commissionData._avg?.commissionAmount ?? 0,
+            totalRevenue,
+            paidAmount,
+            pendingAmount,
+            refundedAmount,
+            averageBookingValue: reservations.length > 0
+                ? Math.round((totalRevenue / reservations.length) * 100) / 100
+                : 0,
+            totalCommissionEarned,
+            averageCommissionPerBooking,
             revenueByPaymentMethod,
         };
     }
@@ -308,53 +351,103 @@ export class AgentDashboardRepository {
     private async getPropertiesBreakdown(
         agencyId: string,
         agentId: string,
-        baseWhere: ReturnType<AgentDashboardRepository['buildBaseWhere']>
+        baseWhere: ReturnType<AgentDashboardRepository['buildBaseWhere']>,
+        targetCurrency: CurrencyCode
     ): Promise<IAgentPropertyAnalytics[]> {
-        const [propertiesData, commissionByProperty] = await Promise.all([
-            prisma.reservation.groupBy({
-                by: ['propertyId', 'propertyCode', 'hotelName'],
-                where: baseWhere,
-                _count: { _all: true },
-                _sum: { amount: true },
-                _avg: { amount: true },
-            }),
 
-            // ── per-property commission for this agent ──
-            prisma.agencyCommission.groupBy({
-                by: ['reservationId'],
+        const [reservations, commissionPerProperty] = await Promise.all([
+            prisma.reservation.findMany({
+                where: baseWhere,
+                select: {
+                    propertyId: true,
+                    amount: true,
+                    currencyCode: true,
+                    property: {               // join to the actual property
+                        select: {
+                            propertyCode: true,
+                            propertyName: true,   // use the real name from property table
+                        },
+                    },
+                },
+            }),
+            prisma.agencyCommission.findMany({
                 where: { agentId, agencyId },
-                _sum: { commissionAmount: true },
+                select: {
+                    commissionAmount: true,
+                    currencyCode: true,
+                    reservation: { select: { propertyId: true } },
+                },
             }),
         ]);
 
-        // build a map reservationId → commission (for joining)
-        // since groupBy gives us per-reservation, we need per-property
-        // so instead query commission joined via reservation
-        const commissionPerProperty = await prisma.agencyCommission.findMany({
-            where: { agentId, agencyId },
-            select: {
-                commissionAmount: true,
-                reservation: { select: { propertyId: true } },
-            },
-        });
+        // Convert all reservation amounts concurrently, then group synchronously
+        const convertedReservations = await Promise.all(
+            reservations.map(async (r) => {
+                let convertedAmount = r.amount;
+                try {
+                    convertedAmount = await convertCurrency(
+                        r.amount,
+                        r.currencyCode as CurrencyCode,
+                        targetCurrency as CurrencyCode
+                    );
+                } catch { /* use raw on failure */ }
+                return { ...r, convertedAmount };
+            })
+        );
+
+        const propertyMap = new Map<string, {
+            propertyCode: string;
+            hotelName: string;
+            totalRevenue: number;
+            count: number;
+        }>();
+
+        for (const r of convertedReservations) {
+            const existing = propertyMap.get(r.propertyId);
+            if (existing) {
+                existing.totalRevenue += r.convertedAmount;
+                existing.count += 1;
+            } else {
+                propertyMap.set(r.propertyId, {
+                    propertyCode: r.property.propertyCode ?? 'N/A',
+                    hotelName: r.property.propertyName ?? 'Unknown',
+                    totalRevenue: r.convertedAmount,
+                    count: 1,
+                });
+            }
+        }
+
+        // Convert all commission amounts concurrently, then group synchronously
+        const convertedCommissions = await Promise.all(
+            commissionPerProperty.map(async (c) => {
+                let convertedAmount = c.commissionAmount;
+                try {
+                    convertedAmount = await convertCurrency(
+                        c.commissionAmount,
+                        c.currencyCode as CurrencyCode,
+                        targetCurrency as CurrencyCode
+                    );
+                } catch { /* use raw on failure */ }
+                return { propertyId: c.reservation.propertyId, convertedAmount };
+            })
+        );
 
         const commissionMap = new Map<string, number>();
-        commissionPerProperty.forEach(c => {
-            const pid = c.reservation.propertyId;
-            commissionMap.set(
-                pid,
-                (commissionMap.get(pid) ?? 0) + c.commissionAmount
-            );
-        });
 
-        return propertiesData.map(p => ({
-            propertyId: p.propertyId,
-            propertyName: p.hotelName ?? 'Unknown',
-            propertyCode: p.propertyCode ?? 'N/A',
-            totalReservations: p._count._all,
-            totalRevenue: p._sum?.amount ?? 0,
-            averageBookingValue: p._avg?.amount ?? 0,
-            totalCommission: commissionMap.get(p.propertyId) ?? 0,
+        for (const c of convertedCommissions) {
+            commissionMap.set(c.propertyId, (commissionMap.get(c.propertyId) ?? 0) + c.convertedAmount);
+        }
+
+        return Array.from(propertyMap.entries()).map(([propertyId, data]) => ({
+            propertyId,
+            propertyName: data.hotelName,
+            propertyCode: data.propertyCode,
+            totalReservations: data.count,
+            totalRevenue: data.totalRevenue,
+            averageBookingValue: data.count > 0
+                ? Math.round((data.totalRevenue / data.count) * 100) / 100
+                : 0,
+            totalCommission: commissionMap.get(propertyId) ?? 0,
         }));
     }
 

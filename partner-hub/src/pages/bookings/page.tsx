@@ -267,12 +267,12 @@ export default function BookingPage() {
       }
 
       const bookingPayload: ICreateBookingPayload = {
-        propertyCode: selectedProperty?.propertyCode || "sdf",
+        propertyCode: selectedProperty?.propertyCode,
 
         reservationStartDate: searchCriteria.startDate,
         reservationEndDate: searchCriteria.endDate,
 
-        hotelName: selectedProperty?.name || "sdfbjsfs",
+        hotelName: selectedProperty?.name,
         roomTypeCode: room.roomType,
         ratePlanCode: roomPrice.ratePlanCode,
         roomName: room.roomName,
@@ -280,13 +280,17 @@ export default function BookingPage() {
         bookingUserEmail: guestData.primaryEmail,
         bookingUserPhone: guestData.primaryPhone,
 
-        numberOfRooms: pricingDetails.requestedRooms,
+        numberOfRooms: new Set(
+          pricingDetails.dailyPriceBrakeDown.map(item => item.roomNumber)
+        ).size,
         finalPrice: pricingDetails,
         currencyCode: pricingDetails.currencyCode,
         agencyId: user.agencyId,
         agentId: user.id,
         guests: {
-          rooms: pricingDetails.requestedRooms,
+          rooms: new Set(
+            pricingDetails.dailyPriceBrakeDown.map(item => item.roomNumber)
+          ).size,
           adults: totalAdults,
           children: totalChildren,
           roomsArray: [
@@ -302,7 +306,7 @@ export default function BookingPage() {
           selectedPaymentMethod === 'payAtHotel'
             ? 'pay_at_hotel'
             : 'payment_gateway',
-        selectedAddons: pricingDetails.addonBrakeDown.map((a) => ({
+        selectedAddons: pricingDetails.addonBrakeDowns.map((a) => ({
           addonCode: a.addonId,
           addonId: a.addonId,
           addonName: a.name,
@@ -324,20 +328,32 @@ export default function BookingPage() {
           dateOfBirth: guest.dateOfBirth || "",
         })),
       };
-      // console.log("bookimg", bookingPayload)
-      const result = await createBookingService(bookingPayload);
+      const bookingResult = await createBookingService(bookingPayload);
 
-      if (result.success) {
-        toast.success('Booking confirmed successfully!');
+      if (bookingResult.success) {
         navigate('/payment-success', {
           state: {
-            bookingData: result.data,
-            pricingDetails,
-            guestData,
-          },
+            bookingData: {
+              bookingCode: bookingResult.data.bookingCode,
+              bookingStatus: bookingResult.data.bookingStatus,
+              // Everything else comes from what you already had
+              hotelName: bookingPayload.hotelName,
+              reservationStartDate: bookingPayload.reservationStartDate,
+              reservationEndDate: bookingPayload.reservationEndDate,
+              roomTypeCode: bookingPayload.roomTypeCode,
+              ratePlanCode: bookingPayload.ratePlanCode,
+              bookingUserEmail: bookingPayload.bookingUserEmail,
+              bookingUserPhone: bookingPayload.bookingUserPhone,
+              currencyCode: bookingPayload.currencyCode,
+              paymentMethod: bookingPayload.paymentMethod,
+              amount: bookingPayload.finalPrice.totalAmount,
+            },
+            pricingDetails: bookingPayload.finalPrice,
+            guestData: guestData,
+          }
         });
       } else {
-        toast.error(result.message || 'Failed to create booking');
+        toast.error(bookingResult.message || 'Failed to create booking');
       }
     } catch (error) {
       console.error('Error creating booking:', error);
@@ -355,7 +371,10 @@ export default function BookingPage() {
   const uniqueNights = new Set(pricingDetails.dailyPriceBrakeDown.map(d => d.date)).size;
 
   // subtotal = amountBeforeTax + addons (derived for display)
-  const subtotal = pricingDetails.amountBeforeTax + pricingDetails.totalAddonAmount;
+  const subtotal = pricingDetails.amountBeforeTax;
+  const pureBase = pricingDetails.amountBeforeTax - (pricingDetails.agencyCommissionAmount + pricingDetails.totalAddonAmount);
+
+  const baseBeforeDiscounts = Math.round(pureBase + pricingDetails.totalPromotionAmount + pricingDetails.agencyCommissionAmount);
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -669,7 +688,6 @@ export default function BookingPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
                   Pricing Summary
                 </CardTitle>
               </CardHeader>
@@ -685,15 +703,59 @@ export default function BookingPage() {
 
                 <Separator />
 
-                {/* Breakdown */}
+                {/* Base Breakdown */}
                 <div className="space-y-2">
-                  {/* Base Amount (includes commission) */}
+
+                  {/* Room Rate — before any discounts */}
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Base Amount</span>
+                    <span className="text-muted-foreground">Room Rate</span>
                     <span className="font-medium">
-                      {formatCurrency(pricingDetails.amountBeforeTax, currencyCode)}
+                      {formatCurrency(baseBeforeDiscounts, currencyCode)}
                     </span>
                   </div>
+
+                  {/* Each discount line */}
+                  {pricingDetails.promotionBrakeDown.length > 0 && (
+                    <div className="space-y-1">
+                      {pricingDetails.promotionBrakeDown
+                        .filter((promo) => promo.restrictionType !== 'payLater')
+                        .map((promo, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span className="text-green-600 flex items-center gap-1">
+                              <DollarSign className="h-3 w-3" />
+                              {promo.name}
+                            </span>
+                            <span className={cn(
+                              'font-medium',
+                              promo.restrictionType === 'decrease' ? 'text-green-600' : 'text-red-500'
+                            )}>
+                              {promo.restrictionType === 'decrease' ? '-' : '+'}
+                              {formatCurrency(promo.discountAmount, promo.currencyCode ?? currencyCode)}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Total savings badge */}
+                  {pricingDetails.totalPromotionAmount > 0 && (
+                    <div className="flex justify-between text-sm px-2 py-1.5 bg-green-50 dark:bg-green-950/30 rounded-md">
+                      <span className="text-green-700 dark:text-green-400 font-medium">Total Savings</span>
+                      <span className="font-bold text-green-700 dark:text-green-400">
+                        -{formatCurrency(pricingDetails.totalPromotionAmount, currencyCode)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Promo code discount */}
+                  {pricingDetails.promoCodeDiscount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-600">Promo Code</span>
+                      <span className="font-medium text-green-600">
+                        -{formatCurrency(pricingDetails.promoCodeDiscount, currencyCode)}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Addons */}
                   {pricingDetails.totalAddonAmount > 0 && (
@@ -704,7 +766,7 @@ export default function BookingPage() {
                           {formatCurrency(pricingDetails.totalAddonAmount, currencyCode)}
                         </span>
                       </div>
-                      {pricingDetails.addonBrakeDown.map((addon) => (
+                      {pricingDetails.addonBrakeDowns.map((addon) => (
                         <div key={addon.addonId} className="flex justify-between text-xs text-muted-foreground pl-3">
                           <span>• {addon.name}</span>
                           <span>{formatCurrency(addon.totalAmount, addon.currencyCode)}</span>
@@ -714,11 +776,9 @@ export default function BookingPage() {
                   )}
 
                   {/* Subtotal */}
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm font-medium pt-1 border-t border-dashed border-border">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">
-                      {formatCurrency(subtotal, currencyCode)}
-                    </span>
+                    <span>{formatCurrency(subtotal, currencyCode)}</span>
                   </div>
                 </div>
 
@@ -727,6 +787,7 @@ export default function BookingPage() {
                   <>
                     <Separator />
                     <div className="space-y-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Taxes & Fees</p>
                       {pricingDetails.taxBrakeDown.map((tax, index) => (
                         <div key={index} className="flex justify-between text-sm">
                           <span className="text-muted-foreground">{tax.name}</span>
@@ -761,17 +822,26 @@ export default function BookingPage() {
                     </span>
                   </div>
 
-                  {pricingDetails.latterpayableAmount > 0 && pricingDetails.touristTax && (
-                    <div className="flex justify-between items-center px-3 py-2.5 bg-amber-50 dark:bg-amber-950/30">
-                      <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1.5">
-                        🏛 {pricingDetails.touristTax.name}
-                        <span className="font-normal text-xs">(pay at hotel)</span>
-                      </span>
-                      <span className="font-bold text-amber-800 dark:text-amber-300">
-                        {formatCurrency(pricingDetails.latterpayableAmount, pricingDetails.touristTax.currencyCode)}
-                      </span>
-                    </div>
-                  )}
+                  {/* Pay at Hotel / Later Payable */}
+                  {(pricingDetails.latterpayableAmount > 0 ||
+                    pricingDetails.promotionBrakeDown.some(p => p.restrictionType === 'payLater')) && (
+                      <div className="flex justify-between items-center px-3 py-2.5 bg-amber-50 dark:bg-amber-950/30">
+                        <span className="text-amber-700 dark:text-amber-400 font-medium flex items-center gap-1.5">
+                          {pricingDetails.touristTax ? `🏛 ${pricingDetails.touristTax.name}` : '🏨 Pay at Hotel'}
+                          <span className="font-normal text-xs">(pay at hotel)</span>
+                        </span>
+                        <span className="font-bold text-amber-800 dark:text-amber-300">
+                          {formatCurrency(
+                            pricingDetails.latterpayableAmount > 0
+                              ? pricingDetails.latterpayableAmount
+                              : pricingDetails.promotionBrakeDown
+                                .filter(p => p.restrictionType === 'payLater')
+                                .reduce((sum, p) => sum + p.discountAmount, 0),
+                            pricingDetails.touristTax?.currencyCode ?? currencyCode
+                          )}
+                        </span>
+                      </div>
+                    )}
                 </div>
 
                 <div className="text-center text-xs text-muted-foreground">

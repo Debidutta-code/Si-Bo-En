@@ -8,6 +8,7 @@ import {
     ITCreationLoyality,
     ILoyaltyDiscountData,
 } from '../../loyalty/types';
+import { IAgencyDetails } from '../../agent-paltform/room/types';
 
 export class PricingRepository {
     public async validateRatePlan(
@@ -94,7 +95,37 @@ export class PricingRepository {
             throw new Error('Failed to validate rate plan');
         }
     }
-
+        public async getAgencyDetails(
+            agencyId: string
+        ): Promise<IAgencyDetails | null> {
+            try {
+                const agency = await prisma.agency.findUnique({
+                    where: {
+                        id: agencyId,
+                        isDeleted: false,
+                    },
+                    select: {
+                        id: true,
+                        agencyName: true,
+                        commissionType: true,
+                        commissionValue: true,
+                        commissionCurrency: true,
+                    },
+                });
+    
+                if (!agency) return null;
+    
+                return {
+                    id: agency.id,
+                    agencyName: agency.agencyName,
+                    commissionType: agency.commissionType as 'percentage' | 'fixed',
+                    commissionValue: agency.commissionValue,
+                    commissionCurrency: agency.commissionCurrency,
+                };
+            } catch (error) {
+                throw new Error('Failed to fetch agency details');
+            }
+        }
     public async getMlos(mlosId: string[]): Promise<IMLOS[] | null> {
         try {
             return await prisma.ratePlanRule.findMany({

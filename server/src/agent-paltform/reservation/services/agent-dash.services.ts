@@ -11,12 +11,14 @@ export class ReservationService {
 
     public async getReservations(
         agencyId: string,
+        agentId:string,
         filters: IReservationFilters
     ): Promise<IApiResponse> {
         try {
             const result =
-                await this.reservationRepository.getReservationsByAgencyId(
+                await this.reservationRepository.getReservationsByAgentAndAgencyId(
                     agencyId,
+                    agentId,
                     filters
                 );
 

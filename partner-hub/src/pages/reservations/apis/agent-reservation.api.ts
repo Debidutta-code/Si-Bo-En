@@ -4,7 +4,8 @@ import type {
   IReservationsResponse, 
   ICancelReservationPayload, 
   ICancelReservationResponse,
-  IReservationDetailsResponse
+  IReservationDetailsResponse,
+  IUReservation
 } from "../interfaces/agent-reservation.interfaces";
 
 const axiosInstance = createAxiosInstance();
@@ -97,5 +98,54 @@ export const cancelReservation = async (
       success: false,
       message: error?.message || 'Failed to cancel reservation'
     };
+  }
+};
+export const checkAmendPrice = async (data: {
+  propertyCode: string;
+  invTypeCode: string;
+  startDate: string;
+  endDate: string;
+  ratePlanCode: string;
+  noOfAdults: number;
+  noOfChildren: number;
+  noOfRooms: number;
+  agencyId: string;
+  roomsArray: { adults: number; children: number; childAges: number[] }[];
+  includedAddons?: string[];
+}) => {
+  try {
+    const childAges = data.roomsArray.flatMap(r => r.childAges ?? []);
+    const guestDistribution = data.roomsArray.map(r => ({
+      adults: r.adults,
+      children: r.children,
+      childAges: r.childAges ?? [],
+    }));
+
+    const response = await axiosInstance.post('/booking-engine/pricing/get-price', {
+      propertyCode: data.propertyCode,
+      invTypeCode: data.invTypeCode,
+      ratePlanCode: data.ratePlanCode,
+      startDate: data.startDate,
+      endDate: data.endDate,
+      noOfAdults: data.noOfAdults,
+      noOfChildren: data.noOfChildren,
+      noOfRooms: data.noOfRooms,
+      childAges,
+      guestDistribution,
+      agencyId: data.agencyId,
+      includedAddons: data.includedAddons,
+    });
+    return response.data;
+  } catch (error: any) {
+    return error?.response?.data ?? { success: false, message: error?.message || 'Failed to fetch price' };
+  }
+};
+
+export const amendReservation = async (bookingCode: string, payload: IUReservation) => {
+  try {
+    const response = await axiosInstance.patch(`/reservations/update/${bookingCode}`, payload);
+    return response.data;
+  } catch (error: any) {
+    return error?.response?.data ?? { success: false, message: error?.message || 'Failed to amend reservation' };
   }
 };

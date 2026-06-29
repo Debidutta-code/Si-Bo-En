@@ -31,6 +31,7 @@ import {
     CurrencyCode,
     DiscountType,
 } from '../../tax-system/interfaces/tourist-tax.type';
+import { IInventory } from '../../ari/types';
 
 export class RoomBookingService {
     public static async fetchRooms(payload: IBookingSearchPayload) {
@@ -171,6 +172,8 @@ export class RoomBookingService {
             room.roomType,
             dates
         );
+        console.log("inventory", inventory)
+        console.log("guests", guests)
         if (inventory.length !== dates.length) return null;
 
         const numberOfRooms = guests.roomsArray?.length || guests.rooms || 1;

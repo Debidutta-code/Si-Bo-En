@@ -11,7 +11,6 @@ import {
 import { RestrictionType } from '../../../../prisma/generated/prisma/enums';
 import { DiscountType } from '../../../promocode/types';
 import { AgentCommissionType } from '../../../agency/types';
-import { IAgentFinalPrice } from './reservation.types';
 
 // ─── Filters ────────────────────────────────────────────────────────────────
 
@@ -90,6 +89,7 @@ export interface IReservationAddonBreakdown {
 export interface IReservationPromotionBreakdown {
     id: string;
     pricingBrakedownId: string;
+    promotionId:string |null;
     promotionType: ReservationPromotionType;
     name: string;
     discountType: DiscountType;
@@ -99,7 +99,6 @@ export interface IReservationPromotionBreakdown {
     restrictionType: RestrictionType;
     type: 'auto_applied' | 'user_applied';
 }
-
 export interface IReservationPricingBreakdown {
     id: string;
     reservationId: string;

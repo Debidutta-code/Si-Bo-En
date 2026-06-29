@@ -81,35 +81,47 @@ export class AgenticRoomRepository {
         });
     }
 
-    // public async getGeoRatePlan(
-    //     propertyId: string,
-    //     roomId: string,
-    //     ratePlanId: string,
-    //     countryCode: string
-    // ) {
-    //     const roomSpecificGeo = await prisma.geoRatePlan.findFirst({
-    //         where: {
-    //             propertyId,
-    //             roomId,
-    //             ratePlanId,
-    //             countryCode: { has: countryCode },
-    //             isActive: true,
-    //         },
-    //     });
+   public async getAutoAppliedMLOS(ratePlanId: string, startDate: Date, endDate: Date) {
+    try {
+        return await prisma.ratePlanRule.findMany({
+            where: {
+                isAutoApplied: true,
+                isActive: true,
+                ratePlanId,
+                OR: [{ startDate: null }, { startDate: { lte: startDate } }],
+                AND: [{ OR: [{ endDate: null }, { endDate: { gt: endDate } }] }],
+            },
+        });
+    } catch (error) {
+        throw new Error('Failed to get auto applied MLOS');
+    }
+}
 
-    //     if (roomSpecificGeo) return roomSpecificGeo;
+public async getAutoAppliedPromotions(ratePlanId: string, startDate: Date, endDate: Date) {
+    try {
+        return await prisma.promotion.findMany({
+            where: {
+                ratePlanId,
+                isActive: true,
+                isAutoApplied: true,
+                OR: [{ validFrom: null }, { validFrom: { lte: startDate } }],
+                AND: [{ OR: [{ validTo: null }, { validTo: { gte: startDate } }] }],
+            },
+        });
+    } catch (error) {
+        throw new Error('Failed to get auto applied promotions');
+    }
+}
 
-    //     return prisma.geoRatePlan.findFirst({
-    //         where: {
-    //             propertyId,
-    //             roomId: null,
-    //             ratePlanId,
-    //             countryCode: { has: countryCode },
-    //             isActive: true,
-    //         },
-    //     });
-    // }
-
+public async getGeoRatePlans(ratePlanId: string) {
+    try {
+        return await prisma.geoRatePlan.findMany({
+            where: { ratePlanId, isActive: true },
+        });
+    } catch (error) {
+        throw new Error('Failed to get geo rate plans');
+    }
+}
     public async getRatePlanRule(ratePlanId: string) {
         return prisma.ratePlanRule.findUnique({
             where: { ratePlanId },

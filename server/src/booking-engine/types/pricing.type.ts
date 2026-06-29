@@ -19,23 +19,7 @@ import {
 import { IBookingOffset } from '../../ari/types';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 
-// export interface ICustomizableDeal {
-//     id: string;
-//     propertyId: string;
-//     propertyCode: string;
-//     discountType: DiscountType;
-//     discountValue: number | null;
-//     currencyCode: CurrencyCode | null;
-//     startDate: Date;
-//     endDate: Date;
-//     roomId: string;
-//     roomType: string;
-//     ratePlanId: string;
-//     ratePlanCode: string;
-//     isAutoApplied: boolean;
-//     isActive: boolean;
-//     CustomizableDealsApplicableAddons: ICustomizableDealApplicableAddon[];
-// }
+
 
 export interface ICustomizableDealApplicableAddon {
     id: string;
@@ -85,6 +69,12 @@ export interface ITaxGroupRule {
     taxGroupId: string;
     taxRuleId: string;
     taxRule: ITaxRule;
+}
+export interface AgencyCommissionDetail {
+    commissionType: 'percentage' | 'fixed';
+    commissionValue: number;
+    commissionAmount: number;
+    commissionCurrency: string;
 }
 export interface ITaxRule {
     id: string;
@@ -198,8 +188,16 @@ export interface PriceBrakeDown {
     // spaPricingBrakeDowns?: ISpaPricing[];
     loyalityDiscount: number;
     customizableDealDiscount: number;
+    agencyCommissionAmount?: number;
+    agencyCommission?: AgencyCommissionDetail | null;
 }
-
+export interface IAgencyData {
+    id: string;
+    agencyName: string;
+    commissionType: 'percentage' | 'fixed';
+    commissionValue: number;
+    commissionCurrency: string | null;
+}
 export interface DailyPriceBrakeDown {
     roomNumber: string;
     guestDistribution: IGuestDistribution;

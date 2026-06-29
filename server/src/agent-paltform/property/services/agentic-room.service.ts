@@ -12,22 +12,17 @@ import {
     AgenticPropertyRepository,
 } from '../repository';
 import {
-    // property
     IProperty,
     IPropertyConfigs,
-    // room
     IRoom,
     IRooms,
     IRoomAmenity,
     IRoomVideo,
-    // charges — using YOUR names
     ICharges,
     IBaseByGuest,
     IChargeAdditionalGuest,
-    // rate plan — using YOUR names
     IRatePlan,
     IPolicy,
-    // booking types — new file
     IAgentSearchPayload,
     IAgencyCommission,
     IAgencyRaw,
@@ -54,7 +49,6 @@ import {
 import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 import { getCurrencyConverter } from '../../../currency-maping/utils';
 
-// ─── Service ──────────────────────────────────────────────────────────────────
 
 export class AgenticRoomService {
     private readonly agenticRoomRepository: AgenticRoomRepository;
@@ -73,7 +67,8 @@ export class AgenticRoomService {
         startDate: string,
         endDate: string,
         guests: IGuestPayload,
-        countryCode: string
+        countryCode: string,
+        deviceType?: 'desktop' | 'mobile' | 'tablet'
     ): Promise<IApiResponse> {
         try {
             const [agenticProperty, agency] = await Promise.all([
@@ -99,7 +94,6 @@ export class AgenticRoomService {
 
             const raw = (agenticProperty as IAgenticPropertyRaw).Property;
 
-            // ── B2B guard ─────────────────────────────────────────────────────
             if (!raw.propertyConfigs?.isB2bAvailable) {
                 return errorResponse(
                     'Property not available',
@@ -160,7 +154,10 @@ export class AgenticRoomService {
                         roomsArray,
                         startDate,
                         endDate,
-                        agencyCommission
+                        agencyCommission,
+                        countryCode,
+                        deviceType
+
                     )
                 )
             );
@@ -189,7 +186,6 @@ export class AgenticRoomService {
         }
     }
 
-    // ─── Room Processing ──────────────────────────────────────────────────────
 
     private async processRoom(
         agenticRoom: IRooms,
@@ -201,7 +197,9 @@ export class AgenticRoomService {
         roomsArray: IRoomConfig[],
         startDate: string,
         endDate: string,
-        agencyCommission: IAgencyCommission
+        agencyCommission: IAgencyCommission,
+        countryCode: string,
+        deviceType?: 'desktop' | 'mobile' | 'tablet'
     ): Promise<IBookingRoom | null> {
         const room: IRoom = agenticRoom.room;
 
@@ -225,7 +223,9 @@ export class AgenticRoomService {
                     roomsArray,
                     startDate,
                     endDate,
-                    agencyCommission
+                    agencyCommission,
+                    countryCode,
+                    deviceType
                 )
             )
         );
@@ -234,7 +234,6 @@ export class AgenticRoomService {
             .filter((r): r is IRoomPrice[] => r !== null)
             .flat();
 
-        // Use YOUR IRoomAmenity shape (no id/amenityType/isActive)
         const amenities: IRoomAmenity[] = room.roomAmenities.map(
             (r: IRoomAmenity) => ({
                 amenity: {
@@ -245,7 +244,6 @@ export class AgenticRoomService {
             })
         );
 
-        // Use YOUR IRoomVideo shape (no id field)
         const roomVideos: IRoomVideo | null = room.roomVideos
             ? {
                 roomId: room.roomVideos.roomId,
@@ -283,7 +281,9 @@ export class AgenticRoomService {
         roomsArray: IRoomConfig[],
         startDate: string,
         endDate: string,
-        agencyCommission: IAgencyCommission
+        agencyCommission: IAgencyCommission,
+        countryCode: string,
+        deviceType?: 'desktop' | 'mobile' | 'tablet'
     ): Promise<IRoomPrice[] | null> {
         const today = new Date();
         const checkInDate = dates[0];
@@ -294,28 +294,21 @@ export class AgenticRoomService {
             touristTaxData,
             bookingOffset,
             ratePlanAddons,
+            autoAppliedMLOS,        // ← new
+            autoAppliedPromotions,  // ← new
+            geoRatePlans,           // ← new
         ] = await Promise.all([
             this.agenticRoomRepository.getCharges(
-                property.propertyCode,
-                room.roomType,
-                ratePlan.ratePlanCode,
-                dates
+                property.propertyCode, room.roomType, ratePlan.ratePlanCode, dates
             ) as Promise<ICharges[]>,
-            this.agenticRoomRepository.getRatePlanRule(
-                ratePlan.id
-            ) as Promise<IRoomRatePlanRule | null>,
-            this.agenticRoomRepository.getTouristTax(
-                room.id
-            ) as Promise<IRoomTouristTaxData | null>,
-            this.agenticRoomRepository.getBookingOffset(
-                ratePlan.id,
-                toUTCDate(checkInDate)
-            ) as Promise<IRoomBookingOffset | null>,
-            this.agenticRoomRepository.getRatePlanAddons(
-                ratePlan.id
-            ) as Promise<IRatePlanAddon[]>,
+            this.agenticRoomRepository.getRatePlanRule(ratePlan.id) as Promise<IRoomRatePlanRule | null>,
+            this.agenticRoomRepository.getTouristTax(room.id) as Promise<IRoomTouristTaxData | null>,
+            this.agenticRoomRepository.getBookingOffset(ratePlan.id, toUTCDate(checkInDate)) as Promise<IRoomBookingOffset | null>,
+            this.agenticRoomRepository.getRatePlanAddons(ratePlan.id) as Promise<IRatePlanAddon[]>,
+            this.agenticRoomRepository.getAutoAppliedMLOS(ratePlan.id, toUTCDate(checkInDate), toUTCDate(dates[dates.length - 1])),  // ← new
+            this.agenticRoomRepository.getAutoAppliedPromotions(ratePlan.id, toUTCDate(checkInDate), toUTCDate(dates[dates.length - 1])),  // ← new
+            this.agenticRoomRepository.getGeoRatePlans(ratePlan.id),  // ← new
         ]);
-
         // ── Charge validation: stop-sell, CTA, CTD, day-of-week ──────────────
         if (!this.validateCharges(charges, dates)) return null;
 
@@ -358,27 +351,40 @@ export class AgenticRoomService {
             sortedBaseAmounts = result.sortedBaseAmounts;
         }
 
-        // ── Commission ────────────────────────────────────────────────────────
+        // ── Promotions on baseAmount ──────────────────────────────────────────────
+        const promotionResult = this.calculatePromotions(
+            baseAmount,
+            numberOfNights,
+            checkInDate,
+            room.roomType,
+            autoAppliedMLOS,
+            autoAppliedPromotions,
+            geoRatePlans,
+            countryCode,
+            deviceType
+        );
+
+        const discountedBase = promotionResult.discountedBase;
+
         const { calculatedCommissionAmount, appliedCommission } =
             await this.calculateCommission(
-                baseAmount,
+                baseAmount,   
                 agencyCommission,
                 property.id,
                 property.propertyConfigs
             );
 
-        const totalRoomAmount = baseAmount + calculatedCommissionAmount;
+        const totalRoomAmount = discountedBase + calculatedCommissionAmount;
 
-        // ── Tourist tax (informational — paid at hotel) ───────────────────────
         const touristTax = this.calculateTouristTax(
             touristTaxData,
             baseAmount,
             numberOfNights,
             effectiveRoomsArray.length,
-            room.numberOfBedrooms
+            room.numberOfBedrooms,
+            charges[0].currencyCode
         );
 
-        // ── Addons ────────────────────────────────────────────────────────────
         const addonCalc = new AgenticAddonCalculator(
             ratePlanAddons,
             dates,
@@ -389,7 +395,6 @@ export class AgenticRoomService {
         );
         const availableAddons = await addonCalc.calculate();
 
-        // ── Build combos ──────────────────────────────────────────────────────
         const sharedFields = {
             ratePlanName: ratePlan.ratePlanName,
             ratePlanCode: ratePlan.ratePlanCode,
@@ -407,11 +412,12 @@ export class AgenticRoomService {
             baseAmount,
             appliedCommission,
             touristTax,
+            totalPromotionAmount: promotionResult.totalDiscountAmount,
+            promotionBrakeDown: promotionResult.promotionBrakeDown,
         };
 
         const combos: IRoomPrice[] = [];
 
-        // Room Only
         combos.push({
             ...sharedFields,
             comboLabel: 'Room Only',
@@ -419,7 +425,6 @@ export class AgenticRoomService {
             totalAmount: Number(totalRoomAmount.toFixed(2)),
         });
 
-        // Room + addon combos
         for (const addon of availableAddons) {
             combos.push({
                 ...sharedFields,
@@ -432,7 +437,6 @@ export class AgenticRoomService {
         return combos.sort((a, b) => a.totalAmount - b.totalAmount);
     }
 
-    // ─── Charge Validation ────────────────────────────────────────────────────
 
     private validateCharges(charges: ICharges[], dates: Date[]): boolean {
         if (charges.length !== dates.length) return false;
@@ -459,7 +463,6 @@ export class AgenticRoomService {
         return true;
     }
 
-    // ─── Restriction Validation ───────────────────────────────────────────────
 
     private validateRestrictions(
         bookingOffset: IRoomBookingOffset | null,
@@ -512,7 +515,6 @@ export class AgenticRoomService {
         return true;
     }
 
-    // ─── Occupancy Validation ─────────────────────────────────────────────────
 
     private validateOccupancy(
         room: IRoom,
@@ -550,7 +552,6 @@ export class AgenticRoomService {
         return extraAdults + extraChildren <= gap;
     }
 
-    // ─── Base Price ───────────────────────────────────────────────────────────
 
     private calculateBasePrice(
         charge: ICharges,
@@ -648,7 +649,6 @@ export class AgenticRoomService {
         return null;
     }
 
-    // ─── Commission ───────────────────────────────────────────────────────────
 
     private async calculateCommission(
         baseAmount: number,
@@ -699,49 +699,41 @@ export class AgenticRoomService {
         return { calculatedCommissionAmount, appliedCommission };
     }
 
-    private calculateTouristTax(
-        touristTaxData: IRoomTouristTaxData | null,
-        baseAmount: number,
-        numberOfNights: number,
-        numberOfRooms: number,
-        numberOfBedrooms: number
-    ): ITouristTax | null {
-        if (!touristTaxData) return null;
-        // console.log(
-        //     'data',
-        //     touristTaxData,
-        //     baseAmount,
-        //     numberOfNights,
-        //     numberOfRooms,
-        // numberOfBedrooms
-        // );
-        const calculatedTaxAmount =
-            touristTaxData.discountType === 'percentage'
-                ? Number(
-                    (
-                        baseAmount *
-                        (Number(touristTaxData.discountValue) / 100)
-                    ).toFixed(2)
-                )
-                : Number(
-                    (
-                        Number(touristTaxData.discountValue) *
-                        numberOfNights *
-                        numberOfRooms *
-                        numberOfBedrooms
-                    ).toFixed(2)
-                );
+  private calculateTouristTax(
+    touristTaxData: IRoomTouristTaxData | null,
+    baseAmount: number,
+    numberOfNights: number,
+    numberOfRooms: number,
+    numberOfBedrooms: number,
+    baseCurrency: string
+): ITouristTax | null {
+    if (!touristTaxData) return null;
+    const calculatedTaxAmount =
+        touristTaxData.discountType === 'percentage'
+            ? Number(
+                (
+                    baseAmount *
+                    (Number(touristTaxData.discountValue) / 100)*numberOfBedrooms
+                ).toFixed(2)
+            )
+            : Number(
+                (
+                    Number(touristTaxData.discountValue) *
+                    numberOfNights *
+                    numberOfRooms *
+                    numberOfBedrooms  
+                ).toFixed(2)
+            );
 
-        return {
-            id: touristTaxData.id,
-            name: touristTaxData.name ?? '',
-            discountType: touristTaxData.discountType as DiscountType,
-            discountValue: touristTaxData.discountValue,
-            currencyCode: (touristTaxData.currencyCode ??
-                'USD') as CurrencyCode,
-            calculatedTaxAmount,
-        };
-    }
+    return {
+        id: touristTaxData.id,
+        name: touristTaxData.name ?? '',
+        discountType: touristTaxData.discountType as DiscountType,
+        discountValue: touristTaxData.discountValue,
+        currencyCode:baseCurrency as CurrencyCode,
+        calculatedTaxAmount,
+    };
+}
 
     private isDateRangeWithinPeriod(
         startDate: string,
@@ -756,9 +748,139 @@ export class AgenticRoomService {
         if (periodEnd && bookingEnd > periodEnd) return false;
         return true;
     }
-}
+    private calculatePromotions(
+        baseAmount: number,
+        numberOfNights: number,
+        checkInDate: Date,
+        invTypeCode: string,
+        mlosList: any[],
+        promotions: any[],
+        geoRatePlans: any[],
+        countryCode: string,
+        deviceType?: string
+    ): {
+        discountedBase: number;
+        totalDiscountAmount: number;
+        promotionBrakeDown: any[];
+    } {
+        let totalDiscountAmount = 0;
+        const promotionBrakeDown: any[] = [];
 
-// ─── Addon Calculator ─────────────────────────────────────────────────────────
+        for (const mlos of mlosList) {
+            const meets =
+                numberOfNights >= mlos.minLos &&
+                (mlos.maxLos === null || numberOfNights <= mlos.maxLos);
+            if (!meets) continue;
+
+            const discountAmount =
+                mlos.discountType === 'percentage'
+                    ? (baseAmount * Number(mlos.discountValue)) / 100
+                    : Number(mlos.discountValue);
+
+            totalDiscountAmount += discountAmount;
+            promotionBrakeDown.push({
+                id: mlos.id,
+                promotionType: 'mlos',
+                name: 'MLOS',
+                currencyCode: mlos.currencyCode,
+                discountAmount: Number(discountAmount.toFixed(2)),
+                discountType: mlos.discountType,
+                discountValue: Number(mlos.discountValue),
+                restrictionType: 'decrease',
+                type: 'auto_applied',
+            });
+        }
+
+        const today = new Date();
+        const dayMap: Record<number, string> = {
+            0: 'sunApplicable', 1: 'monApplicable', 2: 'tueApplicable',
+            3: 'wedApplicable', 4: 'thuApplicable', 5: 'friApplicable',
+            6: 'satApplicable',
+        };
+
+        for (const promo of promotions) {
+            if (!promo[dayMap[checkInDate.getDay()]]) continue;
+            if (promo.roomType && promo.roomType !== invTypeCode) continue;
+
+            let matched = false;
+
+            if (promo.promotionType === 'early_bird' && promo.advanceBookingDays) {
+                const daysUntilCheckIn = Math.ceil(
+                    (checkInDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+                );
+                matched = daysUntilCheckIn >= promo.advanceBookingDays;
+            } else if (promo.promotionType === 'device_specific' && deviceType) {
+                matched = promo.deviceType?.includes(deviceType) ?? false;
+            }
+
+            if (!matched) continue;
+
+            const discountAmount =
+                promo.discountType === 'percentage'
+                    ? (baseAmount * Number(promo.discountValue)) / 100
+                    : Number(promo.discountValue);
+
+            totalDiscountAmount += discountAmount;
+            promotionBrakeDown.push({
+                id: promo.id,
+                promotionType: promo.promotionType,
+                name: promo.promotionType === 'early_bird' ? 'Early Bird' : 'Device Specific',
+                currencyCode: promo.currencyCode,
+                discountAmount: Number(discountAmount.toFixed(2)),
+                discountType: promo.discountType,
+                discountValue: Number(promo.discountValue),
+                restrictionType: 'decrease',
+                type: 'auto_applied',
+            });
+        }
+
+        if (countryCode) {
+            for (const geo of geoRatePlans) {
+                if (!geo.isActive) continue;
+                if (geo.roomType && geo.roomType !== invTypeCode) continue;
+                if (!geo.countryCode.includes(countryCode)) continue;
+
+                if (geo.restrictionType === 'restricted') {
+                    throw new Error('This room is restricted for your country');
+                }
+
+                const discountAmount =
+                    geo.restrictionType === 'percentage'
+                        ? (baseAmount * Number(geo.restrictionValue)) / 100
+                        : Number(geo.restrictionValue);
+
+                const restrictionType =
+                    geo.restrictionTypeAction === 'increase' ? 'increase' : 'decrease';
+
+                if (restrictionType === 'decrease') {
+                    totalDiscountAmount += discountAmount;
+                } else {
+                    totalDiscountAmount -= discountAmount;
+                }
+
+                promotionBrakeDown.push({
+                    id: geo.id,
+                    promotionType: 'normal',
+                    name: 'Geo Rate Plan',
+                    currencyCode: geo.currencyCode,
+                    discountAmount: Number(discountAmount.toFixed(2)),
+                    discountType: geo.restrictionType,
+                    discountValue: Number(geo.restrictionValue),
+                    restrictionType,
+                    type: 'auto_applied',
+                });
+            }
+        }
+
+        const discountedBase = Number((baseAmount - totalDiscountAmount).toFixed(2));
+
+        return {
+            discountedBase,
+            totalDiscountAmount: Number(totalDiscountAmount.toFixed(2)),
+            promotionBrakeDown,
+        };
+    }
+}
 
 class AgenticAddonCalculator {
     private readonly ratePlanAddons: IRatePlanAddon[];
@@ -903,4 +1025,5 @@ class AgenticAddonCalculator {
                 return 0;
         }
     }
+
 }

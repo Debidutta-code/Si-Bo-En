@@ -1,9 +1,10 @@
+import { CurrencyCode } from "@/components/currencyCode/currency-code.type";
 import { getAnalytics, getAgencyProperties } from "../api";
 import type { DashboardFilters } from "../interface";
 
-export const fetchAnalyticsService = async (filters?: DashboardFilters) => {
+export const fetchAnalyticsService = async (targetCurrency:CurrencyCode,filters?: DashboardFilters) => {
     try {
-        const response = await getAnalytics(filters);
+        const response = await getAnalytics(targetCurrency,filters);
         return response;
     } catch (error) {
         return {

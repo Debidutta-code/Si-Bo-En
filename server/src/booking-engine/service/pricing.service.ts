@@ -17,6 +17,7 @@ import {
     CustomDlApllied,
     DailyPriceBrakeDown,
     IAddOn,
+    IAgencyData,
     ICharge,
     ICustomizableDeal,
     IGuestDistribution,
@@ -63,7 +64,8 @@ export class PricingService {
         parsedAddons?: ISelectedAddonsS[],
         promoCode?: string,
         loyalityEmail?: string,
-        customizableDealParams?: CustomDlApllied
+        customizableDealParams?: CustomDlApllied,
+        agencyId?: string
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
             const parsedStartDate: Date =
@@ -74,7 +76,7 @@ export class PricingService {
             endDate = parsedEndDate;
 
             // ─── Phase 1: fetch ratePlan + room + addons + user promotions ───
-            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom,includedAddonsRes,customizableDeal] =
+            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom, includedAddonsRes, customizableDeal] =
                 await Promise.all([
                     this.pricingRepository.validateRatePlan(
                         ratePlanCode,
@@ -97,12 +99,15 @@ export class PricingService {
                     'Room not found for the selected room type'
                 );
             }
-
+            if (agencyId && !ratePlan.b2bAvailable) {
+                return errorResponse('This rate plan is not available for B2B bookings');
+            }
             const [
                 autoAppliedMLOS,
                 autoAppliedPromotions,
                 promoCodeData,
                 loyaltyDiscountData,
+                agencyData,
             ] = await Promise.all([
                 this.pricingRepository.fetchAutoAppliedMLOS(
                     ratePlan.id,
@@ -123,7 +128,12 @@ export class PricingService {
                         propertyId
                     )
                     : Promise.resolve(null),
+                agencyId ? this.pricingRepository.getAgencyDetails(agencyId) : Promise.resolve(null),  // ← NEW
+
             ]);
+            if (agencyId && !agencyData) {
+                return errorResponse('Agency not found or has been deleted');
+            }
             const basePrice = new BasePriceClass(
                 startDate,
                 endDate,
@@ -136,6 +146,7 @@ export class PricingService {
                 selectedRoom
             );
             let priceBrakedowns = basePrice.calculateTotalPrice();
+            const baseAmount = priceBrakedowns.amountBeforeTax;
 
             const addOnPrice = new AddOnPriceClass(
                 selectedAddons,
@@ -153,6 +164,14 @@ export class PricingService {
                 parsedAddons
             );
             priceBrakedowns = addOnPrice.addonBrakeDowns();
+            if (agencyId && agencyData) {
+                const commissionClass = new AgencyCommissionClass(
+                    priceBrakedowns,
+                    agencyData,
+                    baseAmount
+                );
+                priceBrakedowns = commissionClass.applyCommission();
+            }
 
             const promotionClass = new PromotionClass(
                 startDate,
@@ -199,16 +218,14 @@ export class PricingService {
                     customizableDealClass.applyCustomizableDealDiscount();
             }
 
-            priceBrakedowns = {
-                ...priceBrakedowns,
-                amountBeforeTax: priceBrakedowns.currentChargeableAmount,
-                
-            };
+
 
             const diffInDays = this.differenceReservationDays(
                 startDate,
                 endDate
             );
+
+
             const touristTaxClass = new TouristTaxClass(
                 (selectedRoom as any).TouristTaxs || [],
                 selectedRoom,
@@ -217,7 +234,10 @@ export class PricingService {
                 diffInDays
             );
             priceBrakedowns = touristTaxClass.findTouristTax();
-
+            priceBrakedowns = {
+                ...priceBrakedowns,
+                amountBeforeTax: priceBrakedowns.currentChargeableAmount,
+            };
             const taxClass = new TaxClass(ratePlan.taxGroup, priceBrakedowns);
             priceBrakedowns = taxClass.applyTax();
 
@@ -1385,7 +1405,7 @@ class TouristTaxClass {
                 name: touristTax.name ? touristTax.name : 'Tourist Tax',
                 discountType: touristTax.discountType,
                 discountValue: Number(touristTax.discountValue),
-                currencyCode: touristTax.currencyCode,
+                currencyCode: this.priceBrakedown.currencyCode,
                 discountAmount:
                     ((baseRoomCharge * Number(touristTax.discountValue)) /
                         100) *
@@ -1665,3 +1685,48 @@ class TaxClass {
     }
 }
 
+class AgencyCommissionClass {
+    private priceBrakedown: PriceBrakeDown;
+    private agency: IAgencyData;
+    private baseAmount: number;  // ← new
+
+    constructor(priceBrakedown: PriceBrakeDown, agency: IAgencyData, baseAmount: number) {
+        this.priceBrakedown = priceBrakedown;
+        this.agency = agency;
+        this.baseAmount = baseAmount;  // ← new
+    }
+
+    public applyCommission(): PriceBrakeDown {
+        const base = this.baseAmount;  // ← always 200, clean rack rate
+
+        let commissionAmount = 0;
+        if (this.agency.commissionType === 'percentage') {
+            commissionAmount = (base * this.agency.commissionValue) / 100;
+        } else {
+            commissionAmount = this.agency.commissionValue;
+        }
+
+        commissionAmount = round(commissionAmount);
+
+        return {
+            ...this.priceBrakedown,
+            currentChargeableAmount: round(
+                this.priceBrakedown.currentChargeableAmount + commissionAmount
+            ),
+            totalAmount: round(
+                this.priceBrakedown.totalAmount + commissionAmount
+            ),
+            agencyCommissionAmount: commissionAmount,
+            agencyCommission: {
+                commissionType: this.agency.commissionType,
+                commissionValue: this.agency.commissionValue,
+                commissionAmount,
+                commissionCurrency: this.agency.commissionCurrency ?? 'USD',
+            },
+        };
+    }
+}
+
+function round(value: number): number {
+    return Number(value.toFixed(2));
+}

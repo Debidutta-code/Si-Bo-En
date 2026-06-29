@@ -333,7 +333,6 @@ export class ReservationRepository {
                     paymentImages: true,
                     isCustomizableDiscountApplied:true,
                     paymentMethod: true,
-                    SpaSlot: true,
                     roomTypeCode: true,
                     payments: true,
                     platforms: true,

@@ -21,12 +21,17 @@ export class ReservationController {
     ): Promise<Response> {
         try {
             const agencyId = req.agent?.agencyId;
+            const agentId = req.agent?.id;
             if (!agencyId) {
                 return res
                     .status(401)
                     .json(errorResponse('Unauthorized', 'Agency ID not found'));
             }
-
+            if (!agentId) {
+                return res
+                    .status(401)
+                    .json(errorResponse('Unauthorized', 'Agent ID not found'));
+            }
             const {
                 bookingStatus,
                 bookingSource,
@@ -81,6 +86,7 @@ export class ReservationController {
 
             const result = await this.reservationService.getReservations(
                 agencyId,
+                agentId,
                 filters
             );
             return res.status(result.success ? 200 : 400).json(result);

@@ -93,7 +93,7 @@ export interface IAgentPricingResponse {
     // breakdowns
     dailyPriceBrakeDown: IDailyPriceBrakeDown[];
     taxBrakeDown: ITaxBrakeDown[];
-    addonBrakeDown: IAddonBrakeDown[];
+    addonBrakeDowns: IAddonBrakeDown[];
     promotionBrakeDown: [];
 
     // tourist tax

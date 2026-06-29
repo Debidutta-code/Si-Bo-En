@@ -159,9 +159,6 @@ function RoomConfigPanel({
   );
 }
 
-/* ─────────────────────────────────────────────
-   Shared guest picker content
-───────────────────────────────────────────── */
 function GuestPickerContent({
   filters,
   totalGuests,
@@ -224,13 +221,8 @@ function GuestPickerContent({
   );
 }
 
-/* ─────────────────────────────────────────────
-   Main SearchWidget
-───────────────────────────────────────────── */
 interface SearchWidgetProps {
-  /** Triggered by the Search button — for date-based re-fetch */
   onSearch?: () => void;
-  /** Triggered when user taps Done in the guest picker — auto re-fetch */
   onGuestsDone?: () => void;
 }
 
@@ -241,7 +233,6 @@ export default function SearchWidget({ onSearch, onGuestsDone }: SearchWidgetPro
   const [guestsSheetOpen, setGuestsSheetOpen] = useState(false);     // mobile/tablet
   const [expanded, setExpanded] = useState(false);                   // mobile summary bar
 
-  /* ── room helpers ── */
   const syncRoomsArray = (newRooms: number) => {
     const current = filters.roomsArray ?? [];
     const updated: IRoomConfig[] =
