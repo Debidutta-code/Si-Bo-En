@@ -6,12 +6,12 @@ import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import {
   MapPin, CheckCircle, Trash2, ShoppingCart, Clock, CalendarDays,
-  Loader2, X, AlertCircle, ChevronLeft, Sparkles,
+  Loader2, X, AlertCircle, ChevronLeft, Sparkles, Plus,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { getSpaByPropertyCodeApi, createSpaReservationApi, cancelSpaReservationApi } from "../api/spa.api";
-import { ISpa, ISpaDate, ISpaSlot } from "../interface";
+import { ISpa, ISpaDate, ISpaSlot, IGuestSlot } from "../interface";
 import { useSelector } from "react-redux";
 import { RootState } from "../../../../store/store";
 import { formatInTimeZone } from "date-fns-tz";
@@ -24,6 +24,7 @@ interface SelectedSlot {
   id: string;
   spaId: string;
   slotId: string;
+  slotsAvailableId: string; // NEW — the specific SlotsAvailable record to book
   spaDateId: string;
   date: string;
   spaName: string;
@@ -31,6 +32,14 @@ interface SelectedSlot {
   startTime: string;
   endTime: string;
   amount: number;
+}
+
+interface GuestEntry {
+  id: string; // local UUID for React key
+  name: string;
+  email: string; // optional — empty string if not provided
+  nameError?: string;
+  slotsAvailableId?: string; // auto-assigned from next available SlotsAvailable for same slot
 }
 
 export default function SpaClient() {
@@ -45,6 +54,7 @@ export default function SpaClient() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [additionalGuests, setAdditionalGuests] = useState<GuestEntry[]>([]);
   const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
   const [submitting, setSubmitting] = useState(false);
   const [cancellingSlotId, setCancellingSlotId] = useState<string | null>(null);
@@ -95,7 +105,11 @@ export default function SpaClient() {
   };
 
   const handleToggleSlot = (spa: ISpa, spaDate: ISpaDate, slot: ISpaSlot) => {
-    if (slot.isBooked) { toast.error(t("SpaClient.toast.slotAlreadyBooked")); return; }
+    const firstActiveAvailability = slot.slotsAvailable?.find(a => a.status === 'active');
+    if (!firstActiveAvailability) {
+      toast.error(t("SpaClient.toast.slotAlreadyBooked"));
+      return;
+    }
     const uniqueId = getSlotUniqueId(slot.id, spaDate.id);
     const amount = spa.isInclusive ? 0 : spa.discountValue || 0;
     setSelectedSlots(prev => {
@@ -104,10 +118,17 @@ export default function SpaClient() {
         next.delete(uniqueId);
       } else {
         next.set(uniqueId, {
-          id: uniqueId, spaId: spa.id || spaId as string, slotId: slot.id,
-          spaDateId: spaDate.id, date: spaDate.date, spaName: spa.name,
+          id: uniqueId,
+          spaId: spa.id || spaId as string,
+          slotId: slot.id,
+          slotsAvailableId: firstActiveAvailability.id,
+          spaDateId: spaDate.id,
+          date: spaDate.date,
+          spaName: spa.name,
           dateLabel: new Intl.DateTimeFormat(getLocale(), { timeZone: "UTC", weekday: "long", month: "short", day: "2-digit", year: "numeric" }).format(new Date(spaDate.date)),
-          startTime: slot.startTime, endTime: slot.endTime || slot.startTime, amount,
+          startTime: slot.startTime,
+          endTime: slot.endTime || slot.startTime,
+          amount,
         });
       }
       return next;
@@ -146,10 +167,78 @@ export default function SpaClient() {
   };
 
   const validateBookingForm = () => {
-    const nameValid = validateField("name", customerName);
-    const emailValid = validateField("email", customerEmail);
-    const phoneValid = validateField("phone", customerPhone);
-    return nameValid && emailValid && phoneValid;
+    let valid = true;
+    valid = validateField("name", customerName) && valid;
+    valid = validateField("email", customerEmail) && valid;
+    valid = validateField("phone", customerPhone) && valid;
+
+    // Validate additional guests — name required, email optional but if filled must be valid
+    const updatedGuests = additionalGuests.map(g => {
+      let nameError: string | undefined;
+      if (!g.name.trim()) {
+        valid = false;
+        nameError = t("SpaClient.validation.guestNameRequired");
+      } else if (g.email.trim() && !isValidEmail(g.email.trim())) {
+        valid = false;
+        nameError = t("SpaClient.validation.guestEmailInvalid");
+      }
+      return { ...g, nameError };
+    });
+    setAdditionalGuests(updatedGuests);
+    return valid;
+  };
+
+  const canAddMoreGuests = useMemo(() => {
+    if (selectedSlots.size === 0) return false;
+    const firstSlot = Array.from(selectedSlots.values())[0];
+    const spaItem = spas.find(s => s.id === firstSlot.spaId);
+    const spaDate = spaItem?.SpaDates?.find(d => d.id === firstSlot.spaDateId);
+    const slot = spaDate?.Slots?.find(s => s.id === firstSlot.slotId);
+    const activeCount = slot?.slotsAvailable?.filter(a => a.status === 'active').length || 0;
+    return additionalGuests.length < activeCount - 1;
+  }, [selectedSlots, additionalGuests, spas]);
+
+  const handleAddGuest = () => {
+    setAdditionalGuests(prev => [...prev, {
+      id: crypto.randomUUID(),
+      name: '',
+      email: '',
+    }]);
+  };
+
+  const handleRemoveGuest = (guestId: string) => {
+    setAdditionalGuests(prev => prev.filter(g => g.id !== guestId));
+  };
+
+  const updateGuest = (guestId: string, field: 'name' | 'email', value: string) => {
+    setAdditionalGuests(prev => prev.map(g =>
+      g.id === guestId ? { ...g, [field]: value, nameError: field === 'name' ? undefined : g.nameError } : g
+    ));
+  };
+
+  const buildGuestSlots = (): IGuestSlot[] => {
+    const guestBookings: IGuestSlot[] = [];
+    for (const selectedSlot of Array.from(selectedSlots.values())) {
+      const spaItem = spas.find(s => s.id === selectedSlot.spaId);
+      const spaDate = spaItem?.SpaDates?.find(d => d.id === selectedSlot.spaDateId);
+      const slot = spaDate?.Slots?.find(s => s.id === selectedSlot.slotId);
+      const remainingActive = slot?.slotsAvailable
+        ?.filter(a => a.status === 'active' && a.id !== selectedSlot.slotsAvailableId) || [];
+
+      additionalGuests.forEach((guest, idx) => {
+        const availabilityForGuest = remainingActive[idx];
+        if (availabilityForGuest) {
+          guestBookings.push({
+            guestName: guest.name.trim(),
+            guestEmail: guest.email.trim() || null,
+            spaId: selectedSlot.spaId,
+            slotsAvailableId: availabilityForGuest.id,
+            amount: selectedSlot.amount,
+          });
+        }
+      });
+    }
+    return guestBookings;
   };
 
   const handleConfirmBooking = async () => {
@@ -169,17 +258,22 @@ export default function SpaClient() {
     setSubmitting(true);
     try {
       const slotsData = Array.from(selectedSlots.values()).map(s => ({
-        spaId: s.spaId, spaSlotId: s.slotId, amount: s.amount,
+        spaId: s.spaId,
+        slotsAvailableId: s.slotsAvailableId,
+        amount: s.amount,
       }));
+      const guestSlots = buildGuestSlots();
+
       const response = await createSpaReservationApi({
         userEmail: customerEmail.trim(),
         userContactNumber: customerPhone.trim(),
         slots: slotsData,
         userName: customerName,
         currencyCode: spa?.currencyCode as CurrencyCode || "AED",
+        additionalGuests: guestSlots,
       });
       if (response.success) {
-        toast.success(t("SpaClient.toast.bookSuccess", { count: selectedSlots.size }));
+        toast.success(t("SpaClient.toast.bookSuccess", { count: selectedSlots.size + additionalGuests.length }));
         const bookingId = response.data?.id;
         if (bookingId) {
           selectedSlots.forEach(s => { bookingMapRef.current[s.slotId] = bookingId; });
@@ -202,6 +296,7 @@ export default function SpaClient() {
         );
         setShowBookingModal(false);
         setSelectedSlots(new Map());
+        setAdditionalGuests([]);
         setCustomerName(""); setCustomerEmail(""); setCustomerPhone("");
         await loadSpas(propertyCode.trim());
       } else {
@@ -257,7 +352,10 @@ export default function SpaClient() {
 
   const spa = useMemo(() => spas.find(item => item.id === spaId), [spas, spaId]);
   const availableSlots = useMemo(
-    () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.filter(sl => !sl.isBooked).length || 0) : 0), 0) || 0,
+    () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.reduce((slotSum, sl) => {
+      const activeCount = sl.slotsAvailable?.filter(a => a.status === 'active').length || 0;
+      return slotSum + activeCount;
+    }, 0) || 0) : 0), 0) || 0,
     [spa],
   );
   const coverImage = spa?.images?.[0];
@@ -365,7 +463,7 @@ export default function SpaClient() {
                 ) : (
                   <div className="space-y-5">
                     {spa.SpaDates?.filter((spaDate: ISpaDate) => isUpcomingDate(spaDate.date)).map((spaDate: ISpaDate) => {
-                      const openCount = spaDate.Slots?.filter(s => !s.isBooked).length || 0;
+                      const openCount = spaDate.Slots?.reduce((sum, s) => sum + (s.slotsAvailable?.filter(a => a.status === 'active').length || 0), 0) || 0;
                       const selectedCount = spaDate.Slots?.filter(s => selectedSlots.has(getSlotUniqueId(s.id, spaDate.id))).length || 0;
 
                       return (
@@ -374,7 +472,7 @@ export default function SpaClient() {
                             <div>
                               <p className="text-sm font-semibold text-stone-900">{formatDate(spaDate.date)}</p>
                               <p className="text-xs text-stone-500 mt-0.5">
-                                {t("SpaClient.slots.openDot", { open: formatNumber(openCount), total: formatNumber(spaDate.Slots?.length || 0) })}
+                                {t("SpaClient.slots.openDot", { open: formatNumber(openCount), total: formatNumber(spaDate.Slots?.reduce((sum, s) => sum + (s.slotsAvailable?.length || 0), 0) || 0) })}
                               </p>
                             </div>
                             {selectedCount > 0 && (
@@ -386,48 +484,56 @@ export default function SpaClient() {
                           <div className="grid gap-3 p-4 sm:grid-cols-2">
                             {spaDate.Slots?.map((slot: ISpaSlot) => {
                               const isSelected = isSlotSelected(slot.id, spaDate.id);
-                              const isCancellingThis = cancellingSlotId === slot.id;
-                              const isInPast = (() => {
-                                try {
-                                  if (!slot.startTime) return false;
-                                  return new Date(slot.startTime).getTime() < Date.now();
-                                } catch {
-                                  return false;
-                                }
-                              })();
+                              const activeCount = slot.slotsAvailable?.filter(a => a.status === 'active').length || 0;
+
+                              if (activeCount === 0) return null;
+
                               return (
-                                !slot.isBooked && (
-                                  <div
-                                    key={slot.id}
-                                    className={`rounded-2xl border p-4 transition-all ${isSelected
-                                      ? "border-amber-400 bg-amber-50 shadow-sm"
-                                      : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer"
-                                      }`}
-                                    onClick={() => handleToggleSlot(spa, spaDate, slot)}
-                                  >
-                                    <div className="flex items-start justify-between gap-2">
-                                      <div>
-                                        <p className="text-sm font-semibold text-stone-900">
-                                          {formatTime(slot.startTime)}
+                                <div
+                                  key={slot.id}
+                                  className={`rounded-2xl border p-4 transition-all ${isSelected
+                                    ? "border-amber-400 bg-amber-50 shadow-sm"
+                                    : "border-stone-200 bg-white hover:border-stone-300 hover:shadow-sm cursor-pointer"
+                                    }`}
+                                  onClick={() => handleToggleSlot(spa, spaDate, slot)}
+                                >
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="space-y-1">
+                                      <p className="text-sm font-semibold text-stone-900">
+                                        {formatTime(slot.startTime)}
+                                      </p>
+                                      {slot.endTime && (
+                                        <p className="text-xs text-stone-400">
+                                          {t("SpaClient.slots.toTime", { time: formatTime(slot.endTime) })}
                                         </p>
-                                        {slot.endTime && (
-                                          <p className="text-xs text-stone-400">
-                                            {t("SpaClient.slots.toTime", { time: formatTime(slot.endTime) })}
-                                          </p>
-                                        )}
-                                      </div>
-                                      <div className="flex items-center gap-1.5">
-                                        {isSelected && <CheckCircle className="h-4 w-4 text-amber-600" />}
-                                        <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isSelected
-                                          ? "bg-amber-100 text-amber-800"
-                                          : "bg-emerald-100 text-emerald-700"
-                                          }`}>
-                                          {isSelected ? t("SpaClient.slots.slotSelected") : t("SpaClient.slots.slotOpen")}
-                                        </span>
-                                      </div>
+                                      )}
+
+                                      {/* Availability Badge */}
+                                      {!isSelected && (
+                                        <div className="pt-1">
+                                          {activeCount > 1 ? (
+                                            <span className="inline-flex items-center rounded-lg bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-600 border border-amber-100">
+                                              {t("SpaClient.slots.spotsLeft", { count: activeCount })}
+                                            </span>
+                                          ) : activeCount === 1 ? (
+                                            <span className="inline-flex items-center rounded-lg bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-600 border border-orange-100">
+                                              {t("SpaClient.slots.lastSpot")}
+                                            </span>
+                                          ) : null}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      {isSelected && <CheckCircle className="h-4 w-4 text-amber-600" />}
+                                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${isSelected
+                                        ? "bg-amber-100 text-amber-800"
+                                        : "bg-emerald-100 text-emerald-700"
+                                        }`}>
+                                        {isSelected ? t("SpaClient.slots.slotSelected") : t("SpaClient.slots.slotOpen")}
+                                      </span>
                                     </div>
                                   </div>
-                                )
+                                </div>
                               );
                             })}
                           </div>
@@ -586,6 +692,63 @@ export default function SpaClient() {
                       <p className="mt-2 text-xs text-red-600">{formErrors.phone}</p>
                     )}
                   </div>
+                </div>
+
+                {/* Additional Guests Section */}
+                <div className="space-y-3 pt-2 border-t border-stone-100">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-stone-500">
+                      {t("SpaClient.modal.additionalGuests")}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleAddGuest}
+                      disabled={!canAddMoreGuests}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {t("SpaClient.modal.addGuest")}
+                    </button>
+                  </div>
+
+                  {additionalGuests.map((guest, idx) => (
+                    <div key={guest.id} className="rounded-2xl border border-stone-200 bg-stone-50 p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-stone-500">
+                          {t("SpaClient.modal.guestLabel", { number: idx + 1 })}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveGuest(guest.id)}
+                          className="rounded-lg p-1 text-stone-400 hover:text-red-500 hover:bg-red-50 transition"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        value={guest.name}
+                        onChange={e => updateGuest(guest.id, 'name', e.target.value)}
+                        placeholder={t("SpaClient.modal.placeholders.guestName")}
+                        className={`w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 ${
+                          guest.nameError
+                            ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                            : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                        } text-stone-900`}
+                      />
+                      {guest.nameError && <p className="text-xs text-red-600">{guest.nameError}</p>}
+                      <input
+                        type="email"
+                        value={guest.email}
+                        onChange={e => updateGuest(guest.id, 'email', e.target.value)}
+                        placeholder={t("SpaClient.modal.placeholders.guestEmail")}
+                        className="w-full rounded-xl border border-stone-200 bg-white px-3.5 py-2.5 text-sm outline-none transition focus:ring-2 focus:border-amber-400 focus:ring-amber-100 text-stone-900"
+                      />
+                      <p className="text-[10px] text-stone-400">
+                        {t("SpaClient.modal.guestEmailNote")}
+                      </p>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Action Buttons */}

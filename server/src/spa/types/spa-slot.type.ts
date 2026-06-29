@@ -58,6 +58,14 @@ export interface ISlotBooking {
     slotsAvailableId: string;      
 }
 
+export interface IGuestSlot {
+    guestName: string;
+    guestEmail: string | null;
+    spaId: string;
+    slotsAvailableId: string;
+    amount: number;
+}
+
 export interface ISpaBookingRequest {
     userEmail: string;
     userName: string;
@@ -66,8 +74,9 @@ export interface ISpaBookingRequest {
     userId?: string;
     slots: {
         spaId: string;
-        slotsAvailableId: string;  
+        slotsAvailableId: string;
     }[];
+    additionalGuests?: IGuestSlot[]; // NEW
 }
 
 export interface ICSpaSlotBatch {

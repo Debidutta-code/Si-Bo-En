@@ -84,7 +84,10 @@ export default function SpaPage() {
         (sum, spaDate) =>
           sum +
           (isUpcomingDate(spaDate.date)
-            ? spaDate.Slots?.filter((slot: ISpaSlot) => !slot.isBooked).length || 0
+            ? spaDate.Slots?.reduce((slotSum, slot: ISpaSlot) => {
+                const activeCount = slot.slotsAvailable?.filter(a => a.status === 'active').length || 0;
+                return slotSum + activeCount;
+              }, 0) || 0
             : 0),
         0,
       ) || 0

@@ -25,11 +25,20 @@ export interface ISpaSlotReservation {
   bookingCode: string;
 }
 
+export interface ISlotsAvailable {
+  id: string;
+  status: 'active' | 'inactive' | 'booked' | 'completed' | 'cancelled';
+  reservationId: string | null;
+}
+
 export interface ISpaSlot {
   id: string;
   startTime: string;
   endTime?: string | null;
   isBooked: boolean;
+  slotsAvailable?: ISlotsAvailable[]; // add this
+  availableCount?: number; // active slotsAvailable count
+  totalCount?: number; // total slotsAvailable count
   reservationId?: string | null;
   SlotBooking?: {
     spaBookingId: string;
@@ -65,14 +74,23 @@ export interface ISpa {
 
 export interface ICreateSpaReservationSlot {
   spaId: string;
-  spaSlotId: string;
+  slotsAvailableId: string; // was spaSlotId — now the actual SlotsAvailable record ID
+  amount: number;
+}
+
+export interface IGuestSlot {
+  guestName: string;
+  guestEmail: string | null; // null = send email to primary guest's email
+  spaId: string;
+  slotsAvailableId: string;
   amount: number;
 }
 
 export interface ICreateSpaReservationRequest {
   userEmail: string;
   userContactNumber: string;
-  userName:string;
+  userName: string;
   slots: ICreateSpaReservationSlot[];
-  currencyCode:CurrencyCode;
+  currencyCode: CurrencyCode;
+  additionalGuests?: IGuestSlot[]; // NEW
 }

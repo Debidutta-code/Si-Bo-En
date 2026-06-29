@@ -800,9 +800,11 @@
       "noDates": "No dates configured for this spa yet.",
       "openDot": "{{open}} open · {{total}} total",
       "selectedBadge": "{{count}} selected",
-      "slotOpen": "Open",
+      "slotOpen": "Available",
       "slotSelected": "Selected",
-      "toTime": "to {{time}}"
+      "toTime": "to {{time}}",
+      "spotsLeft": "{{count}} spots left",
+      "lastSpot": "Last spot"
     },
     "bookingButton": "Review & Book ({{count}})",
     "modal": {
@@ -814,10 +816,16 @@
         "total": "Total"
       },
       "yourDetails": "Your Details",
+      "additionalGuests": "Additional Guests",
+      "addGuest": "Add Guest",
+      "guestLabel": "Guest {{number}}",
+      "guestEmailNote": "Leave email empty to send confirmation to the primary guest's email",
       "placeholders": {
         "fullName": "Full name *",
         "email": "Email address *",
-        "phone": "Phone number *"
+        "phone": "Phone number *",
+        "guestName": "Guest full name (required)",
+        "guestEmail": "Guest email (optional)"
       },
       "cancel": "Cancel",
       "bookSlot": "Book {{count}} Slot",
@@ -830,7 +838,9 @@
       "emailRequired": "Email address is required.",
       "emailInvalid": "Enter a valid email address.",
       "phoneRequired": "Phone number is required.",
-      "phoneInvalid": "Enter a valid phone number."
+      "phoneInvalid": "Enter a valid phone number.",
+      "guestNameRequired": "Guest name is required",
+      "guestEmailInvalid": "Please enter a valid email address"
     },
     "toast": {
       "loadFailed": "Unable to load spa services",

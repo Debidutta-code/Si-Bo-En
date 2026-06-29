@@ -244,6 +244,64 @@ export class SpaService {
                 console.error('Spa confirmation email failed:', emailError);
             }
 
+            // --- ADDITIONAL GUESTS BOOKING (NEW) ---
+            if (data.additionalGuests && data.additionalGuests.length > 0) {
+                for (const guest of data.additionalGuests) {
+                    try {
+                        const guestSpa = await this.spaRepository.getById(guest.spaId);
+                        if (!guestSpa) continue;
+
+                        // Create a separate SpaBooking for this guest
+                        const guestBooking = await this.spaRepository.createSpaBooking(
+                            {
+                                userEmail: guest.guestEmail || data.userEmail, // fallback to primary
+                                userContactNumber: data.userContactNumber,
+                                userId: undefined, // secondary guest may not have a user account
+                                totalAmount: guest.amount,
+                                currencyCode: data.currencyCode,
+                            },
+                            [{
+                                spaId: guest.spaId,
+                                slotsAvailableId: guest.slotsAvailableId,
+                                amount: guest.amount,
+                            }]
+                        );
+
+                        // Send email to guest or primary
+                        const recipientEmail = guest.guestEmail || data.userEmail;
+                        const guestSlotInfo = await this.spaRepository.getSlotById(guest.slotsAvailableId);
+
+                        const emailSlotData = {
+                            spaName: guestSpa.name ?? 'Spa Service',
+                            date: guestSlotInfo?.spaDate?.date
+                                ? new Date(guestSlotInfo.spaDate.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })
+                                : '—',
+                            startTime: guestSlotInfo?.startTime
+                                ? new Date(guestSlotInfo.startTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+                                : '—',
+                            endTime: guestSlotInfo?.endTime
+                                ? new Date(guestSlotInfo.endTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+                                : null,
+                            amount: guest.amount,
+                            currencyCode: data.currencyCode,
+                        };
+
+                        await this.spaEmailService.bookingConfirmed({
+                            userName: guest.guestName,
+                            userEmail: recipientEmail,
+                            bookingId: guestBooking.id,
+                            managerEmails: [], // managers already notified on primary
+                            slots: [emailSlotData],
+                            totalAmount: guest.amount,
+                            currencyCode: data.currencyCode,
+                        });
+                    } catch (guestError) {
+                        console.error(`Guest booking/email failed for ${guest.guestName}:`, guestError);
+                        // Don't fail the whole request if one guest booking fails
+                    }
+                }
+            }
+
             return successResponse('Spa booking created successfully', booking);
         } catch (error) {
             if (error instanceof Error) return errorResponse('Failed to create spa booking', error.message);

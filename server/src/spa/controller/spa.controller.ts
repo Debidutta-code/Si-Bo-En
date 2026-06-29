@@ -300,6 +300,7 @@ export class SpaController {
                     );
             }
 
+            // additionalGuests is optional, pass it through
             const response = await this.spaService.createSpaReservation(bookingData);
             return res.status(response.success ? 201 : 400).json(response);
         } catch (error) {
