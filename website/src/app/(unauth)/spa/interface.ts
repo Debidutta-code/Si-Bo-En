@@ -74,16 +74,10 @@ export interface ISpa {
 
 export interface ICreateSpaReservationSlot {
   spaId: string;
-  slotsAvailableId: string; // was spaSlotId — now the actual SlotsAvailable record ID
-  amount: number;
-}
-
-export interface IGuestSlot {
-  guestName: string;
-  guestEmail: string | null; // null = send email to primary guest's email
-  spaId: string;
   slotsAvailableId: string;
   amount: number;
+  userName?: string;
+  userEmail?: string;
 }
 
 export interface ICreateSpaReservationRequest {
@@ -92,5 +86,5 @@ export interface ICreateSpaReservationRequest {
   userName: string;
   slots: ICreateSpaReservationSlot[];
   currencyCode: CurrencyCode;
-  additionalGuests?: IGuestSlot[]; // NEW
+  bookingCode?: string;
 }

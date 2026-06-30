@@ -36,12 +36,15 @@ export interface ISlotsAvailable {
     slotBooking?: ISlotBooking | null;
     spaSlot?:ISpaSlot | null;
     userName?:string|null;
+    userEmail?:string|null;
     
 }
  export  interface IBookAvailability {
         availabilityId: string;
         slotId: string;
         spaId: string;
+        userName?: string;
+        userEmail?: string;
     }
 export type SlotStatus = 'active' | 'inactive' | 'booked' | 'completed' | 'cancelled';
 
@@ -72,9 +75,12 @@ export interface ISpaBookingRequest {
     currencyCode: CurrencyCode;
     userContactNumber: string;
     userId?: string;
+    bookingCode?: string;
     slots: {
         spaId: string;
-        slotsAvailableId: string;
+        slotsAvailableId: string;  
+        userName?: string;
+        userEmail?: string;
     }[];
     additionalGuests?: IGuestSlot[]; // NEW
 }

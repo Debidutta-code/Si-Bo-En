@@ -223,12 +223,20 @@ export class SpaRepository {
     public async createSpaBooking(
         data: {
             userEmail: string;
+            userName: string;
             userContactNumber: string;
             userId?: string;
             totalAmount: number;
             currencyCode?: CurrencyCode;
+            reservationId?: string;
         },
-        slots: { spaId: string; slotsAvailableId: string; amount: number }[]  // ← updated
+        slots: {
+            spaId: string;
+            slotsAvailableId: string;
+            amount: number;
+            userName?: string;
+            userEmail?: string;
+        }[]
     ) {
         try {
             return await prisma.$transaction(async (tx) => {
@@ -252,18 +260,23 @@ export class SpaRepository {
                         SlotBookings: {
                             create: slots.map((s) => ({
                                 spaId: s.spaId,
-                                slotsAvailableId: s.slotsAvailableId,  // ← updated
+                                slotsAvailableId: s.slotsAvailableId,
                                 amount: s.amount,
                             })),
                         },
                     },
                 });
 
-                // 3. mark each section as booked
+                // 3. mark each section as booked with user info
                 for (const s of slots) {
                     await tx.slotsAvailable.update({
                         where: { id: s.slotsAvailableId },
-                        data: { status: 'booked' },
+                        data: {
+                            status: 'booked',
+                            userName: s.userName || data.userName,
+                            userEmail: s.userEmail,
+                            reservationId: data.reservationId,
+                        },
                     });
                 }
 

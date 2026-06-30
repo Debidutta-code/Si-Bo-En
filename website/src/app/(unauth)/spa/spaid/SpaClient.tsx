@@ -32,6 +32,17 @@ interface SelectedSlot {
   startTime: string;
   endTime: string;
   amount: number;
+  guestName?: string;
+  guestEmail?: string;
+  isInclusive?: boolean;
+}
+
+interface GuestEntry {
+  id: string; // local UUID for React key
+  name: string;
+  email: string; // optional — empty string if not provided
+  nameError?: string;
+  slotsAvailableId?: string; // auto-assigned from next available SlotsAvailable for same slot
 }
 
 interface GuestEntry {
@@ -54,8 +65,8 @@ export default function SpaClient() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const [additionalGuests, setAdditionalGuests] = useState<GuestEntry[]>([]);
-  const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
+  const [guestDetails, setGuestDetails] = useState<Record<string, { name: string; email: string }>>({});
+  const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; phone?: string; guests?: Record<string, { name?: string; email?: string }> }>({});
   const [submitting, setSubmitting] = useState(false);
   const [cancellingSlotId, setCancellingSlotId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
@@ -116,6 +127,11 @@ export default function SpaClient() {
       const next = new Map(prev);
       if (next.has(uniqueId)) {
         next.delete(uniqueId);
+        setGuestDetails(prevGuests => {
+          const updated = { ...prevGuests };
+          delete updated[uniqueId];
+          return updated;
+        });
       } else {
         next.set(uniqueId, {
           id: uniqueId,
@@ -126,9 +142,8 @@ export default function SpaClient() {
           date: spaDate.date,
           spaName: spa.name,
           dateLabel: new Intl.DateTimeFormat(getLocale(), { timeZone: "UTC", weekday: "long", month: "short", day: "2-digit", year: "numeric" }).format(new Date(spaDate.date)),
-          startTime: slot.startTime,
-          endTime: slot.endTime || slot.startTime,
-          amount,
+          startTime: slot.startTime, endTime: slot.endTime || slot.startTime, amount,
+          isInclusive: spa.isInclusive,
         });
       }
       return next;
@@ -166,79 +181,40 @@ export default function SpaClient() {
     return !error;
   };
 
-  const validateBookingForm = () => {
-    let valid = true;
-    valid = validateField("name", customerName) && valid;
-    valid = validateField("email", customerEmail) && valid;
-    valid = validateField("phone", customerPhone) && valid;
+  const validateGuestField = (uniqueId: string, field: "name" | "email", value: string, isInclusive: boolean) => {
+    let error: string | undefined;
+    const trimmed = value.trim();
 
-    // Validate additional guests — name required, email optional but if filled must be valid
-    const updatedGuests = additionalGuests.map(g => {
-      let nameError: string | undefined;
-      if (!g.name.trim()) {
-        valid = false;
-        nameError = t("SpaClient.validation.guestNameRequired");
-      } else if (g.email.trim() && !isValidEmail(g.email.trim())) {
-        valid = false;
-        nameError = t("SpaClient.validation.guestEmailInvalid");
-      }
-      return { ...g, nameError };
-    });
-    setAdditionalGuests(updatedGuests);
-    return valid;
-  };
-
-  const canAddMoreGuests = useMemo(() => {
-    if (selectedSlots.size === 0) return false;
-    const firstSlot = Array.from(selectedSlots.values())[0];
-    const spaItem = spas.find(s => s.id === firstSlot.spaId);
-    const spaDate = spaItem?.SpaDates?.find(d => d.id === firstSlot.spaDateId);
-    const slot = spaDate?.Slots?.find(s => s.id === firstSlot.slotId);
-    const activeCount = slot?.slotsAvailable?.filter(a => a.status === 'active').length || 0;
-    return additionalGuests.length < activeCount - 1;
-  }, [selectedSlots, additionalGuests, spas]);
-
-  const handleAddGuest = () => {
-    setAdditionalGuests(prev => [...prev, {
-      id: crypto.randomUUID(),
-      name: '',
-      email: '',
-    }]);
-  };
-
-  const handleRemoveGuest = (guestId: string) => {
-    setAdditionalGuests(prev => prev.filter(g => g.id !== guestId));
-  };
-
-  const updateGuest = (guestId: string, field: 'name' | 'email', value: string) => {
-    setAdditionalGuests(prev => prev.map(g =>
-      g.id === guestId ? { ...g, [field]: value, nameError: field === 'name' ? undefined : g.nameError } : g
-    ));
-  };
-
-  const buildGuestSlots = (): IGuestSlot[] => {
-    const guestBookings: IGuestSlot[] = [];
-    for (const selectedSlot of Array.from(selectedSlots.values())) {
-      const spaItem = spas.find(s => s.id === selectedSlot.spaId);
-      const spaDate = spaItem?.SpaDates?.find(d => d.id === selectedSlot.spaDateId);
-      const slot = spaDate?.Slots?.find(s => s.id === selectedSlot.slotId);
-      const remainingActive = slot?.slotsAvailable
-        ?.filter(a => a.status === 'active' && a.id !== selectedSlot.slotsAvailableId) || [];
-
-      additionalGuests.forEach((guest, idx) => {
-        const availabilityForGuest = remainingActive[idx];
-        if (availabilityForGuest) {
-          guestBookings.push({
-            guestName: guest.name.trim(),
-            guestEmail: guest.email.trim() || null,
-            spaId: selectedSlot.spaId,
-            slotsAvailableId: availabilityForGuest.id,
-            amount: selectedSlot.amount,
-          });
-        }
-      });
+    if (field === "name") {
+      if (!trimmed) error = t("SpaClient.validation.nameRequired");
     }
-    return guestBookings;
+    if (field === "email") {
+      if (!isInclusive && !trimmed) error = t("SpaClient.validation.emailRequired");
+      else if (trimmed && !isValidEmail(trimmed)) error = t("SpaClient.validation.emailInvalid");
+    }
+
+    setFormErrors(prev => {
+      const guests = { ...prev.guests } || {};
+      guests[uniqueId] = { ...guests[uniqueId], [field]: error };
+      return { ...prev, guests };
+    });
+    return !error;
+  };
+
+  const validateBookingForm = () => {
+    const nameValid = validateField("name", customerName);
+    const emailValid = validateField("email", customerEmail);
+    const phoneValid = validateField("phone", customerPhone);
+
+    let guestsValid = true;
+    selectedSlots.forEach((slot, uniqueId) => {
+      const details = guestDetails[uniqueId] || { name: "", email: "" };
+      const gNameValid = validateGuestField(uniqueId, "name", details.name, !!slot.isInclusive);
+      const gEmailValid = validateGuestField(uniqueId, "email", details.email, !!slot.isInclusive);
+      if (!gNameValid || !gEmailValid) guestsValid = false;
+    });
+
+    return nameValid && emailValid && phoneValid && guestsValid;
   };
 
   const handleConfirmBooking = async () => {
@@ -259,8 +235,10 @@ export default function SpaClient() {
     try {
       const slotsData = Array.from(selectedSlots.values()).map(s => ({
         spaId: s.spaId,
-        slotsAvailableId: s.slotsAvailableId,
+        slotsAvailableId: s.slotId,
         amount: s.amount,
+        userName: guestDetails[s.id]?.name,
+        userEmail: guestDetails[s.id]?.email,
       }));
       const guestSlots = buildGuestSlots();
 
@@ -270,7 +248,7 @@ export default function SpaClient() {
         slots: slotsData,
         userName: customerName,
         currencyCode: spa?.currencyCode as CurrencyCode || "AED",
-        additionalGuests: guestSlots,
+        bookingCode: searchParams.get("bookingCode") || "",
       });
       if (response.success) {
         toast.success(t("SpaClient.toast.bookSuccess", { count: selectedSlots.size + additionalGuests.length }));
@@ -589,7 +567,7 @@ export default function SpaClient() {
                   <p className="text-xs font-semibold uppercase tracking-widest text-stone-500 mb-3">
                     {t("SpaClient.modal.selectedSlotsLabel")}
                   </p>
-                  <div className="max-h-[200px] overflow-y-auto space-y-2 pr-1">
+                  <div className="max-h-[400px] overflow-y-auto space-y-4 pr-1">
                     {Array.from(selectedSlots.values()).map(slot => (
                       <div key={slot.id} className="rounded-xl border border-stone-100 bg-stone-50 p-3">
                         <div className="flex items-start justify-between">
@@ -610,6 +588,49 @@ export default function SpaClient() {
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
+                        </div>
+
+                        {/* Guest details for each slot */}
+                        <div className="mt-3 space-y-2 border-t border-stone-200 pt-3">
+                          <p className="text-[10px] font-bold uppercase text-stone-400">{t("SpaClient.modal.guestDetails")}</p>
+                          <div>
+                            <input
+                              type="text"
+                              value={guestDetails[slot.id]?.name || ""}
+                              onChange={e => {
+                                setGuestDetails(prev => ({ ...prev, [slot.id]: { ...prev[slot.id], name: e.target.value } }));
+                                if (formErrors.guests?.[slot.id]?.name) validateGuestField(slot.id, "name", e.target.value, !!slot.isInclusive);
+                              }}
+                              onBlur={e => validateGuestField(slot.id, "name", e.target.value, !!slot.isInclusive)}
+                              placeholder={t("SpaClient.modal.placeholders.fullName")}
+                              className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition focus:ring-2 ${formErrors.guests?.[slot.id]?.name
+                                ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                                : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                                } text-stone-900`}
+                            />
+                            {formErrors.guests?.[slot.id]?.name && (
+                              <p className="mt-1 text-[10px] text-red-600">{formErrors.guests[slot.id].name}</p>
+                            )}
+                          </div>
+                          <div>
+                            <input
+                              type="email"
+                              value={guestDetails[slot.id]?.email || ""}
+                              onChange={e => {
+                                setGuestDetails(prev => ({ ...prev, [slot.id]: { ...prev[slot.id], email: e.target.value } }));
+                                if (formErrors.guests?.[slot.id]?.email) validateGuestField(slot.id, "email", e.target.value, !!slot.isInclusive);
+                              }}
+                              onBlur={e => validateGuestField(slot.id, "email", e.target.value, !!slot.isInclusive)}
+                              placeholder={t("SpaClient.modal.placeholders.email") + (slot.isInclusive ? ` (${t("SpaClient.optional")})` : "")}
+                              className={`w-full rounded-lg border px-3 py-1.5 text-xs outline-none transition focus:ring-2 ${formErrors.guests?.[slot.id]?.email
+                                ? "border-red-300 bg-red-50 focus:border-red-400 focus:ring-red-100"
+                                : "border-stone-200 bg-white focus:border-amber-400 focus:ring-amber-100"
+                                } text-stone-900`}
+                            />
+                            {formErrors.guests?.[slot.id]?.email && (
+                              <p className="mt-1 text-[10px] text-red-600">{formErrors.guests[slot.id].email}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
