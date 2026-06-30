@@ -350,7 +350,6 @@ export class AgenticRoomService {
             baseAmount += result.baseAmount * numberOfNights;
             sortedBaseAmounts = result.sortedBaseAmounts;
         }
-
         // ── Promotions on baseAmount ──────────────────────────────────────────────
         const promotionResult = this.calculatePromotions(
             baseAmount,
@@ -735,6 +734,7 @@ export class AgenticRoomService {
     };
 }
 
+
     private isDateRangeWithinPeriod(
         startDate: string,
         endDate: string,
@@ -748,6 +748,7 @@ export class AgenticRoomService {
         if (periodEnd && bookingEnd > periodEnd) return false;
         return true;
     }
+
     private calculatePromotions(
         baseAmount: number,
         numberOfNights: number,
