@@ -341,6 +341,7 @@ export class SpaService {
                                 userId: undefined, // secondary guest may not have a user account
                                 totalAmount: guest.amount,
                                 currencyCode: data.currencyCode,
+                                userName: ''
                             },
                             [{
                                 spaId: guest.spaId,
