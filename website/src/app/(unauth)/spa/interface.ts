@@ -80,6 +80,14 @@ export interface ICreateSpaReservationSlot {
   userEmail?: string;
 }
 
+export interface IGuestSlot {
+  guestName: string;
+  guestEmail: string | null;
+  spaId: string;
+  slotsAvailableId: string;
+  amount: number;
+}
+
 export interface ICreateSpaReservationRequest {
   userEmail: string;
   userContactNumber: string;
@@ -87,4 +95,5 @@ export interface ICreateSpaReservationRequest {
   slots: ICreateSpaReservationSlot[];
   currencyCode: CurrencyCode;
   bookingCode?: string;
+  additionalGuests?: IGuestSlot[];
 }

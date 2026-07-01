@@ -45,14 +45,6 @@ interface GuestEntry {
   slotsAvailableId?: string; // auto-assigned from next available SlotsAvailable for same slot
 }
 
-interface GuestEntry {
-  id: string; // local UUID for React key
-  name: string;
-  email: string; // optional — empty string if not provided
-  nameError?: string;
-  slotsAvailableId?: string; // auto-assigned from next available SlotsAvailable for same slot
-}
-
 export default function SpaClient() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
@@ -62,12 +54,23 @@ export default function SpaClient() {
   const [spas, setSpas] = useState<ISpa[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSlots, setSelectedSlots] = useState<Map<string, SelectedSlot>>(new Map());
+  const [additionalGuests, setAdditionalGuests] = useState<GuestEntry[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [guestDetails, setGuestDetails] = useState<Record<string, { name: string; email: string }>>({});
   const [formErrors, setFormErrors] = useState<{ name?: string; email?: string; phone?: string; guests?: Record<string, { name?: string; email?: string }> }>({});
   const [submitting, setSubmitting] = useState(false);
+
+  const spa = useMemo(() => spas.find(item => item.id === spaId), [spas, spaId]);
+  const availableSlots = useMemo(
+    () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.reduce((slotSum, sl) => {
+      const activeCount = sl.slotsAvailable?.filter(a => a.status === 'active').length || 0;
+      return slotSum + activeCount;
+    }, 0) || 0) : 0), 0) || 0,
+    [spa],
+  );
+
   const [cancellingSlotId, setCancellingSlotId] = useState<string | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     bookingId: string;
@@ -214,7 +217,72 @@ export default function SpaClient() {
       if (!gNameValid || !gEmailValid) guestsValid = false;
     });
 
+    additionalGuests.forEach(guest => {
+      if (!guest.name.trim()) {
+        updateGuest(guest.id, "name", "");
+        guestsValid = false;
+      }
+    });
+
     return nameValid && emailValid && phoneValid && guestsValid;
+  };
+
+  const canAddMoreGuests = useMemo(() => {
+    return availableSlots > selectedSlots.size + additionalGuests.length;
+  }, [availableSlots, selectedSlots.size, additionalGuests.length]);
+
+  const handleAddGuest = () => {
+    if (!canAddMoreGuests) return;
+    setAdditionalGuests(prev => [
+      ...prev,
+      { id: Math.random().toString(36).substring(2, 9), name: "", email: "" }
+    ]);
+  };
+
+  const handleRemoveGuest = (id: string) => {
+    setAdditionalGuests(prev => prev.filter(g => g.id !== id));
+  };
+
+  const updateGuest = (id: string, field: keyof GuestEntry, value: string) => {
+    setAdditionalGuests(prev => prev.map(g => {
+      if (g.id === id) {
+        const updated = { ...g, [field]: value };
+        if (field === "name") {
+          updated.nameError = value.trim() ? "" : t("SpaClient.validation.nameRequired");
+        }
+        return updated;
+      }
+      return g;
+    }));
+  };
+
+  const buildGuestSlots = (): IGuestSlot[] => {
+    const results: IGuestSlot[] = [];
+    if (!spa) return results;
+
+    const usedIds = new Set(Array.from(selectedSlots.values()).map(s => s.slotsAvailableId));
+
+    additionalGuests.forEach(guest => {
+      for (const date of (spa.SpaDates || [])) {
+        if (!isUpcomingDate(date.date)) continue;
+        for (const slot of (date.Slots || [])) {
+          const avail = slot.slotsAvailable?.find(a => a.status === "active" && !usedIds.has(a.id));
+          if (avail) {
+            usedIds.add(avail.id);
+            results.push({
+              guestName: guest.name,
+              guestEmail: guest.email || null,
+              spaId: spa.id,
+              slotsAvailableId: avail.id,
+              amount: spa.isInclusive ? 0 : (spa.discountValue || 0),
+            });
+            return;
+          }
+        }
+      }
+    });
+
+    return results;
   };
 
   const handleConfirmBooking = async () => {
@@ -235,7 +303,7 @@ export default function SpaClient() {
     try {
       const slotsData = Array.from(selectedSlots.values()).map(s => ({
         spaId: s.spaId,
-        slotsAvailableId: s.slotId,
+        slotsAvailableId: s.slotsAvailableId,
         amount: s.amount,
         userName: guestDetails[s.id]?.name,
         userEmail: guestDetails[s.id]?.email,
@@ -249,6 +317,7 @@ export default function SpaClient() {
         userName: customerName,
         currencyCode: spa?.currencyCode as CurrencyCode || "AED",
         bookingCode: searchParams.get("bookingCode") || "",
+        additionalGuests: guestSlots,
       });
       if (response.success) {
         toast.success(t("SpaClient.toast.bookSuccess", { count: selectedSlots.size + additionalGuests.length }));
@@ -328,14 +397,6 @@ export default function SpaClient() {
     } catch { return v; }
   };
 
-  const spa = useMemo(() => spas.find(item => item.id === spaId), [spas, spaId]);
-  const availableSlots = useMemo(
-    () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.reduce((slotSum, sl) => {
-      const activeCount = sl.slotsAvailable?.filter(a => a.status === 'active').length || 0;
-      return slotSum + activeCount;
-    }, 0) || 0) : 0), 0) || 0,
-    [spa],
-  );
   const coverImage = spa?.images?.[0];
 
   return (
