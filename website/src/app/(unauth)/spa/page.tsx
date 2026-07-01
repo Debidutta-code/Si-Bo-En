@@ -81,14 +81,16 @@ export default function SpaPage() {
   const getUpcomingSpaSlots = (spa: ISpa) => {
     return (
       spa.SpaDates?.reduce(
-        (sum, spaDate) =>
-          sum +
+        (sum, spaDate) => {
+          const slots = spaDate.Slots || spaDate.slots;
+          return sum +
           (isUpcomingDate(spaDate.date)
-            ? spaDate.Slots?.reduce((slotSum, slot: ISpaSlot) => {
+            ? slots?.reduce((slotSum, slot: ISpaSlot) => {
                 const activeCount = slot.slotsAvailable?.filter(a => a.status === 'active').length || 0;
                 return slotSum + activeCount;
               }, 0) || 0
-            : 0),
+            : 0);
+        },
         0,
       ) || 0
     );

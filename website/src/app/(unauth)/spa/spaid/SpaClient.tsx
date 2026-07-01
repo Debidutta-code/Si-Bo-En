@@ -45,14 +45,6 @@ interface GuestEntry {
   slotsAvailableId?: string; // auto-assigned from next available SlotsAvailable for same slot
 }
 
-interface GuestEntry {
-  id: string; // local UUID for React key
-  name: string;
-  email: string; // optional — empty string if not provided
-  nameError?: string;
-  slotsAvailableId?: string; // auto-assigned from next available SlotsAvailable for same slot
-}
-
 export default function SpaClient() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
@@ -75,6 +67,7 @@ export default function SpaClient() {
     label: string;
   } | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [additionalGuests, setAdditionalGuests] = useState<GuestEntry[]>([]);
   const bookingMapRef = useRef<Record<string, string>>({});
 
   const hasPropertyCode = Boolean(propertyCode.trim());
@@ -154,9 +147,18 @@ export default function SpaClient() {
 
   const totalAmount = useMemo(() => {
     let total = 0;
-    selectedSlots.forEach(s => { total += s.amount; });
+    selectedSlots.forEach(s => {
+      total += s.amount;
+      // Add amount for additional guests assigned to THIS specific slot
+      // In current implementation, they only attach to the FIRST slot,
+      // but this logic is safer if it ever expands.
+      const isFirst = Array.from(selectedSlots.values())[0]?.id === s.id;
+      if (isFirst) {
+        total += (s.amount * additionalGuests.length);
+      }
+    });
     return total;
-  }, [selectedSlots]);
+  }, [selectedSlots, additionalGuests]);
 
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isValidPhone = (phone: string) => /^[0-9+()\-\s]{7,20}$/.test(phone);
@@ -214,7 +216,60 @@ export default function SpaClient() {
       if (!gNameValid || !gEmailValid) guestsValid = false;
     });
 
+    // Validate additional guests
+    const newAdditionalGuests = [...additionalGuests];
+    additionalGuests.forEach((g, idx) => {
+      if (!g.name.trim()) {
+        newAdditionalGuests[idx].nameError = t("SpaClient.validation.nameRequired");
+        guestsValid = false;
+      } else {
+        newAdditionalGuests[idx].nameError = "";
+      }
+    });
+    setAdditionalGuests(newAdditionalGuests);
+
     return nameValid && emailValid && phoneValid && guestsValid;
+  };
+
+  const buildGuestSlots = (): IGuestSlot[] => {
+    const slots: IGuestSlot[] = [];
+
+    // Add primary selections
+    selectedSlots.forEach(s => {
+      slots.push({
+        spaId: s.spaId,
+        slotsAvailableId: s.slotsAvailableId,
+        amount: s.amount,
+        userName: guestDetails[s.id]?.name || customerName,
+        userEmail: guestDetails[s.id]?.email || customerEmail,
+      });
+    });
+
+    // Add additional guests (they share the SAME physical time slot but different SlotsAvailable records)
+    // We assume they apply to the FIRST selected slot for simplicity in this UI
+    const firstSelected = Array.from(selectedSlots.values())[0];
+    if (firstSelected && additionalGuests.length > 0) {
+      // Find the parent slot object to get other available IDs
+      const parentDate = spa?.SpaDates?.find(d => d.id === firstSelected.spaDateId);
+      const parentSlot = (parentDate?.Slots || parentDate?.slots)?.find(s => s.id === firstSelected.slotId);
+      const otherAvailables = parentSlot?.slotsAvailable?.filter(a =>
+        a.status === 'active' && a.id !== firstSelected.slotsAvailableId
+      ) || [];
+
+      additionalGuests.forEach((g, idx) => {
+        if (idx < otherAvailables.length) {
+          slots.push({
+            spaId: firstSelected.spaId,
+            slotsAvailableId: otherAvailables[idx].id,
+            amount: firstSelected.amount,
+            userName: g.name,
+            userEmail: g.email || customerEmail, // Default to primary email if missing
+          });
+        }
+      });
+    }
+
+    return slots;
   };
 
   const handleConfirmBooking = async () => {
@@ -233,14 +288,7 @@ export default function SpaClient() {
     }
     setSubmitting(true);
     try {
-      const slotsData = Array.from(selectedSlots.values()).map(s => ({
-        spaId: s.spaId,
-        slotsAvailableId: s.slotId,
-        amount: s.amount,
-        userName: guestDetails[s.id]?.name,
-        userEmail: guestDetails[s.id]?.email,
-      }));
-      const guestSlots = buildGuestSlots();
+      const slotsData = buildGuestSlots();
 
       const response = await createSpaReservationApi({
         userEmail: customerEmail.trim(),
@@ -330,12 +378,34 @@ export default function SpaClient() {
 
   const spa = useMemo(() => spas.find(item => item.id === spaId), [spas, spaId]);
   const availableSlots = useMemo(
-    () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? (d.Slots?.reduce((slotSum, sl) => {
+    () => spa?.SpaDates?.reduce((s, d) => s + (isUpcomingDate(d.date) ? ((d.Slots || d.slots)?.reduce((slotSum, sl) => {
       const activeCount = sl.slotsAvailable?.filter(a => a.status === 'active').length || 0;
       return slotSum + activeCount;
     }, 0) || 0) : 0), 0) || 0,
     [spa],
   );
+
+  const canAddMoreGuests = useMemo(() => {
+    if (selectedSlots.size !== 1) return false;
+    const slot = Array.from(selectedSlots.values())[0];
+    const parentDate = spa?.SpaDates?.find(d => d.id === slot.spaDateId);
+    const parentSlot = (parentDate?.Slots || parentDate?.slots)?.find(s => s.id === slot.slotId);
+    const activeCount = parentSlot?.slotsAvailable?.filter(a => a.status === 'active').length || 0;
+    return additionalGuests.length < (activeCount - 1);
+  }, [selectedSlots, additionalGuests, spa]);
+
+  const handleAddGuest = () => {
+    if (!canAddMoreGuests) return;
+    setAdditionalGuests(prev => [...prev, { id: crypto.randomUUID(), name: "", email: "" }]);
+  };
+
+  const handleRemoveGuest = (id: string) => {
+    setAdditionalGuests(prev => prev.filter(g => g.id !== id));
+  };
+
+  const updateGuest = (id: string, field: 'name' | 'email', value: string) => {
+    setAdditionalGuests(prev => prev.map(g => g.id === id ? { ...g, [field]: value, nameError: field === 'name' ? "" : g.nameError } : g));
+  };
   const coverImage = spa?.images?.[0];
 
   return (
@@ -441,8 +511,9 @@ export default function SpaClient() {
                 ) : (
                   <div className="space-y-5">
                     {spa.SpaDates?.filter((spaDate: ISpaDate) => isUpcomingDate(spaDate.date)).map((spaDate: ISpaDate) => {
-                      const openCount = spaDate.Slots?.reduce((sum, s) => sum + (s.slotsAvailable?.filter(a => a.status === 'active').length || 0), 0) || 0;
-                      const selectedCount = spaDate.Slots?.filter(s => selectedSlots.has(getSlotUniqueId(s.id, spaDate.id))).length || 0;
+                      const slots = spaDate.Slots || spaDate.slots || [];
+                      const openCount = slots.reduce((sum, s) => sum + (s.slotsAvailable?.filter(a => a.status === 'active').length || 0), 0) || 0;
+                      const selectedCount = slots.filter(s => selectedSlots.has(getSlotUniqueId(s.id, spaDate.id))).length || 0;
 
                       return (
                         <div key={spaDate.id} className="rounded-2xl border border-stone-200 overflow-hidden">
@@ -450,7 +521,7 @@ export default function SpaClient() {
                             <div>
                               <p className="text-sm font-semibold text-stone-900">{formatDate(spaDate.date)}</p>
                               <p className="text-xs text-stone-500 mt-0.5">
-                                {t("SpaClient.slots.openDot", { open: formatNumber(openCount), total: formatNumber(spaDate.Slots?.reduce((sum, s) => sum + (s.slotsAvailable?.length || 0), 0) || 0) })}
+                                {t("SpaClient.slots.openDot", { open: formatNumber(openCount), total: formatNumber(slots.reduce((sum, s) => sum + (s.slotsAvailable?.length || 0), 0) || 0) })}
                               </p>
                             </div>
                             {selectedCount > 0 && (
@@ -460,7 +531,7 @@ export default function SpaClient() {
                             )}
                           </div>
                           <div className="grid gap-3 p-4 sm:grid-cols-2">
-                            {spaDate.Slots?.map((slot: ISpaSlot) => {
+                            {slots.map((slot: ISpaSlot) => {
                               const isSelected = isSlotSelected(slot.id, spaDate.id);
                               const activeCount = slot.slotsAvailable?.filter(a => a.status === 'active').length || 0;
 

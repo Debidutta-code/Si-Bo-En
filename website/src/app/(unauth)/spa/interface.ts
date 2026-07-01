@@ -50,6 +50,7 @@ export interface ISpaDate {
   id: string;
   date: string;
   Slots?: ISpaSlot[];
+  slots?: ISpaSlot[];
 }
 
 export interface ISpa {
