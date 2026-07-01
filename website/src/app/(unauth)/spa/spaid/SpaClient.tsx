@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { format } from "date-fns";
 import {
@@ -45,14 +46,6 @@ interface GuestEntry {
   slotsAvailableId?: string; // auto-assigned from next available SlotsAvailable for same slot
 }
 
-interface GuestEntry {
-  id: string; // local UUID for React key
-  name: string;
-  email: string; // optional — empty string if not provided
-  nameError?: string;
-  slotsAvailableId?: string; // auto-assigned from next available SlotsAvailable for same slot
-}
-
 export default function SpaClient() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
@@ -62,6 +55,7 @@ export default function SpaClient() {
   const [spas, setSpas] = useState<ISpa[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSlots, setSelectedSlots] = useState<Map<string, SelectedSlot>>(new Map());
+  const [additionalGuests, setAdditionalGuests] = useState<GuestEntry[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -79,12 +73,7 @@ export default function SpaClient() {
 
   const hasPropertyCode = Boolean(propertyCode.trim());
 
-  useEffect(() => {
-    if (!hasPropertyCode) return;
-    void loadSpas(propertyCode.trim());
-  }, [propertyCode, hasPropertyCode]);
-
-  const loadSpas = async (code: string) => {
+  const loadSpas = useCallback(async (code: string) => {
     setLoading(true);
     try {
       const response = await getSpaByPropertyCodeApi(code);
@@ -100,7 +89,12 @@ export default function SpaClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    if (!hasPropertyCode) return;
+    void loadSpas(propertyCode.trim());
+  }, [propertyCode, hasPropertyCode, loadSpas]);
 
   const getSlotUniqueId = (slotId: string, dateId: string) => `${slotId}_${dateId}`;
 
@@ -161,6 +155,23 @@ export default function SpaClient() {
   const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isValidPhone = (phone: string) => /^[0-9+()\-\s]{7,20}$/.test(phone);
 
+  const handleAddGuest = () => {
+    setAdditionalGuests(prev => [
+      ...prev,
+      { id: crypto.randomUUID(), name: "", email: "" }
+    ]);
+  };
+
+  const handleRemoveGuest = (id: string) => {
+    setAdditionalGuests(prev => prev.filter(g => g.id !== id));
+  };
+
+  const updateGuest = (id: string, field: keyof GuestEntry, value: string) => {
+    setAdditionalGuests(prev =>
+      prev.map(g => (g.id === id ? { ...g, [field]: value, nameError: field === 'name' && !value ? t("SpaClient.validation.nameRequired") : g.nameError } : g))
+    );
+  };
+
   const validateField = (field: "name" | "email" | "phone", value: string) => {
     let error: string | undefined;
     const trimmed = value.trim();
@@ -194,7 +205,7 @@ export default function SpaClient() {
     }
 
     setFormErrors(prev => {
-      const guests = { ...prev.guests } || {};
+      const guests = { ...prev.guests };
       guests[uniqueId] = { ...guests[uniqueId], [field]: error };
       return { ...prev, guests };
     });
@@ -214,7 +225,55 @@ export default function SpaClient() {
       if (!gNameValid || !gEmailValid) guestsValid = false;
     });
 
-    return nameValid && emailValid && phoneValid && guestsValid;
+    let additionalGuestsValid = true;
+    additionalGuests.forEach(g => {
+      const nameValid = !!g.name.trim();
+      if (!nameValid) {
+        updateGuest(g.id, 'name', '');
+        additionalGuestsValid = false;
+      }
+    });
+
+    return nameValid && emailValid && phoneValid && guestsValid && additionalGuestsValid;
+  };
+
+  const buildGuestSlots = (): IGuestSlot[] => {
+    if (!spa) return [];
+    const guestSlots: IGuestSlot[] = [];
+    let guestIdx = 0;
+
+    // We need to find available slots for additional guests.
+    // We'll iterate through all dates and slots of the CURRENT SPA.
+    spa.SpaDates?.forEach(spaDate => {
+      spaDate.Slots?.forEach(slot => {
+        const selectedUniqueId = getSlotUniqueId(slot.id, spaDate.id);
+        const isCurrentlySelected = selectedSlots.has(selectedUniqueId);
+
+        // Active slots that ARE NOT the one picked as the primary for a selected slot
+        const availableAvailabilities = slot.slotsAvailable?.filter(a => {
+          if (a.status !== 'active') return false;
+          // If this slot is selected, one of its 'active' availabilities is already taken by the primary selection
+          if (isCurrentlySelected && a.id === selectedSlots.get(selectedUniqueId)?.slotsAvailableId) return false;
+          return true;
+        }) || [];
+
+        availableAvailabilities.forEach(avail => {
+          if (guestIdx < additionalGuests.length) {
+            const g = additionalGuests[guestIdx];
+            guestSlots.push({
+              guestName: g.name,
+              guestEmail: g.email || null,
+              spaId: spa.id,
+              slotsAvailableId: avail.id,
+              amount: spa.isInclusive ? 0 : (spa.discountValue || 0),
+            });
+            guestIdx++;
+          }
+        });
+      });
+    });
+
+    return guestSlots;
   };
 
   const handleConfirmBooking = async () => {
@@ -235,7 +294,7 @@ export default function SpaClient() {
     try {
       const slotsData = Array.from(selectedSlots.values()).map(s => ({
         spaId: s.spaId,
-        slotsAvailableId: s.slotId,
+        slotsAvailableId: s.slotsAvailableId,
         amount: s.amount,
         userName: guestDetails[s.id]?.name,
         userEmail: guestDetails[s.id]?.email,
@@ -246,6 +305,7 @@ export default function SpaClient() {
         userEmail: customerEmail.trim(),
         userContactNumber: customerPhone.trim(),
         slots: slotsData,
+        additionalGuests: guestSlots,
         userName: customerName,
         currencyCode: spa?.currencyCode as CurrencyCode || "AED",
         bookingCode: searchParams.get("bookingCode") || "",
@@ -336,6 +396,10 @@ export default function SpaClient() {
     }, 0) || 0) : 0), 0) || 0,
     [spa],
   );
+
+  const canAddMoreGuests = useMemo(() => {
+    return availableSlots > (selectedSlots.size + additionalGuests.length);
+  }, [availableSlots, selectedSlots.size, additionalGuests.length]);
   const coverImage = spa?.images?.[0];
 
   return (
@@ -369,8 +433,8 @@ export default function SpaClient() {
             {/* Spa Hero */}
             <div className="overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm">
               {coverImage && (
-                <div className="h-52 w-full overflow-hidden">
-                  <img src={coverImage} alt={spa.name} className="h-full w-full object-cover" />
+                <div className="relative h-52 w-full overflow-hidden">
+                  <Image src={coverImage} alt={spa.name} fill className="object-cover" />
                 </div>
               )}
               <div className="p-6">
@@ -732,7 +796,7 @@ export default function SpaClient() {
                     </button>
                   </div>
 
-                  {additionalGuests.map((guest, idx) => (
+                  {additionalGuests.map((guest: GuestEntry, idx: number) => (
                     <div key={guest.id} className="rounded-2xl border border-stone-200 bg-stone-50 p-3 space-y-2">
                       <div className="flex items-center justify-between">
                         <p className="text-xs font-semibold text-stone-500">
