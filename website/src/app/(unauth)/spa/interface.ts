@@ -50,6 +50,7 @@ export interface ISpaDate {
   id: string;
   date: string;
   Slots?: ISpaSlot[];
+  slots?: ISpaSlot[];
 }
 
 export interface ISpa {
@@ -80,11 +81,20 @@ export interface ICreateSpaReservationSlot {
   userEmail?: string;
 }
 
+export interface IGuestSlot {
+  guestName: string;
+  guestEmail?: string | null;
+  spaId: string;
+  slotsAvailableId: string;
+  amount: number;
+}
+
 export interface ICreateSpaReservationRequest {
   userEmail: string;
   userContactNumber: string;
   userName: string;
   slots: ICreateSpaReservationSlot[];
+  additionalGuests?: IGuestSlot[];
   currencyCode: CurrencyCode;
   bookingCode?: string;
   additionalGuests?: IGuestSlot[];
