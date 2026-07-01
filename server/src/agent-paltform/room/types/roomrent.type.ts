@@ -234,19 +234,17 @@ export interface IDailyPriceBrakeDown {
 export interface IAgentPricingResponse {
     currencyCode: CurrencyCode;
 
-    // ── Top-level flat (mirrors B2C PriceBrakeDown) ───────────────────
-    totalAmount: number; // currentChargeableAmount + latterpayableAmount
-    amountBeforeTax: number; // base + additional guest charges
-    taxedAmount: number; // priority-based tax on subtotal
-    totalAddonAmount: number; // included addons total
-    totalPromotionAmount: number; // always 0 (no promotions for agent)
-    currentChargeableAmount: number; // subtotal + taxedAmount
-    latterpayableAmount: number; // tourist tax — paid at property
-    loyalityDiscount: number; // always 0
-    promoCodeDiscount: number; // always 0
+    totalAmount: number; 
+    amountBeforeTax: number; 
+    taxedAmount: number; 
+    totalAddonAmount: number; 
+    totalPromotionAmount: number; 
+    currentChargeableAmount: number; 
+    latterpayableAmount: number; 
+    loyalityDiscount: number; 
+    promoCodeDiscount: number; 
 
-    // ── Agent-specific ────────────────────────────────────────────────
-    agencyCommissionAmount: number; // commission on amountBeforeTax
+    agencyCommissionAmount: number; 
     agencyCommission: IAgencyCommissionDetail;
 
     // ── Breakdowns ────────────────────────────────────────────────────

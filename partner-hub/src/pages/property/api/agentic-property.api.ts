@@ -18,4 +18,3 @@ export const fetchProperties = async (location?: string, country?: string) => {
     }
 };
 
-

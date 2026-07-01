@@ -121,6 +121,9 @@ export interface IBaseByGuestAmt {
 
 
 
+
+
+
 export interface IAgenticRoomPrice {
     ratePlanName: string;
     ratePlanCode: string;
@@ -143,6 +146,12 @@ export interface IAppliedCommisions{
  commissionCurrency:CurrencyCode;
  calculatedCommissionAmount:number;    
 }
+export interface IAppliedCommisions{
+ commissionType:CommissionType;
+ commissionValue:number;
+ commissionCurrency:CurrencyCode;
+ calculatedCommissionAmount:number;    
+}
 
 export interface IAgenticAmenity {
   amenity:{
@@ -151,6 +160,8 @@ export interface IAgenticAmenity {
     icon:string|null;
   }
 }
+
+  
 
 
 export interface IAgenticRoomFull {
@@ -170,6 +181,11 @@ export interface IAgenticRoomFull {
     
 }
 
+export interface IRoomVideo{
+    roomId:string;
+    url: string; 
+    thumbnail: string | null
+}
 export interface IRoomVideo{
     roomId:string;
     url: string; 
@@ -250,6 +266,7 @@ export interface IChargePerDay {
     isAvailable: boolean;
     charge: ICharge;
 }
+
 
 
 
