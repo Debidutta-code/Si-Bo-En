@@ -97,13 +97,4 @@ export interface ICreateSpaReservationRequest {
   additionalGuests?: IGuestSlot[];
   currencyCode: CurrencyCode;
   bookingCode?: string;
-  additionalGuests?: IGuestSlot[];
-}
-
-export interface IGuestSlot {
-  guestName: string;
-  guestEmail: string | null;
-  spaId: string;
-  slotsAvailableId: string;
-  amount: number;
 }
