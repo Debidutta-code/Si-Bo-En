@@ -24,7 +24,7 @@
     "status": "Статус",
     "date": "Дата",
     "time": "Время",
-    "name": "Название",
+    "name": "Имя",
     "description": "Описание",
     "email": "Эл. почта",
     "phone": "Телефон",
@@ -79,13 +79,22 @@
     "creating": "Создание...",
     "saving": "Сохранение...",
     "loadingTranslations": "Загрузка переводов...",
-"noTranslationsFound": "Переводы не найдены.",
-"pleaseSelectLanguage": "Пожалуйста, выберите язык",
-"pleaseFillOneField": "Пожалуйста, заполните хотя бы одно поле",
-"translationSaved": "Перевод успешно сохранен!",
-"failedToSaveTranslation": "Не удалось сохранить перевод",
-"translationUpdated": "Перевод успешно обновлен!",
-"failedToUpdateTranslation": "Не удалось обновить перевод"
+    "noTranslationsFound": "Переводы не найдены.",
+    "pleaseSelectLanguage": "Пожалуйста, выберите язык",
+    "pleaseFillOneField": "Пожалуйста, заполните хотя бы одно поле",
+    "translationSaved": "Перевод успешно сохранен!",
+    "failedToSaveTranslation": "Не удалось сохранить перевод",
+    "translationUpdated": "Перевод успешно обновлен!",
+    "failedToUpdateTranslation": "Не удалось обновить перевод",
+    "dates": "Даты",
+    "slot": "Слот",
+    "slots": "Слоты",
+    "seat": "Место",
+    "seats": "Места",
+    "deactivate": "Деактивировать",
+    "activate": "Активировать",
+    "days": "Дни",
+    "to": "to"
   },
   "AddRoomLangDialog": {
     "title": "Добавить перевод номера",
@@ -103,7 +112,7 @@
       "saveSuccess": "Перевод номера успешно добавлен!",
       "saveFailed": "Не удалось добавить перевод."
     }
-  },   
+  },
   "BookingStatus": {
     "confirmed": "Подтверждено",
     "cancelled": "Отменено",
@@ -2095,8 +2104,7 @@
       "placeholder": "например, Номер телефона",
       "checkTranslations": "Переводы полей лояльности",
       "editTranslation": "Редактировать перевод поля лояльности",
-          "noTranslationsFound": "Переводы не найдены."   
-
+      "noTranslationsFound": "Переводы не найдены."
     }
   },
   "Loyalty": {
@@ -4487,6 +4495,9 @@
       "markCompletedSuccess": "Слот отмечен как выполненный",
       "markCompletedFailed": "Не удалось отметить слот как выполненный",
       "markCompletedError": "Произошла ошибка при отметке слота как выполненного"
+    },
+    "table": {
+      "na": "Н/Д"
     }
   },
   "SpaCalendar": {
@@ -4586,7 +4597,8 @@
     "numberOfSlots": "Количество последовательных слотов (по {{serviceTime}} мин каждый)",
     "preview": "Это сгенерирует {{count}} слот(ов), автоматически рассчитывая интервалы в {{serviceTime}} минут с окончанием в {{endTime}}.",
     "cancel": "Отмена",
-    "addSlots": "Добавить слоты"
+    "addSlots": "Добавить слоты",
+    "noOfSlots": "Кол-во слотов"
   },
   "goBack": "Назад",
   "AddCreationLanguageDialog": {
@@ -5249,5 +5261,25 @@
       "percentage": "Процент",
       "fixedAmount": "Фиксированная сумма"
     }
+  },
+  "SpaConfigDialog": {
+    "title": "Настройка дат спа",
+    "modeDayOnly": "Только конфигурация дня",
+    "modeDaySlots": "День + Слоты",
+    "firstSlotStartTime": "Время начала первого слота",
+    "numberOfSlots": "Количество слотов (по {{serviceTime}} мин каждый)",
+    "availabilityPerSlot": "Доступность на слот",
+    "eachDayFrom": "каждый день с",
+    "perSlot": "на слот"
+  },
+  "SpaSlotAvailabilityModal": {
+    "title": "Доступность слота —",
+    "availabilityStatus": "из доступных",
+    "noRecords": "Нет записей о доступности",
+    "resDetails": "Детали бронирования",
+    "resId": "ID бронирования",
+    "deleteTitle": "Удалить слот доступности?",
+    "deleteDescription": "Это навсегда удалит запись о доступности. Это действие нельзя отменить.",
+    "viewReservation": "Просмотреть бронирование"
   }
 }

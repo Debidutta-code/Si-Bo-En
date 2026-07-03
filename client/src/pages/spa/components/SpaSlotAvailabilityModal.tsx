@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
@@ -66,6 +67,7 @@ function IconAction({
 export default function SpaSlotAvailabilityModal({
     isOpen, onClose, slot, onUpdateStatus, onDeleteAvailability,
 }: Props) {
+    const { t } = useTranslation();
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [loadingId, setLoadingId] = useState<string | null>(null);
     const [viewReservation, setViewReservation] = useState<ISlotsAvailable | null>(null);
@@ -97,19 +99,19 @@ export default function SpaSlotAvailabilityModal({
                 <DialogContent className="sm:max-w-lg">
                     <DialogHeader>
                         <DialogTitle className="text-sm font-semibold">
-                            Slot Availability —{' '}
+                            {t("SpaSlotAvailabilityModal.title")}{' '}
                             {format(new Date(String(slot.startTime).replace('Z', '')), 'h:mm a')}
                             {' → '}
                             {format(new Date(String(slot.endTime ?? new Date().toISOString()).replace('Z', '')), 'h:mm a')}
                         </DialogTitle>
                         <p className="text-xs text-gray-500 mt-0.5">
-                            {activeCount} of {total} available
+                            {activeCount} {t("SpaSlotAvailabilityModal.availabilityStatus")} {total}
                         </p>
                     </DialogHeader>
 
                     <div className="flex flex-col gap-2 py-2 max-h-96 overflow-y-auto">
                         {slot.slotsAvailable.length === 0 ? (
-                            <p className="text-sm text-gray-400 text-center py-4">No availability records</p>
+                            <p className="text-sm text-gray-400 text-center py-4">{t("SpaSlotAvailabilityModal.noRecords")}</p>
                         ) : (
                             slot.slotsAvailable.map((avail) => {
                                 const isLocked = avail.status === 'booked' || avail.status === 'completed' || avail.status === 'cancelled';
@@ -134,7 +136,7 @@ export default function SpaSlotAvailabilityModal({
                                                     {isBooked && (
                                                         <IconAction
                                                             icon={<Eye className="w-3.5 h-3.5" />}
-                                                            label="View Reservation"
+                                                            label={t("SpaSlotAvailabilityModal.viewReservation")}
                                                             tone="blue"
                                                             onClick={() => setViewReservation(avail)}
                                                         />
@@ -142,14 +144,14 @@ export default function SpaSlotAvailabilityModal({
                                                     {!isLocked && (
                                                         <IconAction
                                                             icon={avail.status === 'active' ? <XCircle className="w-3.5 h-3.5" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                                                            label={avail.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                            label={avail.status === 'active' ? t("Common.deactivate") : t("Common.activate")}
                                                             tone={avail.status === 'active' ? 'gray' : 'green'}
                                                             onClick={() => handleStatusToggle(avail)}
                                                         />
                                                     )}
                                                     <IconAction
                                                         icon={<Trash2 className="w-3.5 h-3.5" />}
-                                                        label="Delete"
+                                                        label={t("Common.delete")}
                                                         tone="red"
                                                         disabled={avail.status === 'booked'}
                                                         onClick={() => setDeleteTarget(avail.id)}
@@ -169,13 +171,13 @@ export default function SpaSlotAvailabilityModal({
             <Dialog open={!!viewReservation} onOpenChange={(open) => !open && setViewReservation(null)}>
                 <DialogContent className="sm:max-w-sm">
                     <DialogHeader>
-                        <DialogTitle className="text-sm font-semibold">Reservation Details</DialogTitle>
+                        <DialogTitle className="text-sm font-semibold">{t("SpaSlotAvailabilityModal.resDetails")}</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
                         <div className="flex items-center gap-2.5 p-2.5 rounded-lg border bg-gray-50">
                             <User className="w-4 h-4 text-gray-500" />
                             <div>
-                                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Customer</p>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-wide">{t("Common.name")}</p>
                                 {/* NOTE: adjust this field to match your actual reservation/user name field on ISlotsAvailable */}
                                 <p className="text-sm text-gray-800">{viewReservation?.userName ?? 'Unknown'}</p>
                             </div>
@@ -183,7 +185,7 @@ export default function SpaSlotAvailabilityModal({
                         <div className="flex items-center gap-2.5 p-2.5 rounded-lg border bg-gray-50">
                             <Hash className="w-4 h-4 text-gray-500" />
                             <div>
-                                <p className="text-[10px] text-gray-400 uppercase tracking-wide">Reservation ID</p>
+                                <p className="text-[10px] text-gray-400 uppercase tracking-wide">{t("SpaSlotAvailabilityModal.resId")}</p>
                                 <p className="text-sm text-gray-800 break-all">{viewReservation?.reservationId ?? '—'}</p>
                             </div>
                         </div>
@@ -195,15 +197,15 @@ export default function SpaSlotAvailabilityModal({
             <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete availability slot?</AlertDialogTitle>
+                        <AlertDialogTitle>{t("SpaSlotAvailabilityModal.deleteTitle")}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove this availability record. This cannot be undone.
+                            {t("SpaSlotAvailabilityModal.deleteDescription")}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>{t("Common.cancel")}</AlertDialogCancel>
                         <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={handleDeleteConfirm}>
-                            Delete
+                            {t("Common.delete")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

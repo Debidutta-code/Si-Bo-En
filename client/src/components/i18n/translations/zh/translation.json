@@ -24,7 +24,7 @@
     "status": "状态",
     "date": "日期",
     "time": "时间",
-    "name": "名称",
+    "name": "姓名",
     "description": "描述",
     "email": "电子邮箱",
     "phone": "电话",
@@ -79,13 +79,22 @@
     "creating": "创建中...",
     "saving": "保存中...",
     "loadingTranslations": "加载翻译中...",
-"noTranslationsFound": "未找到翻译。",
-"pleaseSelectLanguage": "请选择语言",
-"pleaseFillOneField": "请至少填写一个字段",
-"translationSaved": "翻译保存成功！",
-"failedToSaveTranslation": "保存翻译失败",
-"translationUpdated": "翻译更新成功！",
-"failedToUpdateTranslation": "更新翻译失败"
+    "noTranslationsFound": "未找到翻译。",
+    "pleaseSelectLanguage": "请选择语言",
+    "pleaseFillOneField": "请至少填写一个字段",
+    "translationSaved": "翻译保存成功！",
+    "failedToSaveTranslation": "保存翻译失败",
+    "translationUpdated": "翻译更新成功！",
+    "failedToUpdateTranslation": "更新翻译失败",
+    "dates": "日期",
+    "slot": "时段",
+    "slots": "时段",
+    "seat": "座位",
+    "seats": "座位",
+    "deactivate": "停用",
+    "activate": "启用",
+    "days": "天",
+    "to": "to"
   },
   "AddRoomLangDialog": {
     "title": "添加房间翻译",
@@ -145,8 +154,6 @@
     "october": "十月",
     "november": "十一月",
     "december": "十二月"
-    
-
   },
   "Sidebar": {
     "dashboard": "仪表板",
@@ -2097,8 +2104,7 @@
       "placeholder": "例如：电话号码",
       "checkTranslations": "忠诚度字段翻译",
       "editTranslation": "编辑忠诚度字段翻译",
-          "noTranslationsFound": "未找到翻译。"
-
+      "noTranslationsFound": "未找到翻译。"
     }
   },
   "Loyalty": {
@@ -4490,6 +4496,9 @@
       "markCompletedSuccess": "时段已标记为已完成",
       "markCompletedFailed": "将时段标记为已完成失败",
       "markCompletedError": "将时段标记为已完成时发生错误"
+    },
+    "table": {
+      "na": "无"
     }
   },
   "SpaCalendar": {
@@ -4589,7 +4598,8 @@
     "numberOfSlots": "连续时段数量（每个 {{serviceTime}} 分钟）",
     "preview": "这将生成 {{count}} 个时段，自动计算 {{serviceTime}} 分钟的间隔，结束于 {{endTime}}。",
     "cancel": "取消",
-    "addSlots": "添加时段"
+    "addSlots": "添加时段",
+    "noOfSlots": "槽位数"
   },
   "goBack": "返回",
   "AddCreationLanguageDialog": {
@@ -5252,5 +5262,25 @@
       "percentage": "百分比",
       "fixedAmount": "固定金额"
     }
+  },
+  "SpaConfigDialog": {
+    "title": "配置水疗日期",
+    "modeDayOnly": "仅日期配置",
+    "modeDaySlots": "日期 + 时段",
+    "firstSlotStartTime": "第一个时段开始时间",
+    "numberOfSlots": "时段数量（每个 {{serviceTime}} 分钟）",
+    "availabilityPerSlot": "每个时段的可用性",
+    "eachDayFrom": "每天从",
+    "perSlot": "每个时段"
+  },
+  "SpaSlotAvailabilityModal": {
+    "title": "时段可用性 —",
+    "availabilityStatus": "可用",
+    "noRecords": "无可用记录",
+    "resDetails": "预订详情",
+    "resId": "预订 ID",
+    "deleteTitle": "删除可用时段？",
+    "deleteDescription": "这将永久删除此可用性记录。此操作无法撤销。",
+    "viewReservation": "查看预订"
   }
 }

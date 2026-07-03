@@ -784,7 +784,8 @@
     "states": {
       "noPropertyCode": "Add ?code=PROPERTY_CODE to the URL.",
       "loading": "Loading…",
-      "spaNotFound": "Spa not found for this property code."
+      "spaNotFound": "Spa not found for this property code.",
+      "urlInstruction": "Add ?code=PROPERTY_CODE to the URL."
     },
     "hero": {
       "noDescription": "No description available.",
@@ -813,7 +814,10 @@
       "inclusive": "Inclusive",
       "price": {
         "slots": "Slots",
-        "total": "Total"
+        "total": "Total",
+        "totalAmount": "Total Amount",
+        "totalGuests": "Total Guests: {{count}}",
+        "totalSlots": "Total Slots: {{count}}"
       },
       "yourDetails": "Your Details",
       "additionalGuests": "Additional Guests",
@@ -825,13 +829,17 @@
         "email": "Email address *",
         "phone": "Phone number *",
         "guestName": "Guest full name (required)",
-        "guestEmail": "Guest email (optional)"
+        "guestEmail": "Guest email (optional)",
+        "guestEmailOptional": "Guest email (optional)"
       },
       "cancel": "Cancel",
       "bookSlot": "Book {{count}} Slot",
       "bookSlots": "Book {{count}} Slots",
       "booking": "Booking…",
-      "availableSlotsLabel": "Available Slots"
+      "availableSlotsLabel": "Available Slots",
+      "subtitle": "Review and confirm your selection",
+      "confirmAndBook": "Confirm and Book",
+      "perPerson": "Per Person"
     },
     "validation": {
       "nameRequired": "Full name is required.",
@@ -850,7 +858,8 @@
       "loginRequired": "Please login to book spa slots",
       "bookSuccess": "{{count}} slot(s) booked!",
       "bookFailed": "Failed to create booking.",
-      "cancelMissingId": "Unable to cancel: booking ID missing."
+      "cancelMissingId": "Unable to cancel: booking ID missing.",
+      "noMoreSpots": "No more spots available in this slot"
     }
   },
   "ProfileHomePage": {

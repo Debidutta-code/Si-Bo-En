@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ interface Props {
 export default function SpaConfigDialog({
     isOpen, onClose, onSave, selectedDates, serviceTime, forceWithSlots = false,
 }: Props) {
+    const { t } = useTranslation();
     const [mode, setMode] = useState<'day-only' | 'day-slots'>('day-slots');
     const [startTime, setStartTime] = useState('');
     const [numberOfSlots, setNumberOfSlots] = useState(1);
@@ -102,7 +104,7 @@ export default function SpaConfigDialog({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <CalendarRange className="w-5 h-5 text-blue-500" />
-                        Configure Spa Dates
+                        {t("SpaConfigDialog.title")}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -116,7 +118,7 @@ export default function SpaConfigDialog({
                                 : `${format(rangeStart, 'MMM dd')} → ${format(rangeEnd, 'MMM dd, yyyy')}`}
                         </div>
                         <div className="ml-auto text-xs text-blue-500 font-semibold bg-blue-100 px-2 py-0.5 rounded-full">
-                            {sortedDates.length} {sortedDates.length === 1 ? 'day' : 'days'}
+                            {sortedDates.length} {sortedDates.length === 1 ? t('Common.day') : t('Common.days')}
                         </div>
                     </div>
 
@@ -132,7 +134,7 @@ export default function SpaConfigDialog({
                                 }`}
                             >
                                 <Calendar className="w-4 h-4" />
-                                Day Config Only
+                                {t("SpaConfigDialog.modeDayOnly")}
                             </button>
                             <button
                                 onClick={() => setMode('day-slots')}
@@ -143,7 +145,7 @@ export default function SpaConfigDialog({
                                 }`}
                             >
                                 <Clock className="w-4 h-4" />
-                                Day + Slots
+                                {t("SpaConfigDialog.modeDaySlots")}
                             </button>
                         </div>
                     )}
@@ -154,7 +156,7 @@ export default function SpaConfigDialog({
                             <div className="space-y-1.5">
                                 <Label className="flex items-center gap-1.5 text-sm font-medium">
                                     <Clock className="w-3.5 h-3.5 text-gray-400" />
-                                    First slot start time
+                                    {t("SpaConfigDialog.firstSlotStartTime")}
                                 </Label>
                                 <Input
                                     type="time"
@@ -167,7 +169,7 @@ export default function SpaConfigDialog({
                             <div className="space-y-1.5">
                                 <Label className="flex items-center gap-1.5 text-sm font-medium">
                                     <Hash className="w-3.5 h-3.5 text-gray-400" />
-                                    Number of slots ({serviceTime} min each)
+                                    {t("SpaConfigDialog.numberOfSlots", { serviceTime })}
                                 </Label>
                                 <Input
                                     type="number"
@@ -181,7 +183,7 @@ export default function SpaConfigDialog({
                             <div className="space-y-1.5">
                                 <Label className="flex items-center gap-1.5 text-sm font-medium">
                                     <Users className="w-3.5 h-3.5 text-gray-400" />
-                                    Availability per slot
+                                    {t("SpaConfigDialog.availabilityPerSlot")}
                                 </Label>
                                 <Input
                                     type="number"
@@ -193,16 +195,16 @@ export default function SpaConfigDialog({
 
                             {previewStart && previewEnd && (
                                 <div className="text-xs text-gray-500 bg-gray-50 border rounded p-3 leading-relaxed">
-                                    <span className="font-semibold text-gray-700">{numberOfSlots} slot{numberOfSlots > 1 ? 's' : ''}</span>
+                                    <span className="font-semibold text-gray-700">{numberOfSlots} {numberOfSlots > 1 ? t('Common.slots') : t('Common.slot')}</span>
                                     {' × '}
-                                    <span className="font-semibold text-gray-700">{sortedDates.length} day{sortedDates.length > 1 ? 's' : ''}</span>
-                                    {' — each day from '}
+                                    <span className="font-semibold text-gray-700">{sortedDates.length} {sortedDates.length > 1 ? t('Common.days') : t('Common.day')}</span>
+                                    {' — '} {t("SpaConfigDialog.eachDayFrom")} {' '}
                                     <span className="font-semibold text-gray-700">{previewStart}</span>
-                                    {' to '}
+                                    {' '} {t("Common.to")} {' '}
                                     <span className="font-semibold text-gray-700">{previewEnd}</span>
                                     {', '}
-                                    <span className="font-semibold text-gray-700">{availability} seat{availability > 1 ? 's' : ''}</span>
-                                    {' per slot'}
+                                    <span className="font-semibold text-gray-700">{availability} {availability > 1 ? t('Common.seats') : t('Common.seat')}</span>
+                                    {' '} {t("SpaConfigDialog.perSlot")}
                                 </div>
                             )}
                         </>
@@ -210,9 +212,9 @@ export default function SpaConfigDialog({
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose}>Cancel</Button>
+                    <Button variant="outline" onClick={onClose}>{t("Common.cancel")}</Button>
                     <Button onClick={handleSave} disabled={!canSave}>
-                        Configure {sortedDates.length} {sortedDates.length === 1 ? 'Date' : 'Dates'}
+                        {t("SpaDateCell.configure")} {sortedDates.length} {sortedDates.length === 1 ? t('Common.date') : t('Common.dates')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

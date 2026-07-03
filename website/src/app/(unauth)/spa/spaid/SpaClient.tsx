@@ -390,7 +390,7 @@ export default function SpaClient() {
 
         {!hasPropertyCode ? (
           <div className="rounded-3xl border border-dashed border-stone-300 bg-white p-12 text-center text-stone-500">
-            Add <code className="rounded bg-stone-100 px-2 py-0.5 font-mono text-sm">?code=PROPERTY_CODE</code> to the URL.
+            {t("SpaClient.states.urlInstruction")}
           </div>
         ) : loading ? (
           <div className="rounded-3xl border border-stone-200 bg-white p-16 text-center">
@@ -662,7 +662,7 @@ export default function SpaClient() {
                             <p className="text-sm font-bold text-emerald-700">
                               {s.amount === 0 ? t("SpaClient.modal.inclusive") : `${(currencies.find((c: Currency) => c.code === (spa?.currencyCode || "AED"))?.symbol || spa?.currencyCode || "AED")} ${formatNumber(s.amount)}`}
                             </p>
-                            <p className="text-[10px] text-stone-400 uppercase font-semibold tracking-wider">Per Person</p>
+                            <p className="text-[10px] text-stone-400 uppercase font-semibold tracking-wider">{t("SpaClient.modal.perPerson")}</p>
                           </div>
                         </div>
 

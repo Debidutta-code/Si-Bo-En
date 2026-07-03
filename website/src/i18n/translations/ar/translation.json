@@ -277,7 +277,6 @@
     "continueWithPlural": "متابعة مع {{count}} إضافات"
   },
   "GuestForm": {
-    
     "title": "أكمل حجزك",
     "adult": "بالغ",
     "child": "طفل",
@@ -323,7 +322,7 @@
     "promotions": "العروض والتعديلات:",
     "payAtHotel": "(الدفع في الفندق)",
     "loyaltyDiscount": "خصم الولاء:",
-      "customizableDealDiscount": "خصم خاص",
+    "customizableDealDiscount": "خصم خاص",
     "promoCodeDiscount": "خصم الرمز الترويجي:",
     "taxesAndFees": "الضرائب والرسوم:",
     "amountPaidLater": "المبلغ الواجب دفعه لاحقاً:",
@@ -531,7 +530,7 @@
     "no": "لا",
     "totalActivityCharges": "إجمالي رسوم الأنشطة",
     "printItinerary": "طباعة المسار",
-      "customizableDealDiscount": "خصم خاص",
+    "customizableDealDiscount": "خصم خاص",
     "promoCodeDiscount": "خصم رمز القسيمة",
     "loyaltyDiscount": "خصم الولاء",
     "amountBeforeTax": "المبلغ قبل الضريبة",
@@ -785,7 +784,8 @@
     "states": {
       "noPropertyCode": "أضف ?code=PROPERTY_CODE إلى الرابط.",
       "loading": "جاري التحميل…",
-      "spaNotFound": "لم يتم العثور على السبا لرمز المنشأة هذا."
+      "spaNotFound": "لم يتم العثور على السبا لرمز المنشأة هذا.",
+      "urlInstruction": "أضف ?code=PROPERTY_CODE إلى الرابط."
     },
     "hero": {
       "noDescription": "لا يوجد وصف متاح.",
@@ -803,7 +803,9 @@
       "selectedBadge": "{{count}} محدد",
       "slotOpen": "مفتوح",
       "slotSelected": "محدد",
-      "toTime": "إلى {{time}}"
+      "toTime": "إلى {{time}}",
+      "spotsLeft": "تبقى {{count}} أماكن",
+      "lastSpot": "آخر مكان"
     },
     "bookingButton": "مراجعة وحجز ({{count}})",
     "modal": {
@@ -812,19 +814,29 @@
       "inclusive": "شامل",
       "price": {
         "slots": "المواعيد",
-        "total": "المجموع"
+        "total": "المجموع",
+        "totalAmount": "المبلغ الإجمالي",
+        "totalGuests": "إجمالي الضيوف: {{count}}",
+        "totalSlots": "إجمالي الفترات: {{count}}"
       },
       "yourDetails": "تفاصيلك",
       "placeholders": {
         "fullName": "الاسم الكامل *",
         "email": "البريد الإلكتروني *",
-        "phone": "رقم الهاتف *"
+        "phone": "رقم الهاتف *",
+        "guestName": "اسم الضيف الكامل (مطلوب)",
+        "guestEmailOptional": "بريد الضيف الإلكتروني (اختياري)"
       },
       "cancel": "إلغاء",
       "bookSlot": "حجز {{count}} موعد",
       "bookSlots": "حجز {{count}} مواعيد",
       "booking": "جاري الحجز…",
-      "availableSlotsLabel": "المواعيد المتاحة"
+      "availableSlotsLabel": "المواعيد المتاحة",
+      "subtitle": "راجع وأكد اختيارك",
+      "addGuest": "إضافة ضيف",
+      "additionalGuests": "ضيوف إضافيون",
+      "confirmAndBook": "تأكيد وحجز",
+      "perPerson": "لكل شخص"
     },
     "validation": {
       "nameRequired": "الاسم الكامل مطلوب.",
@@ -841,7 +853,8 @@
       "loginRequired": "يرجى تسجيل الدخول لحجز مواعيد السبا",
       "bookSuccess": "تم حجز {{count}} موعد(مواعيد)!",
       "bookFailed": "فشل في إنشاء الحجز.",
-      "cancelMissingId": "تعذر الإلغاء: معرف الحجز مفقود."
+      "cancelMissingId": "تعذر الإلغاء: معرف الحجز مفقود.",
+      "noMoreSpots": "لا توجد أماكن متاحة في هذه الفترة"
     }
   },
   "ProfileHomePage": {

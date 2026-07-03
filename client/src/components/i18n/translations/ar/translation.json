@@ -93,7 +93,15 @@
     "recover": "استعادة",
     "deleted": "محذوف",
     "to": "إلى",
-    "from": "من"
+    "from": "من",
+    "dates": "التواريخ",
+    "slot": "فترة",
+    "slots": "فترات",
+    "seat": "مقعد",
+    "seats": "مقاعد",
+    "deactivate": "تعطيل",
+    "activate": "تفعيل",
+    "days": "أيام"
   },
   "AddRoomLangDialog": {
     "title": "إضافة ترجمة الغرفة",
@@ -4627,6 +4635,9 @@
       "markCompletedSuccess": "تم وضع علامة مكتمل على الفترة",
       "markCompletedFailed": "فشل وضع علامة مكتمل على الفترة",
       "markCompletedError": "حدث خطأ أثناء وضع علامة مكتمل على الفترة"
+    },
+    "table": {
+      "na": "غير متاح"
     }
   },
   "SpaCalendar": {
@@ -4726,7 +4737,8 @@
     "numberOfSlots": "عدد الفترات المتتالية ({{serviceTime}} دقيقة لكل فترة)",
     "preview": "سيؤدي هذا إلى إنشاء {{count}} فترة، مع حساب تلقائي لفترات {{serviceTime}} دقيقة تنتهي في {{endTime}}.",
     "cancel": "إلغاء",
-    "addSlots": "إضافة فترات"
+    "addSlots": "إضافة فترات",
+    "noOfSlots": "عدد الفترات"
   },
   "goBack": "رجوع",
   "AddCreationLanguageDialog": {
@@ -5962,5 +5974,25 @@
     "cancel": "إلغاء",
     "addBtnCount": "إضافة {{count}} غرفة",
     "addBtn": "إضافة غرف"
+  },
+  "SpaConfigDialog": {
+    "title": "تكوين تواريخ السبا",
+    "modeDayOnly": "تكوين اليوم فقط",
+    "modeDaySlots": "اليوم + الفترات",
+    "firstSlotStartTime": "وقت بدء الفترة الأولى",
+    "numberOfSlots": "عدد الفترات ({{serviceTime}} دقيقة لكل منها)",
+    "availabilityPerSlot": "التوفر لكل فترة",
+    "eachDayFrom": "كل يوم من",
+    "perSlot": "لكل فترة"
+  },
+  "SpaSlotAvailabilityModal": {
+    "title": "توفر الفترة —",
+    "availabilityStatus": "من المتاح",
+    "noRecords": "لا توجد سجلات توفر",
+    "resDetails": "تفاصيل الحجز",
+    "resId": "معرف الحجز",
+    "deleteTitle": "هل تريد حذف فترة التوفر؟",
+    "deleteDescription": "سيؤدي هذا إلى إزالة سجل التوفر هذا نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "viewReservation": "عرض الحجز"
   }
 }

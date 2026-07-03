@@ -277,7 +277,7 @@
     "continueWithPlural": "{{count}} ऐड-ऑन के साथ जारी रखें"
   },
   "GuestForm": {
-      "customizableDealDiscount": "विशेष छूट",
+    "customizableDealDiscount": "विशेष छूट",
     "title": "अपनी बुकिंग पूरी करें",
     "adult": "वयस्क",
     "notAvailable": "उपलब्ध नहीं",
@@ -530,7 +530,7 @@
     "no": "नहीं",
     "totalActivityCharges": "कुल गतिविधि शुल्क",
     "printItinerary": "यात्रा कार्यक्रम प्रिंट करें",
-          "customizableDealDiscount": "विशेष छूट",
+    "customizableDealDiscount": "विशेष छूट",
     "promoCodeDiscount": "प्रोमो कोड छूट",
     "loyaltyDiscount": "लॉयल्टी छूट",
     "amountBeforeTax": "कर से पहले की राशि",
@@ -784,7 +784,8 @@
     "states": {
       "noPropertyCode": "URL में ?code=PROPERTY_CODE जोड़ें।",
       "loading": "लोड हो रहा है...",
-      "spaNotFound": "इस संपत्ति कोड के लिए स्पा नहीं मिला।"
+      "spaNotFound": "इस संपत्ति कोड के लिए स्पा नहीं मिला।",
+      "urlInstruction": "URL में ?code=PROPERTY_CODE जोड़ें।"
     },
     "hero": {
       "noDescription": "कोई विवरण उपलब्ध नहीं।",
@@ -802,7 +803,9 @@
       "selectedBadge": "{{count}} चयनित",
       "slotOpen": "खुला",
       "slotSelected": "चयनित",
-      "toTime": "से {{time}}"
+      "toTime": "से {{time}}",
+      "spotsLeft": "{{count}} स्थान शेष",
+      "lastSpot": "अंतिम स्थान"
     },
     "bookingButton": "समीक्षा करें और बुक करें ({{count}})",
     "modal": {
@@ -811,19 +814,29 @@
       "inclusive": "समावेशी",
       "price": {
         "slots": "स्लॉट",
-        "total": "कुल"
+        "total": "कुल",
+        "totalAmount": "कुल राशि",
+        "totalGuests": "कुल अतिथि: {{count}}",
+        "totalSlots": "कुल स्लॉट: {{count}}"
       },
       "yourDetails": "आपका विवरण",
       "placeholders": {
         "fullName": "पूरा नाम *",
         "email": "ईमेल पता *",
-        "phone": "फ़ोन नंबर *"
+        "phone": "फ़ोन नंबर *",
+        "guestName": "अतिथि का पूरा नाम (आवश्यक)",
+        "guestEmailOptional": "अतिथि ईमेल (वैकल्पिक)"
       },
       "cancel": "रद्द करें",
       "bookSlot": "{{count}} स्लॉट बुक करें",
       "bookSlots": "{{count}} स्लॉट बुक करें",
       "booking": "बुकिंग हो रही है...",
-      "availableSlotsLabel": "उपलब्ध स्लॉट"
+      "availableSlotsLabel": "उपलब्ध स्लॉट",
+      "subtitle": "अपनी पसंद की समीक्षा करें और पुष्टि करें",
+      "addGuest": "अतिथि जोड़ें",
+      "additionalGuests": "अतिरिक्त अतिथि",
+      "confirmAndBook": "पुष्टि करें और बुक करें",
+      "perPerson": "प्रति व्यक्ति"
     },
     "validation": {
       "nameRequired": "पूरा नाम आवश्यक है।",
@@ -840,7 +853,8 @@
       "loginRequired": "स्पा स्लॉट बुक करने के लिए कृपया लॉगिन करें",
       "bookSuccess": "{{count}} स्लॉट बुक हो गया!",
       "bookFailed": "बुकिंग बनाने में विफल।",
-      "cancelMissingId": "रद्द करने में असमर्थ: बुकिंग आईडी गुम है।"
+      "cancelMissingId": "रद्द करने में असमर्थ: बुकिंग आईडी गुम है।",
+      "noMoreSpots": "इस स्लॉट में और स्थान उपलब्ध नहीं हैं"
     }
   },
   "ProfileHomePage": {

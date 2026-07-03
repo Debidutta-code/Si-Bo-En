@@ -5,7 +5,7 @@
     "success": "सफल",
     "save": "सहेजें",
     "cancel": "रद्द करें",
-    "delete": "हटाएं",
+    "delete": "मिटाएं",
     "edit": "संपादित करें",
     "add": "जोड़ें",
     "search": "खोजें",
@@ -93,7 +93,15 @@
     "recover": "पुनर्प्राप्त करें",
     "deleted": "हटाया गया",
     "to": "से",
-    "from": "तक"
+    "from": "तक",
+    "dates": "तिथियां",
+    "slot": "स्लॉट",
+    "slots": "स्लॉट",
+    "seat": "सीट",
+    "seats": "सीटें",
+    "deactivate": "निष्क्रिय करें",
+    "activate": "सक्रिय करें",
+    "days": "दिनों"
   },
   "AddRoomLangDialog": {
     "title": "कमरा अनुवाद जोड़ें",
@@ -4627,6 +4635,9 @@
       "markCompletedSuccess": "स्लॉट को पूर्ण के रूप में चिह्नित किया गया",
       "markCompletedFailed": "स्लॉट को पूर्ण के रूप में चिह्नित करने में विफल",
       "markCompletedError": "स्लॉट को पूर्ण के रूप में चिह्नित करते समय एक त्रुटि हुई"
+    },
+    "table": {
+      "na": "एन/ए"
     }
   },
   "SpaCalendar": {
@@ -4726,7 +4737,8 @@
     "numberOfSlots": "लगातार स्लॉट की संख्या (प्रत्येक {{serviceTime}} मिनट)",
     "preview": "यह {{count}} स्लॉट उत्पन्न करेगा, {{serviceTime}} मिनट के अंतराल पर {{endTime}} पर समाप्त होगा।",
     "cancel": "रद्द करें",
-    "addSlots": "स्लॉट जोड़ें"
+    "addSlots": "स्लॉट जोड़ें",
+    "noOfSlots": "स्लॉट की संख्या"
   },
   "goBack": "वापस जाएं",
   "AddCreationLanguageDialog": {
@@ -5962,5 +5974,25 @@
     "cancel": "रद्द करें",
     "addBtnCount": "{{count}} कमरे जोड़ें",
     "addBtn": "कमरे जोड़ें"
+  },
+  "SpaConfigDialog": {
+    "title": "स्पा तिथियां कॉन्फ़िگر करें",
+    "modeDayOnly": "केवल दिन कॉन्फ़िگرेशन",
+    "modeDaySlots": "दिन + स्लॉट",
+    "firstSlotStartTime": "पहले स्लॉट का प्रारंभ समय",
+    "numberOfSlots": "स्लॉट की संख्या (प्रत्येक {{serviceTime}} मिनट)",
+    "availabilityPerSlot": "प्रति स्लॉट उपलब्धता",
+    "eachDayFrom": "प्रत्येक दिन",
+    "perSlot": "प्रति स्लॉट"
+  },
+  "SpaSlotAvailabilityModal": {
+    "title": "स्लॉट उपलब्धता —",
+    "availabilityStatus": "उपलब्ध में से",
+    "noRecords": "कोई उपलब्धता रिकॉर्ड नहीं",
+    "resDetails": "आरक्षण विवरण",
+    "resId": "आरक्षण आईडी",
+    "deleteTitle": "उपलब्धता स्लॉट हटाएं?",
+    "deleteDescription": "यह इस उपलब्धता रिकॉर्ड को स्थायी रूप से हटा देगा। इसे पूर्ववत नहीं किया जा सकता।",
+    "viewReservation": "आरक्षण देखें"
   }
 }

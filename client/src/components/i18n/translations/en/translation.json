@@ -93,7 +93,15 @@
     "recover": "Recover",
     "deleted": "Deleted",
     "to": "to",
-    "from": "from"
+    "from": "from",
+    "dates": "Dates",
+    "slot": "Slot",
+    "slots": "Slots",
+    "seat": "Seat",
+    "seats": "Seats",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "days": "Days"
   },
   "AddRoomLangDialog": {
     "title": "Add Room Translation",
@@ -4627,6 +4635,9 @@
       "markCompletedSuccess": "Slot marked as completed",
       "markCompletedFailed": "Failed to mark slot as completed",
       "markCompletedError": "An error occurred while marking slot as completed"
+    },
+    "table": {
+      "na": "N/A"
     }
   },
   "SpaCalendar": {
@@ -4726,7 +4737,8 @@
     "numberOfSlots": "Number of Consecutive Slots ({{serviceTime}} mins each)",
     "preview": "This will generate {{count}} slot(s), auto-calculating {{serviceTime}} minute intervals ending at {{endTime}}.",
     "cancel": "Cancel",
-    "addSlots": "Add Slots"
+    "addSlots": "Add Slots",
+    "noOfSlots": "No. of Slots"
   },
   "goBack": "Go Back",
   "AddCreationLanguageDialog": {
@@ -5962,5 +5974,25 @@
     "cancel": "Cancel",
     "addBtnCount": "Add {{count}} Room(s)",
     "addBtn": "Add Room(s)"
+  },
+  "SpaConfigDialog": {
+    "title": "Configure Spa Dates",
+    "modeDayOnly": "Day Config Only",
+    "modeDaySlots": "Day + Slots",
+    "firstSlotStartTime": "First slot start time",
+    "numberOfSlots": "Number of slots ({{serviceTime}} min each)",
+    "availabilityPerSlot": "Availability per slot",
+    "eachDayFrom": "each day from",
+    "perSlot": "per slot"
+  },
+  "SpaSlotAvailabilityModal": {
+    "title": "Slot Availability —",
+    "availabilityStatus": "of available",
+    "noRecords": "No availability records",
+    "resDetails": "Reservation Details",
+    "resId": "Reservation ID",
+    "deleteTitle": "Delete availability slot?",
+    "deleteDescription": "This will permanently remove this availability record. This cannot be undone.",
+    "viewReservation": "View Reservation"
   }
 }

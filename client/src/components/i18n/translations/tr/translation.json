@@ -24,7 +24,7 @@
     "status": "Durum",
     "date": "Tarih",
     "time": "Saat",
-    "name": "İsim",
+    "name": "Ad",
     "description": "Açıklama",
     "email": "E-posta",
     "phone": "Telefon",
@@ -85,7 +85,16 @@
     "translationSaved": "Çeviri başarıyla kaydedildi!",
     "failedToSaveTranslation": "Çeviri kaydedilemedi",
     "translationUpdated": "Çeviri başarıyla güncellendi!",
-    "failedToUpdateTranslation": "Çeviri güncellenemedi"
+    "failedToUpdateTranslation": "Çeviri güncellenemedi",
+    "dates": "Tarihler",
+    "slot": "Slot",
+    "slots": "Slotlar",
+    "seat": "Koltuk",
+    "seats": "Koltuklar",
+    "deactivate": "Devre Dışı Bırak",
+    "activate": "Etkinleştir",
+    "days": "Günler",
+    "to": "to"
   },
   "AddRoomLangDialog": {
     "title": "Oda Çevirisi Ekle",
@@ -4471,6 +4480,9 @@
       "markCompletedSuccess": "Zaman aralığı tamamlandı olarak işaretlendi",
       "markCompletedFailed": "Zaman aralığı tamamlandı olarak işaretlenemedi",
       "markCompletedError": "Zaman aralığı tamamlandı olarak işaretlenirken bir hata oluştu"
+    },
+    "table": {
+      "na": "YOK"
     }
   },
   "SpaCalendar": {
@@ -4570,7 +4582,8 @@
     "numberOfSlots": "Ardışık Zaman Aralığı Sayısı (her biri {{serviceTime}} dk)",
     "preview": "Bu, {{endTime}}'de biten {{serviceTime}} dakikalık aralıkları otomatik olarak hesaplayarak {{count}} zaman aralığı oluşturacaktır.",
     "cancel": "İptal",
-    "addSlots": "Zaman Aralığı Ekle"
+    "addSlots": "Zaman Aralığı Ekle",
+    "noOfSlots": "Slot Sayısı"
   },
   "goBack": "Geri Dön",
   "AddCreationLanguageDialog": {
@@ -5213,5 +5226,25 @@
       "percentage": "Yüzde",
       "fixedAmount": "Sabit Tutar"
     }
+  },
+  "SpaConfigDialog": {
+    "title": "Spa Tarihlerini Yapılandır",
+    "modeDayOnly": "Sadece Gün Yapılandırması",
+    "modeDaySlots": "Gün + Slotlar",
+    "firstSlotStartTime": "İlk slot başlangıç saati",
+    "numberOfSlots": "Slot sayısı (her biri {{serviceTime}} dk)",
+    "availabilityPerSlot": "Slot başına uygunluk",
+    "eachDayFrom": "her gün",
+    "perSlot": "slot başına"
+  },
+  "SpaSlotAvailabilityModal": {
+    "title": "Slot Uygunluğu —",
+    "availabilityStatus": "müsait",
+    "noRecords": "Uygunluk kaydı bulunamadı",
+    "resDetails": "Rezervasyon Detayları",
+    "resId": "Rezervasyon ID",
+    "deleteTitle": "Uygunluk slotu silinsin mi?",
+    "deleteDescription": "Bu, uygunluk kaydını kalıcı olarak kaldıracaktır. Bu işlem geri alınamaz.",
+    "viewReservation": "Rezervasyonu Görüntüle"
   }
 }
